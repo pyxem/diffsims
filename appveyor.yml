@@ -2,7 +2,7 @@
 environment:
 
   global:
-    DEPS: "hyperspy-base transforms3d diffpy.structure"
+    DEPS: "transforms3d diffpy.structure"
     TEST_DEPS: "pytest"
     MPLBACKEND: "agg"
 
@@ -25,7 +25,7 @@ install:
   - "conda create -y -n testenv python=%PY_VERSION%"
   - "conda activate testenv"
 
-  # Install the dependencies of pyxem.
+  # Install the dependencies of diffsims.
   - 'conda install -yq %DEPS% %TEST_DEPS%'
 
   # Install our package

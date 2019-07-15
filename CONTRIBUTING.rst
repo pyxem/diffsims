@@ -1,22 +1,22 @@
 Contributor Guide
 =================
 
-This guide is intended to get new developers started with contributing to pyxem.
+This guide is intended to get new developers started with contributing to diffsims.
 
 Many potential contributors will be scientists with much expert knowledge but
 potentially little experience with open-source code development. This guide is
 primarily aimed at this audience, helping to reduce the barrier to contribution.
 
 
-Start using pyXem
------------------
+Start using diffsims
+--------------------
 
-The best way to start understanding how pyXem is to use it.
+The best way to start understanding how diffsims is to use it.
 
-For developing the code the home of pyXem is on github and you'll see that
+For developing the code the home of diffsims is on github and you'll see that
 a lot of this guide boils down to using that platform well. so visit the
-following link and poke around the code, issues, and pull requests: `pyXem
-on Github <https://github.com/pyxem/pyxem>`_.
+following link and poke around the code, issues, and pull requests: `diffsims
+on Github <https://github.com/pyxem/diffsims>`_.
 
 It's probably also worth visiting the `Github <https://github.com/>`_ home page
 and going through the "boot camp" to get a feel for the terminology.
@@ -25,15 +25,15 @@ In brief, to give you a hint on the terminology to search for, the contribution
 pattern is:
 
 1. Setup git/github if you don't have it.
-2. Fork pyXem on github.
+2. Fork diffsims on github.
 3. Checkout your fork on your local machine.
 4. Create a new branch locally where you will make your changes.
 5. Push the local changes to your own github fork.
-6. Create a pull request (PR) to the official pyXem repository.
+6. Create a pull request (PR) to the official diffsims repository.
 
-Note: You cannot mess up the main pyXem project. So when you're starting out be
+Note: You cannot mess up the main diffsims project. So when you're starting out be
 confident to play, get it wrong, and if it all goes wrong you can always get a
-fresh install of pyXem!
+fresh install of diffsims!
 
 PS: If you choose to develop in Windows/Mac you may find `Github Desktop
 <https://desktop.github.com>`_ useful.
@@ -48,7 +48,7 @@ Everyone had to start at some point and the philosophy of these projects
 centers around the fact that we can do better by working together.
 
 Much of the conversation happens in 'public' using the 'issues' pages on
-`Github <https://github.com/pyxem/pyxem/issues>`_ -- doing things in public can
+`Github <https://github.com/pyxem/diffsims/issues>`_ -- doing things in public can
 be scary but it ensures that issues are identified and logged until dealt with.
 This is also a good place to make a proposal for some new feature or tool that
 you want to work on.
@@ -68,7 +68,7 @@ Use git to work in managable branches
 Git is an open source "version control" system that enables you to can separate
 out your modifications to the code into many versions (called branches) and
 switch between them easily. Later you can choose which version you want to have
-integrated into pyXem.
+integrated into diffsims.
 
 You can learn all about Git `here <http://www.git-scm.com/about>`_!
 
@@ -79,16 +79,16 @@ small advancement on the "master" code or on another branch.
 Get the style right
 -------------------
 
-pyXem follows the Style Guide for Python Code - these are just some rules for
+diffsims follows the Style Guide for Python Code - these are just some rules for
 consistency that you can read all about in the `Python Style Guide
 <https://www.python.org/dev/peps/pep-0008/>`_.
 
 To enforce this, we require that the following auto correction is applied at the
 end of pull request. The simplest option is to run (from the home directory of
-pyxem)
+diffsims)
 
 Note that if you have recently run tests locally you may have a test generated
-file pyxem/file_01.pickle on your machine, which should be deleted prior to
+file diffsims/file_01.pickle on your machine, which should be deleted prior to
 running the following code.
 
 Linux:
@@ -112,13 +112,13 @@ Windows:
 Writing tests
 -------------
 
-pyXem aims to have all of the functions within it tested, which involves writing
+diffsims aims to have all of the functions within it tested, which involves writing
 short methods that call the functions and check output values agains known
 answers. Good tests should depend on as few other features as possible so that
 when they break we know exactly what caused it.
 
-pyXem uses the `pytest <http://doc.pytest.org/>`_ library for testing. The
-tests reside in the ``pyxem.tests`` module. To run them (from the pyXem project
+diffsims uses the `pytest <http://doc.pytest.org/>`_ library for testing. The
+tests reside in the ``diffsims.tests`` module. To run them (from the diffsims project
 folder):
 
 .. code:: bash
@@ -138,7 +138,7 @@ Useful hints on testing:
 
 .. code:: bash
 
-   pytest --cov=pyxem
+   pytest --cov=diffsims
 
 * Some useful fixtures (a basic diffraction pattern, a basic structure...) can
   be found in conftest.py, you can just call these directly in the test suite.
@@ -158,5 +158,4 @@ as shown in `this example <https://github.com/numpy/numpy/blob/master/doc/exampl
 Learn more
 ==========
 
-1. HyperSpy's `contribution guide <http://hyperspy.org/hyperspy-doc/current/dev_guide.html#developer-guide>`__: a lot of nice information on how to contribute to a scientific Python project.
-2. The Python programming language, `for beginners <https://www.python.org/about/gettingstarted/>`__.
+1. The Python programming language, `for beginners <https://www.python.org/about/gettingstarted/>`__.
