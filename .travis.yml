@@ -2,7 +2,8 @@ language: python
 
 env:
   global:
-    - DEPS="glob logging os warnings pickle itertools scipy math collections matplotlib numpy tqdm transforms3d diffpy.structure"
+    - CONDA_DEPS="scipy matplotlib numpy tqdm transforms3d diffpy.structure"
+    - PIP_DEPS="glob logging os warnings pickle itertools math collections"
     - TEST_DEPS="pytest pytest-cov coveralls"
 
 matrix:
@@ -34,7 +35,8 @@ before_install:
   - df -h
 
 install:
-  - conda install -y $DEPS $TEST_DEPS;
+  - conda install -y $CONDA_DEPS $TEST_DEPS;
+  - pip install $PIP_DEPS
   - pip install .
 
 script:
