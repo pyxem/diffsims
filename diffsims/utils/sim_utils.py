@@ -416,6 +416,25 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     return spot_indicies, spot_coords, spot_distances
 
 
+def is_lattice_hexagonal(latt):
+    """Determines if a diffpy lattice is hexagonal or trigonal.
+    Parameters
+    ----------
+    latt : diffpy.Structure.lattice
+        The diffpy lattice object to be determined as hexagonal or not.
+    Returns
+    -------
+    is_true : bool
+        True if hexagonal or trigonal.
+    """
+    truth_list = []
+    truth_list.append(latt.a == latt.b)
+    truth_list.append(latt.alpha == 90)
+    truth_list.append(latt.beta == 90)
+    truth_list.append(latt.gamma == 120)
+return len(truth_list) == np.sum(truth_list)
+
+
 def uvtw_to_uvw(uvtw):
     """Convert 4-index direction to a 3-index direction.
 
