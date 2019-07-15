@@ -2,7 +2,7 @@
 environment:
 
   global:
-    DEPS: "transforms3d diffpy.structure"
+    DEPS: "scipy matplotlib numpy tqdm transforms3d diffpy.structure"
     TEST_DEPS: "pytest"
     MPLBACKEND: "agg"
 
