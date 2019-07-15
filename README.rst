@@ -16,12 +16,8 @@
 .. _doi: https://doi.org/10.5281/zenodo.2649351
 
 
-pyXem is an open-source python library for crystallographic electron microscopy.
+diffsims is an open-source python library for simulating X-ray & electron diffraction.
 
-The package defines objects and functions for the analysis of numerous electron diffraction patterns and has been primarily developed as a platform for hybrid diffraction-imaging microscopy based on 4D scanning electron diffraction (SED) data.
+If simulations performed using diffsims form a part of published work please cite the DOI at the top of this page. 
 
-**Installation instructions, documentation and tutorial examples are available** `here <https://pyxem.github.io/pyxem-website>`__ .
-
-If analysis using pyXem forms a part of published work please cite the DOI at the top of this page. 
-
-pyXem is released under the GPL v3 license. 
+diffsims is released under the GPL v3 license. 
