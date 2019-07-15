@@ -23,10 +23,11 @@ import warnings
 
 import numpy as np
 
-#from .sims.diffraction_simulation import DiffractionSimulation
-
 from .generators.diffraction_generator import DiffractionGenerator
 from .generators.library_generator import DiffractionLibraryGenerator
+from .generators.library_generator import VectorLibraryGenerator
+
+from .sims.diffraction_simulation import DiffractionSimulation
 
 _logger = logging.getLogger(__name__)
 

@@ -21,6 +21,8 @@ import os
 import numpy as np
 import diffpy.structure
 
+from diffsims.generators.library_generator import VectorLibraryGenerator
+
 from diffsims.libraries.vector_library import load_VectorLibrary
 from diffsims.libraries.structure_library import StructureLibrary
 
@@ -28,7 +30,7 @@ from diffsims.libraries.structure_library import StructureLibrary
 @pytest.fixture
 def get_library(default_structure):
     structure_library = StructureLibrary(['Phase'], [default_structure], [[(0, 0, 0), (0, 0.2, 0)]])
-    vlg = pxm.VectorLibraryGenerator(structure_library)
+    vlg = VectorLibraryGenerator(structure_library)
     return vlg.get_vector_library(0.5)
 
 
