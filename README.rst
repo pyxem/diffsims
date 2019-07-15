@@ -3,7 +3,7 @@
 .. |Travis| image:: https://travis-ci.org/pyxem/diffsims.svg?branch=master
 .. _Travis: https://travis-ci.org/pyxem/diffsims
 
-.. |AppVeyor| image:: https://ci.appveyor.com/api/projects/status/github/diffsims/diffsims?svg=true&branch=master
+.. |AppVeyor| image:: https://ci.appveyor.com/api/projects/status/github/pyxem/diffsims?svg=true&branch=master
 .. _AppVeyor: https://ci.appveyor.com/project/dnjohnstone/diffsims/branch/master
 
 .. |Coveralls| image:: https://coveralls.io/repos/github/pyxem/diffsims/badge.svg?branch=master
