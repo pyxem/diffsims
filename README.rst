@@ -1,13 +1,13 @@
 |Travis|_ |AppVeyor|_ |Coveralls|_ |pypi_version|_  |doi|_
 
-.. |Travis| image:: https://travis-ci.org/diffsims/diffsims.svg?branch=master
-.. _Travis: https://travis-ci.org/diffsims/diffsims
+.. |Travis| image:: https://travis-ci.org/pyxem/diffsims.svg?branch=master
+.. _Travis: https://travis-ci.org/pyxem/diffsims
 
 .. |AppVeyor| image:: https://ci.appveyor.com/api/projects/status/github/diffsims/diffsims?svg=true&branch=master
 .. _AppVeyor: https://ci.appveyor.com/project/dnjohnstone/diffsims/branch/master
 
-.. |Coveralls| image:: https://coveralls.io/repos/github/diffsims/diffsims/badge.svg?branch=master
-.. _Coveralls: https://coveralls.io/github/diffsims/diffsims?branch=master
+.. |Coveralls| image:: https://coveralls.io/repos/github/pyxem/diffsims/badge.svg?branch=master
+.. _Coveralls: https://coveralls.io/github/pyxem/diffsims?branch=master
 
 .. |pypi_version| image:: http://img.shields.io/pypi/v/diffsims.svg?style=flat
 .. _pypi_version: https://pypi.python.org/pypi/diffsims
