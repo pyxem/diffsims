@@ -1,13 +1,9 @@
 [run]
-source = pyxem
-include = */pyxem/*
+source = diffsims
+include = */diffsims/*
 omit =
-     */pyxem/io_plugins/mib.py
-     */pyxem/__init__.py
-     */pyxem/utils/atomic_scattering_params.py
-     */pyxem/utils/scattering_params.py
-     */pyxem/utils/peakfinder2D_gui.py
-     */pyxem/version.py
-     */pyxem/utils/__init__.py
-     */pyxem/signals/__init__.py
-     */pyxem/io_plugins/__init__.py
+     */diffsims/__init__.py
+     */diffsims/utils/atomic_scattering_params.py
+     */diffsims/utils/scattering_params.py
+     */diffsims/version.py
+     */diffsims/utils/__init__.py

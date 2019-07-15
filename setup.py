@@ -1,35 +1,34 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright 2017-2019 The pyXem developers
+# Copyright 2017-2019 The diffsims developers
 #
-# This file is part of pyXem.
+# This file is part of diffsims.
 #
-# pyXem is free software: you can redistribute it and/or modify
+# diffsims is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# pyXem is distributed in the hope that it will be useful,
+# diffsims is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with pyXem.  If not, see <http://www.gnu.org/licenses/>.
+# along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 from setuptools import setup, find_packages
 
-exec(open('pyxem/version.py').read())  # grab version info
+exec(open('diffsims/version.py').read())  # grab version info
 
 
 setup(
-    name='pyxem',
+    name='diffsims',
     version=__version__,
-    description='Crystallographic Electron Microscopy in Python.',
+    description='Diffraction Simulations in Python.',
     author=__author__,
     author_email=__email__,
     license="GPLv3",
-    url="https://github.com/pyxem/pyxem",
+    url="https://github.com/pyxem/diffsims",
     long_description=open('README.rst').read(),
     classifiers=[
 	"Programming Language :: Python :: 3",
@@ -47,15 +46,13 @@ setup(
     packages=find_packages(),
     # adjust the tabbing
     install_requires=[
-    	'scikit-image == 0.15.0', # See pyxem/pull/378
+      'scikit-image == 0.15.0', # See pyxem/pull/378
       'matplotlib < 3.1.0' , # See pyxem/pull/403
-      'scikit-learn >= 0.19', # bug unknown
-     	'hyperspy >= 1.3',      # 1.2 fails, (NTU Workshop - May 2019) 
-      'transforms3d',        
+      'transforms3d',
       'diffpy.structure >= 3.0.0' # First Python 3 support
-      ],                       
+      ],
     package_data={
         "": ["LICENSE", "readme.rst",],
-        "pyxem": ["*.py"],
+        "diffsims": ["*.py"],
     },
 )

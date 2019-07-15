@@ -2,7 +2,7 @@ language: python
 
 env:
   global:
-    - DEPS="hyperspy-base transforms3d diffpy.structure"
+    - DEPS="transforms3d diffpy.structure"
     - TEST_DEPS="pytest pytest-cov coveralls"
 
 matrix:
@@ -13,7 +13,7 @@ matrix:
     os: osx
     language: generic
 
-sudo: True #for Miniconda 
+sudo: True #for Miniconda
 
 before_install:
   # Install miniconda
@@ -39,8 +39,7 @@ install:
 
 script:
   - export MPLBACKEND=Agg
-  - pytest --pyargs pyxem --cov=pyxem
+  - pytest --pyargs diffsims --cov=diffsims
 
 after_success:
   - coveralls
-
