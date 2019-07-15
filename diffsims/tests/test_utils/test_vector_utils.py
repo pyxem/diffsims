@@ -19,8 +19,8 @@
 import numpy as np
 import pytest
 
-from pyxem.utils.vector_utils import get_angle_cartesian
-from pyxem.utils.vector_utils import get_angle_cartesian_vec
+from diffsims.utils.vector_utils import get_angle_cartesian
+from diffsims.utils.vector_utils import get_angle_cartesian_vec
 
 
 @pytest.mark.parametrize('vec_a, vec_b, expected_angle', [
