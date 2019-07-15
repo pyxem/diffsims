@@ -3,7 +3,6 @@ language: python
 env:
   global:
     - CONDA_DEPS="scipy matplotlib numpy tqdm transforms3d diffpy.structure"
-    - PIP_DEPS="math logging os warnings pickle itertools ollections"
     - TEST_DEPS="pytest pytest-cov coveralls"
 
 matrix:
@@ -36,7 +35,6 @@ before_install:
 
 install:
   - conda install -y $CONDA_DEPS $TEST_DEPS;
-  - pip install $PIP_DEPS;
   - pip install .
 
 script:
