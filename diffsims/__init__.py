@@ -38,7 +38,7 @@ def load(filename):
     Parameters
     ----------
     filename : str
-        A single filename of a previously saved pyxem object. Other arguments may
+        A single filename of a previously saved diffsims object. Other arguments may
         succeed, but will have fallen back on hyperspy load and warn accordingly
     *args :
         args to be passed to hyperspy's load function

@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright 2017-2019 The diffsims developers
 #
-# This file is part of diffsism.
+# This file is part of diffsims.
 #
 # diffsims is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with pyXem.  If not, see <http://www.gnu.org/licenses/>.
+# along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 from setuptools import setup, find_packages
 
@@ -54,6 +53,6 @@ setup(
       ],
     package_data={
         "": ["LICENSE", "readme.rst",],
-        "pyxem": ["*.py"],
+        "diffsims": ["*.py"],
     },
 )
