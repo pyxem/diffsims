@@ -164,4 +164,4 @@ class ProfileSimulation:
                 ax.set_xlabel("A ($^{-1}$)")
                 ax.set_ylabel("Intensities (scaled)")
 
-return plt
+        return plt

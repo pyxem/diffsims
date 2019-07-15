@@ -16,17 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-import glob
 import logging
 import os
 import warnings
 
 import numpy as np
 
-from natsort import natsorted
-
 from .generators.diffraction_generator import DiffractionGenerator
 from .generators.library_generator import DiffractionLibraryGenerator
+from .generators.library_generator import VectorLibraryGenerator
+
+from .sims.diffraction_simulation import DiffractionSimulation
 
 _logger = logging.getLogger(__name__)
 

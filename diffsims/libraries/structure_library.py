@@ -18,6 +18,7 @@
 
 import diffsims as ds
 
+
 class StructureLibrary():
     """
     A dictionary containing all the structures and their associated rotations

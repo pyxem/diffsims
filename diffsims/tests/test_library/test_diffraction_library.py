@@ -20,6 +20,9 @@ import pytest
 import os
 import numpy as np
 
+from diffsims.generators.diffraction_generator import DiffractionGenerator
+from diffsims.generators.library_generator import DiffractionLibraryGenerator
+
 from diffsims.sims.diffraction_simulation import DiffractionSimulation
 
 from diffsims.libraries.diffraction_library import load_DiffractionLibrary
@@ -28,8 +31,8 @@ from diffsims.libraries.structure_library import StructureLibrary
 
 @pytest.fixture
 def get_library(default_structure):
-    diffraction_calculator = pxm.DiffractionGenerator(300., 0.02)
-    dfl = pxm.DiffractionLibraryGenerator(diffraction_calculator)
+    diffraction_calculator = DiffractionGenerator(300., 0.02)
+    dfl = DiffractionLibraryGenerator(diffraction_calculator)
     structure_library = StructureLibrary(['Phase'],
                                          [default_structure],
                                          [np.array([(0, 0, 0), (0, 0.2, 0)])])

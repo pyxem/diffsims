@@ -96,6 +96,7 @@ class TestDiffractionCalculator:
         smaller = np.greater_equal(diffraction.intensities[central_beam], diffraction.intensities)
         assert np.all(smaller)
 
+
 scattering_params = ['lobato', 'xtables']
 
 

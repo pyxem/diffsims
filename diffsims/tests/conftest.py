@@ -23,7 +23,6 @@ from transforms3d.euler import euler2mat
 
 from diffsims.libraries.vector_library import DiffractionVectorLibrary
 
-
 @pytest.fixture
 def default_structure():
     """An atomic structure represetned using diffpy

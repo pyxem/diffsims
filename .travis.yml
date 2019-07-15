@@ -2,7 +2,7 @@ language: python
 
 env:
   global:
-    - DEPS="transforms3d diffpy.structure"
+    - CONDA_DEPS="scipy matplotlib numpy tqdm transforms3d diffpy.structure"
     - TEST_DEPS="pytest pytest-cov coveralls"
 
 matrix:
@@ -34,7 +34,7 @@ before_install:
   - df -h
 
 install:
-  - conda install -y $DEPS $TEST_DEPS;
+  - conda install -y $CONDA_DEPS $TEST_DEPS;
   - pip install .
 
 script:
