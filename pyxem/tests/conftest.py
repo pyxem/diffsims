@@ -34,66 +34,6 @@ def default_structure():
     hexagonal_structure = diffpy.structure.Structure(atoms=[atom],lattice=latt)
     return hexagonal_structure
 
-
-@pytest.fixture
-def z():
-    return np.array([[[0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 1., 0., 0., 0., 0.],
-               [0., 0., 1., 2., 1., 0., 0., 0.],
-               [0., 0., 0., 1., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.]],
-              [[0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 1., 0., 0., 0.],
-               [0., 0., 0., 1., 2., 1., 0., 0.],
-               [0., 0., 0., 0., 1., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.]],
-              [[0., 0., 0., 0., 0., 0., 0., 2.],
-               [0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 1., 0., 0., 0., 0.],
-               [0., 0., 1., 2., 1., 0., 0., 0.],
-               [0., 0., 0., 1., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.]],
-              [[0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 2., 0., 0., 0.],
-               [0., 0., 0., 2., 2., 2., 0., 0.],
-               [0., 0., 0., 0., 2., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0., 0., 0., 0.]]]).reshape(2,2,8,8)
-
-@pytest.fixture
-def diffraction_pattern(z):
-    """A simple, multiuse diffraction pattern, with dimensions:
-    ElectronDiffraction <2,2|8,8>
-    """
-    dp = ElectronDiffraction(z)
-    dp.metadata.Signal.found_from = 'conftest' #dummy metadata
-    return dp
-
-@pytest.fixture
-def diffraction_profile(diffraction_pattern):
-    """A simple, multiuse diffraction profile, with dimensions:
-    ElectronDiffractionProfile <2,2|12>
-    """
-    return diffraction_pattern.get_radial_profile()
-
-@pytest.fixture
-def vector_match_peaks():
-    return np.array([
-        [1, 0.1, 0],
-        [0, 2, 0],
-        [1, 2, 3],
-    ])
-
 @pytest.fixture
 def vector_library():
     library = DiffractionVectorLibrary()
@@ -114,40 +54,3 @@ def vector_library():
         diffpy.structure.Structure(lattice=lattice)
     ]
     return library
-
-@pytest.fixture
-def sp_template_match_result():
-    row_1 = np.array([0, np.array([2, 3, 4]), 0.7], dtype='object')
-    row_2 = np.array([0, np.array([2, 3, 5]), 0.6], dtype='object')
-    # note we require (correlation of row_1 > correlation row_2)
-    return np.vstack((row_1, row_2))
-
-
-@pytest.fixture
-def dp_template_match_result():
-    row_1 = np.array([0, np.array([2, 3, 4]), 0.7], dtype='object')
-    row_2 = np.array([0, np.array([2, 3, 5]), 0.8], dtype='object')
-    row_3 = np.array([1, np.array([2, 3, 4]), 0.5], dtype='object')
-    row_4 = np.array([1, np.array([2, 3, 5]), 0.3], dtype='object')
-    return np.vstack((row_1, row_2, row_3, row_4))
-
-
-@pytest.fixture
-def sp_vector_match_result():
-    # We require (total_error of row_1 > correlation row_2)
-    return np.array([
-        # [phase, R, match_rate, ehkls, total_error]
-        np.array([0, euler2mat(*np.deg2rad([0, 0, 90]), 'rzxz'), 0.5, np.array([0.1, 0.05, 0.2]), 0.1], dtype='object'),
-        np.array([0, euler2mat(*np.deg2rad([0, 0, 90]), 'rzxz'), 0.6, np.array([0.1, 0.1, 0.2]), 0.2], dtype='object')
-    ], dtype='object')
-
-
-@pytest.fixture
-def dp_vector_match_result():
-    return np.array([
-        # [phase, R, match_rate, ehkls, total_error]
-        np.array([0, euler2mat(*np.deg2rad([90, 0, 0]), 'rzxz'), 0.6, np.array([0.1, 0.1, 0.2]), 0.3], dtype='object'),
-        np.array([0, euler2mat(*np.deg2rad([0, 10, 20]), 'rzxz'), 0.5, np.array([0.1, 0.05, 0.2]), 0.4], dtype='object'),
-        np.array([1, euler2mat(*np.deg2rad([0, 45, 45]), 'rzxz'), 0.8, np.array([0.1, 0.3, 0.2]), 0.1], dtype='object'),
-        np.array([1, euler2mat(*np.deg2rad([0, 0, 90]), 'rzxz'), 0.7, np.array([0.1, 0.05, 0.1]), 0.2], dtype='object')
-    ], dtype='object')
