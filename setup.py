@@ -46,8 +46,8 @@ setup(
     packages=find_packages(),
     # adjust the tabbing
     install_requires=[
-        'scikit-image == 0.15.0',  # See pyxem/pull/378
-        'matplotlib < 3.1.0',  # See pyxem/pull/403
+        'scikit-image == 0.15.0',
+        'matplotlib < 3.1.0',
         'transforms3d',
         'diffpy.structure >= 3.0.0'  # First Python 3 support
     ],

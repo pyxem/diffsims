@@ -173,7 +173,7 @@ class DiffractionGenerator(object):
 
         Returns
         -------
-        pyxem.ProfileSimulation
+        diffsims.ProfileSimulation
             The diffraction profile corresponding to this structure and
             experimental conditions.
         """
