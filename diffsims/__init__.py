@@ -29,20 +29,3 @@ from .generators.library_generator import VectorLibraryGenerator
 from .sims.diffraction_simulation import DiffractionSimulation
 
 _logger = logging.getLogger(__name__)
-
-
-def load(filename):
-    """
-    An extremely thin wrapper around hyperspy's load function
-
-    Parameters
-    ----------
-    filename : str
-        A single filename of a previously saved diffsims object. Other arguments may
-        succeed, but will have fallen back on hyperspy load and warn accordingly
-    *args :
-        args to be passed to hyperspy's load function
-    **kwargs :
-        kwargs to be passed to hyperspy's load function
-    """
-    pass
