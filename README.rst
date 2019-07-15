@@ -16,7 +16,7 @@
 .. _doi: https://doi.org/10.5281/zenodo.2649351
 
 
-diffsims is an open-source python library for simulating X-ray & electron diffraction.
+diffsims is an open-source python library for simulating diffraction.
 
 If simulations performed using diffsims form a part of published work please cite the DOI at the top of this page.
 
