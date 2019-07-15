@@ -23,8 +23,8 @@
 import numpy as np
 from math import pi
 
-from diffsims.sims.diffraction_simulation import DiffractionSimulation
-from diffsims.sims.diffraction_simulation import ProfileSimulation
+#from diffsims.sims.diffraction_simulation import DiffractionSimulation
+#from diffsims.sims.diffraction_simulation import ProfileSimulation
 
 from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from diffsims.utils.sim_utils import get_electron_wavelength,\

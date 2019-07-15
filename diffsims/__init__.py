@@ -23,7 +23,7 @@ import warnings
 
 import numpy as np
 
-from natsort import natsorted
+#from .sims.diffraction_simulation import DiffractionSimulation
 
 from .generators.diffraction_generator import DiffractionGenerator
 from .generators.library_generator import DiffractionLibraryGenerator

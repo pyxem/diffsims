@@ -20,7 +20,7 @@ import pytest
 import os
 import numpy as np
 
-from diffsims.sims.diffraction_simulation import DiffractionSimulation
+#from diffsims.sims.diffraction_simulation import DiffractionSimulation
 
 from diffsims.libraries.diffraction_library import load_DiffractionLibrary
 from diffsims.libraries.structure_library import StructureLibrary
