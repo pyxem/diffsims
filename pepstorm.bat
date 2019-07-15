@@ -8,7 +8,7 @@ for /D %%G in ("test_*") do (
 	cd ..
 )
 cd ../
-for %%G in (generators libraries utils) do (
+for %%G in (generators libraries sims utils) do (
 	cd %%G
 	for /R %%G in ("*.py") do autopep8 --aggressive --in-place --max-line-length 130 %%G
 	cd ..

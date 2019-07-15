@@ -31,11 +31,11 @@ setup(
     url="https://github.com/pyxem/diffsims",
     long_description=open('README.rst').read(),
     classifiers=[
-	"Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
-	"Programming Language :: Python :: 3.7",
-	"Development Status :: 4 - Beta",
-	"Intended Audience :: Science/Research",
+        "Programming Language :: Python :: 3.7",
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Natural Language :: English",
         "Operating System :: OS Independent",
@@ -46,13 +46,13 @@ setup(
     packages=find_packages(),
     # adjust the tabbing
     install_requires=[
-      'scikit-image == 0.15.0', # See pyxem/pull/378
-      'matplotlib < 3.1.0' , # See pyxem/pull/403
-      'transforms3d',
-      'diffpy.structure >= 3.0.0' # First Python 3 support
-      ],
+        'scikit-image == 0.15.0',  # See pyxem/pull/378
+        'matplotlib < 3.1.0',  # See pyxem/pull/403
+        'transforms3d',
+        'diffpy.structure >= 3.0.0'  # First Python 3 support
+    ],
     package_data={
-        "": ["LICENSE", "readme.rst",],
+        "": ["LICENSE", "readme.rst", ],
         "diffsims": ["*.py"],
     },
 )
