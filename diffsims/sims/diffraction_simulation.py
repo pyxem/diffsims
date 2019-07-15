@@ -19,7 +19,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-import diffsims as ds
 
 class DiffractionSimulation:
     """Holds the result of a kinematic diffraction pattern simulation.
