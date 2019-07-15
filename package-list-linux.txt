@@ -42,7 +42,6 @@ gstreamer=1.14.0=hb453b48_1
 h5py=2.9.0=py37h7918eee_0
 hdf5=1.10.4=hb1b8bf9_0
 heapdict=1.0.0=py37_2
-hyperspy-base=1.4.1=py37h14c3975_1002
 icu=58.2=h9c2bf20_1
 idna=2.8=py37_0
 imageio=2.5.0=py37_0
