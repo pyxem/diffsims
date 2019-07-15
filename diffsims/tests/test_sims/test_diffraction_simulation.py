@@ -23,12 +23,6 @@ from diffsims.sims.diffraction_simulation import ProfileSimulation
 from diffsims.generators.diffraction_generator import DiffractionGenerator
 
 
-@pytest.fixture
-def coords_intensity_simulation():
-    return DiffractionSimulation(coordinates=np.asarray([[0.3, 1.2, 0]]),
-                                 intensities=np.ones(1))
-
-
 @pytest.mark.xfail(raises=ValueError)
 def test_wrong_calibration_setting():
     DiffractionSimulation(coordinates=np.asarray([[0.3, 1.2, 0]]),

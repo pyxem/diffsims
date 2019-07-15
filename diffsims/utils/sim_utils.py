@@ -377,77 +377,6 @@ def simulate_rotated_structure(diffraction_generator, structure, rotation_matrix
         with_direct_beam)
 
 
-def peaks_from_best_template(single_match_result, library):
-    """ Takes a TemplateMatchingResults object and return the associated peaks,
-    to be used in combination with map().
-
-    Parameters
-    ----------
-    single_match_result : ndarray
-        An entry in a TemplateMatchingResults.
-    library : DiffractionLibrary
-        Diffraction library containing the phases and rotations.
-
-    Returns
-    -------
-    peaks : array
-        Coordinates of peaks in the matching results object in calibrated units.
-    """
-    best_fit = single_match_result[np.argmax(single_match_result[:, 2])]
-    phase_names = list(library.keys())
-    best_index = int(best_fit[0])
-    phase = phase_names[best_index]
-    try:
-        simulation = library.get_library_entry(
-            phase=phase,
-            angle=tuple(best_fit[1]))['Sim']
-    except ValueError:
-        structure = library.structures[best_index]
-        rotation_matrix = euler2mat(*np.deg2rad(best_fit[1]), 'rzxz')
-        simulation = simulate_rotated_structure(
-            library.diffraction_generator,
-            structure,
-            rotation_matrix,
-            library.reciprocal_radius,
-            library.with_direct_beam)
-
-    peaks = simulation.coordinates[:, :2]  # cut z
-    return peaks
-
-
-def peaks_from_best_vector_match(single_match_result, library):
-    """ Takes a VectorMatchingResults object and return the associated peaks,
-    to be used in combination with map().
-
-    Parameters
-    ----------
-    single_match_result : ndarray
-        An entry in a VectorMatchingResults
-    library : DiffractionLibrary
-        Diffraction library containing the phases and rotations
-
-    Returns
-    -------
-    peaks : ndarray
-        Coordinates of peaks in the matching results object in calibrated units.
-    """
-    best_fit = single_match_result[np.argmax(single_match_result[:, 2])]
-    best_index = best_fit[0]
-
-    rotation_matrix = best_fit[1]
-    # Don't change the original
-    structure = library.structures[best_index]
-    sim = simulate_rotated_structure(
-        library.diffraction_generator,
-        structure,
-        rotation_matrix,
-        library.reciprocal_radius,
-        with_direct_beam=False)
-
-    # Cut z
-    return sim.coordinates[:, :2]
-
-
 def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     """Finds all reciprocal lattice points inside a given reciprocal sphere.
     Utilised within the DiffractionGenerator.
@@ -489,12 +418,10 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
 
 def is_lattice_hexagonal(latt):
     """Determines if a diffpy lattice is hexagonal or trigonal.
-
     Parameters
     ----------
     latt : diffpy.Structure.lattice
         The diffpy lattice object to be determined as hexagonal or not.
-
     Returns
     -------
     is_true : bool
@@ -506,66 +433,6 @@ def is_lattice_hexagonal(latt):
     truth_list.append(latt.beta == 90)
     truth_list.append(latt.gamma == 120)
     return len(truth_list) == np.sum(truth_list)
-
-
-def transfer_navigation_axes(new_signal, old_signal):
-    """ Transfers navigation axis calibrations from an old signal to a new
-    signal produced from it by a method or a generator.
-
-    Parameters
-    ----------
-    new_signal : Signal
-        The product signal with undefined navigation axes.
-    old_signal : Signal
-        The parent signal with calibrated navigation axes.
-
-    Returns
-    -------
-    new_signal : Signal
-        The new signal with calibrated navigation axes.
-    """
-    new_signal.axes_manager.set_signal_dimension(
-        len(new_signal.data.shape) - old_signal.axes_manager.navigation_dimension)
-
-    for i in range(min(new_signal.axes_manager.navigation_dimension,
-                       old_signal.axes_manager.navigation_dimension)):
-        ax_new = new_signal.axes_manager.navigation_axes[i]
-        ax_old = old_signal.axes_manager.navigation_axes[i]
-        ax_new.name = ax_old.name
-        ax_new.scale = ax_old.scale
-        ax_new.units = ax_old.units
-
-    return new_signal
-
-
-def transfer_navigation_axes_to_signal_axes(new_signal, old_signal):
-    """ Transfers navigation axis calibrations from an old signal to the signal
-    axes of a new signal produced from it by a method or a generator.
-
-    Used from methods that generate a signal with a single value at each
-    navigation position.
-
-    Parameters
-    ----------
-    new_signal : Signal
-        The product signal with undefined navigation axes.
-    old_signal : Signal
-        The parent signal with calibrated navigation axes.
-
-    Returns
-    -------
-    new_signal : Signal
-        The new signal with calibrated signal axes.
-    """
-    for i in range(min(new_signal.axes_manager.signal_dimension,
-                       old_signal.axes_manager.navigation_dimension)):
-        ax_new = new_signal.axes_manager.signal_axes[i]
-        ax_old = old_signal.axes_manager.navigation_axes[i]
-        ax_new.name = ax_old.name
-        ax_new.scale = ax_old.scale
-        ax_new.units = ax_old.units
-
-    return new_signal
 
 
 def uvtw_to_uvw(uvtw):

@@ -18,6 +18,9 @@
 
 import numpy as np
 import pytest
+
+from diffsims.sims.diffraction_simulation import DiffractionSimulation
+from diffsims.sims.diffraction_simulation import ProfileSimulation
 from diffsims.generators.diffraction_generator import DiffractionGenerator
 import diffpy.structure
 
@@ -96,6 +99,19 @@ class TestDiffractionCalculator:
         smaller = np.greater_equal(diffraction.intensities[central_beam], diffraction.intensities)
         assert np.all(smaller)
 
+    def test_calculate_profile_class(self, local_structure, diffraction_calculator):
+        # tests the non-hexagonal (cubic) case
+        profile = diffraction_calculator.calculate_profile_data(local_structure,
+                                                                reciprocal_radius=1.)
+        assert isinstance(profile, ProfileSimulation)
+
+        latt = diffpy.structure.lattice.Lattice(3, 3, 5, 90, 90, 120)
+        atom = diffpy.structure.atom.Atom(atype='Ni', xyz=[0, 0, 0], lattice=latt)
+        hexagonal_structure = diffpy.structure.Structure(atoms=[atom], lattice=latt)
+        hexagonal_profile = diffraction_calculator.calculate_profile_data(structure=hexagonal_structure,
+                                                                          reciprocal_radius=1.)
+        assert isinstance(hexagonal_profile, ProfileSimulation)
+
 
 scattering_params = ['lobato', 'xtables']
 
@@ -110,4 +126,4 @@ def test_param_check(scattering_param):
 def test_invalid_scattering_params():
     scattering_param = '_empty'
     generator = DiffractionGenerator(300, 0.2, None,
-                                     scattering_params=scattering_param)
+scattering_params=scattering_param)
