@@ -1,26 +1,24 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2019 The pyXem developers
+# Copyright 2017-2019 The diffsims developers
 #
-# This file is part of pyXem.
+# This file is part of diffsims.
 #
-# pyXem is free software: you can redistribute it and/or modify
+# diffsims is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# pyXem is distributed in the hope that it will be useful,
+# diffsims is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with pyXem.  If not, see <http://www.gnu.org/licenses/>.
+# along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
 import pytest
-from pyxem.signals.diffraction_simulation import DiffractionSimulation
-from pyxem.signals.diffraction_simulation import ProfileSimulation
-from pyxem.generators.diffraction_generator import DiffractionGenerator
+from diffsims.generators.diffraction_generator import DiffractionGenerator
 import diffpy.structure
 
 
@@ -97,20 +95,6 @@ class TestDiffractionCalculator:
         central_beam = indices.index((0, 0, 0))
         smaller = np.greater_equal(diffraction.intensities[central_beam], diffraction.intensities)
         assert np.all(smaller)
-
-    def test_calculate_profile_class(self, local_structure, diffraction_calculator):
-        # tests the non-hexagonal (cubic) case
-        profile = diffraction_calculator.calculate_profile_data(local_structure,
-                                                                reciprocal_radius=1.)
-        assert isinstance(profile, ProfileSimulation)
-
-        latt = diffpy.structure.lattice.Lattice(3, 3, 5, 90, 90, 120)
-        atom = diffpy.structure.atom.Atom(atype='Ni', xyz=[0, 0, 0], lattice=latt)
-        hexagonal_structure = diffpy.structure.Structure(atoms=[atom], lattice=latt)
-        hexagonal_profile = diffraction_calculator.calculate_profile_data(structure=hexagonal_structure,
-                                                                          reciprocal_radius=1.)
-        assert isinstance(hexagonal_profile, ProfileSimulation)
-
 
 scattering_params = ['lobato', 'xtables']
 
