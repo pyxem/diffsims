@@ -2,7 +2,7 @@ language: python
 
 env:
   global:
-    - DEPS="transforms3d diffpy.structure"
+    - DEPS="glob logging os warnings pickle itertools scipy math collections matplotlib numpy tqdm transforms3d diffpy.structure"
     - TEST_DEPS="pytest pytest-cov coveralls"
 
 matrix:
