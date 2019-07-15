@@ -432,7 +432,7 @@ def is_lattice_hexagonal(latt):
     truth_list.append(latt.alpha == 90)
     truth_list.append(latt.beta == 90)
     truth_list.append(latt.gamma == 120)
-return len(truth_list) == np.sum(truth_list)
+    return len(truth_list) == np.sum(truth_list)
 
 
 def uvtw_to_uvw(uvtw):
