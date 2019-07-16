@@ -46,7 +46,6 @@ setup(
     packages=find_packages(),
     # adjust the tabbing
     install_requires=[
-        'python>=3.6',
         'scipy>=0.15',
         'numpy>=1.10',
         'scikit-image==0.15.0',
@@ -55,6 +54,7 @@ setup(
         'transforms3d',
         'diffpy.structure>=3.0.0'  # First Python 3 support
     ],
+    python_requires='>=3.6',
     package_data={
         "": ["LICENSE", "readme.rst", ],
         "diffsims": ["*.py"],
