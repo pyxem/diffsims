@@ -48,7 +48,6 @@ setup(
     install_requires=[
         'scipy>=0.15',
         'numpy>=1.10',
-        'scikit-image==0.15.0',
         'matplotlib>=3.1.1',
         'tqdm>=0.4.9',
         'transforms3d',
