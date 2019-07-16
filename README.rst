@@ -12,8 +12,8 @@
 .. |pypi_version| image:: http://img.shields.io/pypi/v/diffsims.svg?style=flat
 .. _pypi_version: https://pypi.python.org/pypi/diffsims
 
-.. |doi| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.2649351.svg
-.. _doi: https://doi.org/10.5281/zenodo.2649351
+.. |doi| image:: https://zenodo.org/badge/DOI/110.5281/zenodo.3337900.svg
+.. _doi: https://doi.org/10.5281/zenodo.3337900
 
 
 diffsims is an open-source python library for simulating diffraction.
