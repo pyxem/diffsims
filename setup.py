@@ -46,7 +46,7 @@ setup(
     packages=find_packages(),
     # adjust the tabbing
     install_requires=[
-        'python<=3.6',
+        'python>=3.6',
         'scipy>=0.15',
         'numpy>=1.10',
         'scikit-image==0.15.0',
