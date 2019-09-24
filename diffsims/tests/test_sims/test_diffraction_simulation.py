@@ -136,3 +136,6 @@ class TestDiffractionSimulation:
         diffraction_simulation.calibration = calibration
         diffraction_simulation.offset = offset
         assert np.allclose(diffraction_simulation.calibrated_coordinates, expected)
+
+    def test_assertion_free_get_diffraction_pattern(self,diffraction_simulation):
+        z = diffraction_simulation.get_diffraction_pattern()
