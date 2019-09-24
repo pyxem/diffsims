@@ -18,6 +18,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import ndimage as ndi
 
 
 class DiffractionSimulation:
@@ -113,7 +114,41 @@ class DiffractionSimulation:
     @intensities.setter
     def intensities(self, intensities):
         self._intensities = intensities
+    
+    def get_diffraction_pattern(sim,size=512,sigma=10):
+        """Returns the diffraction data as a numpy array with
+        two-dimensional Gaussians representing each diffracted peak. Should only
+        be used for qualitative work.
 
+        Parameters
+        ----------
+        size  : int
+            The size of a side length (in pixels)
+
+        sigma : float
+            Standard deviation of the Gaussian function to be plotted (in pixels).
+
+        Returns
+        -------
+        diffraction-pattern : numpy.array
+            The simulated electron diffraction pattern, normalised.
+
+        Notes
+        -----
+        If don't know the exact calibration of your diffraction signal using 1e-2
+        produces reasonably good patterns when the lattice parameters are on
+        the order of 0.5nm and a the default size and sigma are used.
+        """
+        side_length = np.min(np.multiply((size/2),sim.calibration))
+        mask_for_sides = np.abs(sim.coordinates[:, 0:2]) < side_length
+
+        spot_coords = np.add(sim.calibrated_coordinates[mask_for_sides],size/2).astype(int)
+        spot_intens = sim.intensities[mask_for_sides]
+        pattern = np.zeros([size, size])
+        pattern[spot_coords[:,0],spot_coords[:,1]] = spot_intens
+        pattern = ndi.gaussian_filter(pattern,sigma)
+
+        return np.divide(pattern,np.max(pattern))
 
 class ProfileSimulation:
     """Holds the result of a given kinematic simulation of a diffraction profile
