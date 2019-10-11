@@ -16,37 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-import pickle
 import numpy as np
-
-
-def load_DiffractionLibrary(filename, safety=False):
-    """Loads a previously saved diffraction library.
-
-    Parameters
-    ----------
-    filename : str
-        The location of the file to be loaded
-    safety : bool (defaults to False)
-        Unpickling is risky, this variable requires you to acknowledge this.
-
-    Returns
-    -------
-    DiffractionLibrary
-        Previously saved Library
-
-    See Also
-    --------
-    DiffractionLibrary.pickle_library()
-
-    """
-    if safety:
-        with open(filename, 'rb') as handle:
-            return pickle.load(handle)
-    else:
-        raise RuntimeError('Unpickling is risky, turn safety to True if \
-        trust the author of this content')
-
 
 def _get_library_entry_from_angles(library, phase, angles):
     """Finds an element that is orientation within 1e-5 of that specified.
@@ -152,19 +122,3 @@ class DiffractionLibrary(dict):
             'pixel_coords': phase_entry['pixel_coords'][orientation_index],
             'pattern_norm': np.linalg.norm(phase_entry['intensities'][orientation_index])
         }
-
-    def pickle_library(self, filename):
-        """Saves a diffraction library in the pickle format.
-
-        Parameters
-        ----------
-        filename : str
-            The location in which to save the file
-
-        See Also
-        --------
-        load_DiffractionLibrary()
-
-        """
-        with open(filename, 'wb') as handle:
-            pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
