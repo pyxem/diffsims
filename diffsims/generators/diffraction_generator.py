@@ -68,12 +68,8 @@ class DiffractionGenerator(object):
         self.max_excitation_error = max_excitation_error
         self.debye_waller_factors = debye_waller_factors or {}
 
-        scattering_params_dict = {
-            'lobato': 'lobato',
-            'xtables': 'xtables'
-        }
-        if scattering_params in scattering_params_dict:
-            self.scattering_params = scattering_params_dict[scattering_params]
+        if scattering_params in ['lobato','xtables']:
+            self.scattering_params = scattering_params
         else:
             raise NotImplementedError("The scattering parameters `{}` is not implemented. "
                                       "See documentation for available "
