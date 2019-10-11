@@ -92,7 +92,7 @@ class DiffractionGenerator(object):
             reciprocal angstroms.
         with_direct_beam : bool
             If True, the direct beam is included in the simulated diffraction
-            pattern. If False, it is not.
+            pattern.
 
         Returns
         -------
