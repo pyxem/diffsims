@@ -15,3 +15,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
+
+
+def get_method_from_string(string,method_dict):
+    """
+
+    """
+
+    if string in method_dict.keys():
+        return method_dict[string]
+    else:
+        raise NotImplementedError("The option `{}` is not implemented. "
+                                    "See documentation for available "
+                                    "implementations.".format(method_dict.keys()))
