@@ -60,8 +60,7 @@ class DiffractionGenerator(object):
 
     """
     # TODO: Refactor the excitation error to a structure property.
-    scattering_params_dict = {'xtables':ATOMIC_SCATTERING_PARAMS,
-                              'lobato':ATOMIC_SCATTERING_PARAMS_LOBATO}
+
 
     def __init__(self,
                  accelerating_voltage,
@@ -71,6 +70,9 @@ class DiffractionGenerator(object):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         self.max_excitation_error = max_excitation_error
         self.debye_waller_factors = debye_waller_factors or {}
+        
+        scattering_params_dict = {'xtables':ATOMIC_SCATTERING_PARAMS,
+                                  'lobato':ATOMIC_SCATTERING_PARAMS_LOBATO}
         self.scattering_params = get_method_from_string(scattering_params,
                                                         scattering_params_dict)
 
