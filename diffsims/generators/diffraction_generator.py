@@ -26,7 +26,9 @@ from math import pi
 from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.sims.diffraction_simulation import ProfileSimulation
 
-from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
+from diffsims.utils import get_method_from_string
+from diffsims.utils.xtables_scattering_params import ATOMIC_SCATTERING_PARAMS
+from diffsims.utils.lobato_scattering_params import ATOMIC_SCATTERING_PARAMS_LOBATO
 from diffsims.utils.sim_utils import get_electron_wavelength,\
     get_kinematical_intensities, get_unique_families, get_points_in_sphere, \
     get_vectorized_list_for_atomic_scattering_factors, is_lattice_hexagonal
@@ -58,6 +60,8 @@ class DiffractionGenerator(object):
 
     """
     # TODO: Refactor the excitation error to a structure property.
+    scattering_params_dict = {'xtables':ATOMIC_SCATTERING_PARAMS,
+                              'lobato':ATOMIC_SCATTERING_PARAMS_LOBATO}
 
     def __init__(self,
                  accelerating_voltage,
@@ -67,13 +71,9 @@ class DiffractionGenerator(object):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         self.max_excitation_error = max_excitation_error
         self.debye_waller_factors = debye_waller_factors or {}
+        self.scattering_params = get_method_from_string(scattering_params,
+                                                        scattering_params_dict)
 
-        if scattering_params in ['lobato','xtables']:
-            self.scattering_params = scattering_params
-        else:
-            raise NotImplementedError("The scattering parameters `{}` is not implemented. "
-                                      "See documentation for available "
-                                      "implementations.".format(scattering_params))
 
     def calculate_ed_data(self,
                           structure,
