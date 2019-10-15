@@ -3,7 +3,5 @@ source = diffsims
 include = */diffsims/*
 omit =
      */diffsims/__init__.py
-     */diffsims/utils/atomic_scattering_params.py
-     */diffsims/utils/scattering_params.py
      */diffsims/version.py
      */diffsims/utils/__init__.py
