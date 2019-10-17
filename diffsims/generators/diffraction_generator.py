@@ -69,7 +69,7 @@ class DiffractionGenerator(object):
         self.debye_waller_factors = debye_waller_factors or {}
 
         if scattering_params in ['lobato','xtables']:
-            self.scattering_params = scattering_params_dict[scattering_params]
+            self.scattering_params = scattering_params
         else:
             raise NotImplementedError("The scattering parameters `{}` is not implemented. "
                                       "See documentation for available "
