@@ -16,36 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-import pickle
 import numpy as np
-
-
-def load_VectorLibrary(filename, safety=False):
-    """Loads a previously saved vectorlibrary.
-
-    Parameters
-    ----------
-    filename : str
-        The location of the file to be loaded
-    safety : bool (defaults to False)
-        Unpickling is risky, this variable requires you to acknowledge this.
-
-    Returns
-    -------
-    VectorLibrary
-        Previously saved Library
-
-    See Also
-    --------
-    VectorLibrary.pickle_library()
-    """
-    if safety:
-        with open(filename, 'rb') as handle:
-            return pickle.load(handle)
-    else:
-        raise RuntimeError('Unpickling is risky, turn safety to True if \
-        trust the author of this content')
-
 
 class DiffractionVectorLibrary(dict):
     """Maps crystal structure (phase) to diffraction vectors.
@@ -74,19 +45,3 @@ class DiffractionVectorLibrary(dict):
         self.identifiers = None
         self.structures = None
         self.reciprocal_radius = None
-
-    def pickle_library(self, filename):
-        """Saves a vector library in the pickle format.
-
-        Parameters
-        ----------
-        filename : str
-            The location in which to save the file
-
-        See Also
-        --------
-            load_VectorLibrary()
-
-        """
-        with open(filename, 'wb') as handle:
-            pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
