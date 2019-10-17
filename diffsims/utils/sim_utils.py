@@ -113,31 +113,6 @@ def get_unique_families(hkls):
 
     return pretty_unique
 
-
-def get_scattering_params_dict(scattering_params):
-    """Get scattering parameter dictionary from name.
-
-    Parameters
-    ----------
-    scattering_params : string
-        Name of scattering factors. One of 'lobato', 'xtables'.
-
-    Returns
-    -------
-    scattering_params_dict : dict
-        Dictionary of scattering parameters mapping from element name.
-    """
-    if scattering_params == 'lobato':
-        scattering_params_dict = ATOMIC_SCATTERING_PARAMS_LOBATO
-    elif scattering_params == 'xtables':
-        scattering_params_dict = ATOMIC_SCATTERING_PARAMS
-    else:
-        raise NotImplementedError("The scattering parameters `{}` are not implemented. "
-                                  "See documentation for available "
-                                  "implementations.".format(scattering_params))
-    return scattering_params_dict
-
-
 def get_vectorized_list_for_atomic_scattering_factors(structure,
                                                       debye_waller_factors,
                                                       scattering_params):
