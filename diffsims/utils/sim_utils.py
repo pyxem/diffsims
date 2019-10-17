@@ -27,11 +27,15 @@ from transforms3d.axangles import axangle2mat
 from transforms3d.euler import mat2euler
 from transforms3d.euler import euler2mat
 
+from . import get_method_from_string
 from .xtables_scattering_params import ATOMIC_SCATTERING_PARAMS
 from .lobato_scattering_params import ATOMIC_SCATTERING_PARAMS_LOBATO
 
 #from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.utils.vector_utils import get_angle_cartesian
+
+scattering_params_dict = {'xtables':ATOMIC_SCATTERING_PARAMS,
+                          'lobato':ATOMIC_SCATTERING_PARAMS_LOBATO}
 
 
 def get_electron_wavelength(accelerating_voltage):
@@ -143,7 +147,7 @@ def get_vectorized_list_for_atomic_scattering_factors(structure,
         Debye-Waller factors for each atom in the structure.
     """
 
-    scattering_params_dict = get_scattering_params_dict(scattering_params)
+    scattering_params_dict = get_method_from_string(scattering_params,scattering_params_dict)
 
     n_structures = len(structure)
     coeffs = np.empty((n_structures, 5, 2))
@@ -281,7 +285,7 @@ def simulate_kinematic_scattering(atomic_coordinates,
         ElectronDiffraction simulation.
     """
     # Get atomic scattering parameters for specified element.
-    coeffs = np.array(get_scattering_params_dict(scattering_params)[element])
+    coeffs = np.array(get_method_from_string(scattering_params,scattering_params_dict)[element])
 
     # Calculate electron wavelength for given keV.
     wavelength = get_electron_wavelength(accelerating_voltage)
