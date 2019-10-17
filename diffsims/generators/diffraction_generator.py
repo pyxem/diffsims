@@ -53,9 +53,9 @@ class DiffractionGenerator(object):
     max_excitation_error : float
         The maximum extent of the relrods in reciprocal angstroms. Typically
         equal to 1/{specimen thickness}.
-    debye_waller_factors : dict of str : float
+    debye_waller_factors : dict of str or float
         Maps element names to their temperature-dependent Debye-Waller factors.
-
+    scattering_params : 'lobato' or 'xtables'
     """
     # TODO: Refactor the excitation error to a structure property.
 
@@ -68,11 +68,7 @@ class DiffractionGenerator(object):
         self.max_excitation_error = max_excitation_error
         self.debye_waller_factors = debye_waller_factors or {}
 
-        scattering_params_dict = {
-            'lobato': 'lobato',
-            'xtables': 'xtables'
-        }
-        if scattering_params in scattering_params_dict:
+        if scattering_params in ['lobato','xtables']:
             self.scattering_params = scattering_params_dict[scattering_params]
         else:
             raise NotImplementedError("The scattering parameters `{}` is not implemented. "
