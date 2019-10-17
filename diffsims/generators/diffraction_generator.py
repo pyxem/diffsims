@@ -67,13 +67,8 @@ class DiffractionGenerator(object):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         self.max_excitation_error = max_excitation_error
         self.debye_waller_factors = debye_waller_factors or {}
+        self.scattering_params_string = scattering_params
 
-        if scattering_params in ['lobato','xtables']:
-            self.scattering_params = scattering_params
-        else:
-            raise NotImplementedError("The scattering parameters `{}` is not implemented. "
-                                      "See documentation for available "
-                                      "implementations.".format(scattering_params))
 
     def calculate_ed_data(self,
                           structure,
@@ -105,7 +100,7 @@ class DiffractionGenerator(object):
         max_excitation_error = self.max_excitation_error
         debye_waller_factors = self.debye_waller_factors
         latt = structure.lattice
-        scattering_params = self.scattering_params
+        scattering_params = self.scattering_params_string
 
         # Obtain crystallographic reciprocal lattice points within `max_r` and
         # g-vector magnitudes for intensity calculations.
@@ -175,7 +170,7 @@ class DiffractionGenerator(object):
         """
         max_r = reciprocal_radius
         wavelength = self.wavelength
-        scattering_params = self.scattering_params
+        scattering_params = self.scattering_params_string
 
         latt = structure.lattice
         is_hex = is_lattice_hexagonal(latt)
