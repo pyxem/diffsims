@@ -131,11 +131,10 @@ class DiffractionLibraryGenerator:
         return diffraction_library
 
 
-def _generate_lookup_table(recip_latt=recip_latt,
-                           reciprocal_radius=reciprocal_radius, 
-                           unique=True)
-    """
-    Generate a look-up table with all combinations of indices,
+def _generate_lookup_table(recip_latt,
+                           reciprocal_radius, 
+                           unique=True):
+    """Generate a look-up table with all combinations of indices,
     including their reciprocal distances and the angle between
     them.   
 
