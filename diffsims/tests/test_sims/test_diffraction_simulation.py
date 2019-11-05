@@ -138,7 +138,7 @@ class TestDiffractionSimulation:
         assert np.allclose(diffraction_simulation.calibrated_coordinates, expected)
 
     def test_assertion_free_get_diffraction_pattern(self):
-        short_sim =  DiffractionSimulation(coordinates=np.asarray([[0.3, 1.2, 0]]),
+        short_sim = DiffractionSimulation(coordinates=np.asarray([[0.3, 1.2, 0]]),
                           intensities=np.ones(1),
                           calibration=[1, 2])
 

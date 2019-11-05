@@ -27,9 +27,10 @@ from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.sims.diffraction_simulation import ProfileSimulation
 
 from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
-from diffsims.utils.sim_utils import get_electron_wavelength,\
+from diffsims.utils.sim_utils import get_electron_wavelength, \
     get_kinematical_intensities, get_unique_families, get_points_in_sphere, \
     get_vectorized_list_for_atomic_scattering_factors, is_lattice_hexagonal
+from diffsims.utils.fourier_transform import fromFreq
 
 
 class DiffractionGenerator(object):
@@ -121,7 +122,7 @@ class DiffractionGenerator(object):
         # excitation error and store the magnitude of their excitation error.
         r_sphere = 1 / wavelength
         r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
-        z_sphere = -np.sqrt(r_sphere**2 - r_spot**2) + r_sphere
+        z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
         proximity = np.absolute(z_sphere - cartesian_coordinates[:, 2])
         intersection = proximity < max_excitation_error
         # Mask parameters corresponding to excited reflections.
@@ -201,7 +202,7 @@ class DiffractionGenerator(object):
             d_hkl = 1 / g_hkl
 
             # Bragg condition
-            #theta = asin(wavelength * g_hkl / 2)
+            # theta = asin(wavelength * g_hkl / 2)
 
             # s = sin(theta) / wavelength = 1 / 2d = |ghkl| / 2 (d =
             # 1/|ghkl|)
@@ -228,11 +229,11 @@ class DiffractionGenerator(object):
             # Intensity for hkl is modulus square of structure factor.
             i_hkl = (f_hkl * f_hkl.conjugate()).real
 
-            #two_theta = degrees(2 * theta)
+            # two_theta = degrees(2 * theta)
 
             if is_hex:
                 # Use Miller-Bravais indices for hexagonal lattices.
-                hkl = (hkl[0], hkl[1], - hkl[0] - hkl[1], hkl[2])
+                hkl = (hkl[0], hkl[1], -hkl[0] - hkl[1], hkl[2])
 
             peaks[g_hkl] = [i_hkl, [tuple(hkl)], d_hkl]
 
@@ -254,3 +255,108 @@ class DiffractionGenerator(object):
         y = y / max(y) * 100
 
         return ProfileSimulation(x, y, hkls)
+
+
+class AtomicDiffractionGenerator:
+    '''
+    Computes electron diffraction patterns for an atomic lattice.
+
+    Parameters
+    ----------
+    accelerating_voltage : float (or 'inf')
+        The accelerating voltage of the microscope in kV
+    detector : list of 1D ndarrays
+        List of mesh vectors defining the (flat) detector size and sensor positions
+    reciprocal_mesh : bool
+        If True then <detector> is assumed to be a reciprocal grid, else
+        (default) it is assumed to be a real grid.
+
+    '''
+    # TODO: kV or keV?
+    # TODO: assuming all units are angstroms
+
+    def __init__(self, accelerating_voltage, detector,
+                 reciprocal_mesh=False, debye_waller_factors=None):
+        self.wavelength = get_electron_wavelength(accelerating_voltage)
+        # Always store a 'real' mesh
+        self.detector = detector if not reciprocal_mesh else fromFreq(detector)
+
+        if debye_waller_factors:
+            raise NotImplementedError('Not implemented for this simulator')
+        self.debye_waller_factors = debye_waller_factors or {}
+
+    def calculate_ed_data(self, structure, probe, slice_thickness,
+                          probe_centre=None, precessed=False, mode='kinematic',
+                          **kwargs):
+        '''
+        Calculates single electron diffraction image for particular atomic
+        structure and probe.
+
+        Parameters
+        ----------
+        coordinates : ndarray of floats, shape [n_atoms, 3]
+            List of atomic coordinates, i.e. atom i is centred at <coordinates>[i]
+        species : ndarray of integers, shape [n_atoms]
+            List of atomic numbers, i.e. atom i has atomic number <species>[i]
+        probe : # TODO: probe needs to be a special object
+        slice_thickness : float
+            Discretisation thickness in the z-axis
+        probe_centre : ndarray (or iterable), shape [3] or [2]
+            Translation vector for the probe. Either of the same dimension of the
+            space or the dimension of the detector. default=None focusses the
+            probe at [0,0,0]
+        precessed : bool, float, or (float, int)
+            Dictates whether beam precession is simulated. If False or the float is
+            0 then no precession is computed. If <precessed> = (alpha, n) then the
+            precession arc of tilt alpha (in degrees) is discretised into n
+            projections. If n is not provided then default of 30 is used.
+        mode : str
+            Only <mode>='kinematic' is currently supported.
+        kwargs : dictionary
+            Extra key-word arguments to pass to child simulator
+
+
+        Returns
+        -------
+        ndarray
+            Diffraction data to be interpreted as a discretisation on the original
+            detector mesh.
+
+        '''
+        # TODO: document kwargs?..
+
+        species = structure.element
+        coordinates = structure.xyz_cartn.reshape(species.size, -1)
+        dim = coordinates.shape[1]
+        assert dim == 3
+
+        if probe_centre is None:
+            probe_centre = np.zeros(dim)
+        elif len(probe_centre) < dim:
+            probe_centre = np.array(list(probe_centre) + [0])
+        probe_centre = np.array(probe_centre)
+
+        if not precessed:
+            precessed = (float(0), 1)
+        elif np.isscalar(precessed):
+            precessed = (float(precessed), 30)
+
+        # Filter list of atoms
+        for d in range(dim - 1):
+            ind = coordinates[:, d] >= self.detector[d].min() + probe_centre[d] - 20
+            coordinates, species = coordinates[ind, :], species[ind]
+            ind = coordinates[:, d] <= self.detector[d].max() + probe_centre[d] + 20
+            coordinates, species = coordinates[ind, :], species[ind]
+
+        # Add z-coordinate
+        x = list(self.detector) + [np.linspace(coordinates[:, -1].min() - 20,
+                                               coordinates[:, -1].max() + 20,
+                                               slice_thickness)]
+
+        if mode == 'kinematic':
+            from diffsims.sims import kinematic_simulation as simlib
+        else:
+            raise NotImplementedError('<mode> = %s is not currently supported' % repr(mode))
+
+        return simlib.get_diffraction_image(coordinates, species, probe, x,
+                                            self.wavelength, precessed, **kwargs)

@@ -109,3 +109,5 @@ src/
 
 # VScode project settings
 .vscode/
+/.project
+/.pydevproject
