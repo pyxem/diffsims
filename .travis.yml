@@ -2,7 +2,7 @@ language: python
 
 env:
   global:
-    - DEPS="numba"
+    - DEPS="psutil numba"
     - TEST_DEPS="pytest pytest-cov coveralls"
 
 matrix:
