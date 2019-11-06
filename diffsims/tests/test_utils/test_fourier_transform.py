@@ -13,12 +13,12 @@ from diffsims.utils.fourier_transform import (plan_fft, plan_ifft, fftn, ifftn,
 from diffsims.utils.discretise_utils import getA
 
 
-def toMesh(x):
+def _toMesh(x):
     y = np.meshgrid(*x, indexing='ij')
     return np.concatenate([z[..., None] for z in y], axis=-1)
 
 
-def random_array(shape, n=0):
+def _random_array(shape, n=0):
     x = np.zeros(np.prod(shape), dtype='float64')
     primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61,
               67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
@@ -35,7 +35,7 @@ standard_test = ([(20,), 1], [(38,), 2],
 
 @pytest.mark.parametrize('shape, n', standard_test)
 def test_plan(shape, n):
-    x = random_array(shape, n)
+    x = _random_array(shape, n)
     f1, x1 = plan_fft(x)
     f2, x2 = plan_ifft(x)
     x1[...], x2[...] = x, x
@@ -46,7 +46,7 @@ def test_plan(shape, n):
 
 @pytest.mark.parametrize('shape, n', standard_test)
 def test_fftshift(shape, n):
-    x = random_array(shape, n) + 1
+    x = _random_array(shape, n) + 1
     y = fftshift(fftn(x))
     z = ifftn(ifftshift(y))
     Y = x.copy()
@@ -59,7 +59,7 @@ def test_fftshift(shape, n):
 
 @pytest.mark.parametrize('shape, n', standard_test)
 def test_fast_abs(shape, n):
-    x = random_array(shape, n)
+    x = _random_array(shape, n)
     y = np.empty(shape, dtype=x.dtype)
     z = fast_abs(x, y)
 
@@ -106,7 +106,7 @@ def test_DFT(rX, rY):
     x, y = getFTpoints(len(rX), rX=rX, rY=rY)
 
     f, g = getA(0, returnFunc=True)
-    f, g = f(toMesh(x)), g(toMesh(y))
+    f, g = f(_toMesh(x)), g(_toMesh(y))
 
     ft, ift = getDFT(x, y)
 
@@ -121,8 +121,8 @@ def test_DFT(rX, rY):
     ([10, 11], [10, 11], 4, 8),
 ])
 def test_convolve(shape1, shape2, n1, n2):
-    x = random_array(shape1, n1)
-    y = random_array(shape2, n2)
+    x = _random_array(shape1, n1)
+    y = _random_array(shape2, n2)
 
     c1 = convolve(x, y)
     c2 = ifftn(fftn(x) * fftn(ifftshift(y)))

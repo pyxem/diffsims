@@ -712,6 +712,7 @@ def getDiscretisation(loc, Z, x, pointwise=False, FT=False):
     if z.size > 1:
         return sum(getDiscretisation(loc[Z == zz], zz, x, pointwise, FT) for zz in z)
 
+    # TODO: allow cuda/cpu to be a user choice
     GPU = bool(_CUDA)
 
     Z = z[0]
@@ -770,7 +771,6 @@ def getDiscretisation(loc, Z, x, pointwise=False, FT=False):
 
         if subList is None:
             # Volume is too large for memory, halve it in each dimension
-            # TODO: assumption of 3D
             Slice = [None] * 3
             for i in range(2):
                 Slice[0] = slice(out.shape[0] // 2, None) if i else slice(out.shape[0] // 2)

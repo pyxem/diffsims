@@ -9,7 +9,7 @@ import numpy as np
 from diffsims.utils.discretise_utils import (getA, getDiscretisation, _CUDA)
 
 
-def toMesh(x):
+def _toMesh(x):
     y = np.meshgrid(*x, indexing='ij')
     return np.concatenate([z[..., None] for z in y], axis=-1)
 
@@ -32,7 +32,7 @@ def test_getA(Z, returnFunc):
     a, b = getA(Z, returnFunc)
     if returnFunc:
         x = [np.linspace(0, 1, 10), np.linspace(0, 1, 21), np.linspace(0, 1, 32)]
-        x = toMesh(x)
+        x = _toMesh(x)
         f = a(x)
         FT = b(x)
         assert x.shape == (10, 21, 32, 3)
@@ -53,7 +53,7 @@ def test_getA(Z, returnFunc):
 def test_getDiscretisation(n, shape):
     atoms, species = create_atoms(n, shape)
     x = [np.linspace(0, .1, 10), np.linspace(0, .1, 21), np.linspace(0, .1, 32)]
-    X = toMesh(x)
+    X = _toMesh(x)
 
     f1 = getDiscretisation(atoms, species, x, True, False)
     FT1 = getDiscretisation(atoms, species, x, True, True)

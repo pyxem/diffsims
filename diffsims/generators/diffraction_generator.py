@@ -298,7 +298,8 @@ class AtomicDiffractionGenerator:
             List of atomic coordinates, i.e. atom i is centred at <coordinates>[i]
         species : ndarray of integers, shape [n_atoms]
             List of atomic numbers, i.e. atom i has atomic number <species>[i]
-        probe : # TODO: probe needs to be a special object
+        probe : instance of probeFunction
+            Function representing 3D shape of beam
         slice_thickness : float
             Discretisation thickness in the z-axis
         probe_centre : ndarray (or iterable), shape [3] or [2]

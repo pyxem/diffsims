@@ -418,7 +418,7 @@ def getFTpoints(ndim, n=None, dX=inf, rX=0, dY=inf, rY=1e-16):
     return X, Y
 
 
-def getDFT(X, Y):
+def getDFT(X=None, Y=None):
     '''
     Returns discrete analogues for the Fourier/inverse Fourier transform pair
     defined from grid X to grid Y and back again.
@@ -430,6 +430,8 @@ def getDFT(X, Y):
     Y : list-like of 1D ndarrays
         Corresponding mesh on Fourier space
 
+    If either X or Y is None then it is inferred from the other
+
     Returns
     -------
     DFT : function(f, axes=None)
@@ -440,6 +442,13 @@ def getDFT(X, Y):
         of <f> on <X>. axes parameter can be used to specify which axes to transform.
 
     '''
+    if X is None and Y is None:
+        raise ValueError('Either X or Y must be provided')
+    elif X is None:
+        X = fromFreq(Y)
+    elif Y is None:
+        Y = toFreq(X)
+
     ndim = len(X)
     dx = [x.item(min(1, x.size - 1)) - x.item(0) for x in X]
     xmin = [x.item(0) for x in X]

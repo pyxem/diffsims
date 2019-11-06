@@ -28,4 +28,6 @@ from .generators.library_generator import VectorLibraryGenerator
 
 from .sims.diffraction_simulation import DiffractionSimulation
 
+from .utils.probe_utils import probeFunction, BesselProbe
+
 _logger = logging.getLogger(__name__)

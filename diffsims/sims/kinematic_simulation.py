@@ -27,7 +27,8 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
         List of atomic coordinates
     species : ndarray of shape [n_atoms] and integer type
         List of atomic numbers
-    probe : # TODO: decide probe object
+    probe : instance of probeFunction
+        Function representing 3D shape of beam
     x : list of length 3 of 1D ndarrays
         Mesh on which to compute the volume density
     wavelength : float
@@ -48,6 +49,7 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
     y = toFreq(x)
     if wavelength == 0:
         p = probe(x).mean(-1)
+        # TODO: shouldn't have to compute the full volume
         vol = getDiscretisation(coordinates, species, x, pointwise).mean(-1)
 #         print(vol.max())
 #         vol = getDiscretisation(coordinates, species, x[:2], pointwise).sum(-1)
