@@ -15,16 +15,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
-from numpy import unique, require, array, arange, ones, pi, zeros, empty, \
-    ascontiguousarray, sqrt, random, isscalar
-from diffsims.utils.generic_utils import getGrid
 
 """Utils for converting lists of atoms to a discretised volume
 
 """
 
+from numpy import unique, require, array, arange, ones, pi, zeros, empty, \
+    ascontiguousarray, sqrt, random, isscalar, exp, prod
+from diffsims.utils.generic_utils import getGrid
 from psutil import virtual_memory
-import numpy as np
 from scipy.special import erf
 import numba
 from .generic_utils import _CUDA, cuda
@@ -68,7 +67,7 @@ def getA(Z, returnFunc=True):
         Z = array([Z])
     if Z.dtype.char not in 'US':
         Z = Z.astype(int)
-    Z = np.unique(Z)
+    Z = unique(Z)
     if Z.size > 1:
         raise ValueError('Only 1 atom can generated at once')
     else:
@@ -137,15 +136,15 @@ def getA(Z, returnFunc=True):
         a = [0.4054, 1.3880, 2.1602, 3.7532, 2.2063,
              0.3499, 3.0991, 11.9608, 53.9353, 142.3892]
 
-    a, b = np.array(a[:5], dtype=FTYPE), np.array(a[5:], dtype=FTYPE)
-    b /= (4 * np.pi) ** 2  # Weird scaling in initial paper
+    a, b = array(a[:5], dtype=FTYPE), array(a[5:], dtype=FTYPE)
+    b /= (4 * pi) ** 2  # Weird scaling in initial paper
 
     def myAtom(x):
         dim = x.shape[-1]
         x = abs(x * x).sum(-1)
         y = 0
         for i in range(5):
-            y += (a[i] / (4 * np.pi * b[i]) ** (dim / 2)) * np.exp(-x / (4 * b[i]))
+            y += (a[i] / (4 * pi * b[i]) ** (dim / 2)) * exp(-x / (4 * b[i]))
 
         return y
 
@@ -153,7 +152,7 @@ def getA(Z, returnFunc=True):
         x = abs(x * x).sum(-1)
         y = 0
         for i in range(5):
-            y += a[i] * np.exp(-b[i] * x)
+            y += a[i] * exp(-b[i] * x)
         return y
 
     if returnFunc:
@@ -191,7 +190,7 @@ def __atom(a, b, x, dx, pointwise=False):
     '''
     if pointwise:
         n = sum(X * X for X in x)
-        return sum(a[i] * np.exp(-b[i] * n) for i in range(a.size))
+        return sum(a[i] * exp(-b[i] * n) for i in range(a.size))
     else:
         Sum = 0
         for i in range(a.size):
@@ -202,7 +201,7 @@ def __atom(a, b, x, dx, pointwise=False):
                     prod *= 2 / B
                 else:
                     prod *= (erf(B * (x[j] + dx[j] / 2))
-                             -erf(B * (x[j] - dx[j] / 2))) * np.pi ** .5 / (2 * dx[j] * B)
+                             -erf(B * (x[j] - dx[j] / 2))) * pi ** .5 / (2 * dx[j] * B)
             Sum += a[i] * prod
         return Sum
 
@@ -239,8 +238,8 @@ def __precomp(a, b, dx, pointwise=False):
         while f(Rmax) > c_exp(LOG0) * f(0):
             Rmax *= 1.1
         h = max(Rmax / 200, max(dx) / 10)
-        pms = np.array([Rmax ** 2, 1 / h])
-        precomp = np.array([f(x) for x in np.arange(0, Rmax + 2 * h, h)], dtype=FTYPE)
+        pms = array([Rmax ** 2, 1 / h])
+        precomp = array([f(x) for x in arange(0, Rmax + 2 * h, h)], dtype=FTYPE)
     else:
 
         def f(i, j, x):
@@ -249,10 +248,10 @@ def __precomp(a, b, dx, pointwise=False):
             if dx[j] == 0:
                 return A * 2 / B
             return A * (c_erf(B * (x + dx[j] / 2))
-                        -c_erf(B * (x - dx[j] / 2))) / (2 * dx[j] * B) * np.pi ** .5
+                        -c_erf(B * (x - dx[j] / 2))) / (2 * dx[j] * B) * pi ** .5
 
         h = [D / 10 for D in dx]
-        Rmax = np.ones([a.size, 3], dtype=FTYPE)
+        Rmax = ones([a.size, 3], dtype=FTYPE)
         L = 1
         for i in range(a.size):
             for j in range(3):
@@ -263,12 +262,12 @@ def __precomp(a, b, dx, pointwise=False):
                     Rmax[i, j] *= 1.1
                     L = max(L, Rmax[i, j] / h[j] + 2)
         L = min(200, int(ceil(L)))
-        precomp, grid = np.zeros([a.size, 3, L], dtype=FTYPE), np.arange(L)
+        precomp, grid = zeros([a.size, 3, L], dtype=FTYPE), arange(L)
         for i in range(a.size):
             for j in range(3):
                 h[j] = Rmax[:, j].max() / (L - 2)
-                precomp[i, j] = np.array([f(i, j, x * h[j]) for x in grid], dtype=FTYPE)
-        pms = np.array([Rmax.max(0), 1 / np.array(h)], dtype=FTYPE)
+                precomp[i, j] = array([f(i, j, x * h[j]) for x in grid], dtype=FTYPE)
+        pms = array([Rmax.max(0), 1 / array(h)], dtype=FTYPE)
         Rmax = Rmax.max(0).min()
     return precomp, pms, Rmax
 
@@ -385,23 +384,23 @@ def rebin(x, loc, r, k, mem):
     assert len(x) == 3, 'x must represent a 3 dimensional grid'
     mem = virtual_memory().available if mem is None else mem
 
-    if np.isscalar(r):
-        r = np.array([r, r, r], dtype='f4')
+    if isscalar(r):
+        r = array([r, r, r], dtype='f4')
     else:
         r = r.copy()
-    xmin = np.array([X.item(0) if X.size > 1 else -1e5 for X in x], dtype=x[0].dtype)
+    xmin = array([X.item(0) if X.size > 1 else -1e5 for X in x], dtype=x[0].dtype)
     nbins = [int(ceil((x[i].item(-1) - x[i].item(0)) / r[i])) + 1
              for i in range(3)]
-    if np.prod(nbins) * 32 * 10 > mem:
+    if prod(nbins) * 32 * 10 > mem:
         raise MemoryError
-    Len = np.zeros(nbins, dtype='i4')
+    Len = zeros(nbins, dtype='i4')
     L = int(mem / (Len.size * Len.itemsize)) + 2
     __countbins(xmin[0], xmin[1], xmin[2], loc, r, k, Len, L)
 
     L = Len.max()
     if Len.size * Len.itemsize * L > mem:
         raise MemoryError
-    subList = np.zeros(nbins + [L], dtype='i4')
+    subList = zeros(nbins + [L], dtype='i4')
     Len.fill(0)
     __rebin(xmin[0], xmin[1], xmin[2], loc, subList, r, k, Len)
 
@@ -421,7 +420,7 @@ def doBinning(x, loc, Rmax, d, GPU):
 
     while k > 0:
         # Proposed coarse grid size
-        r = np.array([2e5 if D == 0 else max(Rmax / k, D) for D in d], dtype='f4')
+        r = array([2e5 if D == 0 else max(Rmax / k, D) for D in d], dtype='f4')
 
         subList = None
         try:
