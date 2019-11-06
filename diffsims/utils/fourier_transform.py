@@ -6,8 +6,8 @@ Module provides optimised fft and Fourier transform approximation.
 @author: Rob Tovey
 '''
 
-from numpy import array, pi, inf, ceil, arange, exp, isscalar, prod, require, \
-    empty
+from numpy import (array, pi, inf, ceil, arange, exp, isscalar, prod, require,
+    empty)
 from numpy.fft import fftfreq
 import numba
 
@@ -16,6 +16,7 @@ import numba
 # By default, uses the pyfftw implementations. If a lot of identical ffts are
 # needed then use the planning functions.
 try:
+    # TODO: add pyfftw, cudatoolkit to test dependencies
     import pyfftw
     next_fast_len = pyfftw.next_fast_len
     from pyfftw.interfaces.numpy_fft import fftn, ifftn, ifftshift, fftshift
@@ -129,6 +130,8 @@ except ImportError:
     from scipy.fftpack import fftn, ifftn, ifftshift, fftshift, next_fast_len
     from numpy.fft import fftn, ifftn, ifftshift, fftshift
 
+    _fftn, _ifftn = fftn, ifftn
+
     def plan_fft(A, n=None, axis=None, norm=None, **_):
         '''
         Plans an fft for repeated use.
@@ -205,6 +208,10 @@ except ImportError:
             Array which should be modified inplace for ifft to be computed
         '''
         return lambda : ifftn(A, n, axis, norm), A
+
+    def fftn(a, s=None, axes=None, norm=None, **_): return _fftn(a, s, axes, norm)
+
+    def ifftn(a, s=None, axes=None, norm=None, **_): return _ifftn(a, s, axes, norm)
 
 
 def fast_fft_len(n):

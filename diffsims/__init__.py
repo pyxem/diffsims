@@ -22,7 +22,7 @@ import warnings
 
 import numpy as np
 
-from .generators.diffraction_generator import DiffractionGenerator
+from .generators.diffraction_generator import DiffractionGenerator, AtomicDiffractionGenerator
 from .generators.library_generator import DiffractionLibraryGenerator
 from .generators.library_generator import VectorLibraryGenerator
 
