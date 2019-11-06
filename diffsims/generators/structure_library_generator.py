@@ -27,7 +27,7 @@ from diffsims.utils.sim_utils import rotation_list_stereographic
 stereographic_corners = {
     'cubic': [(0, 0, 1), (1, 0, 1), (1, 1, 1)],
     'hexagonal': [(0, 0, 0, 1), (1, 0, -1, 0), (1, 1, -2, 0)],
-    'orthorombic': [(0, 0, 1), (1, 0, 0), (0, 1, 0)],
+    'orthorhombic': [(0, 0, 1), (1, 0, 0), (0, 1, 0)],
     'tetragonal': [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
     'trigonal': [(0, 0, 0, 1), (0, -1, 1, 0), (1, -1, 0, 0)],
     'monoclinic': [(0, 0, 1), (0, 1, 0), (0, -1, 0)]
@@ -43,7 +43,7 @@ class StructureLibraryGenerator:
         Array of three-component phase descriptions, where the phase
         description is [<phase name> : string, <structure> :
         diffpy.structure.Structure, <crystal system> : string], and crystal
-        system is one of 'cubic', 'hexagonal', 'orthorombic', 'tetragonal',
+        system is one of 'cubic', 'hexagonal', 'orthorhombic', 'tetragonal',
         'trigonal', 'monoclinic'.
 
     Attributes
