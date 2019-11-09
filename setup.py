@@ -23,7 +23,7 @@ exec(open('diffsims/release_info.py').read())  # grab version info
 
 setup(
     name=name,
-    version=version__,
+    version=version,
     description='Diffraction Simulations in Python.',
     author=author,
     author_email=email,
