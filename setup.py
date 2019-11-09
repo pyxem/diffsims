@@ -18,16 +18,16 @@
 
 from setuptools import setup, find_packages
 
-exec(open('diffsims/version.py').read())  # grab version info
+exec(open('diffsims/release_info.py').read())  # grab version info
 
 
 setup(
-    name='diffsims',
-    version=__version__,
+    name=name,
+    version=version__,
     description='Diffraction Simulations in Python.',
-    author=__author__,
-    author_email=__email__,
-    license="GPLv3",
+    author=author,
+    author_email=email,
+    license=license,
     url="https://github.com/pyxem/diffsims",
     long_description=open('README.rst').read(),
     classifiers=[
