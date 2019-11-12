@@ -272,8 +272,6 @@ class AtomicDiffractionGenerator:
         (default) it is assumed to be a real grid.
 
     '''
-    # TODO: kV or keV?
-    # TODO: assuming all units are angstroms
 
     def __init__(self, accelerating_voltage, detector,
                  reciprocal_mesh=False, debye_waller_factors=None):
@@ -286,8 +284,8 @@ class AtomicDiffractionGenerator:
         self.debye_waller_factors = debye_waller_factors or {}
 
     def calculate_ed_data(self, structure, probe, slice_thickness,
-                          probe_centre=None, precessed=False, mode='kinematic',
-                          **kwargs):
+                          probe_centre=None, precessed=False, dtype='float64',
+                          ZERO=1e-14, mode='kinematic', **kwargs):
         '''
         Calculates single electron diffraction image for particular atomic
         structure and probe.
@@ -311,6 +309,11 @@ class AtomicDiffractionGenerator:
             0 then no precession is computed. If <precessed> = (alpha, n) then the
             precession arc of tilt alpha (in degrees) is discretised into n
             projections. If n is not provided then default of 30 is used.
+        dtype : str or numpy.dtype
+            Defines the precision to use whilst computing diffraction image.
+        ZERO : float > 0
+            Rounding error permitted in computation of atomic density. This value is
+            the smallest value rounded to 0. Default is 1e-14.
         mode : str
             Only <mode>='kinematic' is currently supported.
         kwargs : dictionary
@@ -342,6 +345,12 @@ class AtomicDiffractionGenerator:
         elif np.isscalar(precessed):
             precessed = (float(precessed), 30)
 
+        dtype = np.dtype(dtype)
+        dtype = round(dtype.itemsize / (1 if dtype.kind == 'f' else 2))
+        dtype = 'f' + str(dtype), 'c' + str(2 * dtype)
+
+        assert ZERO > 0
+
         # Filter list of atoms
         for d in range(dim - 1):
             ind = coordinates[:, d] >= self.detector[d].min() + probe_centre[d] - 20
@@ -359,5 +368,7 @@ class AtomicDiffractionGenerator:
         else:
             raise NotImplementedError('<mode> = %s is not currently supported' % repr(mode))
 
+        kwargs['dtype'] = dtype
+        kwargs['ZERO'] = ZERO
         return simlib.get_diffraction_image(coordinates, species, probe, x,
                                             self.wavelength, precessed, **kwargs)

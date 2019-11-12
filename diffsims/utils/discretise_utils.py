@@ -30,17 +30,15 @@ from .generic_utils import _CUDA, cuda
 c_abs = abs
 from math import (sqrt as c_sqrt, exp as c_exp, erf as c_erf, ceil, cos as c_cos,
                   sin as c_sin, floor)
-LOG0 = -20  # TODO: in prismatic this is a user parameter
-# TODO: decide these precisions
 FTYPE, CTYPE = 'f8', 'c16'
-c_FTYPE = numba.float64 if True else numba.float32
+c_FTYPE = numba.float64 if FTYPE[1] == '8' else numba.float32
 
 
 ##########
 # Look-up table of atoms
 ##########
-def getA(Z, returnFunc=True):
-    '''
+def getA(Z, returnFunc=True, dtype=FTYPE):
+    """
     This function returns an approximation of the atom
     with atomic number Z using a list of Gaussians.
 
@@ -62,7 +60,7 @@ def getA(Z, returnFunc=True):
     Elastic and Absorptive Electron Atomic Scattering
     Factors' by L.-M. Peng, G. Ren, S. L. Dudarev and
     M. J. Whelan, 1996
-    '''
+    """
     if isscalar(Z):
         Z = array([Z])
     if Z.dtype.char not in 'US':
@@ -136,7 +134,7 @@ def getA(Z, returnFunc=True):
         a = [0.4054, 1.3880, 2.1602, 3.7532, 2.2063,
              0.3499, 3.0991, 11.9608, 53.9353, 142.3892]
 
-    a, b = array(a[:5], dtype=FTYPE), array(a[5:], dtype=FTYPE)
+    a, b = array(a[:5], dtype=dtype), array(a[5:], dtype=dtype)
     b /= (4 * pi) ** 2  # Weird scaling in initial paper
 
     def myAtom(x):
@@ -165,7 +163,7 @@ def getA(Z, returnFunc=True):
 # Evaluate single atom intensities
 ##########
 def __atom(a, b, x, dx, pointwise=False):
-    '''
+    """
     Compute atomic intensities.
 
     Parameters
@@ -187,7 +185,7 @@ def __atom(a, b, x, dx, pointwise=False):
     out : array
         Atomic intensities evaluated as detailed above. out.shape = x[i].shape
         for each i.
-    '''
+    """
     if pointwise:
         n = sum(X * X for X in x)
         return sum(a[i] * exp(-b[i] * n) for i in range(a.size))
@@ -204,72 +202,6 @@ def __atom(a, b, x, dx, pointwise=False):
                              -erf(B * (x[j] - dx[j] / 2))) * pi ** .5 / (2 * dx[j] * B)
             Sum += a[i] * prod
         return Sum
-
-
-def __precomp(a, b, dx, pointwise=False):
-    '''
-    Helper for computing atomic intensities. This function precomputes
-    values so that __atom(a,b,x,dx,True) = __atom_pw_cpu(*x,*__precomp(a,b,dx,True))
-    etc.
-
-    Parameters
-    ----------
-    a, b : 1D arrays of same length
-        Continuous atom is represented by: y\mapsto sum_i a[i]*exp(-b[i]*|y|^2)
-    dx : array-like
-        Physical dimensions of a single pixel. Depending on the <pointwise> flag,
-        returned value approximates the intensity on the box [x-dx/2, x+dx/2]
-    pointwise: bool (default=False)
-        If true, the evaluation is pointwise. If false, returns average intensity
-        over box defined by <dx>.
-
-    Returns
-    -------
-    precomp : array
-        Radial profile of atom intensities
-    params : array
-        Grid spacings to convert real positions to indices
-    Rmax : float
-        The cut-off radius for this atom
-    '''
-    if pointwise:
-        f = lambda x: sum(a[i] * c_exp(-b[i] * x ** 2) for i in range(a.size))
-        Rmax = 1
-        while f(Rmax) > c_exp(LOG0) * f(0):
-            Rmax *= 1.1
-        h = max(Rmax / 200, max(dx) / 10)
-        pms = array([Rmax ** 2, 1 / h])
-        precomp = array([f(x) for x in arange(0, Rmax + 2 * h, h)], dtype=FTYPE)
-    else:
-
-        def f(i, j, x):
-            A = a[i] ** (1 / 3)  # factor spread evenly over 3 dimensions
-            B = b[i] ** .5
-            if dx[j] == 0:
-                return A * 2 / B
-            return A * (c_erf(B * (x + dx[j] / 2))
-                        -c_erf(B * (x - dx[j] / 2))) / (2 * dx[j] * B) * pi ** .5
-
-        h = [D / 10 for D in dx]
-        Rmax = ones([a.size, 3], dtype=FTYPE)
-        L = 1
-        for i in range(a.size):
-            for j in range(3):
-                if dx[j] == 0:
-                    Rmax[i, j] = 1e5
-                    continue
-                while f(i, j, Rmax[i, j]) > c_exp(LOG0) * f(i, j, 0):
-                    Rmax[i, j] *= 1.1
-                    L = max(L, Rmax[i, j] / h[j] + 2)
-        L = min(200, int(ceil(L)))
-        precomp, grid = zeros([a.size, 3, L], dtype=FTYPE), arange(L)
-        for i in range(a.size):
-            for j in range(3):
-                h[j] = Rmax[:, j].max() / (L - 2)
-                precomp[i, j] = array([f(i, j, x * h[j]) for x in grid], dtype=FTYPE)
-        pms = array([Rmax.max(0), 1 / array(h)], dtype=FTYPE)
-        Rmax = Rmax.max(0).min()
-    return precomp, pms, Rmax
 
 
 @numba.jit(fastmath=True, nopython=True)
@@ -377,10 +309,10 @@ def __rebin(x0, x1, x2, loc, sublist, r, s, Len):
 
 
 def rebin(x, loc, r, k, mem):
-    '''
+    """
     x is the grid for the discretisation, used for bounding box
     loc is the locations of each Atom
-    '''
+    """
     assert len(x) == 3, 'x must represent a 3 dimensional grid'
     mem = virtual_memory().available if mem is None else mem
 
@@ -410,7 +342,6 @@ def rebin(x, loc, r, k, mem):
 def doBinning(x, loc, Rmax, d, GPU):
     # Bin the atoms
     k = int(Rmax / max(d)) + 1
-    # TODO: consider desired memory usage more.
     try:
         if not (GPU and _CUDA): raise Exception
         cuda.current_context().deallocations.clear()
@@ -624,18 +555,43 @@ if _CUDA:
         out[i0, i1, i2] = Sum
 
 
-def _precomp_atom(x, a, b, d, pw):
+def _precomp_atom(x, a, b, d, pw, ZERO, dtype=FTYPE):
+    """
+    Helper for computing atomic intensities. This function precomputes
+    values so that __atom(a,b,x,dx,True) = __atom_pw_cpu(*x,*__precomp(a,b,dx,True))
+    etc.
+
+    Parameters
+    ----------
+    a, b : 1D arrays of same length
+        Continuous atom is represented by: y\mapsto sum_i a[i]*exp(-b[i]*|y|^2)
+    dx : array-like
+        Physical dimensions of a single pixel. Depending on the <pointwise> flag,
+        returned value approximates the intensity on the box [x-dx/2, x+dx/2]
+    pointwise: bool (default=False)
+        If true, the evaluation is pointwise. If false, returns average intensity
+        over box defined by <dx>.
+
+    Returns
+    -------
+    precomp : array
+        Radial profile of atom intensities
+    params : array
+        Grid spacings to convert real positions to indices
+    Rmax : float
+        The cut-off radius for this atom
+    """
 
     if pw:
         n_zeros = sum(1 for D in d if D == 0)
         f = lambda x: sum(a[i] * c_exp(-b[i] * x ** 2) * (pi / b[i]) ** (n_zeros / 2)
                           for i in range(a.size))
         Rmax = 1
-        while f(Rmax) > c_exp(LOG0) * f(0):
+        while f(Rmax) > ZERO * f(0):
             Rmax *= 1.1
         h = max(Rmax / 200, max(d) / 10)
-        pms = array([Rmax ** 2, 1 / h], dtype=FTYPE)
-        precomp = array([f(x) for x in arange(0, Rmax + 2 * h, h)], dtype=FTYPE)
+        pms = array([Rmax ** 2, 1 / h], dtype=dtype)
+        precomp = array([f(x) for x in arange(0, Rmax + 2 * h, h)], dtype=dtype)
 
     else:
 
@@ -648,23 +604,23 @@ def _precomp_atom(x, a, b, d, pw):
                         -c_erf(B * (x - d[j] / 2))) / (2 * d[j] * B) * pi ** .5
 
         h = [D / 10 for D in d]
-        Rmax = ones([a.size, 3], dtype=FTYPE)
+        Rmax = ones([a.size, 3], dtype=dtype)
         L = 1
         for i in range(a.size):
             for j in range(3):
                 if d[j] == 0:
                     Rmax[i, j] = 1e5
                     continue
-                while f(i, j, Rmax[i, j]) > c_exp(LOG0) * f(i, j, 0):
+                while f(i, j, Rmax[i, j]) > ZERO * f(i, j, 0):
                     Rmax[i, j] *= 1.1
                     L = max(L, Rmax[i, j] / h[j] + 2)
         L = min(200, int(ceil(L)))
-        precomp, grid = zeros([a.size, 3, L], dtype=FTYPE), arange(L)
+        precomp, grid = zeros([a.size, 3, L], dtype=dtype), arange(L)
         for i in range(a.size):
             for j in range(3):
                 h[j] = Rmax[:, j].max() / (L - 2)
-                precomp[i, j] = array([f(i, j, x * h[j]) for x in grid], dtype=FTYPE)
-        pms = array([Rmax.max(0), 1 / array(h)], dtype=FTYPE)
+                precomp[i, j] = array([f(i, j, x * h[j]) for x in grid], dtype=dtype)
+        pms = array([Rmax.max(0), 1 / array(h)], dtype=dtype)
         Rmax = Rmax.max(0).min()
 
     return precomp, pms, Rmax
@@ -703,16 +659,19 @@ def _bin_atoms(x, loc, Rmax, d, GPU):
     return subList, r, mem
 
 
-def getDiscretisation(loc, Z, x, pointwise=False, FT=False):
+def getDiscretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYPE),
+                      pointwise=False, FT=False, **kwargs):
+    assert ZERO is not None
+    kwargs.update({'GPU':GPU, 'ZERO':ZERO, 'dtype':dtype, 'pointwise':pointwise, 'FT':FT})
+
     dim = loc.shape[-1]
     if Z.dtype.char not in 'US':
         Z = Z.astype(int)
     z = unique(Z)
     if z.size > 1:
-        return sum(getDiscretisation(loc[Z == zz], zz, x, pointwise, FT) for zz in z)
+        return sum(getDiscretisation(loc[Z == zz], zz, x, **kwargs) for zz in z)
 
-    # TODO: allow cuda/cpu to be a user choice
-    GPU = bool(_CUDA)
+    GPU = GPU and _CUDA
 
     Z = z[0]
     a, b = getA(Z, False)
@@ -722,11 +681,11 @@ def getDiscretisation(loc, Z, x, pointwise=False, FT=False):
     x = [X if X.size > 1 else array([0]) for X in x]
 
     if FT:
-        out = empty([X.size for X in x], dtype=CTYPE)
+        out = empty([X.size for X in x], dtype=dtype[1])
         if out.size == 0:
             return 0 * out
 
-        precomp, pms, mem = _precomp_atom(x, a, b, d, pointwise)
+        precomp, pms, mem = _precomp_atom(x, a, b, d, pointwise, ZERO, dtype[0])
 
         notComputed = True
         if GPU:
@@ -755,17 +714,17 @@ def getDiscretisation(loc, Z, x, pointwise=False, FT=False):
                 func(x[0][i], x[1], x[2], loc, a, b, d, sqrt(b),
                      precomp, pms, out[i])
     else:
-        B = (1 / (4 * b)).astype(FTYPE)
-        A = (a * (B / pi) ** (dim / 2)).astype(FTYPE)
+        B = (1 / (4 * b)).astype(dtype[0])
+        A = (a * (B / pi) ** (dim / 2)).astype(dtype[0])
 
-        out = empty([X.size for X in x], dtype=FTYPE)
+        out = empty([X.size for X in x], dtype=dtype[0])
         if out.size == 0:
             return 0 * out
 
         # Precompute extra variables
-        xmin = array([X.item(0) if X.size > 1 else -1e5 for X in x], dtype=FTYPE)
+        xmin = array([X.item(0) if X.size > 1 else -1e5 for X in x], dtype=dtype[0])
 
-        precomp, pms, Rmax = _precomp_atom(x, A, B, d, pointwise)
+        precomp, pms, Rmax = _precomp_atom(x, A, B, d, pointwise, ZERO, dtype[0])
         subList, r, mem = doBinning(x, loc, Rmax, d, GPU)
 
         if subList is None:
@@ -779,7 +738,7 @@ def getDiscretisation(loc, Z, x, pointwise=False, FT=False):
                         Slice[2] = slice(None) if k else slice(0)
                         out[tuple(Slice)] = getDiscretisation(loc, Z,
                                                               [x[t][Slice[t]] for t in range(3)],
-                                                              pointwise, FT)
+                                                              **kwargs)
             return out
 
         elif subList.size == 0:

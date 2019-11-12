@@ -1,10 +1,10 @@
-'''
+"""
 Created on 1 Nov 2019
 
 Back end for computing diffraction patterns with a kinematic model.
 
 @author: Rob Tovey
-'''
+"""
 from diffsims.utils.discretise_utils import getDiscretisation
 from numpy import array, pi, sin, cos, empty
 from scipy.interpolate import interpn
@@ -17,8 +17,8 @@ def normalise(arr): return arr / arr.max()
 
 
 def get_diffraction_image(coordinates, species, probe, x, wavelength,
-                          precession, pointwise=True):
-    '''
+                          precession, GPU=True, pointwise=True, **kwargs):
+    """
     Return kinematically simulated diffraction pattern
 
     Parameters
@@ -36,6 +36,13 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
     precession : a pair (float, int)
         The float dictates the angle of precession and the int how many points are
         used to discretise the integration.
+    dtype : (str, str)
+        tuple of floating/complex datatypes to cast outputs to
+    ZERO : float > 0
+        Rounding error permitted in computation of atomic density. This value is
+        the smallest value rounded to 0.
+    GPU : bool
+        Flag whether to use GPU or CPU discretisation. Default (if available) is True
     pointwise : bool
         Optional parameter whether atomic intensities are computed point-wise at
         the centre of a voxel or an integral over the voxel. default=True
@@ -45,19 +52,22 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
     DP : ndarray
         The two-dimensional diffraction pattern evaluated on the reciprocal grid
         corresponding to the first two vectors of <x>.
-    '''
+    """
+    FTYPE = kwargs['dtype'][0]
+    kwargs['GPU'] = GPU
+    kwargs['pointwise'] = pointwise
+
+    x = [X.astype(FTYPE, copy=False) for X in x]
     y = toFreq(x)
     if wavelength == 0:
         p = probe(x).mean(-1)
         # TODO: shouldn't have to compute the full volume
-        vol = getDiscretisation(coordinates, species, x, pointwise).mean(-1)
-#         print(vol.max())
-#         vol = getDiscretisation(coordinates, species, x[:2], pointwise).sum(-1)
-#         print(vol.max())
+        vol = getDiscretisation(coordinates, species, x, **kwargs).mean(-1)
+#         vol = getDiscretisation(coordinates, species, x[:2], **kwargs).mean(-1)
         ft = getDFT(x[:-1], y[:-1])[0]
     else:
         p = probe(x)
-        vol = getDiscretisation(coordinates, species, x, pointwise)
+        vol = getDiscretisation(coordinates, species, x, **kwargs)
         ft = getDFT(x, y)[0]
 
     if precession[0] == 0:
@@ -73,16 +83,15 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
     if wavelength == 0:
         return normalise(sum(get_diffraction_image(coordinates.dot(r),
                                          species, probe, x, wavelength,
-                                         (0, 1), pointwise)
+                                         (0, 1), **kwargs)
                                          for r in R))
 
-    # TODO: cast vol to dtype?
     fftshift_phase(vol)  # removes need for fftshift after fft
-    buf = empty(vol.shape, dtype=vol.dtype)
+    buf = empty(vol.shape, dtype=FTYPE)
     ft, buf = plan_fft(buf, overwrite=True, planner=1)
     DP = None
     for r in R:
-        probe(toMesh(x, r.T), out=buf, scale=vol)  # buf = bess*vol
+        probe(toMesh(x, r.T, dtype=FTYPE), out=buf, scale=vol)  # buf = bess*vol
 
         # Do convolution
         newFT = ft()
@@ -95,11 +104,11 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
         else:
             DP += newFT
 
-    return normalise(DP)
+    return normalise(DP.astype(FTYPE, copy=False))
 
 
 def precess_mat(alpha, theta):
-    '''
+    """
     Generates rotation matrices for precession curves.
 
     Parameters
@@ -114,7 +123,7 @@ def precess_mat(alpha, theta):
     R : ndarray of shape [3,3]
         Rotation matrix associated to the tilt of <alpha> away from the vertical
         axis and a rotation of <theta> about the vertical axis.
-    '''
+    """
     if alpha == 0:
         return array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
     alpha, theta = alpha * pi / 180, theta * pi / 180
@@ -128,7 +137,7 @@ def precess_mat(alpha, theta):
 
 
 def grid2sphere(arr, x, dx, C):
-    '''
+    """
     Projects 3d array onto a sphere
 
     Parameters
@@ -150,7 +159,7 @@ def grid2sphere(arr, x, dx, C):
         which also lies on the sphere of radius C from C*dx[2] then:
             out[i,j] = arr(y)
         Interpolation on arr is linear.
-    '''
+    """
     if C in (None, 0) or x[2].size == 1:
         if arr.ndim == 2:
             return arr

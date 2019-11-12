@@ -52,8 +52,9 @@ def test_get_diffraction_image(n, vol_shape, grid_shape, precession):
     else:
         precession = (0, 1)
 
-    val1 = get_diffraction_image(coords, species, probe, x, wavelength, precession, True)
-    val2 = get_diffraction_image(coords, species, probe, x, 0, (0, 1), True)
+    params = {'dtype':('f4', 'c8'), 'ZERO':1e-10, 'GPU':False, 'pointwise':True}
+    val1 = get_diffraction_image(coords, species, probe, x, wavelength, precession, **params)
+    val2 = get_diffraction_image(coords, species, probe, x, 0, (0, 1), **params)
 
     if precession[0] > 0:
         val1 = val1[2:-2, 2:-2]

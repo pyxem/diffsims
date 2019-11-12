@@ -7,6 +7,8 @@ Created on 1 Nov 2019
 import pytest
 import numpy as np
 from diffsims.utils.discretise_utils import (getA, getDiscretisation, _CUDA)
+dtype, ZERO = ('f4', 'c8'), 1e-10
+params = {'dtype':('f4', 'c8'), 'ZERO':1e-10, 'GPU':False}
 
 
 def _toMesh(x):
@@ -55,8 +57,8 @@ def test_getDiscretisation(n, shape):
     x = [np.linspace(0, .1, 10), np.linspace(0, .1, 21), np.linspace(0, .1, 32)]
     X = _toMesh(x)
 
-    f1 = getDiscretisation(atoms, species, x, True, False)
-    FT1 = getDiscretisation(atoms, species, x, True, True)
+    f1 = getDiscretisation(atoms, species, x, pointwise=True, FT=False, **params)
+    FT1 = getDiscretisation(atoms, species, x, pointwise=True, FT=True, **params)
     f2, FT2 = 0, 0
     for i in range(len(n)):
         a, b = getA(n[i], True)
@@ -64,7 +66,7 @@ def test_getDiscretisation(n, shape):
         FT2 = FT2 + b(X) * np.exp(-1j * (X * atoms[i].reshape(1, 1, -1)).sum(-1))
 
     np.testing.assert_allclose(f1, f2, 1e-1)
-    np.testing.assert_allclose(FT1, FT2, 1e-2)
+    np.testing.assert_allclose(FT1, FT2, 1e-1)
 
 
 @pytest.mark.parametrize('n, shape', [
@@ -75,10 +77,10 @@ def test_pointwise(n, shape):
     atoms, species = create_atoms(n, shape)
     x = [np.linspace(0, .01, 10), np.linspace(0, .01, 21), np.linspace(0, .01, 32)]
 
-    pw_f = getDiscretisation(atoms, species, x, True, False)
-    pw_FT = getDiscretisation(atoms, species, x, True, True)
-    av_f = getDiscretisation(atoms, species, x, False, False)
-    av_FT = getDiscretisation(atoms, species, x, False, True)
+    pw_f = getDiscretisation(atoms, species, x, pointwise=True, FT=False, **params)
+    pw_FT = getDiscretisation(atoms, species, x, pointwise=True, FT=True, **params)
+    av_f = getDiscretisation(atoms, species, x, pointwise=False, FT=False, **params)
+    av_FT = getDiscretisation(atoms, species, x, pointwise=True, FT=True, **params)
 
     np.testing.assert_allclose(pw_f, av_f, 1e-1)
     np.testing.assert_allclose(pw_FT, av_FT, 1e-1)
@@ -94,12 +96,12 @@ if _CUDA:
         atoms, species = create_atoms(n, shape)
         x = [np.linspace(0, .1, 10), np.linspace(0, .1, 21), np.linspace(0, .1, 32)]
 
-        _CUDA(False)
-        cpu_f = getDiscretisation(atoms, species, x, True, False)
-        cpu_FT = getDiscretisation(atoms, species, x, True, True)
-        _CUDA(True)
-        gpu_f = getDiscretisation(atoms, species, x, True, False)
-        gpu_FT = getDiscretisation(atoms, species, x, True, True)
+        params['GPU'] = False
+        cpu_f = getDiscretisation(atoms, species, x, pointwise=True, FT=False, **params)
+        cpu_FT = getDiscretisation(atoms, species, x, pointwise=True, FT=True, **params)
+        params['GPU'] = True
+        gpu_f = getDiscretisation(atoms, species, x, pointwise=True, FT=False, **params)
+        gpu_FT = getDiscretisation(atoms, species, x, pointwise=True, FT=True, **params)
 
         np.testing.assert_allclose(cpu_f, gpu_f, 1e-4)
         np.testing.assert_allclose(cpu_FT, gpu_FT, 1e-4)

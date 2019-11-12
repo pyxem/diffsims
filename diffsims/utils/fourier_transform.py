@@ -1,10 +1,10 @@
-'''
+"""
 Created on 31 Oct 2019
 
 Module provides optimised fft and Fourier transform approximation.
 
 @author: Rob Tovey
-'''
+"""
 
 from numpy import (array, pi, inf, ceil, arange, exp, isscalar, prod, require,
     empty)
@@ -27,7 +27,7 @@ try:
     def plan_fft(A, n=None, axis=None, overwrite=False, planner=1, threads=None,
             auto_align_input=True, auto_contiguous=True,
             avoid_copy=False, norm=None):
-        '''
+        """
         Plans an fft for repeated use.
 
         Parameters
@@ -62,7 +62,7 @@ try:
         B : ndarray
             Array which should be modified inplace for fft to be computed
 
-        '''
+        """
 
         if threads is None:
             threads = getattr(numba.config, 'NUMBA_DEFAULT_NUM_THREADS')
@@ -78,7 +78,7 @@ try:
     def plan_ifft(A, n=None, axis=None, overwrite=False, planner=1, threads=None,
             auto_align_input=True, auto_contiguous=True,
             avoid_copy=False, norm=None):
-        '''
+        """
         Plans an ifft for repeated use.
 
         Parameters
@@ -112,7 +112,7 @@ try:
             `plan()` returns the ifft of B
         B : ndarray
             Array which should be modified inplace for ifft to be computed
-        '''
+        """
 
         if threads is None:
             threads = getattr(numba.config, 'NUMBA_DEFAULT_NUM_THREADS')
@@ -133,7 +133,7 @@ except ImportError:
     _fftn, _ifftn = fftn, ifftn
 
     def plan_fft(A, n=None, axis=None, norm=None, **_):
-        '''
+        """
         Plans an fft for repeated use.
 
         Parameters
@@ -168,11 +168,11 @@ except ImportError:
         B : ndarray
             Array which should be modified inplace for fft to be computed
 
-        '''
+        """
         return lambda : fftn(A, n, axis, norm), A
 
     def plan_ifft(A, n=None, axis=None, norm=None, **_):
-        '''
+        """
         Plans an ifft for repeated use.
 
         Parameters
@@ -206,7 +206,7 @@ except ImportError:
             `plan()` returns the ifft of B
         B : ndarray
             Array which should be modified inplace for ifft to be computed
-        '''
+        """
         return lambda : ifftn(A, n, axis, norm), A
 
     def fftn(a, s=None, axes=None, norm=None, **_): return _fftn(a, s, axes, norm)
@@ -215,7 +215,7 @@ except ImportError:
 
 
 def fast_fft_len(n):
-    '''
+    """
     Returns the smallest integer greater than input such that the fft can
     be computed efficiently at this size
 
@@ -228,13 +228,13 @@ def fast_fft_len(n):
     -------
     N : int
         smallest integer greater than n which permits efficient ffts.
-    '''
+    """
     N = next_fast_len(n)
     return N if N % 2 == 0 else fast_fft_len(N + 1)
 
 
 def fftshift_phase(x):
-    '''
+    """
     Fast implementation of fft_shift:
         fft(fftshift_phase(x)) = fft_shift(fft(x))
 
@@ -242,7 +242,7 @@ def fftshift_phase(x):
     - this is an in-place manipulation of the (3D) input array
     - the input array must have even side lengths. This is softly guarranteed by
         fast_fft_len but will raise error if not true.
-    '''
+    """
     assert all((s % 2 == 0) or (s == 1) for s in x.shape)
     sz = x.shape
     shrink = [s for s in sz if s > 1]
@@ -281,7 +281,7 @@ def __fftshift_phase3(x):
 
 
 def fast_abs(x, y=None):
-    '''
+    """
     Fast computation of abs of an array
 
     Parameters
@@ -295,7 +295,7 @@ def fast_abs(x, y=None):
     -------
     y : ndarray
         Array equal to abs(<x>)
-    '''
+    """
     if y is None:
         y = empty(x.shape, dtype=abs(x[(slice(1),) * x.ndim]).dtype)
     __fast_abs(x.reshape(-1), y.reshape(-1))
@@ -308,10 +308,8 @@ def __fast_abs(x, y):
         y[i] = abs(x[i])
 
 
-# TODO: implement a switch for 2pi convention
-# TODO: should x[0] be of shape (-1,1,1,...)?
 def toFreq(x):
-    '''
+    """
     Converts spatial coordinates to Fourier frequencies.
 
     Parameters
@@ -325,18 +323,19 @@ def toFreq(x):
     y : list of 1D ndarrays
         List of vectors defining a mesh such that for a function, f, defined on
         the mesh given by x, fft(f) is defined on the mesh given by y
-    '''
+    """
     y = []
     for X in x:
         if X.size > 1:
             y.append(fftfreq(X.size, X.item(1) - X.item(0)) * (2 * pi))
         else:
             y.append(array([0]))
+        y[-1] = y[-1].astype(X.dtype, copy=False)
     return [fftshift(Y) for Y in y]
 
 
 def fromFreq(y):
-    '''
+    """
     Converts Fourier frequencies to spatial coordinates.
 
     Parameters
@@ -351,18 +350,19 @@ def fromFreq(y):
         List of vectors defining a mesh such that for a function, f, defined on
         the mesh given by y, ifft(f) is defined on the mesh given by x. 0 will be
         in the middle of x.
-    '''
+    """
     x = []
     for Y in y:
         if Y.size > 1:
             x.append(fftfreq(Y.size, Y.item(1) - Y.item(0)) * (2 * pi))
         else:
             x.append(array([0]))
+        x[-1] = x[-1].astype(Y.dtype, copy=False)
     return [fftshift(X) for X in x]
 
 
 def getFTpoints(ndim, n=None, dX=inf, rX=0, dY=inf, rY=1e-16):
-    '''
+    """
     Returns a minimal pair of real and Fourier grids which satisfy each given
     requirement.
 
@@ -396,7 +396,7 @@ def getFTpoints(ndim, n=None, dX=inf, rX=0, dY=inf, rY=1e-16):
     y : list of 1D ndarrays
         Fourier mesh of points, centred at 0 with at least <n> pixels, resolution
         higher than <dY>, and range greater than <rY>.
-    '''
+    """
     pad = lambda t: list(t) if hasattr(t, '__len__') else [t] * ndim
     n, dX, rX, dY, rY = (pad(t) for t in (n, dX, rX, dY, rY))
 
@@ -426,7 +426,7 @@ def getFTpoints(ndim, n=None, dX=inf, rX=0, dY=inf, rY=1e-16):
 
 
 def getDFT(X=None, Y=None):
-    '''
+    """
     Returns discrete analogues for the Fourier/inverse Fourier transform pair
     defined from grid X to grid Y and back again.
 
@@ -448,7 +448,7 @@ def getDFT(X=None, Y=None):
         If <f> is a function on <Y> then iDFT(f) is the inverse Fourier transform
         of <f> on <X>. axes parameter can be used to specify which axes to transform.
 
-    '''
+    """
     if X is None and Y is None:
         raise ValueError('Either X or Y must be provided')
     elif X is None:
@@ -470,7 +470,7 @@ def getDFT(X=None, Y=None):
                     x[i0, i1, i2] *= F01 * f2[i2]
 
     def DFT(fx, axes=None):
-        '''
+        """
         Discrete Fourier transform
 
         Parameters
@@ -484,7 +484,7 @@ def getDFT(X=None, Y=None):
         -------
         fy : ndarray
             The Fourier transform of <fx> evaluated on a mesh
-        '''
+        """
         NDIM = fx.ndim
         if axes is None:
             axes = [NDIM + i for i in range(-ndim, 0)]
@@ -508,7 +508,7 @@ def getDFT(X=None, Y=None):
         return FT
 
     def iDFT(fy, axes=None):
-        '''
+        """
         Discrete inverse Fourier transform
 
         Parameters
@@ -522,7 +522,7 @@ def getDFT(X=None, Y=None):
         -------
         fy : ndarray
             The Fourier transform of <fx> evaluated on a mesh
-        '''
+        """
         NDIM = fy.ndim
         if axes is None:
             axes = [NDIM + i for i in range(-ndim, 0)]
