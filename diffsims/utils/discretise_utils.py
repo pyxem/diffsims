@@ -720,20 +720,3 @@ def getDiscretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYPE
                      r, A, d, sqrt(B), precomp, pms, out[i])
 
     return out
-
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-# ################

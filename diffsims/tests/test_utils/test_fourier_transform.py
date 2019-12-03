@@ -74,7 +74,6 @@ def test_fast_abs(shape, n):
     ([None], (.1,), (1,), (.01,), (2,)),
     ([5, 20], (.1,) * 2, (1,) * 2, (.01,) * 2, (2,) * 2),
     ([10] * 3, (.1, .1, .2), (1, 2, 1), (.01,) * 3, (2,) * 3),
-    ([1, 10, 21], (.1, .1, .2), (1, 2, 1), (.01,) * 3, (2,) * 3),
 ])
 def test_freq(shape, dX, rX, dY, rY):
     x, y = getFTpoints(len(shape), shape, dX, rX, dY, rY)
@@ -101,6 +100,17 @@ def test_freq(shape, dX, rX, dY, rY):
         np.testing.assert_allclose(y[i], Y[i], 1e-5)
 
 
+@pytest.mark.parametrize('shape', [[200], [1, 10], [10, 1]])
+def test_freq2(shape):
+    x = [np.linspace(0, 1, s) if s > 1 else np.array([0]) for s in shape]
+    y = toFreq(fromFreq(x))
+    z = fromFreq(toFreq(x))
+
+    for i in range(len(shape)):
+        assert abs(x[i] - y[i] + y[i].min()).max() < 1e-6
+        assert abs(x[i] - z[i] + z[i].min()).max() < 1e-6
+
+
 @pytest.mark.parametrize('rX, rY', [
     ([1], 1000),
     ([1] * 2, 1000),
@@ -121,6 +131,10 @@ def test_DFT(rX, rY):
         np.testing.assert_allclose(g, FT(f, axes=axes), 1e-5, 1e-5)
     for IFT in (ift, ift1, ift2):
         np.testing.assert_allclose(f, IFT(g, axes=axes), 1e-5, 1e-5)
+
+
+@pytest.mark.xfail(raises=ValueError)
+def test_fail_DFT(): getDFT()
 
 
 @pytest.mark.parametrize('shape1, shape2, n1, n2, dx', [

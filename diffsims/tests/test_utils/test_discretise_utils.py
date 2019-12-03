@@ -44,7 +44,7 @@ def test_getA(Z, returnFunc):
 
 
 @pytest.mark.xfail(raises=ValueError)
-def fail_getA(): getA([0, 1])
+def test_fail_getA(): getA(np.array([0, 1]))
 
 
 @pytest.mark.parametrize('r', [.5, pytest.param(.1, marks=pytest.mark.xfail), pytest.param(.1, marks=pytest.mark.xfail)])

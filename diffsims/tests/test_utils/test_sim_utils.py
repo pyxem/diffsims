@@ -61,6 +61,7 @@ def create_structure_monoclinic():
     (100, 0.0370143659),
     (200, 0.0250793403),
     (300, 0.0196874888),
+    ('inf', 0),
 ])
 def test_get_electron_wavelength(accelerating_voltage, wavelength):
     val = get_electron_wavelength(accelerating_voltage=accelerating_voltage)

@@ -35,6 +35,12 @@ def diffraction_calculator_atomic(request):
     return AtomicDiffractionGenerator(*request.param)
 
 
+@pytest.fixture(params=[(1, 3), (1,), (False,)])
+def precessed(request):
+    var = request.param
+    return var if len(var) - 1 else var[0]
+
+
 def make_structure(lattice_parameter=None):
     """
     We construct an Fd-3m silicon (with lattice parameter 5.431 as a default)
@@ -69,19 +75,23 @@ def local_structure():
 
 
 def probe(x, out=None, scale=None):
-    if len(x) == 3:
-        v = abs(x[0].reshape(-1, 1, 1)) < 6
-        v = v * abs(x[1].reshape(1, -1, 1)) < 6
-        v = v + 0 * x[2].reshape(1, 1, -1)
-    else:
-        v = abs(x[..., :2]).max(-1) < 6
-    if scale is not None:
-        v = v * scale
-    if out is None:
-        return v
-    else:
-        out[...] = v
-        return out
+    v = abs(x[0].reshape(-1, 1, 1)) < 6
+    v = v * abs(x[1].reshape(1, -1, 1)) < 6
+    return v + 0 * x[2].reshape(1, 1, -1)
+
+#     if len(x) == 3:
+#         v = abs(x[0].reshape(-1, 1, 1)) < 6
+#         v = v * abs(x[1].reshape(1, -1, 1)) < 6
+#         v = v + 0 * x[2].reshape(1, 1, -1)
+#     else:
+#         v = abs(x[..., :2]).max(-1) < 6
+#     if scale is not None:
+#         v = v * scale
+#     if out is None:
+#         return v
+#     else:
+#         out[...] = v
+#         return out
 
 
 class TestDiffractionCalculator:
@@ -140,10 +150,10 @@ class TestDiffractionCalculatorAtomic:
         assert diffraction_calculator_atomic.debye_waller_factors == {}
         assert len(diffraction_calculator_atomic.detector) == 2
 
-    def test_shapes(self, diffraction_calculator_atomic, local_structure):
+    def test_shapes(self, diffraction_calculator_atomic, local_structure, precessed):
         dca = diffraction_calculator_atomic
         diffraction = dca.calculate_ed_data(
-            local_structure, probe, 1)
+            local_structure, probe, 1, precessed=precessed)
         assert diffraction.shape == tuple(X.size for X in dca.detector)
 
     def test_defaults(self, diffraction_calculator_atomic, local_structure):

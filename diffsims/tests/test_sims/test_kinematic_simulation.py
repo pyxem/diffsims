@@ -38,15 +38,14 @@ def probe(x, out=None, scale=None):
         return out
 
 
-@pytest.mark.parametrize('n, vol_shape, grid_shape, precession', [
-    ([0], (.7, .7, .7), (10, 11, 12), False),
-    ([10, 14], (10, 20, 30), (10, 10, 10), False),
-    ([14], (5, 10, 15), (10,) * 3, True),
+@pytest.mark.parametrize('n, vol_shape, grid_shape, precession, wavelength', [
+    ([0], (.7, .7, .7), (10, 11, 12), False, 1e-8),
+    ([10, 14], (10, 20, 30), (10, 10, 10), False, 0),
+    ([14], (5, 10, 15), (10,) * 3, True, 1e-8),
 ])
-def test_get_diffraction_image(n, vol_shape, grid_shape, precession):
+def test_get_diffraction_image(n, vol_shape, grid_shape, precession, wavelength):
     coords, species = create_atoms(n, vol_shape)
     x = [np.linspace(0, vol_shape[i], grid_shape[i]) for i in range(3)]
-    wavelength = 1e-8
     if precession:
         precession = (1e-2, 20)
     else:
@@ -89,9 +88,10 @@ def test_precess_mat(alpha, theta, x):
     ((10,) * 3, 100),
     ((10, 20, 20), 200),
     ((10, 20, 30), 300),
+    ((10, 20, 1), 1e10),
 ])
 def test_grid2sphere(shape, rad):
-    x = [np.linspace(-1, 1, s) for s in shape]
+    x = [np.linspace(-1, 1, s) if s > 1 else np.array([0]) for s in shape]
     X = toMesh(x)
     Y = toMesh((x[0], x[1], np.array([0]))).reshape(-1, 3)
     w = 1 / (1 + (Y ** 2).sum(-1) / rad ** 2)
@@ -101,3 +101,4 @@ def test_grid2sphere(shape, rad):
 
     for i in range(3):
         np.testing.assert_allclose(Y[..., i], grid2sphere(X[..., i], x, None, rad), 1e-4, 1e-4)
+
