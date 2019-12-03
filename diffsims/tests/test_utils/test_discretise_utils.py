@@ -6,7 +6,8 @@ Created on 1 Nov 2019
 
 import pytest
 import numpy as np
-from diffsims.utils.discretise_utils import (getA, getDiscretisation, _CUDA)
+from diffsims.utils.discretise_utils import (getA, getDiscretisation, _CUDA,
+    rebin)
 dtype, ZERO = ('f4', 'c8'), 1e-10
 params = {'dtype':('f4', 'c8'), 'ZERO':1e-10, 'GPU':False}
 
@@ -24,12 +25,7 @@ def create_atoms(n, shape):
     return coords, species
 
 
-@pytest.mark.parametrize('Z, returnFunc', [
-    (0, True),
-    (5, False),
-    (10, True),
-    (20, False),
-])
+@pytest.mark.parametrize('Z, returnFunc', [(i, bool(1 + (-1) ** i)) for i in range(21)])
 def test_getA(Z, returnFunc):
     a, b = getA(Z, returnFunc)
     if returnFunc:
@@ -42,9 +38,22 @@ def test_getA(Z, returnFunc):
         assert FT.shape == (10, 21, 32)
         assert f.min() >= 0
     else:
-        assert a.min() >= 0
+        assert a.min() >= 0 or Z == 19
         assert b.min() >= 0
         assert len(a) == len(b)
+
+
+@pytest.mark.xfail(raises=ValueError)
+def fail_getA(): getA([0, 1])
+
+
+@pytest.mark.parametrize('r', [.5, pytest.param(.1, marks=pytest.mark.xfail), pytest.param(.1, marks=pytest.mark.xfail)])
+def test_rebin(r):
+    x = [np.linspace(0, 1, 10), np.linspace(0, 1, 21), np.linspace(0, 1, 32)]
+    loc = np.concatenate([0 * np.linspace(0, 1, 500)[:, None], ] * 3, axis=1)
+    k = 1
+    mem = 1e5
+    rebin(x, loc, r, k, mem)
 
 
 @pytest.mark.parametrize('n, shape', [
@@ -54,7 +63,7 @@ def test_getA(Z, returnFunc):
 ])
 def test_getDiscretisation(n, shape):
     atoms, species = create_atoms(n, shape)
-    x = [np.linspace(0, .1, 10), np.linspace(0, .1, 21), np.linspace(0, .1, 32)]
+    x = [np.linspace(0, .1, g) for g in (10, 21, 32)]
     X = _toMesh(x)
 
     f1 = getDiscretisation(atoms, species, x, pointwise=True, FT=False, **params)
@@ -69,13 +78,28 @@ def test_getDiscretisation(n, shape):
     np.testing.assert_allclose(FT1, FT2, 1e-1)
 
 
+@pytest.mark.parametrize('n, shape, grid', [
+    ([0], (1, 1, 1), (3, 4, 1)),
+    ([1, 14], (10, 20, 30), (3, 1, 5)),
+    ([14, 14, 14], (10, 20, 30), (1, 4, 5)),
+])
+def test_getDiscretisation2(n, shape, grid):
+    atoms, species = create_atoms(n, shape)
+    x = [np.linspace(0, .1, g) for g in grid]
+
+    for b1 in (True, False):
+        for b2 in (True, False):
+            f = getDiscretisation(atoms, species, x, pointwise=b1, FT=b2, **params)
+            assert f.shape == grid
+
+
 @pytest.mark.parametrize('n, shape', [
     ([10, 15, 20], (1, 2, 3)),
     ([14, 14, 14], (1, 2, 3)),
 ])
 def test_pointwise(n, shape):
     atoms, species = create_atoms(n, shape)
-    x = [np.linspace(0, .01, 10), np.linspace(0, .01, 21), np.linspace(0, .01, 32)]
+    x = [np.linspace(0, .01, g) for g in (10, 21, 32)]
 
     pw_f = getDiscretisation(atoms, species, x, pointwise=True, FT=False, **params)
     pw_FT = getDiscretisation(atoms, species, x, pointwise=True, FT=True, **params)
@@ -94,7 +118,7 @@ if _CUDA:
     ])
     def test_CUDA(n, shape):
         atoms, species = create_atoms(n, shape)
-        x = [np.linspace(0, .1, 10), np.linspace(0, .1, 21), np.linspace(0, .1, 32)]
+        x = [np.linspace(0, .01, g) for g in (10, 21, 32)]
 
         params['GPU'] = False
         cpu_f = getDiscretisation(atoms, species, x, pointwise=True, FT=False, **params)

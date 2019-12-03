@@ -213,10 +213,7 @@ class BesselProbe(probeFunction):
                 dy2 = []
                 for i in range(y.ndim - 1):
                     tmp = tuple(0 if j != i else 1 for j in range(y.ndim - 1)) + (2,)
-                    try:
-                        dy2.append(abs(y[tmp] - y[..., 2].item(0)))
-                    except Exception:
-                        dy2.append(1)
+                    dy2.append(abs(y[tmp] - y[..., 2].item(0)) if y.shape[-1] == 3 else 1)
                 eps = max(1e-16, max(dy2) * .5)
                 if out is None:
                     out = empty(y.shape[:3], dtype=y.dtype)

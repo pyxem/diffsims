@@ -25,6 +25,12 @@ def _random_array(shape, n=0):
     return x.reshape(shape)
 
 
+@pytest.mark.xfail(raises=NotImplementedError)
+def test_null_probe():
+    p = probeFunction()
+    p(1)
+
+
 @pytest.fixture(params=[(10, 11, 12)])
 def simple_mesh(request): return [np.linspace(-1, 1, n) for n in request.param]
 

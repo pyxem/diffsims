@@ -63,15 +63,18 @@ def test_fast_abs(shape, n):
     y = np.empty(shape, dtype=x.dtype)
     z = fast_abs(x, y)
 
+    np.testing.assert_allclose(abs(x), fast_abs(x), 1e-5)
     np.testing.assert_allclose(abs(x), y, 1e-5)
     assert y is z
 
 
 @pytest.mark.parametrize('shape, dX, rX, dY, rY', [
     ([200], (.1,), (1,), (.01,), (2,)),
+    ([200], (.1,), (1,), (6,), (60,)),
     ([None], (.1,), (1,), (.01,), (2,)),
     ([5, 20], (.1,) * 2, (1,) * 2, (.01,) * 2, (2,) * 2),
     ([10] * 3, (.1, .1, .2), (1, 2, 1), (.01,) * 3, (2,) * 3),
+    ([1, 10, 21], (.1, .1, .2), (1, 2, 1), (.01,) * 3, (2,) * 3),
 ])
 def test_freq(shape, dX, rX, dY, rY):
     x, y = getFTpoints(len(shape), shape, dX, rX, dY, rY)
@@ -101,31 +104,43 @@ def test_freq(shape, dX, rX, dY, rY):
 @pytest.mark.parametrize('rX, rY', [
     ([1], 1000),
     ([1] * 2, 1000),
+    ([1] * 3, 1000),
 ])
 def test_DFT(rX, rY):
     x, y = getFTpoints(len(rX), rX=rX, rY=rY)
+    axes = (0 if len(x) == 1 else None)
 
     f, g = getA(0, returnFunc=True)
     f, g = f(_toMesh(x)), g(_toMesh(y))
 
     ft, ift = getDFT(x, y)
+    ft1, ift1 = getDFT(X=x)
+    ft2, ift2 = getDFT(Y=y)
 
-    np.testing.assert_allclose(f, ift(g), 1e-5, 1e-5)
-    np.testing.assert_allclose(g, ft(f), 1e-5, 1e-5)
+    for FT in (ft, ft1, ft2):
+        np.testing.assert_allclose(g, FT(f, axes=axes), 1e-5, 1e-5)
+    for IFT in (ift, ift1, ift2):
+        np.testing.assert_allclose(f, IFT(g, axes=axes), 1e-5, 1e-5)
 
 
-@pytest.mark.parametrize('shape1, shape2, n1, n2', [
-    ([10], [10], 1, 5),
-    ([10, 1], [10, 10], 2, 6),
-    ([10, 10], [10, 1], 3, 7),
-    ([10, 11], [10, 11], 4, 8),
+@pytest.mark.parametrize('shape1, shape2, n1, n2, dx', [
+    ([10], [10], 1, 5, None),
+    ([10, 1], [10, 10], 2, 6, 1),
+    ([10, 10], [10, 1], 3, 7, (1, 1)),
+    ([10, 11], [10, 11], 4, 8, None),
+    ([10], [10, 11], 5, 9, 1),
 ])
-def test_convolve(shape1, shape2, n1, n2):
+def test_convolve(shape1, shape2, n1, n2, dx):
     x = _random_array(shape1, n1)
     y = _random_array(shape2, n2)
 
-    c1 = convolve(x, y)
-    c2 = ifftn(fftn(x) * fftn(ifftshift(y)))
+    c1 = convolve(x, y, dx)
+    s1 = shape1 + [1] * (len(shape2) - len(shape1))
+    s2 = shape2 + [1] * (len(shape1) - len(shape2))
+    if len(shape2) <= len(shape1):
+        c2 = ifftn(fftn(x).reshape(s1) * fftn(ifftshift(y)).reshape(s2))
+    else:
+        c2 = ifftn(fftn(ifftshift(x)).reshape(s1) * fftn(y).reshape(s2))
 
     assert c1.shape == c2.shape
     np.testing.assert_allclose(c1, c2, 1e-5, 1e-5)

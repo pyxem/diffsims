@@ -158,50 +158,9 @@ def getA(Z, returnFunc=True, dtype=FTYPE):
     else:
         return a, b
 
-
 ##########
 # Evaluate single atom intensities
 ##########
-def __atom(a, b, x, dx, pointwise=False):
-    """
-    Compute atomic intensities.
-
-    Parameters
-    ----------
-    a, b : 1D arrays of same length
-        Continuous atom is represented by: y\mapsto sum_i a[i]*exp(-b[i]*|y|^2)
-    x : array or array-like
-        Coordinate(s) at which to evaluate the atom intensity. len(x) should be the
-        spatial dimension. Each x[i] should have the same shape.
-    dx : array-like
-        Physical dimensions of a single pixel. Depending on the <pointwise> flag,
-        returned value approximates the intensity on the box [x-dx/2, x+dx/2]
-    pointwise: bool (default=False)
-        If true, the evaluation is pointwise. If false, returns average intensity
-        over box defined by <dx>.
-
-    Returns
-    -------
-    out : array
-        Atomic intensities evaluated as detailed above. out.shape = x[i].shape
-        for each i.
-    """
-    if pointwise:
-        n = sum(X * X for X in x)
-        return sum(a[i] * exp(-b[i] * n) for i in range(a.size))
-    else:
-        Sum = 0
-        for i in range(a.size):
-            B = b.item(i) ** .5  # force to scalar
-            prod = 1
-            for j in range(len(x)):
-                if dx[j] == 0:
-                    prod *= 2 / B
-                else:
-                    prod *= (erf(B * (x[j] + dx[j] / 2))
-                             -erf(B * (x[j] - dx[j] / 2))) * pi ** .5 / (2 * dx[j] * B)
-            Sum += a[i] * prod
-        return Sum
 
 
 @numba.jit(fastmath=True, nopython=True)
@@ -310,8 +269,30 @@ def __rebin(x0, x1, x2, loc, sublist, r, s, Len):
 
 def rebin(x, loc, r, k, mem):
     """
-    x is the grid for the discretisation, used for bounding box
-    loc is the locations of each Atom
+    Bins each location into a grid subject to memory constraints
+
+    Parameters
+    ----------
+    x : list of 3 arrays
+        Dictates the range of the box over which to bin atoms
+    loc : array of shape [n,3]
+        Atoms to bin
+    r : float or [float, float, float]
+        Mesh size (in each direction)
+    k : int
+        The radius of the atom should be <= k*r. If k>1 then each atom will appear
+        in approximately 8k^3 bins.
+    mem : int
+        Upper limit of number of bytes permitted for mesh. If not possible then
+        raises a MemoryError
+
+    Returns
+    -------
+    subList : array of ints
+        subList[i0,i1,i2] is a list of indices [j0, j1, ..., jn, -1,...] such that
+        the only atoms which are non-negligible on the box:
+            [x[0].min()+i0*r,x[0].min(),+(i0+1)*r] x [x[1].min()+i1*r,x[1].min(),+(i1+1)*r]...
+        are the atoms with locations loc[j0], ..., loc[jn]
     """
     assert len(x) == 3, 'x must represent a 3 dimensional grid'
     mem = virtual_memory().available if mem is None else mem
@@ -624,39 +605,6 @@ def _precomp_atom(x, a, b, d, pw, ZERO, dtype=FTYPE):
         Rmax = Rmax.max(0).min()
 
     return precomp, pms, Rmax
-
-
-def _bin_atoms(x, loc, Rmax, d, GPU):
-    # Bin the atoms
-    k = int(Rmax / max(d)) + 1
-    try:
-        if not (GPU and _CUDA): raise Exception
-        cuda.current_context().deallocations.clear()
-        mem = cuda.current_context().get_memory_info()[0]
-    except Exception:
-        mem = 1e12
-
-    while k > 0:
-        r = array([2e5 if D == 0 else max(Rmax / k, D) for D in d], dtype='f4')
-        subList = None
-        try:
-            subList = rebin(x, loc, r, k, mem=.25 * mem)
-            if subList.size * subList.itemsize > .25 * mem:
-                subList = None  # treat like memory error
-        except MemoryError:
-            pass
-
-        if subList is None and k == 1:
-#                     raise MemoryError('List of atoms is too large to be stored on device')
-            pass  # Memory error at smallest k
-        elif subList is None:
-            k -= 1; continue  # No extra information
-        else:
-            break
-
-        return None, r, mem
-
-    return subList, r, mem
 
 
 def getDiscretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYPE),
