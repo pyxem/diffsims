@@ -41,6 +41,7 @@ def probe(x, out=None, scale=None):
 @pytest.mark.parametrize('n, vol_shape, grid_shape, precession, wavelength', [
     ([0], (.7, .7, .7), (10, 11, 12), False, 1e-8),
     ([10, 14], (10, 20, 30), (10, 10, 10), False, 0),
+    ([14], (5, 10, 15), (10,) * 3, True, 0),
     ([14], (5, 10, 15), (10,) * 3, True, 1e-8),
 ])
 def test_get_diffraction_image(n, vol_shape, grid_shape, precession, wavelength):
@@ -101,4 +102,8 @@ def test_grid2sphere(shape, rad):
 
     for i in range(3):
         np.testing.assert_allclose(Y[..., i], grid2sphere(X[..., i], x, None, rad), 1e-4, 1e-4)
+        if X.shape[i] == 1:
+            S = [slice(None)] * X.ndim
+            S[i], S[-1] = 0, i
+            np.testing.assert_allclose(Y[..., i], grid2sphere(X[tuple(S)], x, None, rad), 1e-4, 1e-4)
 

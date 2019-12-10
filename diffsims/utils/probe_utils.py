@@ -229,8 +229,9 @@ class BesselProbe(probeFunction):
         return out
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(nopython=True, parallel=True, fastmath=True)
-def _bess(X, R, H, J, scale, out):
+def _bess(X, R, H, J, scale, out):  # pragma: no cover
     if scale.size == 1:
         for i in numba.prange(X.shape[0]):
             rad = c_sqrt(X[i, 0] * X[i, 0] + X[i, 1] * X[i, 1]) * R
@@ -249,8 +250,9 @@ def _bess(X, R, H, J, scale, out):
                 out[i] = 0
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(nopython=True, parallel=True, fastmath=True)
-def _bessFT(X, R, s, eps, out):
+def _bessFT(X, R, s, eps, out):  # pragma: no cover
     for i in numba.prange(X.shape[0]):
         rad = X[i, 0] * X[i, 0] + X[i, 1] * X[i, 1]
         if rad > R or abs(X[i, 2]) > eps:

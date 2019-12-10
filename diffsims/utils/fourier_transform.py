@@ -6,8 +6,7 @@ Module provides optimised fft and Fourier transform approximation.
 @author: Rob Tovey
 """
 
-from numpy import (array, pi, inf, ceil, arange, exp, isscalar, prod, require,
-    empty)
+from numpy import (array, pi, inf, ceil, exp, isscalar, prod, require, empty)
 from numpy.fft import fftfreq
 import numba
 
@@ -15,8 +14,8 @@ import numba
 #    fftn, ifftn, ifftshift, fftshift, plan_fft, plan_ifft
 # By default, uses the pyfftw implementations. If a lot of identical ffts are
 # needed then use the planning functions.
-try:
-    # TODO: add pyfftw, cudatoolkit to test dependencies
+# Coverage: pyfftw is not tested by travis
+try:  # pragma: no cover
     import pyfftw
     next_fast_len = pyfftw.next_fast_len
     from pyfftw.interfaces.numpy_fft import fftn, ifftn, ifftshift, fftshift
@@ -256,23 +255,26 @@ def fftshift_phase(x):
     return x.reshape(sz)
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(nopython=True, parallel=True, fastmath=True)
-def __fftshift_phase1(x):
+def __fftshift_phase1(x):  # pragma: no cover
     sz = x.shape[0] // 2
     for i in numba.prange(sz):
         x[2 * i + 1] = -x[2 * i + 1]
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(nopython=True, parallel=True, fastmath=True)
-def __fftshift_phase2(x):
+def __fftshift_phase2(x):  # pragma: no cover
     for i in numba.prange(x.shape[0]):
         start = (i + 1) % 2
         for j in range(start, x.shape[1], 2):
             x[i, j] = -x[i, j]
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(nopython=True, parallel=True, fastmath=True)
-def __fftshift_phase3(x):
+def __fftshift_phase3(x):  # pragma: no cover
     for i in numba.prange(x.shape[0]):
         for j in range(x.shape[2]):
             start = (i + j + 1) % 2
@@ -302,8 +304,9 @@ def fast_abs(x, y=None):
     return y
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(nopython=True, parallel=True, fastmath=True)
-def __fast_abs(x, y):
+def __fast_abs(x, y):  # pragma: no cover
     for i in numba.prange(x.size):
         y[i] = abs(x[i])
 

@@ -163,8 +163,9 @@ def getA(Z, returnFunc=True, dtype=FTYPE):
 ##########
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(fastmath=True, nopython=True)
-def __atom_pw_cpu(x0, x1, x2, pc, h):
+def __atom_pw_cpu(x0, x1, x2, pc, h):  # pragma: no cover
     n = x0 * x0 + x1 * x1 + x2 * x2
     if n >= h[0]:
         return 0
@@ -175,8 +176,9 @@ def __atom_pw_cpu(x0, x1, x2, pc, h):
         return (1 - n) * pc[i] + n * pc[i + 1]
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(fastmath=True, nopython=True)
-def __atom_av_cpu(x0, x1, x2, pc, h):
+def __atom_av_cpu(x0, x1, x2, pc, h):  # pragma: no cover
     x0, x1, x2 = c_abs(x0), c_abs(x1), c_abs(x2)
     if x0 > h[0, 0] or x1 > h[0, 1] or x2 > h[0, 2]:
         return 0
@@ -196,7 +198,8 @@ def __atom_av_cpu(x0, x1, x2, pc, h):
     return s
 
 
-if _CUDA:
+# Coverage: Cuda code is not tested by travis
+if _CUDA:  # pragma: no cover
 
     @cuda.jit(device=True, inline=True)
     def __atom_pw_gpu(x0, x1, x2, pc, h):
@@ -233,8 +236,9 @@ if _CUDA:
 ##########
 # Binning list of atoms into a grid for efficiency
 ##########
+# Coverage: Numba code does not register when code is run
 @numba.jit(cache=True)
-def __countbins(x0, x1, x2, loc, r, s, Len, MAX):
+def __countbins(x0, x1, x2, loc, r, s, Len, MAX):  # pragma: no cover
     for j0 in range(loc.shape[0]):
         bin0 = int((loc[j0, 0] - x0) / r[0])
         bin1 = int((loc[j0, 1] - x1) / r[1])
@@ -247,8 +251,9 @@ def __countbins(x0, x1, x2, loc, r, s, Len, MAX):
                         return
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(cache=True)
-def __rebin(x0, x1, x2, loc, sublist, r, s, Len):
+def __rebin(x0, x1, x2, loc, sublist, r, s, Len):  # pragma: no cover
     for j0 in range(loc.shape[0]):
         bin0 = int((loc[j0, 0] - x0) / r[0])
         bin1 = int((loc[j0, 1] - x1) / r[1])
@@ -323,7 +328,8 @@ def rebin(x, loc, r, k, mem):
 def doBinning(x, loc, Rmax, d, GPU):
     # Bin the atoms
     k = int(Rmax / max(d)) + 1
-    try:
+# Coverage: Cuda code is not tested by travis
+    try:  # pragma: no cover
         if not (GPU and _CUDA): raise Exception
         cuda.current_context().deallocations.clear()
         mem = cuda.current_context().get_memory_info()[0]  # amount of free memory
@@ -337,15 +343,19 @@ def doBinning(x, loc, Rmax, d, GPU):
         subList = None
         try:
             subList = rebin(x, loc, r, k, mem=.25 * mem)
-            if subList.size * subList.itemsize > .25 * mem:
+# Coverage: line for large memory experiments
+            if subList.size * subList.itemsize > .25 * mem:  # pragma: no cover
                 subList = None  # treat like memory error
-        except MemoryError:
+# Coverage: line for large memory experiments
+        except MemoryError:  # pragma: no cover
             pass
 
-        if subList is None and k == 1:
+# Coverage: line for large memory experiments
+        if subList is None and k == 1:  # pragma: no cover
             # Memory error at smallest k is a failure
             return None, r, mem
-        elif subList is None:
+# Coverage: line for large memory experiments
+        elif subList is None:  # pragma: no cover
             k -= 1  # No extra information
         else:
             return subList, r, mem
@@ -354,9 +364,10 @@ def doBinning(x, loc, Rmax, d, GPU):
 ##########
 # Discretise whole crystal
 ##########
+# Coverage: Numba code does not register when code is run
 @numba.jit(parallel=True, fastmath=True, nopython=True)
-def __density3D_pw_cpu(x0, x1, x2, xmin,
-                  loc, sublist, r, a, d, B, precomp, h, out):
+def __density3D_pw_cpu(x0, x1, x2, xmin, loc, sublist,
+                       r, a, d, B, precomp, h, out):  # pragma: no cover
     X0 = x0
     bin0 = int(floor((X0 - xmin[0]) / r[0]))
     if bin0 >= sublist.shape[0]:
@@ -384,9 +395,10 @@ def __density3D_pw_cpu(x0, x1, x2, xmin,
             out[i1, i2] = Sum
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(parallel=True, fastmath=True, nopython=True)
-def __density3D_av_cpu(x0, x1, x2, xmin,
-                  loc, sublist, r, a, d, B, precomp, h, out):
+def __density3D_av_cpu(x0, x1, x2, xmin, loc, sublist,
+                       r, a, d, B, precomp, h, out):  # pragma: no cover
     X0 = x0
     bin0 = int(floor((X0 - xmin[0]) / r[0]))
     if bin0 >= sublist.shape[0]:
@@ -414,8 +426,9 @@ def __density3D_av_cpu(x0, x1, x2, xmin,
             out[i1, i2] = Sum
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(parallel=True, fastmath=True, nopython=True)
-def __FT3D_pw_cpu(x0, x1, x2, loc, a, b, d, B, precomp, h, out):
+def __FT3D_pw_cpu(x0, x1, x2, loc, a, b, d, B, precomp, h, out):  # pragma: no cover
     X0 = x0
     for i1 in numba.prange(x1.size):
         X1 = x1[i1]
@@ -431,8 +444,9 @@ def __FT3D_pw_cpu(x0, x1, x2, loc, a, b, d, B, precomp, h, out):
             out[i1, i2] = Sum
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(parallel=True, fastmath=True, nopython=True)
-def __FT3D_av_cpu(x0, x1, x2, loc, a, b, d, B, precomp, h, out):
+def __FT3D_av_cpu(x0, x1, x2, loc, a, b, d, B, precomp, h, out):  # pragma: no cover
     X0 = x0
     for i1 in numba.prange(x1.size):
         X1 = x1[i1]
@@ -448,7 +462,8 @@ def __FT3D_av_cpu(x0, x1, x2, loc, a, b, d, B, precomp, h, out):
             out[i1, i2] = Sum
 
 
-if _CUDA:
+# Coverage: Cuda code is not tested by travis
+if _CUDA:  # pragma: no cover
 
     @cuda.jit
     def __density3D_pw_gpu(x0, x1, x2, xmin,
@@ -630,13 +645,15 @@ def getDiscretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYPE
 
     if FT:
         out = empty([X.size for X in x], dtype=dtype[1])
-        if out.size == 0:
+# Coverage: line for large memory experiments
+        if out.size == 0:  # pragma: no cover
             return 0 * out
 
         precomp, pms, mem = _precomp_atom(x, a, b, d, pointwise, ZERO, dtype[0])
 
         notComputed = True
-        if GPU:
+# Coverage: Cuda code is not tested by travis
+        if GPU:  # pragma: no cover
             try:
                 func = __FT3D_pw_gpu if pointwise else __FT3D_av_gpu
                 if out.size * out.itemsize < .8 * mem:
@@ -666,7 +683,8 @@ def getDiscretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYPE
         A = (a * (B / pi) ** (dim / 2)).astype(dtype[0])
 
         out = empty([X.size for X in x], dtype=dtype[0])
-        if out.size == 0:
+# Coverage: line for large memory experiments
+        if out.size == 0:  # pragma: no cover
             return 0 * out
 
         # Precompute extra variables
@@ -675,7 +693,8 @@ def getDiscretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYPE
         precomp, pms, Rmax = _precomp_atom(x, A, B, d, pointwise, ZERO, dtype[0])
         subList, r, mem = doBinning(x, loc, Rmax, d, GPU)
 
-        if subList is None:
+# Coverage: line for large memory experiments
+        if subList is None:  # pragma: no cover
             # Volume is too large for memory, halve it in each dimension
             Slice = [None] * 3
             for i in range(2):
@@ -695,7 +714,8 @@ def getDiscretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYPE
             return out
 
         notComputed = True
-        if GPU:
+# Coverage: Cuda code is not tested by travis
+        if GPU:  # pragma: no cover
             try:
                 n = max(1, int(ceil(min(x[0].size, mem / (2 * out[0].size * out.itemsize)) - 1e-5)))
                 grid, tpb = getGrid((n,) + out.shape[-2:], 8)

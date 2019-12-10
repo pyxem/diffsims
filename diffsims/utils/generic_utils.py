@@ -58,8 +58,9 @@ def getGrid(sz, tpb=None):
     return grid, tpb
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(parallel=True, fastmath=True, cache=False, nopython=True)
-def __toMesh2d(x0, x1, dx0, dx1, out):
+def __toMesh2d(x0, x1, dx0, dx1, out):  # pragma: no cover
     for i0 in numba.prange(x0.size):
         X00 = x0[i0] * dx0[0]
         X01 = x0[i0] * dx0[1]
@@ -68,8 +69,9 @@ def __toMesh2d(x0, x1, dx0, dx1, out):
             out[i0, i1, 1] = X01 + x1[i1] * dx1[1]
 
 
+# Coverage: Numba code does not register when code is run
 @numba.jit(parallel=True, fastmath=True, cache=False, nopython=True)
-def __toMesh3d(x0, x1, x2, dx0, dx1, dx2, out):
+def __toMesh3d(x0, x1, x2, dx0, dx1, dx2, out):  # pragma: no cover
     for i0 in numba.prange(x0.size):
         X00 = x0[i0] * dx0[0]
         X01 = x0[i0] * dx0[1]
