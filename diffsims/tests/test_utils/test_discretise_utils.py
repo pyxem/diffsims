@@ -25,7 +25,7 @@ def create_atoms(n, shape):
     return coords, species
 
 
-@pytest.mark.parametrize('Z, returnFunc', [(i, bool(1 + (-1) ** i)) for i in range(21)])
+@pytest.mark.parametrize('Z, returnFunc', [('H', True)] + [(i, bool(1 + (-1) ** i)) for i in range(21)])
 def test_getA(Z, returnFunc):
     a, b = getA(Z, returnFunc)
     if returnFunc:
