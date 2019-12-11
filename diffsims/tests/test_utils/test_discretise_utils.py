@@ -117,6 +117,12 @@ def test_getDiscretisation_2d(n, shape):
     np.testing.assert_allclose(FT1, FT2, 1e-1)
 
 
+def test_getDiscretisation_str():
+    atoms, _ = create_atoms([14] * 3, [10] * 3)
+    getDiscretisation(atoms, 'Si', [np.linspace(0, 1, g) for g in (10, 21, 31)],
+                      pointwise=True, FT=False, **params)
+
+
 @pytest.mark.parametrize('n, shape', [
     ([10, 15, 20], (1, 2, 3)),
     ([14, 14, 14], (1, 2, 3)),
