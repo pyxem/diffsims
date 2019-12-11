@@ -3,7 +3,7 @@ Created on 5 Nov 2019
 
 @author: Rob Tovey
 '''
-from diffsims.utils.fourier_transform import getDFT, fromFreq
+from diffsims.utils.fourier_transform import getDFT, fromRecip
 from diffsims.utils.generic_utils import toMesh
 import numba
 from math import sqrt as c_sqrt
@@ -95,7 +95,7 @@ class probeFunction:
             y_end = y[(-1,) * (y.ndim - 1)]
             y = [linspace(y_start[i], y_end[i], y.shape[i], endpoint=True)
                   for i in range(3)]
-        x = fromFreq(y)
+        x = fromRecip(y)
         ft = getDFT(x, y)[0]
         tmp = ft(self(x, out=out))
         if out is None:

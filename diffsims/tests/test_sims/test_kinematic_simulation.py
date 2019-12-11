@@ -42,13 +42,13 @@ def probe(x, out=None, scale=None):
     ([0], (.7, .7, .7), (10, 11, 12), False, 1e-8),
     ([10, 14], (10, 20, 30), (10, 10, 10), False, 0),
     ([14], (5, 10, 15), (10,) * 3, True, 0),
-    ([14], (5, 10, 15), (10,) * 3, True, 1e-8),
+    ([14], (17, 30, 25), (10,) * 3, True, 1e-8),
 ])
 def test_get_diffraction_image(n, vol_shape, grid_shape, precession, wavelength):
     coords, species = create_atoms(n, vol_shape)
     x = [np.linspace(0, vol_shape[i], grid_shape[i]) for i in range(3)]
     if precession:
-        precession = (1e-2, 20)
+        precession = (1e-3, 20)
     else:
         precession = (0, 1)
 

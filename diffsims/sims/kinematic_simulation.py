@@ -6,9 +6,9 @@ Back end for computing diffraction patterns with a kinematic model.
 @author: Rob Tovey
 """
 from diffsims.utils.discretise_utils import getDiscretisation
-from numpy import array, pi, sin, cos, empty
+from numpy import array, pi, sin, cos, empty, maximum, sqrt
 from scipy.interpolate import interpn
-from diffsims.utils.fourier_transform import (getDFT, toFreq, fftshift_phase,
+from diffsims.utils.fourier_transform import (getDFT, toRecip, fftshift_phase,
     plan_fft, fast_abs)
 from diffsims.utils.generic_utils import toMesh
 
@@ -17,7 +17,7 @@ def normalise(arr): return arr / arr.max()
 
 
 def get_diffraction_image(coordinates, species, probe, x, wavelength,
-                          precession, GPU=True, pointwise=True, **kwargs):
+                          precession, GPU=True, pointwise=False, **kwargs):
     """
     Return kinematically simulated diffraction pattern
 
@@ -45,7 +45,7 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
         Flag whether to use GPU or CPU discretisation. Default (if available) is True
     pointwise : bool
         Optional parameter whether atomic intensities are computed point-wise at
-        the centre of a voxel or an integral over the voxel. default=True
+        the centre of a voxel or an integral over the voxel. default=False
 
     Returns
     -------
@@ -58,12 +58,11 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
     kwargs['pointwise'] = pointwise
 
     x = [X.astype(FTYPE, copy=False) for X in x]
-    y = toFreq(x)
+    y = toRecip(x)
     if wavelength == 0:
         p = probe(x).mean(-1)
-        # TODO: shouldn't have to compute the full volume
-        vol = getDiscretisation(coordinates, species, x, **kwargs).mean(-1)
-#         vol = getDiscretisation(coordinates, species, x[:2], **kwargs).mean(-1)
+#         vol = getDiscretisation(coordinates, species, x, **kwargs).mean(-1)
+        vol = getDiscretisation(coordinates, species, x[:2], **kwargs)[..., 0]
         ft = getDFT(x[:-1], y[:-1])[0]
     else:
         p = probe(x)
@@ -76,7 +75,7 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
         if wavelength == 0:
             return normalise(arr)
         else:
-            return normalise(grid2sphere(arr, y, None, 1 / wavelength))
+            return normalise(grid2sphere(arr, y, None, 2 * pi / wavelength))
 
     R = [precess_mat(precession[0], i * 360 / precession[1]) for i in range(precession[1])]
 
@@ -97,7 +96,7 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
         newFT = ft()
         newFT = fast_abs(newFT, buf).real
         newFT *= newFT  # newFT = abs(newFT) ** 2
-        newFT = grid2sphere(newFT.real, y, list(r), 1 / wavelength)
+        newFT = grid2sphere(newFT.real, y, list(r), 2 * pi / wavelength)
 
         if DP is None:
             DP = newFT
@@ -167,7 +166,7 @@ def grid2sphere(arr, x, dx, C):
             return arr[:, :, 0]
 
     y = toMesh((x[0], x[1], array([0])), dx).reshape(-1, 3)
-#     if C is not None: # project straight up
+#     if C is not None:  # project straight up
 #         w = C - sqrt(maximum(0, C ** 2 - (y ** 2).sum(-1)))
 #         if dx is None:
 #             y[:, 2] = w.reshape(-1)

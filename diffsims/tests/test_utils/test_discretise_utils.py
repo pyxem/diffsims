@@ -44,7 +44,11 @@ def test_getA(Z, returnFunc):
 
 
 @pytest.mark.xfail(raises=ValueError)
-def test_fail_getA(): getA(np.array([0, 1]))
+def test_2_atoms_getA(): getA(np.array([0, 1]))
+
+
+@pytest.mark.xfail(raises=ValueError)
+def test_max_atom_getA(): getA(np.array(21))
 
 
 @pytest.mark.parametrize('r', [.5, pytest.param(.1, marks=pytest.mark.xfail), pytest.param(.1, marks=pytest.mark.xfail)])
@@ -83,7 +87,7 @@ def test_getDiscretisation(n, shape):
     ([1, 14], (10, 20, 30), (3, 1, 5)),
     ([14, 14, 14], (10, 20, 30), (1, 4, 5)),
 ])
-def test_getDiscretisation2(n, shape, grid):
+def test_getDiscretisation_bools(n, shape, grid):
     atoms, species = create_atoms(n, shape)
     x = [np.linspace(0, .1, g) for g in grid]
 
@@ -91,6 +95,26 @@ def test_getDiscretisation2(n, shape, grid):
         for b2 in (True, False):
             f = getDiscretisation(atoms, species, x, pointwise=b1, FT=b2, **params)
             assert f.shape == grid
+
+
+@pytest.mark.parametrize('n, shape', [
+    ([0], (1, 1, 1)),
+    ([1, 14], (10, 20, 30)),
+    ([14, 14, 14], (10, 20, 30)),
+])
+def test_getDiscretisation_2d(n, shape):
+    atoms, species = create_atoms(n, shape)
+    x = [np.linspace(0, .01, g) for g in (10, 21, 31)]
+
+    f1 = getDiscretisation(atoms, species, x, pointwise=False, FT=False, **params).mean(-1)
+    FT1 = getDiscretisation(atoms, species, x, pointwise=False, FT=True, **params)[..., 0]
+    f2 = getDiscretisation(atoms, species, x[:2], pointwise=False, FT=False, **params).mean(-1)
+    FT2 = getDiscretisation(atoms, species, x[:2], pointwise=False, FT=True, **params)[..., 0]
+    for thing in (f1, FT1, f2, FT2):
+        thing /= abs(thing).max()
+
+    np.testing.assert_allclose(f1, f2, 1e-1)
+    np.testing.assert_allclose(FT1, FT2, 1e-1)
 
 
 @pytest.mark.parametrize('n, shape', [

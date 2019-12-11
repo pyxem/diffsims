@@ -245,7 +245,7 @@ def fftshift_phase(x):
     assert all((s % 2 == 0) or (s == 1) for s in x.shape)
     sz = x.shape
     shrink = [s for s in sz if s > 1]
-    x.reshape(shrink)
+    x = x.reshape(shrink)
     if len(shrink) == 1:
         __fftshift_phase1(x)
     elif len(shrink) == 2:
@@ -276,9 +276,9 @@ def __fftshift_phase2(x):  # pragma: no cover
 @numba.jit(nopython=True, parallel=True, fastmath=True)
 def __fftshift_phase3(x):  # pragma: no cover
     for i in numba.prange(x.shape[0]):
-        for j in range(x.shape[2]):
+        for j in range(x.shape[1]):
             start = (i + j + 1) % 2
-            for k in range(start, x.shape[1], 2):
+            for k in range(start, x.shape[2], 2):
                 x[i, j, k] = -x[i, j, k]
 
 
@@ -311,7 +311,7 @@ def __fast_abs(x, y):  # pragma: no cover
         y[i] = abs(x[i])
 
 
-def toFreq(x):
+def toRecip(x):
     """
     Converts spatial coordinates to Fourier frequencies.
 
@@ -337,7 +337,7 @@ def toFreq(x):
     return [fftshift(Y) for Y in y]
 
 
-def fromFreq(y):
+def fromRecip(y):
     """
     Converts Fourier frequencies to spatial coordinates.
 
@@ -364,7 +364,7 @@ def fromFreq(y):
     return [fftshift(X) for X in x]
 
 
-def getFTpoints(ndim, n=None, dX=inf, rX=0, dY=inf, rY=1e-16):
+def getRecipPoints(ndim, n=None, dX=inf, rX=0, dY=inf, rY=1e-16):
     """
     Returns a minimal pair of real and Fourier grids which satisfy each given
     requirement.
@@ -455,16 +455,17 @@ def getDFT(X=None, Y=None):
     if X is None and Y is None:
         raise ValueError('Either X or Y must be provided')
     elif X is None:
-        X = fromFreq(Y)
+        X = fromRecip(Y)
     elif Y is None:
-        Y = toFreq(X)
+        Y = toRecip(X)
 
     ndim = len(X)
     dx = [x.item(min(1, x.size - 1)) - x.item(0) for x in X]
     xmin = [x.item(0) for x in X]
 
+    # Coverage: Numba code does not register when code is run
     @numba.jit(nopython=True, parallel=True, fastmath=True)
-    def apply_phase_3D(x, f0, f1, f2):
+    def apply_phase_3D(x, f0, f1, f2):  # pragma: no cover
         for i0 in numba.prange(x.shape[0]):
             F0 = f0[i0]
             for i1 in range(x.shape[1]):

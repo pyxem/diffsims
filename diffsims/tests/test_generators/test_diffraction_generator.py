@@ -26,13 +26,11 @@ import diffpy.structure
 
 
 @pytest.fixture(params=[(300, 0.02, None), ])
-def diffraction_calculator(request):
-    return DiffractionGenerator(*request.param)
+def diffraction_calculator(request): return DiffractionGenerator(*request.param)
 
 
 @pytest.fixture(params=[(300, [np.linspace(-1, 1, 10)] * 2)])
-def diffraction_calculator_atomic(request):
-    return AtomicDiffractionGenerator(*request.param)
+def diffraction_calculator_atomic(request): return AtomicDiffractionGenerator(*request.param)
 
 
 @pytest.fixture(params=[(1, 3), (1,), (False,)])
@@ -75,23 +73,12 @@ def local_structure():
 
 
 def probe(x, out=None, scale=None):
-    v = abs(x[0].reshape(-1, 1, 1)) < 6
-    v = v * abs(x[1].reshape(1, -1, 1)) < 6
-    return v + 0 * x[2].reshape(1, 1, -1)
-
-#     if len(x) == 3:
-#         v = abs(x[0].reshape(-1, 1, 1)) < 6
-#         v = v * abs(x[1].reshape(1, -1, 1)) < 6
-#         v = v + 0 * x[2].reshape(1, 1, -1)
-#     else:
-#         v = abs(x[..., :2]).max(-1) < 6
-#     if scale is not None:
-#         v = v * scale
-#     if out is None:
-#         return v
-#     else:
-#         out[...] = v
-#         return out
+    if hasattr(x, 'shape'):
+        return (abs(x[..., 0]) < 6) * (abs(x[..., 1]) < 6)
+    else:
+        v = abs(x[0].reshape(-1, 1, 1)) < 6
+        v = v * abs(x[1].reshape(1, -1, 1)) < 6
+        return v + 0 * x[2].reshape(1, 1, -1)
 
 
 class TestDiffractionCalculator:
@@ -159,9 +146,9 @@ class TestDiffractionCalculatorAtomic:
     def test_defaults(self, diffraction_calculator_atomic, local_structure):
         dca = diffraction_calculator_atomic
         diffraction1 = dca.calculate_ed_data(local_structure, probe, 1)
-        diffraction2 = dca.calculate_ed_data(local_structure, probe, 1, [0, 0], False)
+        diffraction2 = dca.calculate_ed_data(local_structure, probe, 1, [0, 0], 200, False)
 
-        np.testing.assert_allclose(diffraction1, diffraction2, 1e-5, 1e-5)
+        np.testing.assert_allclose(diffraction1, diffraction2, 1e-6, 1e-6)
 
     @pytest.mark.xfail(raises=NotImplementedError)
     def test_mode(self, diffraction_calculator_atomic, local_structure):

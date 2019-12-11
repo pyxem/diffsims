@@ -8,10 +8,11 @@ Generic tools for all areas of code.
 from numpy import isscalar, zeros, array
 import numba
 
-try:
+# Coverage: Cuda code is not tested by travis
+try:  # pragma: no cover
     from numba import cuda
     __CUDA = cuda.is_available()
-except Exception:
+except Exception:  # pragma: no cover
     cuda = None
     __CUDA = False
 

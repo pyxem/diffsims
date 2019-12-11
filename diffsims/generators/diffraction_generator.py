@@ -30,7 +30,7 @@ from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from diffsims.utils.sim_utils import get_electron_wavelength, \
     get_kinematical_intensities, get_unique_families, get_points_in_sphere, \
     get_vectorized_list_for_atomic_scattering_factors, is_lattice_hexagonal
-from diffsims.utils.fourier_transform import fromFreq
+from diffsims.utils.fourier_transform import fromRecip
 
 
 class DiffractionGenerator(object):
@@ -277,14 +277,14 @@ class AtomicDiffractionGenerator:
                  reciprocal_mesh=False, debye_waller_factors=None):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         # Always store a 'real' mesh
-        self.detector = detector if not reciprocal_mesh else fromFreq(detector)
+        self.detector = detector if not reciprocal_mesh else fromRecip(detector)
 
         if debye_waller_factors:
             raise NotImplementedError('Not implemented for this simulator')
         self.debye_waller_factors = debye_waller_factors or {}
 
     def calculate_ed_data(self, structure, probe, slice_thickness,
-                          probe_centre=None, precessed=False, dtype='float64',
+                          probe_centre=None, z_range=200, precessed=False, dtype='float64',
                           ZERO=1e-14, mode='kinematic', **kwargs):
         '''
         Calculates single electron diffraction image for particular atomic
@@ -304,6 +304,9 @@ class AtomicDiffractionGenerator:
             Translation vector for the probe. Either of the same dimension of the
             space or the dimension of the detector. default=None focusses the
             probe at [0,0,0]
+        zrange : float
+            z-thickness to discretise. Only required if sample is not thick enough to
+            fully resolve the Ewald-sphere. Default value is 200.
         precessed : bool, float, or (float, int)
             Dictates whether beam precession is simulated. If False or the float is
             0 then no precession is computed. If <precessed> = (alpha, n) then the
@@ -318,6 +321,12 @@ class AtomicDiffractionGenerator:
             Only <mode>='kinematic' is currently supported.
         kwargs : dictionary
             Extra key-word arguments to pass to child simulator
+            For kinematic:
+                GPU : bool
+                    Flag to use GPU if available, default is True
+                pointwise: bool
+                    Flag to evaluate charge pointwise on voxels rather than average,
+                    default is False
 
 
         Returns
@@ -327,7 +336,6 @@ class AtomicDiffractionGenerator:
             detector mesh.
 
         '''
-        # TODO: document kwargs?..
 
         species = structure.element
         coordinates = structure.xyz_cartn.reshape(species.size, -1)
@@ -339,6 +347,7 @@ class AtomicDiffractionGenerator:
         elif len(probe_centre) < dim:
             probe_centre = np.array(list(probe_centre) + [0])
         probe_centre = np.array(probe_centre)
+        coordinates = coordinates - probe_centre[None]
 
         if not precessed:
             precessed = (float(0), 1)
@@ -353,15 +362,15 @@ class AtomicDiffractionGenerator:
 
         # Filter list of atoms
         for d in range(dim - 1):
-            ind = coordinates[:, d] >= self.detector[d].min() + probe_centre[d] - 20
+            ind = coordinates[:, d] >= self.detector[d].min() - 20
             coordinates, species = coordinates[ind, :], species[ind]
-            ind = coordinates[:, d] <= self.detector[d].max() + probe_centre[d] + 20
+            ind = coordinates[:, d] <= self.detector[d].max() + 20
             coordinates, species = coordinates[ind, :], species[ind]
 
         # Add z-coordinate
-        x = list(self.detector) + [np.linspace(coordinates[:, -1].min() - 20,
-                                               coordinates[:, -1].max() + 20,
-                                               slice_thickness)]
+        z_range = max(z_range, coordinates[:, -1].ptp())  # enforce minimal resolution in reciprocal space
+        x = [self.detector[0], self.detector[1],
+             np.arange(coordinates[:, -1].min() - 20, coordinates[:, -1].min() + z_range + 20, slice_thickness)]
 
         if mode == 'kinematic':
             from diffsims.sims import kinematic_simulation as simlib

@@ -8,8 +8,8 @@ import pytest
 import numpy as np
 from diffsims.utils.fourier_transform import (plan_fft, plan_ifft, fftn, ifftn,
                                               ifftshift, fftshift, fftshift_phase,
-                                              fast_abs, toFreq, fromFreq,
-                                              getFTpoints, getDFT, convolve)
+                                              fast_abs, toRecip, fromRecip,
+                                              getRecipPoints, getDFT, convolve)
 from diffsims.utils.discretise_utils import getA
 
 
@@ -76,8 +76,8 @@ def test_fast_abs(shape, n):
     ([10] * 3, (.1, .1, .2), (1, 2, 1), (.01,) * 3, (2,) * 3),
 ])
 def test_freq(shape, dX, rX, dY, rY):
-    x, y = getFTpoints(len(shape), shape, dX, rX, dY, rY)
-    X, Y = fromFreq(y), toFreq(x)
+    x, y = getRecipPoints(len(shape), shape, dX, rX, dY, rY)
+    X, Y = fromRecip(y), toRecip(x)
 
     assert len(x) == len(shape)
     assert len(y) == len(shape)
@@ -103,8 +103,8 @@ def test_freq(shape, dX, rX, dY, rY):
 @pytest.mark.parametrize('shape', [[200], [1, 10], [10, 1]])
 def test_freq2(shape):
     x = [np.linspace(0, 1, s) if s > 1 else np.array([0]) for s in shape]
-    y = toFreq(fromFreq(x))
-    z = fromFreq(toFreq(x))
+    y = toRecip(fromRecip(x))
+    z = fromRecip(toRecip(x))
 
     for i in range(len(shape)):
         assert abs(x[i] - y[i] + y[i].min()).max() < 1e-6
@@ -117,7 +117,7 @@ def test_freq2(shape):
     ([1] * 3, 1000),
 ])
 def test_DFT(rX, rY):
-    x, y = getFTpoints(len(rX), rX=rX, rY=rY)
+    x, y = getRecipPoints(len(rX), rX=rX, rY=rY)
     axes = (0 if len(x) == 1 else None)
 
     f, g = getA(0, returnFunc=True)

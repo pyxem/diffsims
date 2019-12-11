@@ -133,6 +133,8 @@ def getA(Z, returnFunc=True, dtype=FTYPE):
     elif Z in (20, 'Ca'):
         a = [0.4054, 1.3880, 2.1602, 3.7532, 2.2063,
              0.3499, 3.0991, 11.9608, 53.9353, 142.3892]
+    else:
+        raise ValueError('Atom Z=%s is not supported' % repr(Z))
 
     a, b = array(a[:5], dtype=dtype), array(a[5:], dtype=dtype)
     b /= (4 * pi) ** 2  # Weird scaling in initial paper
@@ -316,7 +318,8 @@ def rebin(x, loc, r, k, mem):
     __countbins(xmin[0], xmin[1], xmin[2], loc, r, k, Len, L)
 
     L = Len.max()
-    if Len.size * Len.itemsize * L > mem:
+# Coverage: line for large memory experiments
+    if Len.size * Len.itemsize * L > mem:  # pragma: no cover
         raise MemoryError
     subList = zeros(nbins + [L], dtype='i4')
     Len.fill(0)
@@ -326,6 +329,7 @@ def rebin(x, loc, r, k, mem):
 
 
 def doBinning(x, loc, Rmax, d, GPU):
+    Rmax = max(3, Rmax)  # coarsest permited discretisation must be >3A
     # Bin the atoms
     k = int(Rmax / max(d)) + 1
 # Coverage: Cuda code is not tested by travis
@@ -337,7 +341,7 @@ def doBinning(x, loc, Rmax, d, GPU):
         mem = virtual_memory().total / 10  # can use swap space if needed
 
     while k > 0:
-        # Proposed coarse grid size
+        # Proposed grid size: large k is fine, small is coarse
         r = array([2e5 if D == 0 else max(Rmax / k, D) for D in d], dtype='f4')
 
         subList = None
@@ -582,7 +586,9 @@ def _precomp_atom(x, a, b, d, pw, ZERO, dtype=FTYPE):
         n_zeros = sum(1 for D in d if D == 0)
         f = lambda x: sum(a[i] * c_exp(-b[i] * x ** 2) * (pi / b[i]) ** (n_zeros / 2)
                           for i in range(a.size))
-        Rmax = 1
+        Rmax = .1
+#         while f(Rmax) < ZERO * f(0):
+#             Rmax /= 2
         while f(Rmax) > ZERO * f(0):
             Rmax *= 1.1
         h = max(Rmax / 200, max(d) / 10)
@@ -600,13 +606,15 @@ def _precomp_atom(x, a, b, d, pw, ZERO, dtype=FTYPE):
                         -c_erf(B * (x - d[j] / 2))) / (2 * d[j] * B) * pi ** .5
 
         h = [D / 10 for D in d]
-        Rmax = ones([a.size, 3], dtype=dtype)
+        Rmax = ones([a.size, 3], dtype=dtype) / 10
         L = 1
         for i in range(a.size):
             for j in range(3):
                 if d[j] == 0:
                     Rmax[i, j] = 1e5
                     continue
+#                 while f(i, j, Rmax[i, j]) < ZERO * f(i, j, 0):
+#                     Rmax[i, j] /= 2
                 while f(i, j, Rmax[i, j]) > ZERO * f(i, j, 0):
                     Rmax[i, j] *= 1.1
                     L = max(L, Rmax[i, j] / h[j] + 2)
@@ -628,7 +636,11 @@ def getDiscretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYPE
     kwargs.update({'GPU':GPU, 'ZERO':ZERO, 'dtype':dtype, 'pointwise':pointwise, 'FT':FT})
 
     dim = loc.shape[-1]
-    if Z.dtype.char not in 'US':
+    if type(Z) is str:
+        Z = array(Z, dtype=str)
+    elif isscalar(Z):
+        Z = array(Z)
+    elif Z.dtype.char not in 'US':
         Z = Z.astype(int)
     z = unique(Z)
     if z.size > 1:
@@ -639,7 +651,10 @@ def getDiscretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYPE
     Z = z[0]
     a, b = getA(Z, False)
     loc = require(loc.reshape(-1, dim), requirements='AC')
-    x = x if len(x) == dim else list(x) + [array([0])]
+    if len(x) != dim:
+        x = list(x) + [array([0])]
+        loc = loc.copy()
+        loc[:, 2] = 0
     d = array([abs(X.item(1) - X.item(0)) if X.size > 1 else 0 for X in x])
     x = [X if X.size > 1 else array([0]) for X in x]
 
