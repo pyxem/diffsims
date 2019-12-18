@@ -30,28 +30,30 @@ from transforms3d.euler import euler2mat
 from .atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from .lobato_scattering_params import ATOMIC_SCATTERING_PARAMS_LOBATO
 
-#from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.utils.vector_utils import get_angle_cartesian
 
 
-def get_electron_wavelength(accelerating_voltage):
-    """Calculates the (relativistic) electron wavelength in Angstroms for a
-    given accelerating voltage in kV.
+def get_wavelength(beam_energy, relativistic=True):
+    """Calculates the (relativistic) wavelength in Angstroms for a given
+    beam energy in keV.
 
     Parameters
     ----------
-    accelerating_voltage : float
-        The accelerating voltage in kV.
+    beam_energy : float
+        The beam_energy in kV.
 
     Returns
     -------
     wavelength : float
-        The relativistic electron wavelength in Angstroms.
+        The wavelength in Angstroms.
 
     """
-    E = accelerating_voltage * 1e3
-    wavelength = h / math.sqrt(2 * m_e * e * E *
-                               (1 + (e / (2 * m_e * c * c)) * E)) * 1e10
+    E = beam_energy * 1e3
+    if relativistic:
+        wavelength = h / math.sqrt(2 * m_e * e * E *
+                                   (1 + (e / (2 * m_e * c * c)) * E)) * 1e10
+    else:
+        wavelength = (h * c) / (E * e) * 1e10
     return wavelength
 
 
