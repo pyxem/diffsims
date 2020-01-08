@@ -28,9 +28,9 @@ from .generators.library_generator import VectorLibraryGenerator
 
 from .sims.diffraction_simulation import DiffractionSimulation
 
-from .utils.probe_utils import probeFunction, BesselProbe
-from .utils.fourier_transform import toRecip, fromRecip, getRecipPoints, getDFT
-from .utils.discretise_utils import getDiscretisation
+from .utils.probe_utils import ProbeFunction, BesselProbe
+from .utils.fourier_transform import to_recip, from_recip, get_recip_points, get_DFT
+from .utils.discretise_utils import get_discretisation
 
 from . import release_info
 

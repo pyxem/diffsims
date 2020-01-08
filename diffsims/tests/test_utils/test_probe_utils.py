@@ -6,7 +6,7 @@ Created on 6 Nov 2019
 
 import pytest
 import numpy as np
-from diffsims.utils.probe_utils import (probeFunction, BesselProbe)
+from diffsims.utils.probe_utils import (ProbeFunction, BesselProbe)
 
 
 def _toMesh(x):
@@ -27,7 +27,7 @@ def _random_array(shape, n=0):
 
 @pytest.mark.xfail(raises=NotImplementedError)
 def test_null_probe():
-    p = probeFunction()
+    p = ProbeFunction()
     p(1)
 
 
@@ -36,12 +36,12 @@ def simple_mesh(request): return [np.linspace(-1, 1, n) for n in request.param]
 
 
 @pytest.fixture(params=[(lambda x: (x.max(-1) < 1).astype(float),)])
-def simple_probe(request): return probeFunction(*request.param)
+def simple_probe(request): return ProbeFunction(*request.param)
 
 
 class TestSimpleProbe:
 
-    def test_init(self, simple_probe:probeFunction):
+    def test_init(self, simple_probe:ProbeFunction):
         assert simple_probe._func is not None
 
     def test_func(self, simple_probe, simple_mesh):

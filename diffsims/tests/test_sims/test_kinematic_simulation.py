@@ -9,7 +9,7 @@ import numpy as np
 from diffsims.sims.kinematic_simulation import (get_diffraction_image, precess_mat, grid2sphere)
 
 
-def toMesh(x):
+def to_mesh(x):
     y = np.meshgrid(*x, indexing='ij')
     return np.concatenate([z[..., None] for z in y], axis=-1)
 
@@ -93,8 +93,8 @@ def test_precess_mat(alpha, theta, x):
 ])
 def test_grid2sphere(shape, rad):
     x = [np.linspace(-1, 1, s) if s > 1 else np.array([0]) for s in shape]
-    X = toMesh(x)
-    Y = toMesh((x[0], x[1], np.array([0]))).reshape(-1, 3)
+    X = to_mesh(x)
+    Y = to_mesh((x[0], x[1], np.array([0]))).reshape(-1, 3)
     w = 1 / (1 + (Y ** 2).sum(-1) / rad ** 2)
     Y *= w[..., None]
     Y[:, 2] = rad * (1 - w)

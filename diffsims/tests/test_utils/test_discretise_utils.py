@@ -6,7 +6,7 @@ Created on 1 Nov 2019
 
 import pytest
 import numpy as np
-from diffsims.utils.discretise_utils import (getA, getDiscretisation, _CUDA,
+from diffsims.utils.discretise_utils import (get_atoms, get_discretisation, _CUDA,
     rebin)
 dtype, ZERO = ('f4', 'c8'), 1e-10
 params = {'dtype':('f4', 'c8'), 'ZERO':1e-10, 'GPU':False}
@@ -25,9 +25,9 @@ def create_atoms(n, shape):
     return coords, species
 
 
-@pytest.mark.parametrize('Z, returnFunc', [('H', True)] + [(i, bool(1 + (-1) ** i)) for i in range(21)])
+@pytest.mark.parametrize('Z, returnFunc', [('H', True)] + [(i, bool(1 + (-1) ** i)) for i in range(99)])
 def test_getA(Z, returnFunc):
-    a, b = getA(Z, returnFunc)
+    a, b = get_atoms(Z, returnFunc)
     if returnFunc:
         x = [np.linspace(0, 1, 10), np.linspace(0, 1, 21), np.linspace(0, 1, 32)]
         x = _toMesh(x)
@@ -44,11 +44,11 @@ def test_getA(Z, returnFunc):
 
 
 @pytest.mark.xfail(raises=ValueError)
-def test_2_atoms_getA(): getA(np.array([0, 1]))
+def test_2_atoms_getA(): get_atoms(np.array([0, 1]))
 
 
 @pytest.mark.xfail(raises=ValueError)
-def test_max_atom_getA(): getA(np.array(21))
+def test_max_atom_getA(): get_atoms('Es')
 
 
 @pytest.mark.parametrize('r', [.5, pytest.param(.1, marks=pytest.mark.xfail), pytest.param(.1, marks=pytest.mark.xfail)])
@@ -70,16 +70,17 @@ def test_getDiscretisation(n, shape):
     x = [np.linspace(0, .1, g) for g in (10, 21, 32)]
     X = _toMesh(x)
 
-    f1 = getDiscretisation(atoms, species, x, pointwise=True, FT=False, **params)
-    FT1 = getDiscretisation(atoms, species, x, pointwise=True, FT=True, **params)
+    f1 = get_discretisation(atoms, species, x, pointwise=True, FT=False, **params)
+    FT1 = get_discretisation(atoms, species, x, pointwise=True, FT=True, **params)
     f2, FT2 = 0, 0
     for i in range(len(n)):
-        a, b = getA(n[i], True)
+        a, b = get_atoms(n[i], True)
         f2 = f2 + a(X - atoms[i].reshape(1, 1, -1))
         FT2 = FT2 + b(X) * np.exp(-1j * (X * atoms[i].reshape(1, 1, -1)).sum(-1))
 
-    np.testing.assert_allclose(f1, f2, 1e-1)
-    np.testing.assert_allclose(FT1, FT2, 1e-1)
+    # The errors here are from approximating exp
+    np.testing.assert_allclose(f1, f2, 1e-2)
+    np.testing.assert_allclose(FT1, FT2, 1e-2)
 
 
 @pytest.mark.parametrize('n, shape, grid', [
@@ -93,7 +94,7 @@ def test_getDiscretisation_bools(n, shape, grid):
 
     for b1 in (True, False):
         for b2 in (True, False):
-            f = getDiscretisation(atoms, species, x, pointwise=b1, FT=b2, **params)
+            f = get_discretisation(atoms, species, x, pointwise=b1, FT=b2, **params)
             assert f.shape == grid
 
 
@@ -106,20 +107,20 @@ def test_getDiscretisation_2d(n, shape):
     atoms, species = create_atoms(n, shape)
     x = [np.linspace(0, .01, g) for g in (10, 21, 31)]
 
-    f1 = getDiscretisation(atoms, species, x, pointwise=False, FT=False, **params).mean(-1)
-    FT1 = getDiscretisation(atoms, species, x, pointwise=False, FT=True, **params)[..., 0]
-    f2 = getDiscretisation(atoms, species, x[:2], pointwise=False, FT=False, **params).mean(-1)
-    FT2 = getDiscretisation(atoms, species, x[:2], pointwise=False, FT=True, **params)[..., 0]
+    f1 = get_discretisation(atoms, species, x, pointwise=False, FT=False, **params).mean(-1)
+    FT1 = get_discretisation(atoms, species, x, pointwise=False, FT=True, **params)[..., 0]
+    f2 = get_discretisation(atoms, species, x[:2], pointwise=False, FT=False, **params).mean(-1)
+    FT2 = get_discretisation(atoms, species, x[:2], pointwise=False, FT=True, **params)[..., 0]
     for thing in (f1, FT1, f2, FT2):
         thing /= abs(thing).max()
 
-    np.testing.assert_allclose(f1, f2, 1e-1)
-    np.testing.assert_allclose(FT1, FT2, 1e-1)
+    np.testing.assert_allclose(f1, f2, 1e-2)
+    np.testing.assert_allclose(FT1, FT2, 1e-2)
 
 
 def test_getDiscretisation_str():
     atoms, _ = create_atoms([14] * 3, [10] * 3)
-    getDiscretisation(atoms, 'Si', [np.linspace(0, 1, g) for g in (10, 21, 31)],
+    get_discretisation(atoms, 'Si', [np.linspace(0, 1, g) for g in (10, 21, 31)],
                       pointwise=True, FT=False, **params)
 
 
@@ -131,13 +132,13 @@ def test_pointwise(n, shape):
     atoms, species = create_atoms(n, shape)
     x = [np.linspace(0, .01, g) for g in (10, 21, 32)]
 
-    pw_f = getDiscretisation(atoms, species, x, pointwise=True, FT=False, **params)
-    pw_FT = getDiscretisation(atoms, species, x, pointwise=True, FT=True, **params)
-    av_f = getDiscretisation(atoms, species, x, pointwise=False, FT=False, **params)
-    av_FT = getDiscretisation(atoms, species, x, pointwise=True, FT=True, **params)
+    pw_f = get_discretisation(atoms, species, x, pointwise=True, FT=False, **params)
+    pw_FT = get_discretisation(atoms, species, x, pointwise=True, FT=True, **params)
+    av_f = get_discretisation(atoms, species, x, pointwise=False, FT=False, **params)
+    av_FT = get_discretisation(atoms, species, x, pointwise=True, FT=True, **params)
 
-    np.testing.assert_allclose(pw_f, av_f, 1e-1)
-    np.testing.assert_allclose(pw_FT, av_FT, 1e-1)
+    np.testing.assert_allclose(pw_f, av_f, 1e-2)
+    np.testing.assert_allclose(pw_FT, av_FT, 1e-2)
 
 
 if _CUDA:
@@ -151,11 +152,11 @@ if _CUDA:
         x = [np.linspace(0, .01, g) for g in (10, 21, 32)]
 
         params['GPU'] = False
-        cpu_f = getDiscretisation(atoms, species, x, pointwise=True, FT=False, **params)
-        cpu_FT = getDiscretisation(atoms, species, x, pointwise=True, FT=True, **params)
+        cpu_f = get_discretisation(atoms, species, x, pointwise=True, FT=False, **params)
+        cpu_FT = get_discretisation(atoms, species, x, pointwise=True, FT=True, **params)
         params['GPU'] = True
-        gpu_f = getDiscretisation(atoms, species, x, pointwise=True, FT=False, **params)
-        gpu_FT = getDiscretisation(atoms, species, x, pointwise=True, FT=True, **params)
+        gpu_f = get_discretisation(atoms, species, x, pointwise=True, FT=False, **params)
+        gpu_FT = get_discretisation(atoms, species, x, pointwise=True, FT=True, **params)
 
         np.testing.assert_allclose(cpu_f, gpu_f, 1e-4)
         np.testing.assert_allclose(cpu_FT, gpu_FT, 1e-4)

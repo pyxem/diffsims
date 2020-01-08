@@ -5,7 +5,7 @@ Created on 3 Dec 2019
 '''
 
 import pytest
-from diffsims.utils.generic_utils import GLOBAL_BOOL, getGrid, toMesh
+from diffsims.utils.generic_utils import GLOBAL_BOOL, get_grid, to_mesh
 import numpy as np
 
 
@@ -26,7 +26,7 @@ def test_global_bool(start, end):
                          [((10,), None, [1], [10]),
                           ((10, 18), 7, [2, 3], [5, 6])])
 def test_getGrid(sz, tpb_in, grid_out, tpb_out):
-    grid, tpb = getGrid(sz, tpb_in)
+    grid, tpb = get_grid(sz, tpb_in)
     assert grid == grid_out
     assert tpb == tpb_out
 
@@ -44,8 +44,8 @@ def test_toMesh(shape, dx, dtype):
     else:
         dx = None
 
-    var1 = toMesh(x, dx, shape, dtype)
-    var2 = toMesh(x, dx).astype(dtype)
+    var1 = to_mesh(x, dx, shape, dtype)
+    var2 = to_mesh(x, dx).astype(dtype)
 
     if len(shape) == 2:
         flag = dx is None

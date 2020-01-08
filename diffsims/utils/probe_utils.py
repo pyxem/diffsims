@@ -1,41 +1,58 @@
+# -*- coding: utf-8 -*-
+# Copyright 2017-2019 The diffsims developers
+#
+# This file is part of diffsims.
+#
+# diffsims is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# diffsims is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
+
 '''
 Created on 5 Nov 2019
 
 @author: Rob Tovey
 '''
-from diffsims.utils.fourier_transform import getDFT, fromRecip
-from diffsims.utils.generic_utils import toMesh
+from diffsims.utils.fourier_transform import get_DFT, from_recip
+from diffsims.utils.generic_utils import to_mesh
 import numba
 from math import sqrt as c_sqrt
 from numpy import empty, maximum, sqrt, arange, pi, linspace, ones
 from scipy.special import jv
 
 
-class probeFunction:
+class ProbeFunction:
     '''
     Object representing a probe function.
 
     Parameters
     ----------
     func : function
-        Function which takes in an array, r, of shape [nx, ny, nz, 3] and
-        returns an array of shape [nx, ny, nz]. r[...,0] corresponds to the
-        x coordinate, r[..., 1] to y etc. If not provided (or None) then the
-        __call__ and FT methods must be overrided.
+        Function which takes in an array, `r`, of shape `[nx, ny, nz, 3]` and
+        returns an array of shape `[nx, ny, nz]`. `r[...,0]` corresponds to the
+        `x` coordinate, `r[..., 1]` to `y` etc. If not provided (or `None`) then the
+        `__call__` and `FT` methods must be overrided.
 
     Attributes
     ----------
     __call__ : method(x, out=None, scale=None)
-        Returns func(x)*scale. If out is provided then it is used as
-        preallocated storage. If scale is not provided then it is assumed
-        to be 1. If x is a list of arrays it is converted into a mesh first.
+        Returns `func(x)*scale`. If `out` is provided then it is used as
+        preallocated storage. If `scale` is not provided then it is assumed
+        to be 1. If `x` is a list of arrays it is converted into a mesh first.
 
     FT : method(y, out=None)
-        Returns the Fourier transform of func on the mesh y. Again, if out is
-        provided then computation is inplace. If y is a list of arrays then
+        Returns the Fourier transform of func on the mesh `y`. Again, if `out` is
+        provided then computation is `inplace`. If `y` is a list of arrays then
         it is converted into a mesh first. If this function is not overridden
-        then an approximation is made using func and the fft.
-
+        then an approximation is made using `func` and the `fft`.
 
     '''
 
@@ -46,25 +63,25 @@ class probeFunction:
         '''
         Parameters
         ----------
-        x : array of shape [nx, ny, nz, 3] or list of arrays size nx, ny and nz
+        x : `numpy.ndarray`, (nx, ny, nz, 3) or list of arrays of shape [(nx,), (ny,), (nz,)]
             Mesh points at which to evaluate the probe density
-        out : array of shape [nx, ny, nz]
+        out : `numpy.ndarray`, (nx, ny, nz), optional
             If provided then computation is performed inplace
-        scale : array of shape [nx, ny, nz]
+        scale : `numpy.ndarray`, (nx, ny, nz), optional
             If provided then the probe density is scaled by this before being
             returned.
 
         Returns
         -------
-        out : array of shape [nx, ny, nz]
-            An array equal to probe(x)*scale
+        out : `numpy.ndarray`, (nx, ny, nz)
+            An array equal to `probe(x)*scale`
 
         '''
         if self._func is None:
             raise NotImplementedError
 
         if not(hasattr(x, 'shape')):
-            x = toMesh(x)
+            x = to_mesh(x)
 
         if out is None:
             out = self._func(x)
@@ -79,15 +96,15 @@ class probeFunction:
         '''
         Parameters
         ----------
-        y : array of shape [nx, ny, nz, 3] or list of arrays size nx, ny and nz
-            Mesh of Fourier coordinates at which to evaluate the probe density.
-        out : array of shape [nx, ny, nz]
+        y : `numpy.ndarray`, (nx, ny, nz, 3) or list of arrays of shape [(nx,), (ny,), (nz,)]
+            Mesh of Fourier coordinates at which to evaluate the probe density
+        out : `numpy.ndarray`, (nx, ny, nz), optional
             If provided then computation is performed inplace
 
         Returns
         -------
-        out : array of shape [nx, ny, nz]
-            An array equal to FourierTransform(probe)(y)
+        out : `numpy.ndarray`, (nx, ny, nz)
+            An array equal to `FourierTransform(probe)(y)`
 
         '''
         if hasattr(y, 'shape'):
@@ -95,8 +112,8 @@ class probeFunction:
             y_end = y[(-1,) * (y.ndim - 1)]
             y = [linspace(y_start[i], y_end[i], y.shape[i], endpoint=True)
                   for i in range(3)]
-        x = fromRecip(y)
-        ft = getDFT(x, y)[0]
+        x = from_recip(y)
+        ft = get_DFT(x, y)[0]
         tmp = ft(self(x, out=out))
         if out is None:
             out = tmp
@@ -105,33 +122,33 @@ class probeFunction:
         return out
 
 
-class BesselProbe(probeFunction):
+class BesselProbe(ProbeFunction):
     '''
     Probe function given by a radially scaled Bessel function of the first kind.
 
     Parameters
     ----------
-    r : float
+    r : `float`
         Width of probe at the surface of the sample. More specifically, the smallest
         0 of the probe.
 
     Attributes
     ----------
     __call__ : method(x, out=None, scale=None)
-        If X = sqrt(x[...,0]**2+x[...,1]**2)/r then returns J_1(X)/X*scale.
-        If out is provided then this is computed inplace. If scale is not
-        provided then it is assumed to be 1. If x is a list of arrays it is
+        If `X = sqrt(x[...,0]**2+x[...,1]**2)/r` then returns `J_1(X)/X*scale`.
+        If `out` is provided then this is computed inplace. If `scale` is not
+        provided then it is assumed to be 1. If `x` is a list of arrays it is
         converted into a mesh first.
 
     FT : method(y, out=None)
-        If Y = sqrt(y[...,0]**2 + y[...,1]**2)*r then returns an indicator
-        function on the disc Y < 1, y[2]==0. Again, if out is provided then
-        computation is inplace. If y is a list of arrays then it is converted
+        If `Y = sqrt(y[...,0]**2 + y[...,1]**2)*r` then returns an indicator
+        function on the disc `Y < 1, y[2]==0`. Again, if `out` is provided then
+        computation is inplace. If `y` is a list of arrays then it is converted
         into a mesh first.
     '''
 
     def __init__(self, r):
-        probeFunction.__init__(self)
+        ProbeFunction.__init__(self)
         self.r = r
         self._r = r / 3.83170597020751
 
@@ -139,26 +156,26 @@ class BesselProbe(probeFunction):
         '''
         Parameters
         ----------
-        x : array of shape [nx, ny, nz, 3] or list of arrays size nx, ny and nz
+        x : `numpy.ndarray`, (nx, ny, nz, 3) or list of arrays of shape [(nx,), (ny,), (nz,)]
             Mesh points at which to evaluate the probe density.
             As a plotting utility, if a lower dimensional mesh is provided then
             the remaining coordinates are assumed to be 0 and so only the
             respective 1D/2D slice of the probe is returned.
-        out : array of shape [nx, ny, nz]
+        out : `numpy.ndarray`, (nx, ny, nz), optional
             If provided then computation is performed inplace
-        scale : array of shape [nx, ny, nz]
+        scale : `numpy.ndarray`, (nx, ny, nz), optional
             If provided then the probe density is scaled by this before being
             returned.
 
         Returns
         -------
-        out : array of shape [nx, ny, nz]
-            An array equal to probe(x)*scale. If ny=0 or nz=0 then array is of
+        out : `numpy.ndarray`, (nx, ny, nz)
+            An array equal to `probe(x)*scale`. If `ny=0` or `nz=0` then array is of
             smaller dimension.
 
         '''
         if not hasattr(x, 'shape'):
-            x = toMesh(x)
+            x = to_mesh(x)
         scale = ones(1, dtype=x.dtype) if scale is None else scale
         if out is None:
             out = empty(x.shape[:-1], dtype=scale.dtype)
@@ -183,23 +200,23 @@ class BesselProbe(probeFunction):
         '''
         Parameters
         ----------
-        y : array of shape [nx, ny, nz, 3] or list of arrays size nx, ny and nz
+        y : `numpy.ndarray`, (nx, ny, nz, 3) or list of arrays of shape [(nx,), (ny,), (nz,)]
             Mesh of Fourier coordinates at which to evaluate the probe density.
             As a plotting utility, if a lower dimensional mesh is provided then
             the remaining coordinates are assumed to be 0 and so only the
             respective 1D/2D slice of the probe is returned.
-        out : array of shape [nx, ny, nz]
+        out : `numpy.ndarray`, (nx, ny, nz), optional
             If provided then computation is performed inplace
 
         Returns
         -------
-        out : array of shape [nx, ny, nz]
-            An array equal to FourierTransform(probe)(y). If ny=0 or nz=0 then
+        out : `numpy.ndarray`, (nx, ny, nz)
+            An array equal to `FourierTransform(probe)(y)`. If `ny=0` or `nz=0` then
             array is of smaller dimension.
 
         '''
         if not hasattr(y, 'shape'):
-            y = toMesh(y)
+            y = to_mesh(y)
         r = self._r
         if y.shape[-1] == 1 or y.ndim == 1:
             y = (y * r).reshape(-1)

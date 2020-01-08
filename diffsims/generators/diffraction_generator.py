@@ -30,7 +30,7 @@ from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from diffsims.utils.sim_utils import get_electron_wavelength, \
     get_kinematical_intensities, get_unique_families, get_points_in_sphere, \
     get_vectorized_list_for_atomic_scattering_factors, is_lattice_hexagonal
-from diffsims.utils.fourier_transform import fromRecip
+from diffsims.utils.fourier_transform import from_recip
 
 
 class DiffractionGenerator(object):
@@ -263,12 +263,12 @@ class AtomicDiffractionGenerator:
 
     Parameters
     ----------
-    accelerating_voltage : float (or 'inf')
+    accelerating_voltage : float, 'inf'
         The accelerating voltage of the microscope in kV
-    detector : list of 1D ndarrays
+    detector : list of 1D float-type arrays
         List of mesh vectors defining the (flat) detector size and sensor positions
-    reciprocal_mesh : bool
-        If True then <detector> is assumed to be a reciprocal grid, else
+    reciprocal_mesh : bool, optional
+        If True then `detector` is assumed to be a reciprocal grid, else
         (default) it is assumed to be a real grid.
 
     '''
@@ -277,7 +277,7 @@ class AtomicDiffractionGenerator:
                  reciprocal_mesh=False, debye_waller_factors=None):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         # Always store a 'real' mesh
-        self.detector = detector if not reciprocal_mesh else fromRecip(detector)
+        self.detector = detector if not reciprocal_mesh else from_recip(detector)
 
         if debye_waller_factors:
             raise NotImplementedError('Not implemented for this simulator')

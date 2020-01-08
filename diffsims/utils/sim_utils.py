@@ -40,8 +40,8 @@ def get_electron_wavelength(accelerating_voltage):
 
     Parameters
     ----------
-    accelerating_voltage : float (or 'inf')
-        The accelerating voltage in kV. Values numpy.inf and 'inf' are
+    accelerating_voltage : float or 'inf'
+        The accelerating voltage in kV. Values `numpy.inf` and 'inf' are
         also accepted.
 
     Returns

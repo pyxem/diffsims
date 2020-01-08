@@ -8,9 +8,9 @@ import pytest
 import numpy as np
 from diffsims.utils.fourier_transform import (plan_fft, plan_ifft, fftn, ifftn,
                                               ifftshift, fftshift, fftshift_phase,
-                                              fast_abs, toRecip, fromRecip,
-                                              getRecipPoints, getDFT, convolve)
-from diffsims.utils.discretise_utils import getA
+                                              fast_abs, to_recip, from_recip,
+                                              get_recip_points, get_DFT, convolve)
+from diffsims.utils.discretise_utils import get_atoms
 
 
 def _toMesh(x):
@@ -76,8 +76,8 @@ def test_fast_abs(shape, n):
     ([10] * 3, (.1, .1, .2), (1, 2, 1), (.01,) * 3, (2,) * 3),
 ])
 def test_freq(shape, dX, rX, dY, rY):
-    x, y = getRecipPoints(len(shape), shape, dX, rX, dY, rY)
-    X, Y = fromRecip(y), toRecip(x)
+    x, y = get_recip_points(len(shape), shape, dX, rX, dY, rY)
+    X, Y = from_recip(y), to_recip(x)
 
     assert len(x) == len(shape)
     assert len(y) == len(shape)
@@ -103,8 +103,8 @@ def test_freq(shape, dX, rX, dY, rY):
 @pytest.mark.parametrize('shape', [[200], [1, 10], [10, 1]])
 def test_freq2(shape):
     x = [np.linspace(0, 1, s) if s > 1 else np.array([0]) for s in shape]
-    y = toRecip(fromRecip(x))
-    z = fromRecip(toRecip(x))
+    y = to_recip(from_recip(x))
+    z = from_recip(to_recip(x))
 
     for i in range(len(shape)):
         assert abs(x[i] - y[i] + y[i].min()).max() < 1e-6
@@ -117,15 +117,15 @@ def test_freq2(shape):
     ([1] * 3, 1000),
 ])
 def test_DFT(rX, rY):
-    x, y = getRecipPoints(len(rX), rX=rX, rY=rY)
+    x, y = get_recip_points(len(rX), rX=rX, rY=rY)
     axes = (0 if len(x) == 1 else None)
 
-    f, g = getA(0, returnFunc=True)
+    f, g = get_atoms(0, returnFunc=True)
     f, g = f(_toMesh(x)), g(_toMesh(y))
 
-    ft, ift = getDFT(x, y)
-    ft1, ift1 = getDFT(X=x)
-    ft2, ift2 = getDFT(Y=y)
+    ft, ift = get_DFT(x, y)
+    ft1, ift1 = get_DFT(X=x)
+    ft2, ift2 = get_DFT(Y=y)
 
     for FT in (ft, ft1, ft2):
         np.testing.assert_allclose(g, FT(f, axes=axes), 1e-5, 1e-5)
@@ -134,7 +134,7 @@ def test_DFT(rX, rY):
 
 
 @pytest.mark.xfail(raises=ValueError)
-def test_fail_DFT(): getDFT()
+def test_fail_DFT(): get_DFT()
 
 
 @pytest.mark.parametrize('shape1, shape2, n1, n2, dx', [

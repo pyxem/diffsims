@@ -1,3 +1,21 @@
+# -*- coding: utf-8 -*-
+# Copyright 2017-2019 The diffsims developers
+#
+# This file is part of diffsims.
+#
+# diffsims is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# diffsims is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
+
 '''
 Created on 31 Oct 2019
 
@@ -37,7 +55,7 @@ class GLOBAL_BOOL:
 _CUDA = GLOBAL_BOOL(__CUDA)
 
 
-def getGrid(sz, tpb=None):
+def get_grid(sz, tpb=None):
     dim = len(sz)
 
     if tpb is None:
@@ -87,11 +105,27 @@ def __toMesh3d(x0, x1, x2, dx0, dx1, dx2, out):  # pragma: no cover
                 out[i0, i1, i2, 2] = X02 + X12 + x2[i2] * dx2[2]
 
 
-def toMesh(x, dx=None, shape=None, dtype=None):
-    if shape is None:
-        shape = [xi.size for xi in x]
-    else:
-        shape = list(shape)
+def to_mesh(x, dx=None, dtype=None):
+    """
+    Generates dense meshes from grid vectors, broadly:
+        to_mesh(x)[i,j,...] = (x[0][i], x[1][j], ...)
+
+    Parameters
+    ----------
+    x : `list` [`numpy.ndarray`], of shape [(nx,), (ny,), ...]
+        List of grid vectors
+    dx : `list` [`numpy.ndarray`] or `None`, optional
+        Basis in which to expand mesh, default is the canonical basis
+    dtype : `str` or `None`, optional
+        String representing the `numpy` type of output, default inherits from `x`
+
+    Returns
+    -------
+    X : `numpy.ndarray` [dtype], (x[0].size, x[1].size, ..., len(x))
+        X[i,j,..., k] = x[0][i]*dx[0][k] + x[1][j]*dx[1][k] + ...
+
+    """
+    shape = [xi.size for xi in x]
     if dtype is None:
         dtype = x[0].dtype
     else:
@@ -108,6 +142,7 @@ def toMesh(x, dx=None, shape=None, dtype=None):
         __toMesh3d(*x, *dx, X)
         return X
 
+    # TODO: this ignores dx, probably just raise error on dim=4?
     dim = X.shape[-1]
     for i in range(len(x)):
         sz = [1] * dim
