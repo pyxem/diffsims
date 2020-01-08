@@ -114,8 +114,8 @@ def test_getDiscretisation_2d(n, shape):
     for thing in (f1, FT1, f2, FT2):
         thing /= abs(thing).max()
 
-    np.testing.assert_allclose(f1, f2, 1e-2)
-    np.testing.assert_allclose(FT1, FT2, 1e-2)
+    np.testing.assert_allclose(f1, f2, 1e-1)
+    np.testing.assert_allclose(FT1, FT2, 1e-1)
 
 
 def test_getDiscretisation_str():

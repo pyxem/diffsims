@@ -44,7 +44,7 @@ def test_toMesh(shape, dx, dtype):
     else:
         dx = None
 
-    var1 = to_mesh(x, dx, shape, dtype)
+    var1 = to_mesh(x, dx, dtype)
     var2 = to_mesh(x, dx).astype(dtype)
 
     if len(shape) == 2:
