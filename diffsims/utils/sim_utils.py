@@ -384,8 +384,7 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     Parameters
     ----------
     reciprocal_lattice : diffpy.Structure.Lattice
-        The crystal lattice for the structure of interest.
-        TODO: Mention that it is the reciprocal lattice. Just take the structure and calculate from there?
+        The reciprocal crystal lattice for the structure of interest.
     reciprocal_radius  : float
         The radius of the sphere in reciprocal space (units of reciprocal
         Angstroms) within which reciprocal lattice points are returned.
@@ -404,7 +403,7 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     k_max = np.ceil(reciprocal_radius / b)
     l_max = np.ceil(reciprocal_radius / c)
     from itertools import product
-    h_list = np.arange(-h_max, h_max + 1)
+    h_list = np.arange(-h_max, h_max + 1) #arange has a non-inclusive endpoint
     k_list = np.arange(-k_max, k_max + 1)
     l_list = np.arange(-l_max, l_max + 1)
     potential_points = np.asarray(list(product(h_list, k_list, l_list)))
