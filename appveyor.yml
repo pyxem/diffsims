@@ -2,6 +2,7 @@
 environment:
 
   global:
+    DEPS: "scipy>=0.15 numpy>=1.10 matplotlib>=3.1.1 tqdm>=0.4.9 transforms3d diffpy.structure>=3.0.0"
     TEST_DEPS: "pytest"
     MPLBACKEND: "agg"
 
@@ -23,7 +24,7 @@ install:
   - "conda activate testenv"
 
   # Install the dependencies of diffsims.
-  - 'conda install -yq %TEST_DEPS%'
+  - 'conda install -yq %TEST_DEPS% %DEPS%'
 
   # Install our package
   - 'pip install -e .'
