@@ -2,7 +2,8 @@
 environment:
 
   global:
-    DEPS: "psutil numba"
+
+    DEPS: "scipy>=0.15 numpy>=1.10 matplotlib>=3.1.1 tqdm>=0.4.9 transforms3d diffpy.structure>=3.0.0 psutil numba"
     TEST_DEPS: "pytest"
     MPLBACKEND: "agg"
 
