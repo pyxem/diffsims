@@ -2,6 +2,7 @@ language: python
 
 env:
   global:
+    - DEPS="psutil numba"
     - TEST_DEPS="pytest pytest-cov coveralls"
 
 matrix:
@@ -33,7 +34,7 @@ before_install:
   - df -h
 
 install:
-  - conda install -y $TEST_DEPS;
+  - conda install -y $DEPS $TEST_DEPS;
   - pip install .
 
 script:
