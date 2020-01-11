@@ -27,7 +27,7 @@ from diffsims.utils.discretise_utils import get_discretisation
 from numpy import array, pi, sin, cos, empty, maximum, sqrt
 from scipy.interpolate import interpn
 from diffsims.utils.fourier_transform import (get_DFT, to_recip, fftshift_phase,
-    plan_fft, fast_abs)
+                                              plan_fft, fast_abs)
 from diffsims.utils.generic_utils import to_mesh
 
 
@@ -99,9 +99,9 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
 
     if wavelength == 0:
         return normalise(sum(get_diffraction_image(coordinates.dot(r),
-                                         species, probe, x, wavelength,
-                                         (0, 1), **kwargs)
-                                         for r in R))
+                                                   species, probe, x, wavelength,
+                                                   (0, 1), **kwargs)
+                             for r in R))
 
     fftshift_phase(vol)  # removes need for fftshift after fft
     buf = empty(vol.shape, dtype=FTYPE)
@@ -202,4 +202,3 @@ def grid2sphere(arr, x, dx, C):
     out = interpn(x, arr, y, method='linear', bounds_error=False, fill_value=0)
 
     return out.reshape(x[0].size, x[1].size)
-

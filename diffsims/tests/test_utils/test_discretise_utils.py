@@ -7,9 +7,9 @@ Created on 1 Nov 2019
 import pytest
 import numpy as np
 from diffsims.utils.discretise_utils import (get_atoms, get_discretisation, _CUDA,
-    rebin)
+                                             rebin)
 dtype, ZERO = ('f4', 'c8'), 1e-10
-params = {'dtype':('f4', 'c8'), 'ZERO':1e-10, 'GPU':False}
+params = {'dtype': ('f4', 'c8'), 'ZERO': 1e-10, 'GPU': False}
 
 
 def _toMesh(x):
@@ -121,7 +121,7 @@ def test_getDiscretisation_2d(n, shape):
 def test_getDiscretisation_str():
     atoms, _ = create_atoms([14] * 3, [10] * 3)
     get_discretisation(atoms, 'Si', [np.linspace(0, 1, g) for g in (10, 21, 31)],
-                      pointwise=True, FT=False, **params)
+                       pointwise=True, FT=False, **params)
 
 
 @pytest.mark.parametrize('n, shape', [

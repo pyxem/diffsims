@@ -132,11 +132,11 @@ class DiffractionLibraryGenerator:
 
 
 def _generate_lookup_table(recip_latt,
-                           reciprocal_radius: float, 
-                           unique: bool=True):
+                           reciprocal_radius: float,
+                           unique: bool = True):
     """Generate a look-up table with all combinations of indices,
     including their reciprocal distances and the angle between
-    them.   
+    them.
 
     Parameters
     ----------
@@ -150,7 +150,7 @@ def _generate_lookup_table(recip_latt,
     Returns
     -------
     indices : np.array
-        Nx2x3 numpy array containing the miller indices for 
+        Nx2x3 numpy array containing the miller indices for
         reflection1, reflection2
     measurements : np.array
         Nx3 numpy array containing len1, len2, angle
@@ -240,8 +240,8 @@ class VectorLibraryGenerator:
             # Get reciprocal lattice points within reciprocal_radius
             recip_latt = structure.lattice.reciprocal()
 
-            measurements, indices = _generate_lookup_table(recip_latt=recip_latt, 
-                                                           reciprocal_radius=reciprocal_radius, 
+            measurements, indices = _generate_lookup_table(recip_latt=recip_latt,
+                                                           reciprocal_radius=reciprocal_radius,
                                                            unique=True)
 
             vector_library[phase_name] = {
