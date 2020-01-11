@@ -41,7 +41,7 @@ def simple_probe(request): return ProbeFunction(*request.param)
 
 class TestSimpleProbe:
 
-    def test_init(self, simple_probe:ProbeFunction):
+    def test_init(self, simple_probe: ProbeFunction):
         assert simple_probe._func is not None
 
     def test_func(self, simple_probe, simple_mesh):
@@ -82,7 +82,7 @@ def bess_probe(request): return BesselProbe(*request.param)
 
 class TestBessProbe:
 
-    def test_init(self, bess_probe:BesselProbe):
+    def test_init(self, bess_probe: BesselProbe):
         assert bess_probe._func is None
         assert hasattr(bess_probe, 'r')
         assert hasattr(bess_probe, '_r')

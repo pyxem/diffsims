@@ -158,4 +158,3 @@ def test_convolve(shape1, shape2, n1, n2, dx):
 
     assert c1.shape == c2.shape
     np.testing.assert_allclose(c1, c2, 1e-5, 1e-5)
-

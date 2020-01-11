@@ -52,7 +52,7 @@ def test_get_diffraction_image(n, vol_shape, grid_shape, precession, wavelength)
     else:
         precession = (0, 1)
 
-    params = {'dtype':('f4', 'c8'), 'ZERO':1e-10, 'GPU':False, 'pointwise':True}
+    params = {'dtype': ('f4', 'c8'), 'ZERO': 1e-10, 'GPU': False, 'pointwise': True}
     val1 = get_diffraction_image(coords, species, probe, x, wavelength, precession, **params)
     val2 = get_diffraction_image(coords, species, probe, x, 0, (0, 1), **params)
 
@@ -77,7 +77,7 @@ def test_precess_mat(alpha, theta, x):
     Rt = precess_mat(theta, 0)[::-1, ::-1].T
     x = np.array(x)
 
-    angle = lambda v1, v2: (v1 * v2).sum() / np.linalg.norm(v1) / np.linalg.norm(v2)
+    def angle(v1, v2): return (v1 * v2).sum() / np.linalg.norm(v1) / np.linalg.norm(v2)
 
     np.testing.assert_allclose(np.cos(np.deg2rad(theta)), angle(x[:2], Rt.dot(x)[:2]), 1e-5, 1e-5)
     np.testing.assert_allclose(np.cos(np.deg2rad(alpha)), angle(x[1:], Ra.dot(x)[1:]), 1e-5, 1e-5)
@@ -106,4 +106,3 @@ def test_grid2sphere(shape, rad):
             S = [slice(None)] * X.ndim
             S[i], S[-1] = 0, i
             np.testing.assert_allclose(Y[..., i], grid2sphere(X[tuple(S)], x, None, rad), 1e-4, 1e-4)
-

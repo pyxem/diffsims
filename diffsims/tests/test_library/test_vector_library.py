@@ -54,4 +54,3 @@ def test_generate_lookup_table(default_structure):
     lattice = default_structure.lattice.reciprocal()
     table = _generate_lookup_table(lattice, 0.5, unique=True)
     table = _generate_lookup_table(lattice, 0.5, unique=False)
-
