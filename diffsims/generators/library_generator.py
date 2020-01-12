@@ -234,7 +234,7 @@ class VectorLibraryGenerator:
         # Get structures from structure library
         structure_library = self.structures.struct_lib
         # Iterate through phases in library.
-        for phase_name in structure_library.keys():
+        for phase_name in tqdm(structure_library.keys()):
             # Get diffpy.structure object associated with phase
             structure = structure_library[phase_name][0]
             # Get reciprocal lattice points within reciprocal_radius
