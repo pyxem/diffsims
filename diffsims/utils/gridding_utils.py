@@ -22,7 +22,8 @@ Helper functions for gridding
 
 import numpy as np
 from itertools import product
-from transforms3d.euler import axangle2euler, euler2axangle
+from transforms3d.euler import axangle2euler, euler2axangle, euler2mat
+from transforms3d.quaternions import quat2axangle, axangle2quat, mat2quat, qmult
 
 def convert_axangle_to_correct_range(vector,angle):
     """
@@ -114,12 +115,12 @@ class AxAngle():
         for i,row in enumerate(self.data):
             q_array = axangle2quat(row[:3],row[3])
             for j in [0,1,2,3]:
-                stored_quat = q_array[j]
+                stored_quat[i,j] = q_array[j]
         return stored_quat
 
 
     @classmethod
-    def from_Quat(cls):
+    def from_Quat(cls,data):
         pass
 
 
@@ -182,8 +183,9 @@ def rotation_matrix_from_euler_angles(euler_angles):
 
 
     """
-    M_initial = euler2mat((0,0,0))
-    M_target  = euler2mat(np.deg2rad(euler_angles))
+    M_initial = euler2mat(0,0,0,'rzxz')
+    ai,aj,ak = np.deg2rad(euler_angles[0]),np.deg2rad(euler_angles[1]),np.deg2rad(euler_angles[2])
+    M_target  = euler2mat(ai,aj,ak,'rzxz')
     rotation_matrix = M_target @ np.linalg.inv(M_initial)
     return rotation_matrix
 
