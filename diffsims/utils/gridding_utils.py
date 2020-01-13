@@ -108,6 +108,21 @@ class AxAngle():
         stored_euler = np.rad2deg(stored_euler)
         return Euler(stored_euler,axis_convention)
 
+    def to_Quat(self):
+        self._check_data()
+        stored_quat = np.ones((self.data.shape[0],4))
+        for i,row in enumerate(self.data):
+            q_array = axangle2quat(row[:3],row[3])
+            for j in [0,1,2,3]:
+                stored_quat = q_array[j]
+        return stored_quat
+
+
+    @classmethod
+    def from_Quat():
+        pass
+
+
 class Euler():
     """
     Class storing rotations as euler angles.
@@ -151,9 +166,6 @@ class Euler():
 
         self.data = np.rad2deg(self.data) #leaves our eulers safe and sound
         return AxAngle(stored_axangle)
-
-    def to_Quat(self):
-        pass
 
 def create_linearly_spaced_array_in_rzxz(resolution):
     """
