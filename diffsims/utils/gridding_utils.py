@@ -97,7 +97,7 @@ class AxAngle():
         -------
         out_eulers : orix.Euler
         """
-        from orix.np_inherits.euler import Euler
+        #from orix.np_inherits.euler import Euler
         self._check_data()
         stored_euler = np.ones((self.data.shape[0],3))
         for i,row in enumerate(self.data):
@@ -153,7 +153,7 @@ class Euler():
         -------
         axangle : orix.AxAngle object
         """
-        from orix.np_inherits.axangle import AxAngle,convert_axangle_to_correct_range
+        #from orix.np_inherits.axangle import AxAngle,convert_axangle_to_correct_range
         self._check_data()
         stored_axangle = np.ones((self.data.shape[0],4))
         self.data = np.deg2rad(self.data) #for the transform operation
