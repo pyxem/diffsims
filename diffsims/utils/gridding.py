@@ -21,7 +21,7 @@ Provides users with a range of gridding functions
 """
 
 import numpy as np
-from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, select_fundemental_zone, reduce_to_fundemental_zone, rotate_axangle
+from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, select_fundemental_zone, reduce_to_fundemental_zone, rotate_axangle, _create_advanced_linearly_spaced_array_in_rzxz
 
 
 def get_fundemental_zone_grid(space_group_number,resolution,center=(0,0,0)):
@@ -69,7 +69,7 @@ def get_local_grid(center,max_rotation,resolution):
     Returns
     -------
     """
-    raw_grid = create_linearly_spaced_array_in_rzxz(resolution)
+    raw_grid = _create_advanced_linearly_spaced_array_in_rzxz(resolution,max_rotation)
     raw_grid_axangle = raw_grid.to_AxAngle()
     raw_grid_axangle.remove_large_rotations(max_rotation)
     if np.any(center!=0):

@@ -249,6 +249,16 @@ def create_linearly_spaced_array_in_rzxz(resolution):
     z = np.asarray(list(product(alpha, beta, gamma)))
     return Euler(z,axis_convention='rzxz')
 
+def _create_advanced_linearly_spaced_array_in_rzxz(resolution,max_angle):
+    num_steps = int(360/resolution + 0.5)
+    steps_max_angle = int(max_angle/resolution + 0.5)
+    alpha = np.linspace(0,360,num=num_steps,endpoint=False)
+    beta  = np.linspace(0,max_angle,num=steps_max_angle,endpoint=False)
+    gamma = np.linspace(0,360,num=num_steps,endpoint=False)
+    z = np.asarray(list(product(alpha, beta, gamma)))
+    return Euler(z,axis_convention='rzxz')
+
+
 """ Fundemental Zone Functionality """
 def select_fundemental_zone(space_group_number):
     """
