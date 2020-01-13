@@ -357,7 +357,7 @@ def simulate_rotated_structure(diffraction_generator, structure, rotation_matrix
     structure : diffpy.structure.Structure
         Structure object to simulate
     rotation_matrix : ndarray
-        3x3 matrix describing the base rotation to apply to the structure
+        3x3 matrix describing the base rotation to apply to the structure, applied on the left of the vector
     reciprocal_radius : float
         The maximum g-vector magnitude to be included in the simulations.
     with_direct_beam : bool
@@ -368,9 +368,14 @@ def simulate_rotated_structure(diffraction_generator, structure, rotation_matrix
     simulation : DiffractionSimulation
         The simulation data generated from the given structure and rotation.
     """
+    # Convert left multiply (input) to right multiply (diffpy)
+    stdbase = structure.lattice.stdbase
+    stdbase_inverse = np.linalg.inv(stdbase)
+    rotation_matrix_diffpy = stdbase_inverse @ rotation_matrix @ stdbase
+    
     lattice_rotated = diffpy.structure.lattice.Lattice(
         *structure.lattice.abcABG(),
-        baserot=rotation_matrix)
+        baserot=rotation_matrix_diffpy)
     # Don't change the original
     structure_rotated = diffpy.structure.Structure(structure)
     structure_rotated.placeInLattice(lattice_rotated)
