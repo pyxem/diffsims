@@ -51,7 +51,21 @@ def test_advanced_rzxz_gridding():
 
 
 
-
+""" This test is 'physical' one ported from orix """
+@pytest.mark.skip(reason="Functionality doesn't yet exist")
+def test_preservation_of_reduced_rotation_space():
+    """ Pyxem's template matching implementation (from probably 0.12.0 onwards)
+        has a major speed up based on reducing the data size due to a [a,b,c]
+        and [a,b,c+d] being similar in the 'szxz' convention. This test confirms
+        that that data reduction remains even after transfers between representations
+    """
+    grid = create_linearly_spaced_array_in_szxz(resolution=7)
+    count_of_specials = np.unique(grid.data[:,:2],axis=0).shape[0]
+    grid_axangle = grid.to_AxAngle()
+    grid_back_forth = grid_axangle.to_Euler('szxz')
+    count_of_specials_2 = np.unique(grid_back_forth.data.round(decimals=2)[:,:2],axis=0).shape[0]
+    assert np.allclose(grid.data.shape,grid_back_forth.data.shape)
+    assert np.allclose(count_of_specials,count_of_specials_2)
 
 
 """ These tests check the fundemental_zone section of the code """
