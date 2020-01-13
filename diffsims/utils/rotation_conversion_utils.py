@@ -115,4 +115,7 @@ def vectorised_quat2axangle(q):
     w[w < -1] = 1
     theta = 2 * np.arccos(w)
     output = np.asarray((xr,yr,zr,theta)).T
-    return output#.T.reshape(xr.shape[0],4)
+    return output
+
+def vectorised_euler2axangle(ai, aj, ak, axes='rzxz'):
+    return vectorised_quat2axangle(vectorised_euler2quat(ai,aj,ak,axes))
