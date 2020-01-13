@@ -167,6 +167,26 @@ class Euler():
         self.data = np.rad2deg(self.data) #leaves our eulers safe and sound
         return AxAngle(stored_axangle)
 
+def rotation_matrix_from_euler_angles(euler_angles):
+    """
+    Finds the rotation matrix that takes (0,0,0) to (alpha,beta,gamma)
+
+    Parameters
+    ----------
+    euler_angles : (alpha,beta,gamma)
+        in 'rzxz'
+
+    Returns
+    -------
+    rotation_matrix :
+
+
+    """
+    M_initial = euler2mat((0,0,0))
+    M_target  = euler2mat(euler_angles)
+    rotation_matrix = M_target @ np.linalg.inv(M_initial)
+    return rotation_matrix
+
 def create_linearly_spaced_array_in_rzxz(resolution):
     """
     Notes
@@ -198,8 +218,8 @@ def rotate_axangle(Axangles,new_center):
         The location of the (0,0,0) rotation as an rzxz euler angle
     """
 
-    #convert axangle array to to_quat
-    #find the relevant transformation quaternion
+    quats = Axangles.to_Quat()
+    q = mat2quat(rotation_matrix_from_euler_angles((new_center)))
     #apply the relevant transformation quat
     # return new array of AxAngles
     pass
