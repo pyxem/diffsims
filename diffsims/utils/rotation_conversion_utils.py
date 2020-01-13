@@ -30,7 +30,6 @@ euler2axangle (via chaining of the above)
 
 import numpy as np
 
-
 def vectorised_euler2quat(ai, aj, ak, axes='rzxz'):
     """ Applies the transformation that takes eulers to quaternions
 
@@ -46,7 +45,7 @@ def vectorised_euler2quat(ai, aj, ak, axes='rzxz'):
 
     if axes != 'rzxz':
         raise ValueError()
-    elif axes = 'rzxz':
+    elif axes == 'rzxz':
         firstaxis,parity,repetition,frame = 2,0,1,1
 
     i = firstaxis + 1
