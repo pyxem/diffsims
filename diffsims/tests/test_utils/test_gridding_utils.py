@@ -21,6 +21,11 @@ import numpy as np
 
 from diffsims.utils.gridding_utils import AxAngle, Euler, create_linearly_spaced_array_in_rzxz,select_fundemental_zone,reduce_to_fundemental_zone,_create_advanced_linearly_spaced_array_in_rzxz
 
+def test_slow():
+    grid = create_linearly_spaced_array_in_rzxz(resolution=1)
+    assert True
+
+
 def test_linearly_spaced_array_in_rzxz():
     """ From definition, a resolution of 3.75 will give us:
         Two sides of length = 96
@@ -29,8 +34,9 @@ def test_linearly_spaced_array_in_rzxz():
     """
     grid = create_linearly_spaced_array_in_rzxz(resolution=3.75)
     assert isinstance(grid,Euler)
-    assert grid.axis_convention == 'szxz'
+    assert grid.axis_convention == 'rzxz'
     assert grid.data.shape == (442368,3)
+
 
 def test_advanced_rzxz_gridding():
     """
@@ -38,11 +44,20 @@ def test_advanced_rzxz_gridding():
     """
     def process_angles(raw_angles,max_rotation):
         raw_angles = raw_angles.to_AxAngle()
-        return raw_angles.remove_large_rotations(max_rotation)
+        raw_angles.remove_large_rotations(np.deg2rad(max_rotation))
+        return raw_angles
 
-    long_true_way = process_angles(create_linearly_spaced_array_in_rzxz(1),20)
-    quick_way     = process_angles(_create_advanced_linearly_spaced_array_in_rzxz(1,20),20)
-    assert long_true_way.shape == quick_way.shape
+    lsa = create_linearly_spaced_array_in_rzxz(3.75)
+    alsa = _create_advanced_linearly_spaced_array_in_rzxz(3.75,20)
+
+    size_ratio = (lsa.data.shape[0] / alsa.data.shape[0])
+    size_ratio_theory = 9
+    #assert size_ratio > size_ratio_theory - 0.1
+    #assert size_ratio < size_ratio_theory + 0.1
+    long_true_way = process_angles(lsa,20)
+    quick_way     = process_angles(alsa,20)
+
+    assert long_true_way.data.shape == quick_way.data.shape
 
 
 
