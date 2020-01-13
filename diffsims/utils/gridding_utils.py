@@ -176,6 +176,7 @@ def create_linearly_spaced_array_in_szxz(resolution):
     z = np.asarray(list(product(alpha, beta, gamma)))
     return Euler(z,axis_convention='szxz')
 
+""" Fundemental Zone Functionality """ 
 def select_fundemental_zone(space_group_number):
     """
     Parameters
@@ -219,6 +220,56 @@ def select_fundemental_zone(space_group_number):
             return '432' #oct
         else:
             return '23' #tet
+
+def axangle2rodrigo_frank(z):
+    # converts to [vx,vy,vz,RF]
+    # RF = tan(omega/2)
+    z[:,3] = np.tan(np.divide(z[:,3],2))
+    return z
+
+def rodrigo_frank_to_axangle():
+    pass
+
+def numpy_bounding_plane(data,vector,distance):
+    """
+
+    Raises
+    -----
+    ValueError : This function is unsafe if pi rotations are preset
+    """
+    if not np.all(np.is_finite(data)):
+        raise ValueError("pi rotations, be aware")
+
+    return data
+
+def cyclic_group(data,order):
+    """ By CONVENTION the rotation axis is the cartesian z axis
+    Note: Special case, as pi rotations are present we avoid a call to numpy_bounding_plane"""
+    z_distance = np.multiply(data[2],data[3])
+    z_distance = np.abs(np.nan_to_num(z_distance)) #case pi rotation, 0 z component of vector
+    return data[z_distance < np.tan(np.pi/order)]
+
+def dihedral_group(data,order):
+    pass
+
+def octahedral_group(data):
+    pass
+
+def tetragonal_group(data):
+    for direction in [(1,1,1),(1,1,-1)]: #etc
+        data = numpy_bounding_plane()
+
+def rf_fundemental_zone(axangledata,point_group_str):
+    rf = axangle2rodrigo_frank(axangledata)
+    if point_group_str in ['1','2','3','4','6']:
+        rf = cyclic_group(rf,order = int(point_group_str))
+    elif point_group_str in ['222','32','422','622']:
+        rf = dihedral_group(rf,order=int(point_group_str[0]))
+    elif: point_group_str == '23':
+        rf = tetragonal_group(rf)
+    elif point_group_str == '432':
+        rf = octahedral_group(rf)
+    return rodrigo_frank_to_axangle(rf)
 
 
 def reduce_to_fundemental_zone(data,fundemental_zone):
