@@ -183,7 +183,7 @@ def rotation_matrix_from_euler_angles(euler_angles):
 
     """
     M_initial = euler2mat((0,0,0))
-    M_target  = euler2mat(euler_angles)
+    M_target  = euler2mat(np.deg2rad(euler_angles))
     rotation_matrix = M_target @ np.linalg.inv(M_initial)
     return rotation_matrix
 
@@ -317,7 +317,7 @@ def rf_fundemental_zone(axangledata,point_group_str):
         rf = cyclic_group(rf,order = int(point_group_str))
     elif point_group_str in ['222','32','422','622']:
         rf = dihedral_group(rf,order=int(point_group_str[0]))
-    elif: point_group_str == '23':
+    elif point_group_str == '23':
         rf = tetragonal_group(rf)
     elif point_group_str == '432':
         rf = octahedral_group(rf)
@@ -351,3 +351,4 @@ def reduce_to_fundemental_zone(data,fundemental_zone):
 
     # convert to rodrigo-frank
     # call FZ functionality
+    return None

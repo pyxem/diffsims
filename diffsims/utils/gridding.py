@@ -21,7 +21,7 @@ Provides users with a range of gridding functions
 """
 
 import numpy as np
-from gridding_utils import create_linearly_spaced_array_in_szxz, select_fundemental_zone, reduce_to_fundemental_zone
+from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, select_fundemental_zone, reduce_to_fundemental_zone
 
 
 def get_fundemental_zone_grid(space_group_number,resolution,center=(0,0,0)):
@@ -71,10 +71,10 @@ def get_local_grid(center,max_rotation,resolution):
     raw_grid = create_linearly_spaced_array_in_rzxz(resolution)
     raw_grid_axangle = raw_grid.to_AxAngle()
     raw_grid_axangle.remove_large_rotations(max_rotation)
-    # rotate to the center (check this doesn't reduce our volume saving from szxz)
+    raw_grid_axangle = rotate_axangle(raw_grid_axangle,center)
     returnable_euler = raw_grid_axangle.to_Euler(axis_convention='rzxz')
     #figure out the final return style.
-    return None
+    return returnable_euler
 
 def get_grid_around_beam_direction(beam_direction,resolution,angular_range):
     pass
