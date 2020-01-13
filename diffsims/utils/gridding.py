@@ -20,8 +20,8 @@
 Provides users with a range of gridding functions
 """
 
-from gridding_utils import create_linearly_spaced_array_in_szxz, select_fundemental_zone, reduce_to_fundemental_zone
 import numpy as np
+from gridding_utils import create_linearly_spaced_array_in_szxz, select_fundemental_zone, reduce_to_fundemental_zone
 
 
 def get_fundemental_zone_grid(space_group_number,resolution,center=(0,0,0)):
@@ -41,7 +41,7 @@ def get_fundemental_zone_grid(space_group_number,resolution,center=(0,0,0)):
 
         Returns
     """
-    raw_grid = create_linearly_spaced_array_in_szxz(resolution)
+    raw_grid = create_linearly_spaced_array_in_rzxz(resolution)
     raw_grid_ax_angle = raw_grid.to_AxAngle()
     fz = select_fundemental_zone(space_group_number)
     fz_grid = reduce_to_fundemental_zone(raw_grid_axangle,fz)
@@ -68,7 +68,7 @@ def get_local_grid(center,max_rotation,resolution):
     Returns
     -------
     """
-    raw_grid = create_linearly_spaced_array_in_szxz(resolution)
+    raw_grid = create_linearly_spaced_array_in_rzxz(resolution)
     raw_grid_axangle = raw_grid.to_AxAngle()
     raw_grid_axangle.remove_large_rotations(max_rotation)
     # rotate to the center (check this doesn't reduce our volume saving from szxz)
@@ -77,3 +77,4 @@ def get_local_grid(center,max_rotation,resolution):
     return None
 
 def get_grid_around_beam_direction(beam_direction,resolution,angular_range):
+    pass

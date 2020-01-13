@@ -155,7 +155,7 @@ class Euler():
     def to_Quat(self):
         pass
 
-def create_linearly_spaced_array_in_szxz(resolution):
+def create_linearly_spaced_array_in_rzxz(resolution):
     """
     Notes
     -----
@@ -174,9 +174,13 @@ def create_linearly_spaced_array_in_szxz(resolution):
     beta  = np.linspace(0,180,num=int(num_steps/2),endpoint=False)
     gamma = np.linspace(0,360,num=num_steps,endpoint=False)
     z = np.asarray(list(product(alpha, beta, gamma)))
-    return Euler(z,axis_convention='szxz')
+    return Euler(z,axis_convention='rzxz')
 
-""" Fundemental Zone Functionality """ 
+def rotate_axangle(new_center):
+    pass
+
+
+""" Fundemental Zone Functionality """
 def select_fundemental_zone(space_group_number):
     """
     Parameters
