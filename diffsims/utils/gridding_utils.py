@@ -215,19 +215,6 @@ def rotate_axangle(Axangles,new_center):
 
     return AxAngle.from_Quat(stored_quat)
 
-def create_linearly_spaced_array_in_axangle(max_angle,resolution):
-    """
-
-    Notes
-    -----
-    We have hardcoded in the number of axes under consideration to be . This corresponds
-    to 45 degrees between axes and was chosen to generate sensibly sized libraries.
-    """
-    angle_list = np.arange(-max_angle,max_angle,resolution)
-    axes = np.asarray([[1,0,0],[1,1,0],[0,1,0],[1,0,1],[0,0,1],[1,0,1],[1,1,1]])
-    axes = np.divide(axes,np.linalg.norm(axes,axis=1).reshape(7,1))
-    final_array = np.ones(7*len(angle_list),4)
-
 def create_linearly_spaced_array_in_rzxz(resolution):
     """
     Parameters
