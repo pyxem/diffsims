@@ -24,7 +24,7 @@ import numpy as np
 from itertools import product
 from transforms3d.euler import axangle2euler, euler2axangle, euler2mat
 from transforms3d.quaternions import quat2axangle, axangle2quat, mat2quat, qmult
-from diffsims.utils.rotation_conversion_utils import vectorised_euler2axangle
+from diffsims.utils.rotation_conversion_utils import vectorised_euler2axangle, vectorised_quat2axangle
 
 def convert_axangle_to_correct_range(vector,angle):
     """
@@ -87,6 +87,7 @@ class AxAngle():
         return None
 
     def to_Euler(self,axis_convention):
+        #TODO: Vectorise
         """
         Produces euler angles from the axis-angle pairs.
 
@@ -97,9 +98,8 @@ class AxAngle():
 
         Returns
         -------
-        out_eulers : orix.Euler
+        out_eulers : diffsims.Euler
         """
-        #from orix.np_inherits.euler import Euler
         self._check_data()
         stored_euler = np.ones((self.data.shape[0],3))
         for i,row in enumerate(self.data):
@@ -111,6 +111,7 @@ class AxAngle():
         return Euler(stored_euler,axis_convention)
 
     def to_Quat(self):
+        #TODO: Vectorise
         self._check_data()
         stored_quat = np.ones((self.data.shape[0],4))
         for i,row in enumerate(self.data):
@@ -122,7 +123,10 @@ class AxAngle():
 
     @classmethod
     def from_Quat(cls,data):
-        pass
+        # TODO: input checking
+        axangles = vectorised_quat2axangle(data)
+        # needs a vectorised version of convert_axangle_to_correct_range
+        return AxAngle(axangles)
 
 
 class Euler():
@@ -153,14 +157,14 @@ class Euler():
 
         Returns
         -------
-        axangle : orix.AxAngle object
+        axangle : diffsims.AxAngle object
         """
-        #from orix.np_inherits.axangle import AxAngle,convert_axangle_to_correct_range
         self._check_data()
         self.data = np.deg2rad(self.data) #for the transform operation
 
         if self.axis_convention == 'rzxz':
             stored_axangle = vectorised_euler2axangle(self.data[:,0],self.data[:,1],self.data[:,2],axes='rzxz')
+            # needs a vectorised version of convert_axangle_to_correct_range
         else:
             #warn that this is very slow
             stored_axangle = np.ones((self.data.shape[0],4))
