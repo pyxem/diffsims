@@ -39,7 +39,8 @@ def get_fundemental_zone_grid(space_group_number,resolution,center=(0,0,0)):
         The orientation that acts as the center of the grid, specified in the
         'rzxz' convention (degrees)
 
-        Returns
+    Returns
+    -------
     """
     raw_grid = create_linearly_spaced_array_in_rzxz(resolution)
     raw_grid_ax_angle = raw_grid.to_AxAngle()
@@ -77,5 +78,22 @@ def get_local_grid(center,max_rotation,resolution):
     #figure out the final return style.
     return returnable_euler
 
-def get_grid_around_beam_direction(beam_direction,resolution,angular_range):
-    pass
+def get_grid_around_beam_direction(beam_direction,resolution,angular_range=(0,360)):
+    """
+
+    Parameters
+    ----------
+    beam_direction : 3 angle tuple
+        An orientation that acts as the center of the grid, specified in the
+        'rzxz' convention (degrees)
+
+    resolution : float
+        The 'resolution' of the grid (degrees)
+
+    angular_range : tuple
+        The minimum (included) and maximum (excluded) rotation around the beam direction to be included
+
+
+    Returns
+    -------
+    """
