@@ -177,6 +177,19 @@ def create_linearly_spaced_array_in_rzxz(resolution):
     return Euler(z,axis_convention='rzxz')
 
 def rotate_axangle(new_center):
+    """
+    Rotates a series of orientation described by axangle to a new center
+
+    Parameters
+    ----------
+    new_center : (alpha,beta,gamma)
+        The location of the (0,0,0) rotation as an rzxz euler angle
+    """
+
+    #convert axangle array to to_quat
+    #find the relevant transformation quaternion
+    #apply the relevant transformation quat
+    # return new array of AxAngles
     pass
 
 
