@@ -119,7 +119,7 @@ class AxAngle():
 
 
     @classmethod
-    def from_Quat():
+    def from_Quat(cls):
         pass
 
 
@@ -179,8 +179,6 @@ def create_linearly_spaced_array_in_rzxz(resolution):
     [1]  D Rowenhorst et al 2015 Modelling Simul. Mater. Sci. Eng.23 083501
          https://iopscience.iop.org/article/10.1088/0965-0393/23/8/083501/meta
     """
-    #TODO: Potentially load some v. v. common grids as a speed up (1,0.5 etc)
-
     num_steps = int(360/resolution + 0.5)
     alpha = np.linspace(0,360,num=num_steps,endpoint=False)
     beta  = np.linspace(0,180,num=int(num_steps/2),endpoint=False)
@@ -188,12 +186,14 @@ def create_linearly_spaced_array_in_rzxz(resolution):
     z = np.asarray(list(product(alpha, beta, gamma)))
     return Euler(z,axis_convention='rzxz')
 
-def rotate_axangle(new_center):
+def rotate_axangle(Axangles,new_center):
     """
     Rotates a series of orientation described by axangle to a new center
 
     Parameters
     ----------
+    Axangles :
+        Axangles in the correct class
     new_center : (alpha,beta,gamma)
         The location of the (0,0,0) rotation as an rzxz euler angle
     """
