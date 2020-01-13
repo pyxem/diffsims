@@ -181,47 +181,12 @@ def rotation_matrix_from_euler_angles(euler_angles):
     -------
     rotation_matrix :
 
-
     """
     M_initial = euler2mat(0,0,0,'rzxz')
     ai,aj,ak = np.deg2rad(euler_angles[0]),np.deg2rad(euler_angles[1]),np.deg2rad(euler_angles[2])
     M_target  = euler2mat(ai,aj,ak,'rzxz')
     rotation_matrix = M_target @ np.linalg.inv(M_initial)
     return rotation_matrix
-
-def create_linearly_spaced_array_in_axangle(max_angle,resolution):
-    """
-
-    Notes
-    -----
-    We have hardcoded in the number of axes under consideration to be . This corresponds
-    to 45 degrees between axes and was chosen to generate sensibly sized libraries.
-    """
-    angle_list = np.arange(-max_angle,max_angle,resolution)
-    axes = np.asarray([[1,0,0],[1,1,0],[0,1,0],[1,0,1],[0,0,1],[1,0,1],[1,1,1]])
-    axes = np.divide(axes,np.linalg.norm(axes,axis=1).reshape(7,1))
-    final_array = np.ones(7*len(angle_list),4)
-    
-
-
-def create_linearly_spaced_array_in_rzxz(resolution):
-    """
-    Notes
-    -----
-    We use angular ranges alpha [0,360], beta [0,180] and gamma [0,360] in
-    line with Convention 4 described in Reference [1]
-
-    References
-    ----------
-    [1]  D Rowenhorst et al 2015 Modelling Simul. Mater. Sci. Eng.23 083501
-         https://iopscience.iop.org/article/10.1088/0965-0393/23/8/083501/meta
-    """
-    num_steps = int(360/resolution + 0.5)
-    alpha = np.linspace(0,360,num=num_steps,endpoint=False)
-    beta  = np.linspace(0,180,num=int(num_steps/2),endpoint=False)
-    gamma = np.linspace(0,360,num=num_steps,endpoint=False)
-    z = np.asarray(list(product(alpha, beta, gamma)))
-    return Euler(z,axis_convention='rzxz')
 
 def rotate_axangle(Axangles,new_center):
     """
@@ -244,6 +209,45 @@ def rotate_axangle(Axangles,new_center):
 
     return AxAngle.from_Quat(stored_quat)
 
+def create_linearly_spaced_array_in_axangle(max_angle,resolution):
+    """
+
+    Notes
+    -----
+    We have hardcoded in the number of axes under consideration to be . This corresponds
+    to 45 degrees between axes and was chosen to generate sensibly sized libraries.
+    """
+    angle_list = np.arange(-max_angle,max_angle,resolution)
+    axes = np.asarray([[1,0,0],[1,1,0],[0,1,0],[1,0,1],[0,0,1],[1,0,1],[1,1,1]])
+    axes = np.divide(axes,np.linalg.norm(axes,axis=1).reshape(7,1))
+    final_array = np.ones(7*len(angle_list),4)
+
+def create_linearly_spaced_array_in_rzxz(resolution):
+    """
+    Parameters
+    ----------
+    resolution : angle in degrees
+
+    Returns
+    -------
+    grid : diffsims.Euler
+
+    Notes
+    -----
+    We use angular ranges alpha [0,360], beta [0,180] and gamma [0,360] in
+    line with Convention 4 described in Reference [1]
+
+    References
+    ----------
+    [1]  D Rowenhorst et al 2015 Modelling Simul. Mater. Sci. Eng.23 083501
+         https://iopscience.iop.org/article/10.1088/0965-0393/23/8/083501/meta
+    """
+    num_steps = int(360/resolution + 0.5)
+    alpha = np.linspace(0,360,num=num_steps,endpoint=False)
+    beta  = np.linspace(0,180,num=int(num_steps/2),endpoint=False)
+    gamma = np.linspace(0,360,num=num_steps,endpoint=False)
+    z = np.asarray(list(product(alpha, beta, gamma)))
+    return Euler(z,axis_convention='rzxz')
 
 """ Fundemental Zone Functionality """
 def select_fundemental_zone(space_group_number):
