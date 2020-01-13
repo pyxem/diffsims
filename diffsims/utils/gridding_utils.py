@@ -220,9 +220,12 @@ def rotate_axangle(Axangles,new_center):
 
     quats = Axangles.to_Quat()
     q = mat2quat(rotation_matrix_from_euler_angles((new_center)))
-    #apply the relevant transformation quat
-    # return new array of AxAngles
-    pass
+
+    stored_quat = np.ones_like(quats)
+    for i,row in enumerate(quats):
+        stored_quat[i] = qmult(q,row)
+
+    return AxAngle.from_Quat(stored_quat)
 
 
 """ Fundemental Zone Functionality """
