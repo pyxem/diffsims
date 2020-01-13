@@ -24,6 +24,7 @@ import numpy as np
 from itertools import product
 from transforms3d.euler import axangle2euler, euler2axangle, euler2mat
 from transforms3d.quaternions import quat2axangle, axangle2quat, mat2quat, qmult
+from diffsims.utils.rotation_conversion_utils import vectorised_euler2axangle
 
 def convert_axangle_to_correct_range(vector,angle):
     """
@@ -156,14 +157,19 @@ class Euler():
         """
         #from orix.np_inherits.axangle import AxAngle,convert_axangle_to_correct_range
         self._check_data()
-        stored_axangle = np.ones((self.data.shape[0],4))
         self.data = np.deg2rad(self.data) #for the transform operation
-        for i,row in enumerate(self.data):
-            temp_vect, temp_angle = euler2axangle(row[0],row[1],row[2],self.axis_convention)
-            temp_vect,temp_angle  = convert_axangle_to_correct_range(temp_vect,temp_angle)
-            for j in [0,1,2]:
-                stored_axangle[i,j] = temp_vect[j]
-            stored_axangle[i,3] = temp_angle #in radians!
+
+        if self.axis_convention == 'rzxz':
+            stored_axangle = vectorised_euler2axangle(self.data[:,0],self.data[:,1],self.data[:,2],axes='rzxz')
+        else:
+            #warn that this is very slow
+            stored_axangle = np.ones((self.data.shape[0],4))
+            for i,row in enumerate(self.data):
+                temp_vect, temp_angle = euler2axangle(row[0],row[1],row[2],self.axis_convention)
+                temp_vect,temp_angle  = convert_axangle_to_correct_range(temp_vect,temp_angle)
+                for j in [0,1,2]:
+                    stored_axangle[i,j] = temp_vect[j]
+                    stored_axangle[i,3] = temp_angle #in radians!
 
         self.data = np.rad2deg(self.data) #leaves our eulers safe and sound
         return AxAngle(stored_axangle)
