@@ -38,20 +38,22 @@ def convert_axangle_to_correct_range(vector, angle):
     elif (angle >= -np.pi) and (angle < 0):
         vector = np.multiply(vector, -1)
         angle = angle * -1
-    elif (angle >= np.pi) and (angle < 2 * np.pi):
+    elif (angle >= np.pi) and (angle <= 2 * np.pi):
         vector = np.multiply(vector, -1)
         angle = 2 * np.pi - angle
     else:
-        raise ValueError("You have an axis-angle angle outside of acceptable ranges")
+        raise ValueError("You have an axis-angle angle outside of acceptable ranges:`{}`".format(angle))
 
     return vector, angle
 
+def vectorised_axangle_to_correct_range(data):
+    pass
 
 class AxAngle():
     """
     Class storing rotations in the axis-angle convention. Each row reads
     as [vx,vy,vz,theta], where [vx,vy,vz] is the rotation axis (normalised)
-    and theta is the rotation angle in radians in range (0,pi)
+    and theta is the rotation angle in radians in range (0,pi]
     """
 
     def __init__(self, data):
