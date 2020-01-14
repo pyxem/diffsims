@@ -130,12 +130,8 @@ def test_small_angle_shortcut():
         return raw_angles
 
     lsa = create_linearly_spaced_array_in_rzxz(2)
-    alsa = _create_advanced_linearly_spaced_array_in_rzxz(2,360,20,360)
+    alsa = _create_advanced_linearly_spaced_array_in_rzxz(2,360,30,360)
 
-    size_ratio = (lsa.data.shape[0] / alsa.data.shape[0])
-    size_ratio_theory = 9
-    assert size_ratio > size_ratio_theory - 0.1
-    assert size_ratio < size_ratio_theory + 0.1
     long_true_way = process_angles(lsa, 20)
     quick_way = process_angles(alsa, 20)
 
