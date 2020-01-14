@@ -133,12 +133,6 @@ class TestEuler:
     def test_good_array__init__(self,good_array):
         assert isinstance(Euler(good_array),Euler)
 
-    def test_toAxangle(self,good_array):
-        """ Conventions are grim, so only test the code elements """
-        axang = Euler(good_array,axis_convention='szxz').to_AxAngle()
-        assert isinstance(axang,AxAngle)
-        axang._check_data()
-
     @pytest.mark.xfail(raises = ValueError, strict=True)
     class TestCorruptingData:
         @pytest.fixture()
