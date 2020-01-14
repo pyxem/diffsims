@@ -47,7 +47,18 @@ def convert_axangle_to_correct_range(vector, angle):
     return vector, angle
 
 def vectorised_axangle_to_correct_range(data):
-    pass
+
+    # second clause in unvectorised
+    data[:,3] = np.where(np.logical_and(data[:,3] >= -np.pi,data[:,3] < 0),-data[:,3],data[:,3])
+
+    # third clause in unvectorised
+    third_case_truth = np.logical_and(data[:,3] >= np.pi, data[:,3] <= 2 * np.pi)
+    for i in [0,1,2]: # third clause part 1
+        data[:,i] = np.where(third_case_truth,-data[:,i],data[:,i])
+
+    data[:,3] = np.where(third_case_truth,2*np.pi - data[:,3],data[:,3]) # third clause part 2
+
+    return data
 
 class AxAngle():
     """
@@ -168,7 +179,14 @@ class Euler():
 
         if self.axis_convention == 'rzxz':
             stored_axangle = vectorised_euler2axangle(self.data[:, 0], self.data[:, 1], self.data[:, 2], axes='rzxz')
-            # needs a vectorised version of convert_axangle_to_correct_range
+            stored_axangle = vectorised_axangle_to_correct_range(stored_axangle)
+            """
+            for i,row in enumerate(stored_axangle):
+                temp_vect, temp_angle = convert_axangle_to_correct_range(row[:3],row[3])
+                for j in [0, 1, 2]:
+                    stored_axangle[i, j] = temp_vect[j]
+                    stored_axangle[i, 3] = temp_angle  # in radians!
+            """
         else:
             # warn that this is very slow
             stored_axangle = np.ones((self.data.shape[0], 4))
