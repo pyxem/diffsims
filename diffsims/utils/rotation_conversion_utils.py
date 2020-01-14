@@ -112,7 +112,7 @@ def vectorised_quat2axangle(q):
     len_img_bool = (len_img < 1e-6)
     xr,yr,zr = np.divide(x,len_img),np.divide(y,len_img),np.divide(z,len_img)
     w[w > 1] = 1
-    w[w < -1] = 1
+    w[w < -1] = -1
     theta = 2 * np.arccos(w)
     output = np.asarray((xr,yr,zr,theta)).T
     return output
