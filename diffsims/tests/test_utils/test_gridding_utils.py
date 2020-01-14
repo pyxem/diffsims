@@ -21,8 +21,9 @@ import numpy as np
 
 from diffsims.utils.gridding_utils import AxAngle, Euler, create_linearly_spaced_array_in_rzxz, \
                                          get_proper_point_group_string, reduce_to_fundemental_zone, \
-                                          _create_advanced_linearly_spaced_array_in_rzxz
+                                          _create_advanced_linearly_spaced_array_in_rzxz, vectorised_qmult
 
+from transforms3d.quaternions import qmult
 from diffsims.utils.gridding import get_local_grid
 
 """ These tests check that AxAngle and Euler behave in good ways """
@@ -95,13 +96,34 @@ def test_interconversion_euler_axangle():
     angles = np.multiply(np.random.random_sample((1000, 1)), np.pi)
     axangle = AxAngle(np.concatenate((axes, angles), axis=1))
     transform = AxAngle(np.concatenate((axes, angles), axis=1))
-    e = transform.to_Euler(axis_convention='szxz')
+    e = transform.to_Euler(axis_convention='rzxz')
     transform_back = e.to_AxAngle()
     assert isinstance(transform_back, AxAngle)
     assert np.allclose(transform_back.data, axangle.data)
 
+""" These these test vectorizations """
+
+@pytest.fixture()
+def random_quats():
+    q_rand = np.random.random(size=(1000,4))*7
+    return q_rand
+
+def test_qmult_vectorisation(random_quats):
+    q1 = np.asarray([2,3,4,5])
+    fast = vectorised_qmult(q1,random_quats)
+
+    stored_quat = np.ones_like(random_quats)
+    for i, row in enumerate(random_quats):
+        stored_quat[i] = qmult(q1, row)
+
+    assert np.allclose(fast,stored_quat)
+
+
 
 """ These are more general gridding util tests """
+
+
+
 
 @pytest.mark.skip(reason="Slow as")
 def test_slow():
