@@ -119,7 +119,7 @@ def test_linearly_spaced_array_in_rzxz():
     assert grid.data.shape == (442368, 3)
 
 
-@pytest.mark.skip(reason="Currently not keeping our angles in range, it's marked for fixing")
+#@pytest.mark.skip(reason="Currently not keeping our angles in range, it's marked for fixing")
 def test_small_angle_shortcut():
     """
 
@@ -129,13 +129,13 @@ def test_small_angle_shortcut():
         raw_angles.remove_large_rotations(np.deg2rad(max_rotation))
         return raw_angles
 
-    lsa = create_linearly_spaced_array_in_rzxz(3.75)
-    alsa = _create_advanced_linearly_spaced_array_in_rzxz(3.75, 20)
+    lsa = create_linearly_spaced_array_in_rzxz(2)
+    alsa = _create_advanced_linearly_spaced_array_in_rzxz(2,360,20,360)
 
     size_ratio = (lsa.data.shape[0] / alsa.data.shape[0])
     size_ratio_theory = 9
-    #assert size_ratio > size_ratio_theory - 0.1
-    #assert size_ratio < size_ratio_theory + 0.1
+    assert size_ratio > size_ratio_theory - 0.1
+    assert size_ratio < size_ratio_theory + 0.1
     long_true_way = process_angles(lsa, 20)
     quick_way = process_angles(alsa, 20)
 
