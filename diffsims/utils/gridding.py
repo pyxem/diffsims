@@ -81,7 +81,7 @@ def get_local_grid(center, max_rotation, resolution):
     raw_grid = _create_advanced_linearly_spaced_array_in_rzxz(resolution,360,max_rotation + 10,360)
     raw_grid_axangle = raw_grid.to_AxAngle()
     raw_grid_axangle.remove_large_rotations(max_rotation)
-    if np.any(center != 0):
+    if not np.all(np.asarray(center) == 0):
         raw_grid_axangle = rotate_axangle(raw_grid_axangle, center)
     returnable_euler = raw_grid_axangle.to_Euler(axis_convention='rzxz')
     # figure out the final return style.
