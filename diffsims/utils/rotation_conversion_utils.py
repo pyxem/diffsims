@@ -120,11 +120,60 @@ def vectorised_quat2axangle(q):
 def vectorised_euler2axangle(ai, aj, ak, axes='rzxz'):
     return vectorised_quat2axangle(vectorised_euler2quat(ai,aj,ak,axes))
 
-def vectorised_axangle2mat():
-    pass
+def vectorised_axangle2mat(axangles):
+    x, y, z, angle = axangles[:,0], axangles[:,1], axangles[:,2], axangles[:,3]
 
-def vectorised_mat2euler():
-    pass
+    #mindlessly normalise for safety
+    n = np.sqrt(x*x + y*y + z*z)
+    x = x/n
+    y = y/n
+    z = z/n
 
-def vectorised_axangle2euler():
-    return vectorisedmat2euler(vectorised(axangle2mat()))
+    c = np.cos(angle); s = np.sin(angle); C = 1-c
+    xs = x*s;   ys = y*s;   zs = z*s
+    xC = x*C;   yC = y*C;   zC = z*C
+    xyC = x*yC; yzC = y*zC; zxC = z*xC
+    sol = np.array([
+            [ x*xC+c,   xyC-zs,   zxC+ys ],
+            [ xyC+zs,   y*yC+c,   yzC-xs ],
+            [ zxC-ys,   yzC+xs,   z*zC+c ]])
+
+    return sol
+
+def vectorised_mat2euler(M,axes='rzxz'):
+    """
+
+    Parameters
+    ----------
+
+    M : (3,3,N) np.array
+    """
+    _NEXT_AXIS = [1,2,0,1]
+
+    if axes != 'rzxz':
+        raise ValueError()
+    elif axes == 'rzxz':
+        firstaxis,parity,repetition,frame = 2,0,1,1
+
+    i = firstaxis
+    j = _NEXT_AXIS[i+parity]
+    k = _NEXT_AXIS[i-parity+1]
+
+
+    if repetition:
+        sy = np.sqrt(M[i, j,:]*M[i, j,:] + M[i, k,:]*M[i, k,:])
+
+        ax = np.where(sy > 0,np.arctan2( M[i, j,:],  M[i, k,:]),np.arctan2(-M[j, k,:],  M[j, j,:]))
+        ay = np.arctan2(sy,M[i, i,:])
+        az = np.where(sy > 0,np.arctan2(M[j, i,:], -M[k, i,:]),0.0)
+
+    if parity:
+        ax, ay, az = -ax, -ay, -az
+    if frame:
+        ax, az = az, ax
+
+    euler = np.vstack((ax,ay,az)).T
+    return euler
+
+def vectorised_axangle2euler(axangles,axes='rzxz'):
+    return vectorised_mat2euler(vectorised_axangle2mat(axangles),axes)

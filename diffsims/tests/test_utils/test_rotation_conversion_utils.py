@@ -19,8 +19,8 @@
 import pytest
 import numpy as np
 
-from transforms3d.euler import euler2quat, quat2axangle
-from diffsims.utils.rotation_conversion_utils import vectorised_euler2quat,vectorised_quat2axangle
+from transforms3d.euler import euler2quat, quat2axangle, axangle2euler
+from diffsims.utils.rotation_conversion_utils import vectorised_euler2quat,vectorised_quat2axangle,vectorised_axangle2euler
 
 
 @pytest.fixture()
@@ -60,3 +60,20 @@ def test_vectorised_quat2axangle(random_quats):
         stored_axangles[i,3] = temp_angle #in radians!
 
     assert np.allclose(fast,stored_axangles)
+
+@pytest.fixture()
+def random_axangles():
+    axangle_rand = np.random.random(size=(1000,4)) * np.pi
+    return axangle_rand
+
+def test_vectorised_axangle2euler(random_axangles):
+    fast = vectorised_axangle2euler(random_axangles,'rzxz')
+
+    stored_euler = np.ones((random_axangles.shape[0], 3))
+    for i, row in enumerate(random_axangles):
+        a_array = axangle2euler(row[:3], row[3],'rzxz')
+        for j in [0, 1, 2]:
+            stored_euler[i, j] = a_array[j]
+
+    #can compare directly in radians:
+    assert np.allclose(fast,stored_euler)
