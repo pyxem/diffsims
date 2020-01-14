@@ -26,24 +26,25 @@ from transforms3d.euler import axangle2euler, euler2axangle, euler2mat
 from transforms3d.quaternions import quat2axangle, axangle2quat, mat2quat, qmult
 from diffsims.utils.rotation_conversion_utils import vectorised_euler2axangle, vectorised_quat2axangle
 
-def convert_axangle_to_correct_range(vector,angle):
+
+def convert_axangle_to_correct_range(vector, angle):
     """
     This repo uses axis-angle pairs between (0,pi) - however often wider
     ranges are used, most common are (0,2pi) and (-pi,pi), this function corrects
     for these
     """
-    if (angle >= 0) and (angle < np.pi): #input in the desired convention
+    if (angle >= 0) and (angle < np.pi):  # input in the desired convention
         pass
     elif (angle >= -np.pi) and (angle < 0):
-        vector = np.multiply(vector,-1)
-        angle  = angle * -1
-    elif (angle >= np.pi) and (angle < 2*np.pi):
-        vector = np.multiply(vector,-1)
-        angle = 2*np.pi - angle
+        vector = np.multiply(vector, -1)
+        angle = angle * -1
+    elif (angle >= np.pi) and (angle < 2 * np.pi):
+        vector = np.multiply(vector, -1)
+        angle = 2 * np.pi - angle
     else:
         raise ValueError("You have an axis-angle angle outside of acceptable ranges")
 
-    return vector,angle
+    return vector, angle
 
 
 class AxAngle():
@@ -52,7 +53,8 @@ class AxAngle():
     as [vx,vy,vz,theta], where [vx,vy,vz] is the rotation axis (normalised)
     and theta is the rotation angle in radians in range (0,pi)
     """
-    def __init__(self,data):
+
+    def __init__(self, data):
         self.data = data.astype('float')
         self._check_data()
         return None
@@ -62,13 +64,13 @@ class AxAngle():
         acceptable angles and normalised vectors """
         if self.data.shape[1] != 4:
             raise ValueError("Your data is not in the correct shape")
-        if np.any(self.data[:,3] < 0) or np.any(self.data[:,3] > np.pi):
+        if np.any(self.data[:, 3] < 0) or np.any(self.data[:, 3] > np.pi):
             raise ValueError("Some of your angles lie outside of the range (0,pi)")
-        if not np.allclose(np.linalg.norm(self.data[:,:3][self.data[:,3] > 0],axis=1),1):
+        if not np.allclose(np.linalg.norm(self.data[:, :3][self.data[:, 3] > 0], axis=1), 1):
             raise ValueError("You no longer have normalised direction vectors")
         return None
 
-    def remove_large_rotations(self,threshold_angle):
+    def remove_large_rotations(self, threshold_angle):
         """
         Removes rotations that above a threshold angle
 
@@ -83,10 +85,10 @@ class AxAngle():
             This functions operates in place
         """
         self._check_data()
-        self.data = self.data[self.data[:,3] < threshold_angle]
+        self.data = self.data[self.data[:, 3] < threshold_angle]
         return None
 
-    def to_Euler(self,axis_convention):
+    def to_Euler(self, axis_convention):
         #TODO: Vectorise
         """
         Produces euler angles from the axis-angle pairs.
@@ -101,28 +103,27 @@ class AxAngle():
         out_eulers : diffsims.Euler
         """
         self._check_data()
-        stored_euler = np.ones((self.data.shape[0],3))
-        for i,row in enumerate(self.data):
-            a_array = axangle2euler(row[:3],row[3],axis_convention)
-            for j in [0,1,2]:
-                stored_euler[i,j] = a_array[j]
+        stored_euler = np.ones((self.data.shape[0], 3))
+        for i, row in enumerate(self.data):
+            a_array = axangle2euler(row[:3], row[3], axis_convention)
+            for j in [0, 1, 2]:
+                stored_euler[i, j] = a_array[j]
 
         stored_euler = np.rad2deg(stored_euler)
-        return Euler(stored_euler,axis_convention)
+        return Euler(stored_euler, axis_convention)
 
     def to_Quat(self):
         #TODO: Vectorise
         self._check_data()
-        stored_quat = np.ones((self.data.shape[0],4))
-        for i,row in enumerate(self.data):
-            q_array = axangle2quat(row[:3],row[3])
-            for j in [0,1,2,3]:
-                stored_quat[i,j] = q_array[j]
+        stored_quat = np.ones((self.data.shape[0], 4))
+        for i, row in enumerate(self.data):
+            q_array = axangle2quat(row[:3], row[3])
+            for j in [0, 1, 2, 3]:
+                stored_quat[i, j] = q_array[j]
         return stored_quat
 
-
     @classmethod
-    def from_Quat(cls,data):
+    def from_Quat(cls, data):
         # TODO: input checking
         axangles = vectorised_quat2axangle(data)
         # needs a vectorised version of convert_axangle_to_correct_range
@@ -136,7 +137,8 @@ class Euler():
     in degrees around the axes specified by Euler.axis_conventions
     as defined in transforms3d. Please always remember that Euler angles are difficult.
     """
-    def __init__(self,data,axis_convention='rzxz'):
+
+    def __init__(self, data, axis_convention='rzxz'):
         self.data = data.astype('float')
         self.axis_convention = axis_convention
         self._check_data()
@@ -160,23 +162,24 @@ class Euler():
         axangle : diffsims.AxAngle object
         """
         self._check_data()
-        self.data = np.deg2rad(self.data) #for the transform operation
+        self.data = np.deg2rad(self.data)  # for the transform operation
 
         if self.axis_convention == 'rzxz':
-            stored_axangle = vectorised_euler2axangle(self.data[:,0],self.data[:,1],self.data[:,2],axes='rzxz')
+            stored_axangle = vectorised_euler2axangle(self.data[:, 0], self.data[:, 1], self.data[:, 2], axes='rzxz')
             # needs a vectorised version of convert_axangle_to_correct_range
         else:
-            #warn that this is very slow
-            stored_axangle = np.ones((self.data.shape[0],4))
-            for i,row in enumerate(self.data):
-                temp_vect, temp_angle = euler2axangle(row[0],row[1],row[2],self.axis_convention)
-                temp_vect,temp_angle  = convert_axangle_to_correct_range(temp_vect,temp_angle)
-                for j in [0,1,2]:
-                    stored_axangle[i,j] = temp_vect[j]
-                    stored_axangle[i,3] = temp_angle #in radians!
+            # warn that this is very slow
+            stored_axangle = np.ones((self.data.shape[0], 4))
+            for i, row in enumerate(self.data):
+                temp_vect, temp_angle = euler2axangle(row[0], row[1], row[2], self.axis_convention)
+                temp_vect, temp_angle = convert_axangle_to_correct_range(temp_vect, temp_angle)
+                for j in [0, 1, 2]:
+                    stored_axangle[i, j] = temp_vect[j]
+                    stored_axangle[i, 3] = temp_angle  # in radians!
 
-        self.data = np.rad2deg(self.data) #leaves our eulers safe and sound
+        self.data = np.rad2deg(self.data)  # leaves our eulers safe and sound
         return AxAngle(stored_axangle)
+
 
 def rotation_matrix_from_euler_angles(euler_angles):
     """
@@ -192,13 +195,14 @@ def rotation_matrix_from_euler_angles(euler_angles):
     rotation_matrix :
 
     """
-    M_initial = euler2mat(0,0,0,'rzxz')
-    ai,aj,ak = np.deg2rad(euler_angles[0]),np.deg2rad(euler_angles[1]),np.deg2rad(euler_angles[2])
-    M_target  = euler2mat(ai,aj,ak,'rzxz')
+    M_initial = euler2mat(0, 0, 0, 'rzxz')
+    ai, aj, ak = np.deg2rad(euler_angles[0]), np.deg2rad(euler_angles[1]), np.deg2rad(euler_angles[2])
+    M_target = euler2mat(ai, aj, ak, 'rzxz')
     rotation_matrix = M_target @ np.linalg.inv(M_initial)
     return rotation_matrix
 
-def rotate_axangle(Axangles,new_center):
+
+def rotate_axangle(Axangles, new_center):
     """
     Rotates a series of orientation described by axangle to a new center
 
@@ -214,10 +218,11 @@ def rotate_axangle(Axangles,new_center):
     q = mat2quat(rotation_matrix_from_euler_angles((new_center)))
 
     stored_quat = np.ones_like(quats)
-    for i,row in enumerate(quats):
-        stored_quat[i] = qmult(q,row)
+    for i, row in enumerate(quats):
+        stored_quat[i] = qmult(q, row)
 
     return AxAngle.from_Quat(stored_quat)
+
 
 def create_linearly_spaced_array_in_rzxz(resolution):
     """
@@ -239,24 +244,27 @@ def create_linearly_spaced_array_in_rzxz(resolution):
     [1]  D Rowenhorst et al 2015 Modelling Simul. Mater. Sci. Eng.23 083501
          https://iopscience.iop.org/article/10.1088/0965-0393/23/8/083501/meta
     """
-    num_steps = int(360/resolution + 0.5)
-    alpha = np.linspace(0,360,num=num_steps,endpoint=False)
-    beta  = np.linspace(0,180,num=int(num_steps/2),endpoint=False)
-    gamma = np.linspace(0,360,num=num_steps,endpoint=False)
+    num_steps = int(360 / resolution + 0.5)
+    alpha = np.linspace(0, 360, num=num_steps, endpoint=False)
+    beta = np.linspace(0, 180, num=int(num_steps / 2), endpoint=False)
+    gamma = np.linspace(0, 360, num=num_steps, endpoint=False)
     z = np.asarray(list(product(alpha, beta, gamma)))
-    return Euler(z,axis_convention='rzxz')
+    return Euler(z, axis_convention='rzxz')
 
-def _create_advanced_linearly_spaced_array_in_rzxz(resolution,max_angle):
-    num_steps = int(360/resolution + 0.5)
-    steps_max_angle = int(max_angle/resolution + 0.5)
-    alpha = np.linspace(0,360,num=num_steps,endpoint=False)
-    beta  = np.linspace(0,max_angle,num=steps_max_angle,endpoint=False)
-    gamma = np.linspace(0,360,num=num_steps,endpoint=False)
+
+def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_angle):
+    num_steps = int(360 / resolution + 0.5)
+    steps_max_angle = int(max_angle / resolution + 0.5)
+    alpha = np.linspace(0, 360, num=num_steps, endpoint=False)
+    beta = np.linspace(0, max_angle, num=steps_max_angle, endpoint=False)
+    gamma = np.linspace(0, 360, num=num_steps, endpoint=False)
     z = np.asarray(list(product(alpha, beta, gamma)))
-    return Euler(z,axis_convention='rzxz')
+    return Euler(z, axis_convention='rzxz')
 
 
 """ Fundemental Zone Functionality """
+
+
 def get_proper_point_group_string(space_group_number):
     """
     Parameters
@@ -274,43 +282,46 @@ def get_proper_point_group_string(space_group_number):
     Point groups (32) are converted to proper point groups (11) using the Schoenflies
     representations given in that table.
     """
-    if space_group_number in [1,2]:
-        return '1'   #triclinic
+    if space_group_number in [1, 2]:
+        return '1'  # triclinic
     if 2 < space_group_number < 16:
-        return '2'   #monoclinic
+        return '2'  # monoclinic
     if 15 < space_group_number < 75:
-        return '222' #orthorhomic
-    if 74 < space_group_number < 143: #tetragonal
+        return '222'  # orthorhomic
+    if 74 < space_group_number < 143:  # tetragonal
         if (74 < space_group_number < 89) or (99 < space_group_number < 110):
-            return '4'  #cyclic
+            return '4'  # cyclic
         else:
-            return '422' #dihedral
-    if 142 < space_group_number < 168: #trigonal
+            return '422'  # dihedral
+    if 142 < space_group_number < 168:  # trigonal
         if 142 < space_group_number < 148 or 156 < space_group_number < 161:
-            return '3' #cyclic
+            return '3'  # cyclic
         else:
-            return '32' #dihedral
-    if 167 < space_group_number < 194: #hexagonal
-        if 167 < space_group_number <176 or space_group_number in [183,184,185,186]:
-            return '6' #cyclic
+            return '32'  # dihedral
+    if 167 < space_group_number < 194:  # hexagonal
+        if 167 < space_group_number < 176 or space_group_number in [183, 184, 185, 186]:
+            return '6'  # cyclic
         else:
-            return '622'#dihedral
-    if 193 < space_group_number < 231: #cubic
-        if 193 < space_group_number < 207 or space_group_number in [215,216,217,218,219,220]:
-            return '432' #oct
+            return '622'  # dihedral
+    if 193 < space_group_number < 231:  # cubic
+        if 193 < space_group_number < 207 or space_group_number in [215, 216, 217, 218, 219, 220]:
+            return '432'  # oct
         else:
-            return '23' #tet
+            return '23'  # tet
+
 
 def axangle2rodrigo_frank(z):
     # converts to [vx,vy,vz,RF]
     # RF = tan(omega/2)
-    z[:,3] = np.tan(np.divide(z[:,3],2))
+    z[:, 3] = np.tan(np.divide(z[:, 3], 2))
     return z
+
 
 def rodrigo_frank_to_axangle():
     pass
 
-def numpy_bounding_plane(data,vector,distance):
+
+def numpy_bounding_plane(data, vector, distance):
     """
 
     Raises
@@ -322,29 +333,34 @@ def numpy_bounding_plane(data,vector,distance):
 
     return data
 
-def cyclic_group(data,order):
+
+def cyclic_group(data, order):
     """ By CONVENTION the rotation axis is the cartesian z axis
     Note: Special case, as pi rotations are present we avoid a call to numpy_bounding_plane"""
-    z_distance = np.multiply(data[2],data[3])
-    z_distance = np.abs(np.nan_to_num(z_distance)) #case pi rotation, 0 z component of vector
-    return data[z_distance < np.tan(np.pi/order)]
+    z_distance = np.multiply(data[2], data[3])
+    z_distance = np.abs(np.nan_to_num(z_distance))  # case pi rotation, 0 z component of vector
+    return data[z_distance < np.tan(np.pi / order)]
 
-def dihedral_group(data,order):
+
+def dihedral_group(data, order):
     pass
+
 
 def octahedral_group(data):
     pass
 
+
 def tetragonal_group(data):
-    for direction in [(1,1,1),(1,1,-1)]: #etc
+    for direction in [(1, 1, 1), (1, 1, -1)]:  # etc
         data = numpy_bounding_plane()
 
-def rf_fundemental_zone(axangledata,point_group_str):
+
+def rf_fundemental_zone(axangledata, point_group_str):
     rf = axangle2rodrigo_frank(axangledata)
-    if point_group_str in ['1','2','3','4','6']:
-        rf = cyclic_group(rf,order = int(point_group_str))
-    elif point_group_str in ['222','32','422','622']:
-        rf = dihedral_group(rf,order=int(point_group_str[0]))
+    if point_group_str in ['1', '2', '3', '4', '6']:
+        rf = cyclic_group(rf, order=int(point_group_str))
+    elif point_group_str in ['222', '32', '422', '622']:
+        rf = dihedral_group(rf, order=int(point_group_str[0]))
     elif point_group_str == '23':
         rf = tetragonal_group(rf)
     elif point_group_str == '432':
@@ -352,7 +368,7 @@ def rf_fundemental_zone(axangledata,point_group_str):
     return rodrigo_frank_to_axangle(rf)
 
 
-def reduce_to_fundemental_zone(data,fundemental_zone):
+def reduce_to_fundemental_zone(data, fundemental_zone):
     """
     Parameters
     ----------
@@ -371,11 +387,11 @@ def reduce_to_fundemental_zone(data,fundemental_zone):
     # we know what are max angles are, so save some time by cutting out chunks
     # see Figure 5 of "On 3 dimensional misorientation spaces"
     if fundemental_zone == '432':
-        self.data = self.data[self.data[:,3] < np.deg2rad(66)]
+        self.data = self.data[self.data[:, 3] < np.deg2rad(66)]
     elif fundemental_zone == '222':
-        self.data = self.data[self.data[:,3] < np.deg2rad(121)]
-    elif fundemental_zone in ['23','622','32','422']:
-        self.data = self.data[self.data[:,3] < np.deg2rad(106)]
+        self.data = self.data[self.data[:, 3] < np.deg2rad(121)]
+    elif fundemental_zone in ['23', '622', '32', '422']:
+        self.data = self.data[self.data[:, 3] < np.deg2rad(106)]
 
     # convert to rodrigo-frank
     # call FZ functionality

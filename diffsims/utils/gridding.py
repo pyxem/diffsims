@@ -24,7 +24,7 @@ import numpy as np
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, get_proper_point_group_string, reduce_to_fundemental_zone, rotate_axangle, _create_advanced_linearly_spaced_array_in_rzxz
 
 
-def get_fundemental_zone_grid(space_group_number,resolution,center=(0,0,0)):
+def get_fundemental_zone_grid(space_group_number, resolution, center=(0, 0, 0)):
     """
     Parameters
     ----------
@@ -44,16 +44,16 @@ def get_fundemental_zone_grid(space_group_number,resolution,center=(0,0,0)):
     """
     zone_string = get_proper_point_group_string(space_group_number)
 
-    raw_grid = create_linearly_spaced_array_in_rzxz(resolution) #could cut the count down here
+    raw_grid = create_linearly_spaced_array_in_rzxz(resolution)  # could cut the count down here
     raw_grid_ax_angle = raw_grid.to_AxAngle()
     # could use a conditional .remove_large_angles() here for speed.
-    fz_grid = reduce_to_fundemental_zone(raw_grid_axangle,zone_string)
+    fz_grid = reduce_to_fundemental_zone(raw_grid_axangle, zone_string)
     # rotate to the center
     # convert to rzxz
     return None
 
 
-def get_local_grid(center,max_rotation,resolution):
+def get_local_grid(center, max_rotation, resolution):
     """
 
     Parameters
@@ -71,16 +71,17 @@ def get_local_grid(center,max_rotation,resolution):
     Returns
     -------
     """
-    raw_grid = _create_advanced_linearly_spaced_array_in_rzxz(resolution,max_rotation)
+    raw_grid = _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_rotation)
     raw_grid_axangle = raw_grid.to_AxAngle()
     raw_grid_axangle.remove_large_rotations(max_rotation)
-    if np.any(center!=0):
-        raw_grid_axangle = rotate_axangle(raw_grid_axangle,center)
+    if np.any(center != 0):
+        raw_grid_axangle = rotate_axangle(raw_grid_axangle, center)
     returnable_euler = raw_grid_axangle.to_Euler(axis_convention='rzxz')
-    #figure out the final return style.
+    # figure out the final return style.
     return returnable_euler
 
-def get_grid_around_beam_direction(beam_direction,resolution,angular_range=(0,360)):
+
+def get_grid_around_beam_direction(beam_direction, resolution, angular_range=(0, 360)):
     """
 
     Parameters
