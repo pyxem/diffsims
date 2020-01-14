@@ -257,7 +257,7 @@ def _create_advanced_linearly_spaced_array_in_rzxz(resolution,max_angle):
 
 
 """ Fundemental Zone Functionality """
-def select_fundemental_zone(space_group_number):
+def get_proper_point_group_string(space_group_number):
     """
     Parameters
     ----------
