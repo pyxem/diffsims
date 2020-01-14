@@ -244,20 +244,33 @@ def create_linearly_spaced_array_in_rzxz(resolution):
     [1]  D Rowenhorst et al 2015 Modelling Simul. Mater. Sci. Eng.23 083501
          https://iopscience.iop.org/article/10.1088/0965-0393/23/8/083501/meta
     """
-    num_steps = int(360 / resolution + 0.5)
-    alpha = np.linspace(0, 360, num=num_steps, endpoint=False)
-    beta = np.linspace(0, 180, num=int(num_steps / 2), endpoint=False)
-    gamma = np.linspace(0, 360, num=num_steps, endpoint=False)
-    z = np.asarray(list(product(alpha, beta, gamma)))
-    return Euler(z, axis_convention='rzxz')
+    return _create_advanced_linearly_spaced_array_in_rzxz(resolution,max_alpha=360,max_beta=180,max_gamma=360)
 
 
-def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_angle):
-    num_steps = int(360 / resolution + 0.5)
-    steps_max_angle = int(max_angle / resolution + 0.5)
-    alpha = np.linspace(0, 360, num=num_steps, endpoint=False)
-    beta = np.linspace(0, max_angle, num=steps_max_angle, endpoint=False)
-    gamma = np.linspace(0, 360, num=num_steps, endpoint=False)
+def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_beta, max_gamma):
+    """
+
+    Parameters
+    ----------
+    resolution :
+        The final lists will include [0,res,2*res etc]
+    max_alpha :
+
+    max_beta :
+
+    max_gamma :
+
+    Returns
+    -------
+
+    """
+    steps_alpha = int(np.ceil((max_alpha - 0)/resolution)) #see docstrings for np.arange, np.linspace has better endpoint handling
+    steps_beta  = int(np.ceil((max_beta  - 0)/resolution))
+    steps_gamma = int(np.ceil((max_gamma - 0)/resolution))
+
+    alpha = np.linspace(0, max_alpha, num=steps_alpha, endpoint=False)
+    beta = np.linspace(0, max_beta, num=steps_beta, endpoint=False)
+    gamma = np.linspace(0, max_gamma, num=steps_gamma, endpoint=False)
     z = np.asarray(list(product(alpha, beta, gamma)))
     return Euler(z, axis_convention='rzxz')
 
