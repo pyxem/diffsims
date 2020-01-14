@@ -42,10 +42,12 @@ def get_fundemental_zone_grid(space_group_number,resolution,center=(0,0,0)):
     Returns
     -------
     """
-    raw_grid = create_linearly_spaced_array_in_rzxz(resolution)
+    zone_string = select_fundemental_zone(space_group_number)
+
+    raw_grid = create_linearly_spaced_array_in_rzxz(resolution) #could cut the count down here
     raw_grid_ax_angle = raw_grid.to_AxAngle()
-    fz = select_fundemental_zone(space_group_number)
-    fz_grid = reduce_to_fundemental_zone(raw_grid_axangle,fz)
+    # could use a conditional .remove_large_angles() here for speed.
+    fz_grid = reduce_to_fundemental_zone(raw_grid_axangle,zone_string)
     # rotate to the center
     # convert to rzxz
     return None
