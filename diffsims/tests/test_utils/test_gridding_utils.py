@@ -19,10 +19,13 @@
 import pytest
 import numpy as np
 
-from diffsims.utils.gridding_utils import AxAngle, Euler, create_linearly_spaced_array_in_rzxz, get_proper_point_group_string, reduce_to_fundemental_zone, _create_advanced_linearly_spaced_array_in_rzxz
+from diffsims.utils.gridding_utils import AxAngle, Euler, create_linearly_spaced_array_in_rzxz, \
+                                         get_proper_point_group_string, reduce_to_fundemental_zone, \
+                                          _create_advanced_linearly_spaced_array_in_rzxz
+
+from diffsims.utils.gridding import get_local_grid
 
 """ These tests check that AxAngle and Euler behave in good ways """
-
 
 class TestAxAngle:
     @pytest.fixture()
@@ -100,7 +103,6 @@ def test_interconversion_euler_axangle():
 
 """ These are more general gridding util tests """
 
-
 @pytest.mark.skip(reason="Slow as")
 def test_slow():
     grid = create_linearly_spaced_array_in_rzxz(resolution=1)
@@ -119,7 +121,6 @@ def test_linearly_spaced_array_in_rzxz():
     assert grid.data.shape == (442368, 3)
 
 
-#@pytest.mark.skip(reason="Currently not keeping our angles in range, it's marked for fixing")
 def test_small_angle_shortcut():
     """
 
@@ -129,11 +130,12 @@ def test_small_angle_shortcut():
         raw_angles.remove_large_rotations(np.deg2rad(max_rotation))
         return raw_angles
 
+    max_rotation = 20
     lsa = create_linearly_spaced_array_in_rzxz(2)
-    alsa = _create_advanced_linearly_spaced_array_in_rzxz(2,360,30,360)
+    alsa = _create_advanced_linearly_spaced_array_in_rzxz(2,360,max_rotation+10,360)
 
-    long_true_way = process_angles(lsa, 20)
-    quick_way = process_angles(alsa, 20)
+    long_true_way = process_angles(lsa, max_rotation)
+    quick_way = process_angles(alsa, max_rotation)
 
     assert long_true_way.data.shape == quick_way.data.shape
 

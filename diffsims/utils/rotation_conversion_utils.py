@@ -119,3 +119,12 @@ def vectorised_quat2axangle(q):
 
 def vectorised_euler2axangle(ai, aj, ak, axes='rzxz'):
     return vectorised_quat2axangle(vectorised_euler2quat(ai,aj,ak,axes))
+
+def vectorised_axangle2mat():
+    pass
+
+def vectorised_mat2euler():
+    pass
+
+def vectorised_axangle2euler():
+    return vectorisedmat2euler(vectorised(axangle2mat()))

@@ -77,7 +77,7 @@ def get_local_grid(center, max_rotation, resolution):
     Returns
     -------
     """
-    raw_grid = _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_rotation + 10)
+    raw_grid = _create_advanced_linearly_spaced_array_in_rzxz(resolution,360,max_rotation + 10,360)
     raw_grid_axangle = raw_grid.to_AxAngle()
     raw_grid_axangle.remove_large_rotations(max_rotation)
     if np.any(center != 0):
