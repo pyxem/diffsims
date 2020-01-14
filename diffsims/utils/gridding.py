@@ -26,6 +26,7 @@ from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, 
                                           _create_advanced_linearly_spaced_array_in_rzxz
 
 
+
 def get_fundemental_zone_grid(space_group_number, resolution, center=(0, 0, 0)):
     """
     Parameters
