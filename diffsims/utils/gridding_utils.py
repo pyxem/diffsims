@@ -241,7 +241,6 @@ def rotate_axangle(Axangles, new_center):
 
     quats = Axangles.to_Quat()
     q = mat2quat(rotation_matrix_from_euler_angles((new_center)))
-
     stored_quats = vectorised_qmult(q,quats)
 
     return AxAngle.from_Quat(stored_quats)
@@ -249,6 +248,8 @@ def rotate_axangle(Axangles, new_center):
 
 def create_linearly_spaced_array_in_rzxz(resolution):
     """
+    #TODO RENAME
+    
     Parameters
     ----------
     resolution : angle in degrees
