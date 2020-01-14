@@ -384,15 +384,6 @@ def reduce_to_fundemental_zone(data, fundemental_zone):
 
     """
 
-    # we know what are max angles are, so save some time by cutting out chunks
-    # see Figure 5 of "On 3 dimensional misorientation spaces"
-    if fundemental_zone == '432':
-        self.data = self.data[self.data[:, 3] < np.deg2rad(66)]
-    elif fundemental_zone == '222':
-        self.data = self.data[self.data[:, 3] < np.deg2rad(121)]
-    elif fundemental_zone in ['23', '622', '32', '422']:
-        self.data = self.data[self.data[:, 3] < np.deg2rad(106)]
-
     # convert to rodrigo-frank
     # call FZ functionality
     return None
