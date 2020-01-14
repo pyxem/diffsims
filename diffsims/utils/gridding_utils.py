@@ -24,7 +24,7 @@ import numpy as np
 from itertools import product
 from transforms3d.euler import axangle2euler, euler2axangle, euler2mat
 from transforms3d.quaternions import quat2axangle, axangle2quat, mat2quat, qmult
-from diffsims.utils.rotation_conversion_utils import vectorised_euler2axangle, vectorised_quat2axangle
+from diffsims.utils.rotation_conversion_utils import vectorised_euler2axangle, vectorised_quat2axangle, vectorised_axangle2euler
 
 
 def convert_axangle_to_correct_range(vector, angle):
@@ -59,6 +59,16 @@ def vectorised_axangle_to_correct_range(data):
     data[:,3] = np.where(third_case_truth,2*np.pi - data[:,3],data[:,3]) # third clause part 2
 
     return data
+
+def vectorised_qmult(q1, qdata):
+    """ A vectorised implementation that multiplies qdata (array) by q1 (single quaternion) """
+    w1, x1, y1, z1 = q1
+    w2, x2, y2, z2 = qdata[:,0],qdata[:,1],qdata[:,2],qdata[:,3]
+    w = w1*w2 - x1*x2 - y1*y2 - z1*z2
+    x = w1*x2 + x1*w2 + y1*z2 - z1*y2
+    y = w1*y2 + y1*w2 + z1*x2 - x1*z2
+    z = w1*z2 + z1*w2 + x1*y2 - y1*x2
+    return np.array([w, x, y, z]).T
 
 class AxAngle():
     """
@@ -102,7 +112,6 @@ class AxAngle():
         return None
 
     def to_Euler(self, axis_convention):
-        #TODO: Vectorise
         """
         Produces euler angles from the axis-angle pairs.
 
@@ -116,24 +125,20 @@ class AxAngle():
         out_eulers : diffsims.Euler
         """
         self._check_data()
-        stored_euler = np.ones((self.data.shape[0], 3))
-        for i, row in enumerate(self.data):
-            a_array = axangle2euler(row[:3], row[3], axis_convention)
-            for j in [0, 1, 2]:
-                stored_euler[i, j] = a_array[j]
-
-        stored_euler = np.rad2deg(stored_euler)
-        return Euler(stored_euler, axis_convention)
+        eulers = vectorised_axangle2euler(self.data,axis_convention)
+        eulers = np.rad2deg(eulers)
+        return Euler(eulers, axis_convention)
 
     def to_Quat(self):
-        #TODO: Vectorise
-        self._check_data()
-        stored_quat = np.ones((self.data.shape[0], 4))
-        for i, row in enumerate(self.data):
-            q_array = axangle2quat(row[:3], row[3])
-            for j in [0, 1, 2, 3]:
-                stored_quat[i, j] = q_array[j]
-        return stored_quat
+        """ A lightweight port of transforms3d functionality, vectorised"""
+        self._check_data() #means our vectors need not be checked for normalisation
+        vector = self.data[:,:3]
+        t2 = self.data[:,3] / 2.0
+        st2 = np.sin(t2)
+        w = np.cos(t2).reshape(self.data.shape[0],1)
+        xyz = np.multiply(vector,st2.reshape(self.data.shape[0],1))
+        return np.hstack((w,xyz))
+
 
     @classmethod
     def from_Quat(cls, data):
@@ -237,11 +242,9 @@ def rotate_axangle(Axangles, new_center):
     quats = Axangles.to_Quat()
     q = mat2quat(rotation_matrix_from_euler_angles((new_center)))
 
-    stored_quat = np.ones_like(quats)
-    for i, row in enumerate(quats):
-        stored_quat[i] = qmult(q, row)
+    stored_quats = vectorised_qmult(q,quats)
 
-    return AxAngle.from_Quat(stored_quat)
+    return AxAngle.from_Quat(stored_quats)
 
 
 def create_linearly_spaced_array_in_rzxz(resolution):
