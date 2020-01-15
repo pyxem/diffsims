@@ -18,7 +18,7 @@
 
 """
 
-These utils provide vectorised implementations of conversions as descrbibed in the package transforms3d.
+These utils provide vectorised implementations of conversions as described in the package transforms3d.
 
 Currently avaliable are:
 
