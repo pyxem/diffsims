@@ -37,7 +37,7 @@ import numpy as np
 def vectorised_euler2quat(ai, aj, ak, axes='rzxz'):
     """ Applies the transformation that takes eulers to quaternions
 
-    Parameters
+    Parameters #TODO: change this to eulers
     ----------
     ai : (N) numpy array
         First euler angle (in radians)
@@ -53,6 +53,10 @@ def vectorised_euler2quat(ai, aj, ak, axes='rzxz'):
     -------
     q : (N,4) numpy array
             Contains elements w,x,y,z
+
+    Notes
+    -----
+    This function is a port from transforms3d
     """
 
     _NEXT_AXIS = [1,2,0,1]
@@ -180,6 +184,24 @@ def vectorised_euler2axangle(ai, aj, ak, axes='rzxz'):
     return vectorised_quat2axangle(vectorised_euler2quat(ai,aj,ak,axes))
 
 def vectorised_axangle2mat(axangles):
+    """ Applies the transformation that takes eulers to axis-angles
+
+    Parameters
+    ----------
+    axangle : (N,4) numpy array
+        Elements are [x,y,z,theta] in which [x,y,z] is the (ideally normalised) vector and
+        theta is the angle in radians
+
+    Returns
+    -------
+    M : (3,3,N) np.array
+        For internal use only
+
+    Notes
+    -----
+    This function is a port of the associated function in transforms3d
+
+    """
     x, y, z, angle = axangles[:,0], axangles[:,1], axangles[:,2], axangles[:,3]
 
     # Normalise for safety, skipping divide by zeros
@@ -192,20 +214,32 @@ def vectorised_axangle2mat(axangles):
     xs = x*s;   ys = y*s;   zs = z*s
     xC = x*C;   yC = y*C;   zC = z*C
     xyC = x*yC; yzC = y*zC; zxC = z*xC
-    sol = np.array([
+    M = np.array([
             [ x*xC+c,   xyC-zs,   zxC+ys ],
             [ xyC+zs,   y*yC+c,   yzC-xs ],
             [ zxC-ys,   yzC+xs,   z*zC+c ]])
 
-    return sol
+    return M
 
 def vectorised_mat2euler(M,axes='rzxz'):
     """
+    Applies the transformation to take rotation matricies to euler angles
 
     Parameters
     ----------
-
     M : (3,3,N) np.array
+        From internal use only, returned by vectorised_axangle2mat
+    axes: string
+        Compliant convention string, only 'rzxz' is currently accepted
+
+    Returns
+    -------
+    eulers : (N,4) numpy array
+        Contains elements ai,aj,ak where i,j,k are determined by axes
+
+    Notes
+    -----
+    This function is a port from transforms3d
     """
     _NEXT_AXIS = [1,2,0,1]
 
@@ -235,4 +269,23 @@ def vectorised_mat2euler(M,axes='rzxz'):
     return euler
 
 def vectorised_axangle2euler(axangles,axes='rzxz'):
+    """ Applies the transformation that takes eulers to axis-angles
+
+    Parameters
+    ----------
+    axangle : (N,4) numpy array
+        Elements are [x,y,z,theta] in which [x,y,z] is the normalised vector and
+        theta is the angle in radians
+    axes: string
+        Compliant convention string, only 'rzxz' is currently accepted
+
+    Returns
+    -------
+    eulers : (N,4) numpy array
+        Contains elements ai,aj,ak where i,j,k are determined by axes
+
+    Notes
+    -----
+    This function is a port of the associated function(s) in transforms3d.
+    """
     return vectorised_mat2euler(vectorised_axangle2mat(axangles),axes)

@@ -79,6 +79,7 @@ class AxAngle():
 
     def __init__(self, data):
         self.data = data.astype('float')
+        # apply identity rotation change
         self._check_data()
         return None
 
@@ -91,6 +92,7 @@ class AxAngle():
             raise ValueError("Some of your angles lie outside of the range (0,pi)")
         if not np.allclose(np.linalg.norm(self.data[:, :3][self.data[:, 3] > 0], axis=1), 1):
             raise ValueError("You no longer have normalised direction vectors")
+        # drop the angle zero exclusion on the above for identity rotations
         return None
 
     def remove_large_rotations(self, threshold_angle):
@@ -249,7 +251,7 @@ def rotate_axangle(Axangles, new_center):
 def create_linearly_spaced_array_in_rzxz(resolution):
     """
     #TODO RENAME
-    
+
     Parameters
     ----------
     resolution : angle in degrees
