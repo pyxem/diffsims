@@ -35,9 +35,10 @@ def convert_axangle_to_correct_range(vector, angle):
 
     Parameters
     ----------
-    vector :
-
-    angle :
+    vector : iterable of length 3
+        [x,y,z] of the axis
+    angle : float
+        in radians
 
     Returns
     -------
@@ -76,7 +77,7 @@ def vectorised_axangle_to_correct_range(data):
     Returns
     -------
     data : (N,4)
-            Corrected forms of the input
+        Corrected forms of the input
 
     See Also
     --------
