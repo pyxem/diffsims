@@ -26,6 +26,10 @@ euler2quat
 quat2axangle
 euler2axangle (via chaining of the above)
 
+axangle2mat
+mat2euler
+axangle2euler (via chaining of the above)
+
 """
 
 import numpy as np
@@ -178,11 +182,11 @@ def vectorised_euler2axangle(ai, aj, ak, axes='rzxz'):
 def vectorised_axangle2mat(axangles):
     x, y, z, angle = axangles[:,0], axangles[:,1], axangles[:,2], axangles[:,3]
 
-    #mindlessly normalise for safety
+    # Normalise for safety, skipping divide by zeros
     n = np.sqrt(x*x + y*y + z*z)
-    x = x/n
-    y = y/n
-    z = z/n
+    x = np.where(n!=0,x/n,0)
+    y = np.where(n!=0,y/n,0)
+    z = np.where(n!=0,z/n,0)
 
     c = np.cos(angle); s = np.sin(angle); C = 1-c
     xs = x*s;   ys = y*s;   zs = z*s
