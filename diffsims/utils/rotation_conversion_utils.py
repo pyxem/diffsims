@@ -102,15 +102,24 @@ def vectorised_quat2axangle(q):
     w,x,y,z = q[:,0],q[:,1],q[:,2],q[:,3]
     Nq = w * w + x * x + y * y + z * z
     if not np.any(np.isfinite(Nq)):
-        raise ValueError("Infinite elements are nightmare, check your entry")
+        raise ValueError("You have infinte elements, please check your entry")
     if np.any(Nq < 1e-6):
-        raise ValueError("Very small numbers are at risk when we normalise")
-    #normalize
-    s = np.sqrt(Nq)
-    w,x,y,z = np.divide(w,s),np.divide(x,s),np.divide(y,s),np.divide(z,s)
+        raise ValueError("Very small numbers are at risk when we normalise, try normalising your quaternions")
+
+    if np.any(Nq != 1):#normalize
+        s = np.sqrt(Nq)
+        w,x,y,z = np.divide(w,s),np.divide(x,s),np.divide(y,s),np.divide(z,s)
+
     len_img = np.sqrt((x*x)+(y*y)+(z*z))
-    len_img_bool = (len_img < 1e-6)
+    # case where the vector is nearly [0,0,0], return [1,0,0,0]
+    x = np.where(len_img==0,1,x)
+    y = np.where(len_img==0,0,y)
+    z = np.where(len_img==0,0,z)
+    w  = np.where(len_img==0,0,w)
+
+    len_img = np.sqrt((x*x)+(y*y)+(z*z)) #recalculated so we avoid a divide by zero
     xr,yr,zr = np.divide(x,len_img),np.divide(y,len_img),np.divide(z,len_img)
+
     w[w > 1] = 1
     w[w < -1] = -1
     theta = 2 * np.arccos(w)
