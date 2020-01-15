@@ -133,7 +133,7 @@ class AxAngle():
 
     def to_Quat(self):
         """ A lightweight port of transforms3d functionality, vectorised"""
-        self._check_data() #means our vectors need not be checked for normalisation
+        self._check_data() #means that our vectors need not be checked for normalisation
         vector = self.data[:,:3]
         t2 = self.data[:,3] / 2.0
         st2 = np.sin(t2)
@@ -187,13 +187,7 @@ class Euler():
         if self.axis_convention == 'rzxz':
             stored_axangle = vectorised_euler2axangle(self.data, axes='rzxz')
             stored_axangle = vectorised_axangle_to_correct_range(stored_axangle)
-            """
-            for i,row in enumerate(stored_axangle):
-                temp_vect, temp_angle = convert_axangle_to_correct_range(row[:3],row[3])
-                for j in [0, 1, 2]:
-                    stored_axangle[i, j] = temp_vect[j]
-                    stored_axangle[i, 3] = temp_angle  # in radians!
-            """
+
         else:
             # warn that this is very slow
             stored_axangle = np.ones((self.data.shape[0], 4))
@@ -207,6 +201,8 @@ class Euler():
         self.data = np.rad2deg(self.data)  # leaves our eulers safe and sound
         return AxAngle(stored_axangle)
 
+        def to_rotation_list(self):
+            pass
 
 def rotation_matrix_from_euler_angles(euler_angles):
     """

@@ -118,7 +118,15 @@ def test_qmult_vectorisation(random_quats):
 
     assert np.allclose(fast,stored_quat)
 
-
+def test_convert_to_correct_range_vectorisation():
+    """
+    for i,row in enumerate(stored_axangle):
+        temp_vect, temp_angle = convert_axangle_to_correct_range(row[:3],row[3])
+        for j in [0, 1, 2]:
+            stored_axangle[i, j] = temp_vect[j]
+            stored_axangle[i, 3] = temp_angle  # in radians!
+    """
+    pass
 
 """ These are more general gridding util tests """
 
