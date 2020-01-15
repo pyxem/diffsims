@@ -32,6 +32,22 @@ def convert_axangle_to_correct_range(vector, angle):
     This repo uses axis-angle pairs between (0,pi) - however often wider
     ranges are used, most common are (0,2pi) and (-pi,pi), this function corrects
     for these
+
+    Parameters
+    ----------
+    vector :
+
+    angle :
+
+    Returns
+    -------
+    vector, angle :
+        correct forms of the inputs
+
+    See Also
+    --------
+    vectorised_axangle_to_correct_range : for fast processing of bigger inputs
+
     """
     if (angle >= 0) and (angle < np.pi):  # input in the desired convention
         pass
@@ -47,6 +63,25 @@ def convert_axangle_to_correct_range(vector, angle):
     return vector, angle
 
 def vectorised_axangle_to_correct_range(data):
+    """
+    This repo uses axis-angle pairs between (0,pi) - however often wider
+    ranges are used, most common are (0,2pi) and (-pi,pi), this function corrects
+    for these
+
+    Parameters
+    ----------
+    data : (N,4)
+        axangles
+
+    Returns
+    -------
+    data : (N,4)
+            Corrected forms of the input
+
+    See Also
+    --------
+    convert_axangle_to_correct_range : for single data items
+    """
 
     # second clause in unvectorised
     data[:,3] = np.where(np.logical_and(data[:,3] >= -np.pi,data[:,3] < 0),-data[:,3],data[:,3])
@@ -55,13 +90,13 @@ def vectorised_axangle_to_correct_range(data):
     third_case_truth = np.logical_and(data[:,3] >= np.pi, data[:,3] <= 2 * np.pi)
     for i in [0,1,2]: # third clause part 1
         data[:,i] = np.where(third_case_truth,-data[:,i],data[:,i])
-
     data[:,3] = np.where(third_case_truth,2*np.pi - data[:,3],data[:,3]) # third clause part 2
 
     return data
 
 def vectorised_qmult(q1, qdata):
     """ A vectorised implementation that multiplies qdata (array) by q1 (single quaternion) """
+
     w1, x1, y1, z1 = q1
     w2, x2, y2, z2 = qdata[:,0],qdata[:,1],qdata[:,2],qdata[:,3]
     w = w1*w2 - x1*x2 - y1*y2 - z1*z2
