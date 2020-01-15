@@ -34,17 +34,13 @@ axangle2euler (via chaining of the above)
 
 import numpy as np
 
-def vectorised_euler2quat(ai, aj, ak, axes='rzxz'):
+def vectorised_euler2quat(eulers, axes='rzxz'):
     """ Applies the transformation that takes eulers to quaternions
 
-    Parameters #TODO: change this to eulers
+    Parameters
     ----------
-    ai : (N) numpy array
-        First euler angle (in radians)
-    aj : (N) numpy array
-        Second euler angle (in radians)
-    ak : (N) numpy array
-        Third euler angle (in radians)
+    eulers : (N,3) numpy array
+        [First,second,third] euler angles (in radians)
     axes :
         Euler angles conventions, as detailed in transforms3d. Only 'rzxz' is
         currently supported
@@ -58,6 +54,10 @@ def vectorised_euler2quat(ai, aj, ak, axes='rzxz'):
     -----
     This function is a port from transforms3d
     """
+
+    ai = eulers[:,0]
+    aj = eulers[:,1]
+    ak = eulers[:,2]
 
     _NEXT_AXIS = [1,2,0,1]
 
@@ -154,17 +154,13 @@ def vectorised_quat2axangle(q):
     axangles = np.asarray((xr,yr,zr,theta)).T
     return axangles
 
-def vectorised_euler2axangle(ai, aj, ak, axes='rzxz'):
+def vectorised_euler2axangle(eulers, axes='rzxz'):
     """ Applies the transformation that takes eulers to axis-angles
 
     Parameters
     ----------
-    ai : (N) numpy array
-        First euler angle (in radians)
-    aj : (N) numpy array
-        Second euler angle (in radians)
-    ak : (N) numpy array
-        Third euler angle (in radians)
+    eulers : (N,3) numpy array
+        [First,second,third] euler angles (in radians)
     axes :
         Euler angles conventions, as detailed in transforms3d. Only 'rzxz' is
         currently supported
@@ -181,7 +177,7 @@ def vectorised_euler2axangle(ai, aj, ak, axes='rzxz'):
     for the identity rotation [1,0,0,0] is returned
 
     """
-    return vectorised_quat2axangle(vectorised_euler2quat(ai,aj,ak,axes))
+    return vectorised_quat2axangle(vectorised_euler2quat(eulers,axes))
 
 def vectorised_axangle2mat(axangles):
     """ Applies the transformation that takes eulers to axis-angles

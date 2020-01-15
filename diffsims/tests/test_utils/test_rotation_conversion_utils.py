@@ -33,7 +33,7 @@ def random_eulers():
     return np.deg2rad(eulers)
 
 def test_vectorised_euler2quat(random_eulers):
-    fast = vectorised_euler2quat(random_eulers[:,0],random_eulers[:,1],random_eulers[:,2],'rzxz')
+    fast = vectorised_euler2quat(random_eulers,'rzxz')
 
     stored_quats = np.ones((random_eulers.shape[0],4))
     for i,row in enumerate(random_eulers):

@@ -185,7 +185,7 @@ class Euler():
         self.data = np.deg2rad(self.data)  # for the transform operation
 
         if self.axis_convention == 'rzxz':
-            stored_axangle = vectorised_euler2axangle(self.data[:, 0], self.data[:, 1], self.data[:, 2], axes='rzxz')
+            stored_axangle = vectorised_euler2axangle(self.data, axes='rzxz')
             stored_axangle = vectorised_axangle_to_correct_range(stored_axangle)
             """
             for i,row in enumerate(stored_axangle):
