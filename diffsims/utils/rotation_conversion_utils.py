@@ -35,10 +35,20 @@ def vectorised_euler2quat(ai, aj, ak, axes='rzxz'):
 
     Parameters
     ----------
+    ai : (N) numpy array
+        First euler angle (in radians)
+    aj : (N) numpy array
+        Second euler angle (in radians)
+    ak : (N) numpy array
+        Third euler angle (in radians)
+    axes :
+        Euler angles conventions, as detailed in transforms3d. Only 'rzxz' is
+        currently supported
 
     Returns
     -------
-
+    q : (N,4) numpy array
+            Contains elements w,x,y,z
     """
 
     _NEXT_AXIS = [1,2,0,1]
@@ -93,9 +103,19 @@ def vectorised_quat2axangle(q):
 
     Parameters
     ----------
+    q : (N,4) numpy array
+        Contains elements w,x,y,z
 
     Returns
     -------
+    axangle : (N,4) numpy array
+        Elements are [x,y,z,theta] in which [x,y,z] is the normalised vector and
+        theta is the angle in radians
+
+    Notes
+    -----
+    This function is a port of the associated function in transforms3d. As there
+    for the identity rotation [1,0,0,0] is returned
 
     """
 
@@ -123,10 +143,36 @@ def vectorised_quat2axangle(q):
     w[w > 1] = 1
     w[w < -1] = -1
     theta = 2 * np.arccos(w)
-    output = np.asarray((xr,yr,zr,theta)).T
-    return output
+    axangles = np.asarray((xr,yr,zr,theta)).T
+    return axangles
 
 def vectorised_euler2axangle(ai, aj, ak, axes='rzxz'):
+    """ Applies the transformation that takes eulers to axis-angles
+
+    Parameters
+    ----------
+    ai : (N) numpy array
+        First euler angle (in radians)
+    aj : (N) numpy array
+        Second euler angle (in radians)
+    ak : (N) numpy array
+        Third euler angle (in radians)
+    axes :
+        Euler angles conventions, as detailed in transforms3d. Only 'rzxz' is
+        currently supported
+
+    Returns
+    -------
+    axangle : (N,4) numpy array
+        Elements are [x,y,z,theta] in which [x,y,z] is the normalised vector and
+        theta is the angle in radians
+
+    Notes
+    -----
+    This function is a port of the associated function(s) in transforms3d. As there
+    for the identity rotation [1,0,0,0] is returned
+
+    """
     return vectorised_quat2axangle(vectorised_euler2quat(ai,aj,ak,axes))
 
 def vectorised_axangle2mat(axangles):
