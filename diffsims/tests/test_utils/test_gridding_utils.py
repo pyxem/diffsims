@@ -21,7 +21,8 @@ import numpy as np
 
 from diffsims.utils.gridding_utils import AxAngle, Euler, create_linearly_spaced_array_in_rzxz, \
                                          get_proper_point_group_string, reduce_to_fundemental_zone, \
-                                          _create_advanced_linearly_spaced_array_in_rzxz, vectorised_qmult
+                                          _create_advanced_linearly_spaced_array_in_rzxz, vectorised_qmult, \
+                                          vectorised_axangle_to_correct_range, convert_axangle_to_correct_range
 
 from transforms3d.quaternions import qmult
 from diffsims.utils.gridding import get_local_grid
@@ -118,15 +119,21 @@ def test_qmult_vectorisation(random_quats):
 
     assert np.allclose(fast,stored_quat)
 
-def test_convert_to_correct_range_vectorisation():
-    """
-    for i,row in enumerate(stored_axangle):
+@pytest.fixture()
+def random_axangles():
+    random_axangles = np.random.random(size=(1000,4))*2*np.pi
+    return random_axangles
+
+def test_convert_to_correct_range_vectorisation(random_axangles):
+    fast = vectorised_axangle_to_correct_range(random_axangles)
+    stored_axangles = np.empty_like(random_axangles)
+    for i,row in enumerate(random_axangles):
         temp_vect, temp_angle = convert_axangle_to_correct_range(row[:3],row[3])
         for j in [0, 1, 2]:
-            stored_axangle[i, j] = temp_vect[j]
-            stored_axangle[i, 3] = temp_angle  # in radians!
-    """
-    pass
+            stored_axangles[i, j] = temp_vect[j]
+            stored_axangles[i, 3] = temp_angle  # in radians!
+
+    assert np.allclose(fast,stored_axangles)
 
 """ These are more general gridding util tests """
 
