@@ -3,7 +3,7 @@ language: python
 env:
   global:
     - DEPS="psutil numba"
-    - TEST_DEPS="pytest pytest-cov coveralls"
+    - TEST_DEPS="pytest pytest-cov>2.8 coveralls coverage<5"
 
 matrix:
   include:
