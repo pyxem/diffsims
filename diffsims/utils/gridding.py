@@ -46,11 +46,6 @@ def get_fundemental_zone_grid(space_group_number, resolution):
 
     raw_grid = create_linearly_spaced_array_in_rzxz(resolution)  # could cut the count down here
     raw_grid_ax_angle = raw_grid.to_AxAngle()
-    """
-    could use a conditional .remove_large_angles() here for speed.
-    we know what are max angles are, so save some time by cutting out chunks
-    see Figure 5 of "On 3 dimensional misorientation spaces"
-    """
     fz_grid = reduce_to_fundemental_zone(raw_grid_axangle, zone_string)
     # convert to rzxz
     return None

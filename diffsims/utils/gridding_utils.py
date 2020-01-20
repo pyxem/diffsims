@@ -479,7 +479,7 @@ def reduce_to_fundemental_zone(data, fundemental_zone):
     """
     Parameters
     ----------
-    data :
+    data : diffsims.AxAngle
 
     fundemental_zone : str
         A proper point group, allowed values are:
@@ -487,10 +487,15 @@ def reduce_to_fundemental_zone(data, fundemental_zone):
 
     Returns
     -------
-    reduced_data : orix.AxAngle
+    reduced_data : diffsims.AxAngle
 
     """
 
+    """
+    Use a conditional .remove_large_angles() here for speed.
+    we know what are max angles are, so save some time by cutting out chunks
+    see Figure 5 of "On 3 dimensional misorientation spaces"
+    """
     # convert to rodrigo-frank
     # call FZ functionality
     return None
