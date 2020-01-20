@@ -140,7 +140,7 @@ def vectorised_quat2axangle(q):
 
     w,x,y,z = q[:,0],q[:,1],q[:,2],q[:,3]
     Nq = w * w + x * x + y * y + z * z
-    if not np.any(np.isfinite(Nq)):
+    if not np.all(np.isfinite(Nq)):
         raise ValueError("You have infinte elements, please check your entry")
     if np.any(Nq < 1e-6):
         raise ValueError("Very small numbers are at risk when we normalise, try normalising your quaternions")
