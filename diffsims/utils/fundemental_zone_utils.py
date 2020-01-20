@@ -132,11 +132,6 @@ def dihedral_group(data, order):
     """
     pass
 
-
-def octahedral_group(data):
-    pass
-
-
 def tetragonal_group(data):
     """
 
@@ -147,10 +142,30 @@ def tetragonal_group(data):
 
     """
     mask = np.ones_like(data)
-    for normal_vector in [[1,1,1],[1,1,-1],[1,-1,-1],[-1,-1,-1],[-1,-1,1],[-1,1,1]]:
+    for normal_vector in [[1,1,1],[1,1,-1],[1,-1,-1],[1,-1,1]]:
         normal_vector = np.divide(normal_vector,np.sqrt(3))
-        local_mask = numpy_bounding_plane(data,normal_vector,np.sqrt(3))
+        local_mask = numpy_bounding_plane(data,normal_vector,1/np.sqrt(3))
         mask = np.logical_and(exit_mask,mask)
+
+    return mask
+
+def octahedral_group(data):
+    """
+
+    Parameters
+    ----------
+    data : np.array
+        The candidate rotations in Rodrigo-Frank
+
+    """
+
+    sub_mask_threefold = tetragonal_group(data)
+    sub_mask_fourfold = np.ones_like(data)
+    for normal_vector in [[1,0,0],[0,1,0],[0,0,1]]:
+        local_mask = numpy_bounding_plane(data,normal_vector,np.sqrt(2)-1)
+        sub_mask_fourfold = np.logical_and(local_mask,sub_mask_fourfold)
+
+    mask = np.logical_and(sub_mask_threefold,sub_mask_fourfold)
     return mask
 
 def remove_large_rotations(Axangles,point_group_str):
