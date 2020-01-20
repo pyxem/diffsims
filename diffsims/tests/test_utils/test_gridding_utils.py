@@ -137,15 +137,6 @@ def test_convert_to_correct_range_vectorisation(random_axangles):
 
 """ These are more general gridding util tests """
 
-
-
-
-@pytest.mark.skip(reason="Slow as")
-def test_slow():
-    grid = create_linearly_spaced_array_in_rzxz(resolution=1)
-    assert True
-
-
 def test_linearly_spaced_array_in_rzxz():
     """ From definition, a resolution of 3.75 will give us:
         Two sides of length = 96
@@ -158,6 +149,18 @@ def test_linearly_spaced_array_in_rzxz():
     assert grid.data.shape == (442368, 3)
 
 
+""" These tests check the fundemental_zone section of the code """
+
+
+def test_select_fundemental_zone():
+    """ Makes sure all the ints from 1 to 230 give answers """
+    for _space_group in np.arange(1, 231):
+        fz_string = get_proper_point_group_string(_space_group)
+        assert fz_string in ['1', '2', '222', '3', '32', '6', '622', '4', '422', '432', '23']
+
+""" Below here are some misc tests """
+
+@pytest.mark.skip(reason="This tests the theoretical underpinning of the code")
 def test_small_angle_shortcut():
     """
 
@@ -175,30 +178,3 @@ def test_small_angle_shortcut():
     quick_way = process_angles(alsa, max_rotation)
 
     assert long_true_way.data.shape == quick_way.data.shape
-
-
-""" This test is 'physical' one ported from orix """
-@pytest.mark.skip(reason="Functionality doesn't yet exist")
-def test_preservation_of_reduced_rotation_space():
-    """ Pyxem's template matching implementation (from probably 0.12.0 onwards)
-        has a major speed up based on reducing the data size due to a [a,b,c]
-        and [a,b,c+d] being similar in the 'szxz' convention. This test confirms
-        that that data reduction remains even after transfers between representations
-    """
-    grid = create_linearly_spaced_array_in_szxz(resolution=7)
-    count_of_specials = np.unique(grid.data[:, :2], axis=0).shape[0]
-    grid_axangle = grid.to_AxAngle()
-    grid_back_forth = grid_axangle.to_Euler('szxz')
-    count_of_specials_2 = np.unique(grid_back_forth.data.round(decimals=2)[:, :2], axis=0).shape[0]
-    assert np.allclose(grid.data.shape, grid_back_forth.data.shape)
-    assert np.allclose(count_of_specials, count_of_specials_2)
-
-
-""" These tests check the fundemental_zone section of the code """
-
-
-def test_select_fundemental_zone():
-    """ Makes sure all the ints from 1 to 230 give answers """
-    for _space_group in np.arange(1, 231):
-        fz_string = get_proper_point_group_string(_space_group)
-        assert fz_string in ['1', '2', '222', '3', '32', '6', '622', '4', '422', '432', '23']
