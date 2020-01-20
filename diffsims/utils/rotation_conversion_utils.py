@@ -78,8 +78,11 @@ def vectorised_euler2quat(eulers, axes='rzxz'):
 
     if frame:
         ai, ak = ak, ai
+
+    """
     if parity:
-        aj = -aj
+         aj = -aj #not currently supported, commented out for coverage
+    """
 
     ai = np.divide(ai,2.0)
     aj = np.divide(aj,2.0)
@@ -101,6 +104,8 @@ def vectorised_euler2quat(eulers, axes='rzxz'):
         q[:,i] = cj*(cs + sc)
         q[:,j] = sj*(cc + ss)
         q[:,k] = sj*(cs - sc)
+    """
+    #Not currently supported, commented out for coverage
     else:
         q[:,0] = cj*cc + sj*ss
         q[:,i] = cj*sc - sj*cs
@@ -109,7 +114,7 @@ def vectorised_euler2quat(eulers, axes='rzxz'):
 
     if parity:
         q[:,j] *= -1.0
-
+    """
     return q
 
 def vectorised_quat2axangle(q):
@@ -264,8 +269,8 @@ def vectorised_mat2euler(M,axes='rzxz'):
         ay = np.arctan2(sy,M[i, i,:])
         az = np.where(sy > 0,np.arctan2(M[j, i,:], -M[k, i,:]),0.0)
 
-    if parity:
-        ax, ay, az = -ax, -ay, -az
+    """if parity:
+        ax, ay, az = -ax, -ay, -az #not currently supported"""
     if frame:
         ax, az = az, ax
 
@@ -523,7 +528,7 @@ class Euler():
         round_to : int or None
             The number of decimal places to keep on the rotation, if None no rounding is performed
         """
-        
+
         if round_to is not None:
             round = np.round(self.data,2)
         else:
