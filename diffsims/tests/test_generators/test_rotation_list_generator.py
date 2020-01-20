@@ -19,7 +19,7 @@
 import pytest
 import numpy as np
 from diffsims.generators.rotation_list_generators import get_local_grid, get_grid_around_beam_direction
-from diffsims.utils.gridding_utils import Euler
+from diffsims.utils.rotation_conversion_utils import Euler
 
 
 def test_get_local_grid():

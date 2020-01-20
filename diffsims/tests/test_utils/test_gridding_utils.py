@@ -20,10 +20,10 @@ import pytest
 import numpy as np
 
 from diffsims.utils.rotation_conversion_utils import AxAngle,Euler, vectorised_axangle_to_correct_range, convert_axangle_to_correct_range
-from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone,
+from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, vectorised_qmult, \
                                           _create_advanced_linearly_spaced_array_in_rzxz
-                                          
+
 from transforms3d.quaternions import qmult
 
 """ These tests check that AxAngle and Euler behave in good ways """

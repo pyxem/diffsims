@@ -21,10 +21,12 @@ Provides users with a range of gridding functions
 """
 
 import numpy as np
-from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, get_proper_point_group_string, \
-                                          reduce_to_fundemental_zone, rotate_axangle, \
-                                          _create_advanced_linearly_spaced_array_in_rzxz, Euler, \
+
+from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
+from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,rotate_axangle, \
+                                          _create_advanced_linearly_spaced_array_in_rzxz, \
                                           _get_rotation_to_beam_direction
+from diffsims.utils.rotation_conversion_utils import Euler
 
 
 
