@@ -26,17 +26,12 @@ from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, 
 
 from transforms3d.quaternions import qmult
 
-def test_interconversion_euler_axangle():
+def test_interconversion_euler_axangle(random_axangles):
     """
     This function checks (with random numbers) that .to_Axangle() and .to_Euler()
     go back and forth correctly
     """
-    axes = np.random.random_sample((1000, 3))
-    axes = np.divide(axes, np.linalg.norm(axes, axis=1).reshape(1000, 1))
-    assert np.allclose(np.linalg.norm(axes, axis=1), 1)  # check for input normalisation
-    angles = np.multiply(np.random.random_sample((1000, 1)), np.pi)
-    axangle = AxAngle(np.concatenate((axes, angles), axis=1))
-    transform = AxAngle(np.concatenate((axes, angles), axis=1))
+    axangle = AxAngle(random_axangles)
     e = transform.to_Euler(axis_convention='rzxz')
     transform_back = e.to_AxAngle()
     assert isinstance(transform_back, AxAngle)
@@ -80,7 +75,6 @@ def test_linearly_spaced_array_in_rzxz():
 
 
 """ These tests check the fundemental_zone section of the code """
-
 
 def test_select_fundemental_zone():
     """ Makes sure all the ints from 1 to 230 give answers """
