@@ -141,7 +141,7 @@ def test_pointwise(n, shape):
     np.testing.assert_allclose(pw_FT, av_FT, 1e-2)
 
 
-if _CUDA:
+if _CUDA: #pragma : no cover
 
     @pytest.mark.parametrize('n, shape', [
         ([20, 14], (10, 20, 30)),
