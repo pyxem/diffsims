@@ -58,6 +58,19 @@ def test_vectorised_axangle2euler(random_axangles):
 
     assert np.allclose(fast,stored_euler)
 
+
+def test_convert_to_correct_range_vectorisation(random_axangles):
+    fast = vectorised_axangle_to_correct_range(random_axangles)
+    stored_axangles = np.empty_like(random_axangles)
+    for i,row in enumerate(random_axangles):
+        temp_vect, temp_angle = convert_axangle_to_correct_range(row[:3],row[3])
+        for j in [0, 1, 2]:
+            stored_axangles[i, j] = temp_vect[j]
+            stored_axangles[i, 3] = temp_angle  # in radians!
+
+    assert np.allclose(fast,stored_axangles)
+
+
 """ These tests check that AxAngle and Euler behave in good ways """
 
 def test_interconversion_euler_axangle(random_axangles):
