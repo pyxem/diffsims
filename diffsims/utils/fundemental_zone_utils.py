@@ -22,6 +22,8 @@ import numpy as np
 
 def get_proper_point_group_string(space_group_number):
     """
+    Maps a space-group-number to a point group
+
     Parameters
     ----------
     space_group_number : int
@@ -66,25 +68,33 @@ def get_proper_point_group_string(space_group_number):
 
 
 def axangle2rodrigo_frank(z):
-    # converts to [vx,vy,vz,RF]
-    # RF = tan(omega/2)
+    """ Returns a copy of the array converted from [vx,vy,vz,omega] to [vx,vy,vz,RF]
+    with RF = tan(omega/2) """
+
     rf = z.copy()
     rf[:, 3] = np.tan(np.divide(z[:, 3], 2))
     return rf
 
 def numpy_bounding_plane(data, vector, distance):
     """
+    Creates a mask formed by two planes that lie at 'distance' from the origin
+    and lie along the 'vector'
 
     Parameters
     ----------
     data :
-        The candidate rotations in Rodrigo-Frank
+        The candidate rotations in Rodrigo-Frank to be removed/kept
 
     vector :
         The direction perpendicular to the plane under consideration
 
     distance :
         The perpendicular distance from the center to the plane
+
+    Returns
+    -------
+    inner_region :
+        True when element lies within the bounds of the planes
 
     Raises
     -----
@@ -101,14 +111,20 @@ def numpy_bounding_plane(data, vector, distance):
 
 def cyclic_group(data, order):
     """
+    Keeps only rotations within the domain of the cyclic group under consideration
 
     Parameters
     ----------
     data : np.array
-        The candidate rotations in Rodrigo-Frank
+        The candidate rotations in Rodrigo-Frank to be removed/kept
 
     order :
         The order of the cyclic group
+
+    Returns
+    -------
+    mask :
+        True when element lies within the bounds of the domain
 
     Notes
     -----
@@ -122,6 +138,7 @@ def cyclic_group(data, order):
 
 def dihedral_group(data, order):
     """
+    Keeps only rotations within the domain of the dihedral group under consideration
 
     Parameters
     ----------
@@ -130,6 +147,12 @@ def dihedral_group(data, order):
 
     order :
         The order of the dihedral group
+
+    Returns
+    -------
+    mask :
+        True when element lies within the bounds of the domain
+
     Notes
     -----
     This makes use of the convention that puts the cyclic axis along 'z', an puts a minor axis along 'x'
@@ -155,12 +178,17 @@ def dihedral_group(data, order):
 
 def tetragonal_group(data):
     """
+    Keeps only rotations within the tetragonal domain
 
     Parameters
     ----------
     data : np.array
         The candidate rotations in Rodrigo-Frank
 
+    Returns
+    -------
+    mask :
+        True when element lies within the bounds of the domain
     """
     mask = np.ones_like(data[:,3])
     for normal_vector in [[1,1,1],[1,1,-1],[1,-1,-1],[1,-1,1]]:
@@ -172,12 +200,17 @@ def tetragonal_group(data):
 
 def octahedral_group(data):
     """
+    Keeps only rotations within the octahedral domain
 
     Parameters
     ----------
     data : np.array
         The candidate rotations in Rodrigo-Frank
 
+    Returns
+    -------
+    mask :
+        True when element lies within the bounds of the domain
     """
 
     sub_mask_threefold = tetragonal_group(data)
@@ -189,7 +222,7 @@ def octahedral_group(data):
     mask = np.logical_and(sub_mask_threefold,sub_mask_fourfold)
     return mask
 
-def remove_large_rotations(Axangles,point_group_str):
+def remove_out_of_domain_rotations(Axangles,point_group_str):
     """ see Figure 5 of "On 3 dimensional misorientation spaces" """
     if point_group_str == '432':
         Axangles.remove_large_rotations(np.deg2rad(66))
@@ -201,15 +234,15 @@ def remove_large_rotations(Axangles,point_group_str):
     return Axangles
 
 def generate_mask_from_Rodrigo_Frank(Axangles, point_group_str):
-    rf = axangle2rodrigo_frank(Axangles.data)
+    rf_data = axangle2rodrigo_frank(Axangles.data)
     if point_group_str in ['1', '2', '3', '4', '6']:
-        mask = cyclic_group(rf, order=int(point_group_str))
+        mask = cyclic_group(rf_data, order=int(point_group_str))
     elif point_group_str in ['222', '32', '422', '622']:
-        mask = dihedral_group(rf, order=int(point_group_str[0]))
+        mask = dihedral_group(rf_data, order=int(point_group_str[0]))
     elif point_group_str == '23':
-        mask = tetragonal_group(rf)
+        mask = tetragonal_group(rf_data)
     elif point_group_str == '432':
-        mask = octahedral_group(rf)
+        mask = octahedral_group(rf_data)
 
     return mask
 
@@ -227,11 +260,10 @@ def reduce_to_fundemental_zone(Axangles, point_group_str):
     Returns
     -------
     reduced_data : diffsims.AxAngle
-
     """
 
     # we know what are max angles are, so save some time by cutting out chunks
-    Axangles = remove_large_rotations(Axangles,point_group_str)
+    Axangles = remove_out_of_domain_rotations(Axangles,point_group_str)
     mask = generate_mask_from_Rodrigo_Frank(Axangles, point_group_str)
     Axangles.remove_with_mask(mask)
     return Axangles
