@@ -30,6 +30,10 @@ axangle2mat
 mat2euler
 axangle2euler (via chaining of the above)
 
+It also provides two implementations (one vectorised) that convert axis-angles pairs to the correct
+angular ranges
+
+Finally - two classes, Euler & AxAngle are provided
 """
 
 import numpy as np
@@ -289,3 +293,218 @@ def vectorised_axangle2euler(axangles,axes='rzxz'):
     This function is a port of the associated function(s) in transforms3d.
     """
     return vectorised_mat2euler(vectorised_axangle2mat(axangles),axes)
+
+def convert_axangle_to_correct_range(vector, angle):
+    """
+    This repo uses axis-angle pairs between (0,pi) - however often wider
+    ranges are used, most common are (0,2pi) and (-pi,pi), this function corrects
+    for these
+
+    Parameters
+    ----------
+    vector : iterable of length 3
+        [x,y,z] of the axis
+    angle : float
+        in radians
+
+    Returns
+    -------
+    vector, angle :
+        correct forms of the inputs
+
+    See Also
+    --------
+    vectorised_axangle_to_correct_range : for fast processing of bigger inputs
+
+    """
+    if (angle >= 0) and (angle < np.pi):  # input in the desired convention
+        pass
+    elif (angle >= -np.pi) and (angle < 0):
+        vector = np.multiply(vector, -1)
+        angle = angle * -1
+    elif (angle >= np.pi) and (angle <= 2 * np.pi):
+        vector = np.multiply(vector, -1)
+        angle = 2 * np.pi - angle
+    else:
+        raise ValueError("You have an axis-angle angle outside of acceptable ranges:`{}`".format(angle))
+
+    return vector, angle
+
+def vectorised_axangle_to_correct_range(data):
+    """
+    This repo uses axis-angle pairs between (0,pi) - however often wider
+    ranges are used, most common are (0,2pi) and (-pi,pi), this function corrects
+    for these
+
+    Parameters
+    ----------
+    data : (N,4)
+        axangles
+
+    Returns
+    -------
+    data : (N,4)
+        Corrected forms of the input
+
+    See Also
+    --------
+    convert_axangle_to_correct_range : for single data items
+    """
+
+    # second clause in unvectorised
+    data[:,3] = np.where(np.logical_and(data[:,3] >= -np.pi,data[:,3] < 0),-data[:,3],data[:,3])
+
+    # third clause in unvectorised
+    third_case_truth = np.logical_and(data[:,3] >= np.pi, data[:,3] <= 2 * np.pi)
+    for i in [0,1,2]: # third clause part 1
+        data[:,i] = np.where(third_case_truth,-data[:,i],data[:,i])
+    data[:,3] = np.where(third_case_truth,2*np.pi - data[:,3],data[:,3]) # third clause part 2
+
+    return data
+
+class AxAngle():
+    """
+    Class storing rotations in the axis-angle convention. Each row reads
+    as [vx,vy,vz,theta], where [vx,vy,vz] is the rotation axis (normalised)
+    and theta is the rotation angle in radians in range (0,pi]
+    """
+
+    def __init__(self, data):
+        self.data = data.astype('float')
+        # apply identity rotation change
+        self._check_data()
+        return None
+
+    def _check_data(self):
+        """ Checks the data within AxAngle is acceptable, having the correct dimensions,
+        acceptable angles and normalised vectors """
+        if self.data.shape[1] != 4:
+            raise ValueError("Your data is not in the correct shape")
+        if np.any(self.data[:, 3] < 0) or np.any(self.data[:, 3] > np.pi):
+            raise ValueError("Some of your angles lie outside of the range (0,pi)")
+        if not np.allclose(np.linalg.norm(self.data[:, :3][self.data[:, 3] > 0], axis=1), 1):
+            raise ValueError("You no longer have normalised direction vectors")
+        # drop the angle zero exclusion on the above for identity rotations
+        return None
+
+    def remove_large_rotations(self, threshold_angle):
+        """
+        Removes rotations that above a threshold angle
+
+        Parameters
+        ----------
+        thereshold_angle : float
+            angle in radians, rotations larger than this are removed
+
+        Returns
+        -------
+        None :
+            This functions operates in place
+        """
+        self._check_data()
+        self.data = self.data[self.data[:, 3] < threshold_angle]
+        return None
+
+    def to_Euler(self, axis_convention):
+        """
+        Produces euler angles from the axis-angle pairs.
+
+        Parameters
+        ----------
+        axis_convention : str
+            transforms3d compliant euler string
+
+        Returns
+        -------
+        out_eulers : diffsims.Euler
+        """
+        self._check_data()
+        eulers = vectorised_axangle2euler(self.data,axis_convention)
+        eulers = np.rad2deg(eulers)
+        return Euler(eulers, axis_convention)
+
+    def to_Quat(self):
+        """ A lightweight port of transforms3d functionality, vectorised"""
+        self._check_data() #means that our vectors need not be checked for normalisation
+        vector = self.data[:,:3]
+        t2 = self.data[:,3] / 2.0
+        st2 = np.sin(t2)
+        w = np.cos(t2).reshape(self.data.shape[0],1)
+        xyz = np.multiply(vector,st2.reshape(self.data.shape[0],1))
+        return np.hstack((w,xyz))
+
+
+    @classmethod
+    def from_Quat(cls, data):
+        # TODO: input checking
+        axangles = vectorised_quat2axangle(data)
+        # needs a vectorised version of convert_axangle_to_correct_range
+        return AxAngle(axangles)
+
+
+class Euler():
+    """
+    Class storing rotations as euler angles.
+    Each row reads as [alpha,beta,gamma], where alpha, beta and gamma are rotations
+    in degrees around the axes specified by Euler.axis_conventions
+    as defined in transforms3d. Please always remember that Euler angles are difficult.
+    """
+
+    def __init__(self, data, axis_convention='rzxz'):
+        self.data = data.astype('float')
+        self.axis_convention = axis_convention
+        self._check_data()
+        return None
+
+    def _check_data(self):
+        """ Checks data within Euler is acceptable, to be used at the start
+        of methods """
+        if self.data.shape[1] != 3:
+            raise ValueError("Your data is not in the correct shape")
+        if np.any(self.data[:] > 360):
+            raise ValueError("Some of your angles are greater 360")
+
+        return None
+
+    def to_AxAngle(self):
+        """ Converts an Euler object to an AxAngle object
+
+        Returns
+        -------
+        axangle : diffsims.AxAngle object
+        """
+        self._check_data()
+        self.data = np.deg2rad(self.data)  # for the transform operation
+
+        if self.axis_convention == 'rzxz' or self.axis_convention =='szxz':
+            stored_axangle = vectorised_euler2axangle(self.data, axes=self.axis_convention)
+            stored_axangle = vectorised_axangle_to_correct_range(stored_axangle)
+
+        else:
+            # This is very slow
+            stored_axangle = np.ones((self.data.shape[0], 4))
+            for i, row in enumerate(self.data):
+                temp_vect, temp_angle = euler2axangle(row[0], row[1], row[2], self.axis_convention)
+                temp_vect, temp_angle = convert_axangle_to_correct_range(temp_vect, temp_angle)
+                for j in [0, 1, 2]:
+                    stored_axangle[i, j] = temp_vect[j]
+                    stored_axangle[i, 3] = temp_angle  # in radians!
+
+        self.data = np.rad2deg(self.data)  # leaves our eulers safe and sound
+        return AxAngle(stored_axangle)
+
+    def to_rotation_list(self,round_to=2):
+        """
+        Parameters:
+
+        round_to : int or None
+
+        """
+        if round_to is not None:
+            round = np.round(self.data,2)
+        else:
+            round = self.data
+
+        starter_list = round.tolist()
+        tuple_list  = [tuple(x) for x in starter_list]
+        return tuple_list
