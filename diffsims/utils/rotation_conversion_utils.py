@@ -46,7 +46,7 @@ def vectorised_euler2quat(eulers, axes='rzxz'):
     eulers : (N,3) numpy array
         [First,second,third] euler angles (in radians)
     axes :
-        Euler angles conventions, as detailed in transforms3d. Only 'rzxz' is
+        Euler angles conventions, as detailed in transforms3d. Only 'rzxz' and 'szxz' are
         currently supported
 
     Returns
@@ -168,7 +168,7 @@ def vectorised_euler2axangle(eulers, axes='rzxz'):
     eulers : (N,3) numpy array
         [First,second,third] euler angles (in radians)
     axes :
-        Euler angles conventions, as detailed in transforms3d. Only 'rzxz' is
+        Euler angles conventions, as detailed in transforms3d. Only 'rzxz' and 'szxz' are
         currently supported
 
     Returns
@@ -232,7 +232,7 @@ def vectorised_mat2euler(M,axes='rzxz'):
     M : (3,3,N) np.array
         From internal use only, returned by vectorised_axangle2mat
     axes: string
-        Compliant convention string, only 'rzxz' is currently accepted
+        Compliant convention string, only 'rzxz' and 'szxz' are currently accepted
 
     Returns
     -------
@@ -281,7 +281,7 @@ def vectorised_axangle2euler(axangles,axes='rzxz'):
         Elements are [x,y,z,theta] in which [x,y,z] is the normalised vector and
         theta is the angle in radians
     axes: string
-        Compliant convention string, only 'rzxz' is currently accepted
+        Compliant convention string, only 'rzxz' and 'szxz' are currently accepted
 
     Returns
     -------
@@ -421,7 +421,6 @@ class AxAngle():
         ----------
         mask : np.array
 
-
         Returns
         -------
         None :
@@ -462,9 +461,7 @@ class AxAngle():
 
     @classmethod
     def from_Quat(cls, data):
-        # TODO: input checking
         axangles = vectorised_quat2axangle(data)
-        # needs a vectorised version of convert_axangle_to_correct_range
         return AxAngle(axangles)
 
 
@@ -524,8 +521,9 @@ class Euler():
         Parameters:
 
         round_to : int or None
-
+            The number of decimal places to keep on the rotation, if None no rounding is performed
         """
+        
         if round_to is not None:
             round = np.round(self.data,2)
         else:
