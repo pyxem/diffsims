@@ -40,7 +40,7 @@ def test_get_fundemental_zone_grid(space_group_number):
 
 
 @pytest.mark.skip(reason="This tests a theoretical underpinning of the code")
-def test_small_angle_shortcut():
+def test_small_angle_shortcut(): #pragma : no cover
     """ Demonstrates that cutting larger 'out of plane' in euler space doesn't
     effect the result """
 

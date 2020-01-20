@@ -100,23 +100,22 @@ def test_slow_to_euler_case(random_eulers):
     axangle = e.to_AxAngle()
     assert isinstance(axangle, AxAngle)
 
-@pytest.mark.xfail(strict=True)
+@pytest.mark.xfail(strict=True,raises=ValueError)
 class TestsThatFail:
-    def test_odd_convention_euler2quat(random_eulers):
-        e = Euler(random_eulers,axis_convention='sxyz')
-        e.to_Axangle()
+    def test_odd_convention_euler2quat(self,random_eulers):
+        vectorised_euler2quat(random_eulers,axes='sxyz')
 
-    def test_odd_convention_mat2euler(random_axangles):
+    def test_odd_convention_mat2euler(self,random_axangles):
         ax = AxAngle(random_axangles)
         ax.to_Euler(axis_convention='sxyz')
 
-    def test_inf_quat():
-        qdata = np.asarray([0,np.inf,1,1])
-        edata = quat2euler(qdata)
+    def test_inf_quat(self):
+        qdata = np.asarray([[1,1,1,1],[0,np.inf,1,1]])
+        edata = vectorised_quat2axangle(qdata)
 
-    def test_small_quat():
-        qdata = np.asarray([1e-10,1e-8,1e-10,1e-10])
-        edata = quat2euler(qdata)
+    def test_small_quat(self):
+        qdata = np.asarray([[1,1,1,1],[1e-8,1e-8,1e-8,1e-8]])
+        edata = vectorised_quat2axangle(qdata)
 
 class TestAxAngle:
     @pytest.fixture()
