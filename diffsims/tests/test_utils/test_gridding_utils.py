@@ -19,13 +19,12 @@
 import pytest
 import numpy as np
 
-from diffsims.utils.gridding_utils import AxAngle, Euler, create_linearly_spaced_array_in_rzxz, \
-                                         get_proper_point_group_string, reduce_to_fundemental_zone, \
-                                          _create_advanced_linearly_spaced_array_in_rzxz, vectorised_qmult, \
-                                          vectorised_axangle_to_correct_range, convert_axangle_to_correct_range
-
+from diffsims.utils.rotation_conversion_utils import AxAngle,Euler, vectorised_axangle_to_correct_range, convert_axangle_to_correct_range
+from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone,
+from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, vectorised_qmult, \
+                                          _create_advanced_linearly_spaced_array_in_rzxz
+                                          
 from transforms3d.quaternions import qmult
-from diffsims.utils.gridding import get_local_grid
 
 """ These tests check that AxAngle and Euler behave in good ways """
 
@@ -159,22 +158,3 @@ def test_select_fundemental_zone():
         assert fz_string in ['1', '2', '222', '3', '32', '6', '622', '4', '422', '432', '23']
 
 """ Below here are some misc tests """
-
-@pytest.mark.skip(reason="This tests the theoretical underpinning of the code")
-def test_small_angle_shortcut():
-    """
-
-    """
-    def process_angles(raw_angles, max_rotation):
-        raw_angles = raw_angles.to_AxAngle()
-        raw_angles.remove_large_rotations(np.deg2rad(max_rotation))
-        return raw_angles
-
-    max_rotation = 20
-    lsa = create_linearly_spaced_array_in_rzxz(2)
-    alsa = _create_advanced_linearly_spaced_array_in_rzxz(2,360,max_rotation+10,360)
-
-    long_true_way = process_angles(lsa, max_rotation)
-    quick_way = process_angles(alsa, max_rotation)
-
-    assert long_true_way.data.shape == quick_way.data.shape

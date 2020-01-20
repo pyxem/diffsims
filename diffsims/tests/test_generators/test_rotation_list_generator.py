@@ -32,3 +32,23 @@ def test_get_grid_around_beam_direction():
     assert isinstance(grid_simple,list)
     assert isinstance(grid_simple[0],tuple)
     assert len(grid_simple) == 360
+
+
+@pytest.mark.skip(reason="This tests the theoretical underpinning of the code")
+def test_small_angle_shortcut():
+    """
+
+    """
+    def process_angles(raw_angles, max_rotation):
+        raw_angles = raw_angles.to_AxAngle()
+        raw_angles.remove_large_rotations(np.deg2rad(max_rotation))
+        return raw_angles
+
+    max_rotation = 20
+    lsa = create_linearly_spaced_array_in_rzxz(2)
+    alsa = _create_advanced_linearly_spaced_array_in_rzxz(2,360,max_rotation+10,360)
+
+    long_true_way = process_angles(lsa, max_rotation)
+    quick_way = process_angles(alsa, max_rotation)
+
+    assert long_true_way.data.shape == quick_way.data.shape
