@@ -355,15 +355,16 @@ def vectorised_axangle_to_correct_range(data):
     """
 
     # second clause in unvectorised
-    data[:,3] = np.where(np.logical_and(data[:,3] >= -np.pi,data[:,3] < 0),-data[:,3],data[:,3])
+    z = data.copy()
+    z[:,3] = np.where(np.logical_and(z[:,3] >= -np.pi,z[:,3] < 0),-z[:,3],z[:,3])
 
     # third clause in unvectorised
-    third_case_truth = np.logical_and(data[:,3] >= np.pi, data[:,3] <= 2 * np.pi)
+    third_case_truth = np.logical_and(z[:,3] >= np.pi, z[:,3] <= 2 * np.pi)
     for i in [0,1,2]: # third clause part 1
-        data[:,i] = np.where(third_case_truth,-data[:,i],data[:,i])
-    data[:,3] = np.where(third_case_truth,2*np.pi - data[:,3],data[:,3]) # third clause part 2
+        z[:,i] = np.where(third_case_truth,-z[:,i],z[:,i])
+    z[:,3] = np.where(third_case_truth,2*np.pi - z[:,3],z[:,3]) # third clause part 2
 
-    return data
+    return z
 
 def convert_identity_rotations(data):
     """ Turns 0 angles axangles to [1,0,0,0] """
