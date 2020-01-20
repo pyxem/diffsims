@@ -327,11 +327,9 @@ def convert_axangle_to_correct_range(vector, angle):
     elif (angle >= -np.pi) and (angle < 0):
         vector = np.multiply(vector, -1)
         angle = angle * -1
-    elif (angle >= np.pi) and (angle <= 2 * np.pi):
+    elif (angle >= np.pi):
         vector = np.multiply(vector, -1)
         angle = 2 * np.pi - angle
-    else:
-        raise ValueError("You have an axis-angle angle outside of acceptable ranges:`{}`".format(angle))
 
     return vector, angle
 
