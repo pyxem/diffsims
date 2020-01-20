@@ -21,14 +21,16 @@ import numpy as np
 
 from transforms3d.euler import euler2quat, quat2axangle, axangle2euler
 from diffsims.utils.rotation_conversion_utils import vectorised_euler2quat,vectorised_quat2axangle,vectorised_axangle2euler,\
-                                                     Euler,AxAngle
+                                                     vectorised_axangle_to_correct_range, convert_axangle_to_correct_range, \
+                                                     Euler, AxAngle 
 
-def test_vectorised_euler2quat(random_eulers):
-    fast = vectorised_euler2quat(random_eulers,'rzxz')
+@pytest.mark.parametrize("axis_convention",['rzxz','szxz'])
+def test_vectorised_euler2quat(random_eulers,axis_convention):
+    fast = vectorised_euler2quat(random_eulers,axis_convention)
 
     stored_quats = np.ones((random_eulers.shape[0],4))
     for i,row in enumerate(random_eulers):
-        temp_quat = euler2quat(row[0],row[1],row[2],'rzxz')
+        temp_quat = euler2quat(row[0],row[1],row[2],axis_convention)
         for j in [0,1,2,3]:
             stored_quats[i,j] = temp_quat[j]
 
@@ -47,12 +49,14 @@ def test_vectorised_quat2axangle(random_quats):
 
     assert np.allclose(fast,stored_axangles)
 
-def test_vectorised_axangle2euler(random_axangles):
-    fast = vectorised_axangle2euler(random_axangles,'rzxz')
+
+@pytest.mark.parametrize("axis_convention",['rzxz','szxz'])
+def test_vectorised_axangle2euler(random_axangles,axis_convention):
+    fast = vectorised_axangle2euler(random_axangles,axis_convention)
 
     stored_euler = np.ones((random_axangles.shape[0], 3))
     for i, row in enumerate(random_axangles):
-        a_array = axangle2euler(row[:3], row[3],'rzxz')
+        a_array = axangle2euler(row[:3], row[3],axis_convention)
         for j in [0, 1, 2]:
             stored_euler[i, j] = a_array[j]
 
