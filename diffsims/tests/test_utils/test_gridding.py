@@ -28,17 +28,7 @@ def test_get_local_grid():
     assert isinstance(grid[0],tuple)
 
 def test_get_grid_around_beam_direction():
-    grid_simple = get_grid_around_beam_direction((0,0,0),1,(0, 360))
+    grid_simple = get_grid_around_beam_direction([1,1,1],1,(0, 360))
     assert isinstance(grid_simple,list)
     assert isinstance(grid_simple[0],tuple)
     assert len(grid_simple) == 360
-
-    grid_rotated = get_grid_around_beam_direction((0,90,0),1,(0, 360))
-    assert isinstance(grid_simple,list)
-    assert isinstance(grid_simple[0],tuple)
-    assert len(grid_simple) == 360
-
-    axangle = Euler(np.asarray(grid_rotated),axis_convention='rzxz').to_AxAngle()
-    assert np.allclose(axangle.data[1:,0][axangle.data[1:,3] > 0],0)
-    assert np.allclose(axangle.data[1:,1][axangle.data[1:,3] > 0],1)
-    assert np.allclose(axangle.data[1:,2][axangle.data[1:,3] > 0],0)
