@@ -18,7 +18,7 @@
 
 import pytest
 import numpy as np
-from diffsims.utils.gridding import get_local_grid, get_grid_around_beam_direction
+from diffsims.generators.rotation_list_generators import get_local_grid, get_grid_around_beam_direction
 from diffsims.utils.gridding_utils import Euler
 
 
