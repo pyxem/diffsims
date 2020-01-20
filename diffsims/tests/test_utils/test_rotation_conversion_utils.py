@@ -105,16 +105,16 @@ class TestsThatFail:
     def test_odd_convention_euler2quat(self,random_eulers):
         vectorised_euler2quat(random_eulers,axes='sxyz')
 
-    def test_odd_convention_mat2euler(self,random_axangles):
-        ax = AxAngle(random_axangles)
+    def test_odd_convention_mat2euler(self):
+        ax = AxAngle(np.asarray([[1,0,0,0.2]]))
         ax.to_Euler(axis_convention='sxyz')
 
     def test_inf_quat(self):
-        qdata = np.asarray([[1,1,1,1],[0,np.inf,1,1]])
+        qdata = np.asarray([[0,np.inf,1,1]])
         edata = vectorised_quat2axangle(qdata)
 
     def test_small_quat(self):
-        qdata = np.asarray([[1,1,1,1],[1e-8,1e-8,1e-8,1e-8]])
+        qdata = np.asarray([[1e-8,1e-8,1e-8,1e-8]])
         edata = vectorised_quat2axangle(qdata)
 
 class TestAxAngle:
