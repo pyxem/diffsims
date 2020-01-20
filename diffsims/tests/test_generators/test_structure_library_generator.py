@@ -19,26 +19,14 @@
 import numpy as np
 
 from diffsims.generators.structure_library_generator import StructureLibraryGenerator
-from diffsims.tests.test_utils.test_sim_utils import create_structure_cubic
 
 
 def test_orientations_from_list():
     expected_orientations = [(0, 0, 0), (0, 90, 0)]
     structure_library_generator = StructureLibraryGenerator([
-        ('a', None, 'cubic'),
-        ('b', None, 'hexagonal')
+        ('a', None, [(0,0,0)]),
+        ('b', None, [(0,5,5),(0,0,10)])
     ])
-    structure_library = structure_library_generator.get_orientations_from_list(expected_orientations)
+    structure_library = structure_library_generator.get_library()
     assert structure_library.identifiers == ['a', 'b']
     assert structure_library.structures == [None, None]
-    np.testing.assert_almost_equal(structure_library.orientations, expected_orientations)
-
-
-def test_orientations_from_stereographic_triangle():
-    structure_cubic = create_structure_cubic()
-    structure_library_generator = StructureLibraryGenerator([('a', structure_cubic, 'cubic')])
-    structure_library = structure_library_generator.get_orientations_from_stereographic_triangle([[0]], np.pi / 8)
-    assert structure_library.identifiers == ['a']
-    assert structure_library.structures == [structure_cubic]
-    # Tests for rotation_list_stereographic checks correctness of list content
-    assert len(structure_library.orientations) == 1
