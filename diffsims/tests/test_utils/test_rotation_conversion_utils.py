@@ -123,6 +123,11 @@ class TestEuler:
     def test_good_array__init__(self, good_array):
         assert isinstance(Euler(good_array), Euler)
 
+    def test_to_rotation_list_no_round(self,good_array):
+        l = Euler(good_array).to_rotation_list(round_to=None)
+        assert isinstance(l,list)
+        assert isinstance(l[0],tuple)
+
     @pytest.mark.xfail(raises=ValueError, strict=True)
     class TestCorruptingData:
         @pytest.fixture()
