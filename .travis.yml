@@ -40,6 +40,4 @@ install:
 script:
   - export MPLBACKEND=Agg
   - pytest --pyargs diffsims --cov=diffsims
-
-after_success:
   - coveralls
