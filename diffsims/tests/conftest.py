@@ -31,3 +31,24 @@ def default_structure():
     atom = diffpy.structure.atom.Atom(atype='Ni',xyz=[0,0,0],lattice=latt)
     hexagonal_structure = diffpy.structure.Structure(atoms=[atom],lattice=latt)
     return hexagonal_structure
+
+@pytest.fixture()
+def random_eulers():
+    """ Using [0,360] [0,180] and [0,360] as ranges """
+    alpha = np.random.rand(100) * 360
+    beta  = np.random.rand(100) * 180
+    gamma = np.random.rand(100) * 360
+    eulers = np.asarray((alpha,beta,gamma)).T
+    return np.deg2rad(eulers)
+
+@pytest.fixture()
+def random_quats():
+    """ Unnormalised"""
+    q_rand = np.random.random(size=(1000,4))*7
+    return q_rand
+
+@pytest.fixture()
+def random_axangles():
+    """ Unnormalised axes, & rotation between 0 and 2 pi """
+    axangle_rand = np.random.random(size=(1000,4)) * 2 * np.pi
+    return axangle_rand
