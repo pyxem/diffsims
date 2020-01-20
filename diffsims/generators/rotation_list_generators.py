@@ -28,7 +28,11 @@ from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,r
                                           _get_rotation_to_beam_direction
 from diffsims.utils.rotation_conversion_utils import Euler
 
-
+def _returnable_eulers_from_axangle(grid,axis_convention,round_to):
+    """ Short snippet that need not be copy pasted across two functions """
+    eulers = grid.to_Euler(axis_convention=axis_convention)
+    rotation_list = eulers.to_rotation_list(round_to=round_to)
+    return rotation_list
 
 def get_fundemental_zone_grid(space_group_number, resolution):
     """
@@ -49,8 +53,7 @@ def get_fundemental_zone_grid(space_group_number, resolution):
     raw_grid = create_linearly_spaced_array_in_rzxz(resolution)  # could cut the count down here
     raw_grid_ax_angle = raw_grid.to_AxAngle()
     fz_grid = reduce_to_fundemental_zone(raw_grid_axangle, zone_string)
-    # convert to rzxz
-    return None
+    return _returnable_eulers_from_axangle(fz_grid,'rzxz',round_to=2)
 
 
 def get_local_grid(center, max_rotation, resolution):
@@ -77,9 +80,8 @@ def get_local_grid(center, max_rotation, resolution):
     raw_grid_axangle.remove_large_rotations(np.deg2rad(max_rotation))
     if not np.all(np.asarray(center) == 0):
         raw_grid_axangle = rotate_axangle(raw_grid_axangle, center)
-    eulers = raw_grid_axangle.to_Euler(axis_convention='rzxz')
-    rotation_list = eulers.to_rotation_list(round_to=2)
-    return rotation_list
+
+    return _returnable_eulers_from_axangle(raw_grid_axangle,'rzxz',round_to=2)
 
 
 def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 360)):
