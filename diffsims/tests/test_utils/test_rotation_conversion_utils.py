@@ -75,7 +75,7 @@ def test_interconversion_euler_axangle(random_axangles):
 
 def test_slow_to_euler_case(random_eulers):
     """
-    This function checks (with random numbers) that to_Axangle runs with rarer conventions
+    This function checks that to_Axangle runs with rarer conventions on the eulers
     """
     e = Euler(random_eulers,'sxyz')
     axangle = e.to_AxAngle()
