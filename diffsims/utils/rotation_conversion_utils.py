@@ -362,6 +362,14 @@ def vectorised_axangle_to_correct_range(data):
 
     return data
 
+def convert_identity_rotations(data):
+    """ Turns 0 angles axangles to [1,0,0,0] """
+    data[:,0][data[:,3] == 0] = 1
+    data[:,1][data[:,3] == 0] = 0
+    data[:,2][data[:,3] == 0] = 0
+    return data
+
+
 class AxAngle():
     """
     Class storing rotations in the axis-angle convention. Each row reads
@@ -371,7 +379,8 @@ class AxAngle():
 
     def __init__(self, data):
         self.data = data.astype('float')
-        # apply identity rotation change
+        self.data = vectorised_axangle_to_correct_range(self.data)
+        self.data = convert_identity_rotations(self.data)
         self._check_data()
         return None
 
@@ -384,7 +393,6 @@ class AxAngle():
             raise ValueError("Some of your angles lie outside of the range (0,pi)")
         if not np.allclose(np.linalg.norm(self.data[:, :3][self.data[:, 3] > 0], axis=1), 1):
             raise ValueError("You no longer have normalised direction vectors")
-        # drop the angle zero exclusion on the above for identity rotations
         return None
 
     def remove_large_rotations(self, threshold_angle):
@@ -422,7 +430,7 @@ class AxAngle():
         self._check_data()
         self.data = self.data[mask]
         return None
-        
+
     def to_Euler(self, axis_convention):
         """
         Produces euler angles from the axis-angle pairs.

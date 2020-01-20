@@ -68,8 +68,9 @@ def get_proper_point_group_string(space_group_number):
 def axangle2rodrigo_frank(z):
     # converts to [vx,vy,vz,RF]
     # RF = tan(omega/2)
-    z[:, 3] = np.tan(np.divide(z[:, 3], 2))
-    return z
+    rf = z.copy()
+    rf[:, 3] = np.tan(np.divide(z[:, 3], 2))
+    return rf
 
 def numpy_bounding_plane(data, vector, distance):
     """
