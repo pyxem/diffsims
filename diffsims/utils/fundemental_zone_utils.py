@@ -72,31 +72,71 @@ def axangle2rodrigo_frank(z):
 
 
 def rodrigo_frank_to_axangle():
+    #converts to [vx,vy,vz,omega]
+    # omega = arctan(RF) * 2
     pass
 
 
 def numpy_bounding_plane(data, vector, distance):
     """
 
+    Parameters
+    ----------
+    data :
+        The candidate rotations in Rodrigo-Frank
+
+    vector :
+        The direction perpendicular to the plane under consideration
+
+    distance :
+        The perpendicular distance from the center to the plane
+
     Raises
     -----
     ValueError : This function is unsafe if pi rotations are preset
     """
     if not np.all(np.is_finite(data)):
-        raise ValueError("pi rotations, be aware")
+        raise ValueError("Your data contains rotations of pi")
 
-    return data
+    n_vector = np.divide(vector,np.linalg.norm(vector))
+    inner_region = np.abs(np.dot(data[:,:3],n_vector)) < distance
+
+    return inner_region
 
 
 def cyclic_group(data, order):
-    """ By CONVENTION the rotation axis is the cartesian z axis
-    Note: Special case, as pi rotations are present we avoid a call to numpy_bounding_plane"""
-    z_distance = np.multiply(data[2], data[3])
-    z_distance = np.abs(np.nan_to_num(z_distance))  # case pi rotation, 0 z component of vector
-    return data[z_distance < np.tan(np.pi / order)]
+    """
 
+    Parameters
+    ----------
+    data : np.array
+        The candidate rotations in Rodrigo-Frank
+
+    order :
+        The order of the cyclic group
+
+    Notes
+    -----
+    This makes use of the convention that puts the cyclic axis along z
+    """
+    # As pi rotations are present in the input and output we avoid a call to numpy_bounding_plane
+    z_distance = np.multiply(data[2], data[3]) # gets the z component of the distance, can be nan
+    z_distance = np.abs(np.nan_to_num(z_distance))  # case pi rotation, 0 z component of vector
+    mask = z_distance < np.tan(np.pi / order)
+    return mask
 
 def dihedral_group(data, order):
+    """
+
+    Parameters
+    ----------
+    data : np.array
+        The candidate rotations in Rodrigo-Frank
+
+    order :
+        The order of the dihedral group
+
+    """
     pass
 
 
@@ -105,30 +145,53 @@ def octahedral_group(data):
 
 
 def tetragonal_group(data):
-    for direction in [(1, 1, 1), (1, 1, -1)]:  # etc
-        data = numpy_bounding_plane()
+    """
 
+    Parameters
+    ----------
+    data : np.array
+        The candidate rotations in Rodrigo-Frank
 
-def rf_fundemental_zone(axangledata, point_group_str):
-    rf = axangle2rodrigo_frank(axangledata)
+    """
+    mask = np.ones_like(data)
+    for normal_vector in [[1,1,1],[1,1,-1],[1,-1,-1],[-1,-1,-1],[-1,-1,1],[-1,1,1]]:
+        normal_vector = np.divide(normal_vector,np.sqrt(3))
+        local_mask = numpy_bounding_plane(data,normal_vector,np.sqrt(3))
+        mask = np.logical_and(exit_mask,mask)
+    return mask
+
+def remove_large_rotations(Axangles,point_group_str):
+    """ see Figure 5 of "On 3 dimensional misorientation spaces" """
+    if point_group_str == '432':
+        Axangles.remove_large_rotations(np.deg2rad(66))
+    elif point_group_str == '222':
+        Axangles.remove_large_rotations(np.deg2rad(121))
+    elif point_group_str in ['23','622','32','422']:
+        Axangles.remove_large_rotations(np.deg2rad(106))
+
+    return Axangles
+
+def generate_mask_from_Rodrigo_Frank(Axangles, point_group_str):
+    rf = axangle2rodrigo_frank(Axangles.data)
     if point_group_str in ['1', '2', '3', '4', '6']:
-        rf = cyclic_group(rf, order=int(point_group_str))
+        mask = cyclic_group(rf, order=int(point_group_str))
     elif point_group_str in ['222', '32', '422', '622']:
-        rf = dihedral_group(rf, order=int(point_group_str[0]))
+        mask = dihedral_group(rf, order=int(point_group_str[0]))
     elif point_group_str == '23':
-        rf = tetragonal_group(rf)
+        mask = tetragonal_group(rf)
     elif point_group_str == '432':
-        rf = octahedral_group(rf)
-    return rodrigo_frank_to_axangle(rf)
+        mask = octahedral_group(rf)
+        
+    return mask
 
 
-def reduce_to_fundemental_zone(data, fundemental_zone):
+def reduce_to_fundemental_zone(Axangles, point_group_str):
     """
     Parameters
     ----------
     data : diffsims.AxAngle
 
-    fundemental_zone : str
+    point_group_str : str
         A proper point group, allowed values are:
             '1','2','222','4','422','3','32','6','622','432','23'
 
@@ -138,11 +201,8 @@ def reduce_to_fundemental_zone(data, fundemental_zone):
 
     """
 
-    """
-    Use a conditional .remove_large_angles() here for speed.
-    we know what are max angles are, so save some time by cutting out chunks
-    see Figure 5 of "On 3 dimensional misorientation spaces"
-    """
-    # convert to rodrigo-frank
-    # call FZ functionality
-    return None
+    # we know what are max angles are, so save some time by cutting out chunks
+    Axangles = remove_large_rotations(AxAngles,point_group_str)
+    mask = generate_mask_from_Rodrigo_Frank(Axangles, point_group_str):
+    AxAngles.remove_with_mask(mask)
+    return Axangles
