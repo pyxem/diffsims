@@ -35,12 +35,12 @@ def test_get_grid_around_beam_direction():
 
 @pytest.mark.parametrize("space_group_number",[1,3,30,190,215,229])
 def test_get_fundemental_zone_grid(space_group_number):
-    grid = get_fundemental_zone_grid(space_group_number,3)
+    grid = get_fundemental_zone_grid(space_group_number,resolution=3)
 
 
-@pytest.mark.skip(reason="This tests the theoretical underpinning of the code")
+@pytest.mark.skip(reason="This tests a theoretical underpinning of the code")
 def test_small_angle_shortcut():
-    """ This demonstrates that cutting larger 'out of plane' in euler space doesn't
+    """ Demonstrates that cutting larger 'out of plane' in euler space doesn't
     effect the result """
 
     def process_angles(raw_angles, max_rotation):
