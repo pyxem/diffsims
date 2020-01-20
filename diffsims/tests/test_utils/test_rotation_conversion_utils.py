@@ -20,7 +20,8 @@ import pytest
 import numpy as np
 
 from transforms3d.euler import euler2quat, quat2axangle, axangle2euler
-from diffsims.utils.rotation_conversion_utils import vectorised_euler2quat,vectorised_quat2axangle,vectorised_axangle2euler
+from diffsims.utils.rotation_conversion_utils import vectorised_euler2quat,vectorised_quat2axangle,vectorised_axangle2euler,\
+                                                     Euler,AxAngle
 
 def test_vectorised_euler2quat(random_eulers):
     fast = vectorised_euler2quat(random_eulers,'rzxz')

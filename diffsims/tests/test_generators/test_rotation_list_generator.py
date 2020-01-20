@@ -33,7 +33,7 @@ def test_get_grid_around_beam_direction():
     assert isinstance(grid_simple[0],tuple)
     assert len(grid_simple) == 360
 
-@pytest.mark.paramaterise('space_group_number',(1,3,30,190,215,229))
+@pytest.mark.parametrize("space_group_number",[1,3,30,190,215,229])
 def test_get_fundemental_zone_grid(space_group_number):
     grid = get_fundemental_zone_grid(space_group_number,3)
 
@@ -42,7 +42,7 @@ def test_get_fundemental_zone_grid(space_group_number):
 def test_small_angle_shortcut():
     """ This demonstrates that cutting larger 'out of plane' in euler space doesn't
     effect the result """
-    
+
     def process_angles(raw_angles, max_rotation):
         raw_angles = raw_angles.to_AxAngle()
         raw_angles.remove_large_rotations(np.deg2rad(max_rotation))

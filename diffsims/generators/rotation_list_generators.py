@@ -54,7 +54,7 @@ def get_fundemental_zone_grid(space_group_number, resolution):
     """
     zone_string = get_proper_point_group_string(space_group_number)
     raw_grid = create_linearly_spaced_array_in_rzxz(resolution)  # could cut the count down here
-    raw_grid_ax_angle = raw_grid.to_AxAngle()
+    raw_grid_axangle = raw_grid.to_AxAngle()
     fz_grid = reduce_to_fundemental_zone(raw_grid_axangle, zone_string)
     return _returnable_eulers_from_axangle(fz_grid,'rzxz',round_to=2)
 
