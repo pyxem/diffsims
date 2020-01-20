@@ -510,6 +510,7 @@ class Euler():
 
         else:
             # This is very slow
+            from transforms3d.euler import euler2axangle
             stored_axangle = np.ones((self.data.shape[0], 4))
             for i, row in enumerate(self.data):
                 temp_vect, temp_angle = euler2axangle(row[0], row[1], row[2], self.axis_convention)

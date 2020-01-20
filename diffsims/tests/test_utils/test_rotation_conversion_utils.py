@@ -73,6 +73,14 @@ def test_interconversion_euler_axangle(random_axangles):
     assert isinstance(transform_back, AxAngle)
     assert np.allclose(transform_back.data, axangle.data)
 
+def test_slow_to_euler_case(random_eulers):
+    """
+    This function checks (with random numbers) that to_Axangle runs with rarer conventions
+    """
+    e = Euler(random_eulers,'sxyz')
+    axangle = e.to_AxAngle()
+    assert isinstance(axangle, AxAngle)
+
 class TestAxAngle:
     @pytest.fixture()
     def good_array(self):
