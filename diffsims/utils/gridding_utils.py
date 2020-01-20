@@ -123,7 +123,7 @@ def _get_rotation_to_beam_direction(beam_direction):
     beam_direction = np.divide(beam_direction,np.linalg.norm(beam_direction))
     axis = np.cross(beam_direction,[0,0,1]) # [0,0,1] is the starting direction for diffsims
     angle = np.arcsin(axis)
-    alpha,beta,gamma = *axangle2euler(axis,angle,'szxz')
+    alpha,beta,gamma = axangle2euler(axis,angle,'szxz')
     return np.rad2deg(alpha),np.rad2deg(beta)
 
 class AxAngle():
