@@ -61,10 +61,12 @@ def vectorised_euler2quat(eulers, axes='rzxz'):
 
     _NEXT_AXIS = [1,2,0,1]
 
-    if axes != 'rzxz':
+    if axes != 'rzxz' and axes != 'szxz':
         raise ValueError()
     elif axes == 'rzxz':
         firstaxis,parity,repetition,frame = 2,0,1,1
+    elif axes == 'szxz':
+        firstaxis,parity,repetition,frame = 2,0,1,0
 
     i = firstaxis + 1
     j = _NEXT_AXIS[i+parity-1] + 1
@@ -239,10 +241,12 @@ def vectorised_mat2euler(M,axes='rzxz'):
     """
     _NEXT_AXIS = [1,2,0,1]
 
-    if axes != 'rzxz':
+    if axes != 'rzxz' and axes != 'szxz':
         raise ValueError()
     elif axes == 'rzxz':
         firstaxis,parity,repetition,frame = 2,0,1,1
+    elif axes == 'szxz':
+        firstaxis,parity,repetition,frame = 2,0,1,0
 
     i = firstaxis
     j = _NEXT_AXIS[i+parity]
