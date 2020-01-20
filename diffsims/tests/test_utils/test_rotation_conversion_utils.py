@@ -22,16 +22,6 @@ import numpy as np
 from transforms3d.euler import euler2quat, quat2axangle, axangle2euler
 from diffsims.utils.rotation_conversion_utils import vectorised_euler2quat,vectorised_quat2axangle,vectorised_axangle2euler
 
-
-@pytest.fixture()
-def random_eulers():
-    """ Using [0,360] [0,180] and [0,360] as ranges """
-    alpha = np.random.rand(100) * 360
-    beta  = np.random.rand(100) * 180
-    gamma = np.random.rand(100) * 360
-    eulers = np.asarray((alpha,beta,gamma)).T
-    return np.deg2rad(eulers)
-
 def test_vectorised_euler2quat(random_eulers):
     fast = vectorised_euler2quat(random_eulers,'rzxz')
 
@@ -42,11 +32,6 @@ def test_vectorised_euler2quat(random_eulers):
             stored_quats[i,j] = temp_quat[j]
 
     assert np.allclose(fast,stored_quats)
-
-@pytest.fixture()
-def random_quats():
-    q_rand = np.random.random(size=(1000,4))*7
-    return q_rand
 
 def test_vectorised_quat2axangle(random_quats):
     fast = vectorised_quat2axangle(random_quats)
@@ -61,11 +46,6 @@ def test_vectorised_quat2axangle(random_quats):
 
     assert np.allclose(fast,stored_axangles)
 
-@pytest.fixture()
-def random_axangles():
-    axangle_rand = np.random.random(size=(1000,4)) * np.pi
-    return axangle_rand
-
 def test_vectorised_axangle2euler(random_axangles):
     fast = vectorised_axangle2euler(random_axangles,'rzxz')
 
@@ -77,3 +57,61 @@ def test_vectorised_axangle2euler(random_axangles):
 
     #can compare directly in radians:
     assert np.allclose(fast,stored_euler)
+
+""" These tests check that AxAngle and Euler behave in good ways """
+
+class TestAxAngle:
+    @pytest.fixture()
+    def good_array(self):
+        return np.asarray([[1, 0, 0, 1],
+                           [0, 1, 0, 1.1]])
+
+    def test_good_array__init__(self, good_array):
+        assert isinstance(AxAngle(good_array), AxAngle)
+
+    def test_remove_large_rotations(self, good_array):
+        axang = AxAngle(good_array)
+        axang.remove_large_rotations(1.05)  # removes 1 rotations
+        assert axang.data.shape == (1, 4)
+
+    @pytest.mark.xfail(raises=ValueError, strict=True)
+    class TestCorruptingData:
+        @pytest.fixture()
+        def axang(self, good_array):
+            return AxAngle(good_array)
+
+        def test_bad_shape(self, axang):
+            axang.data = axang.data[:, :2]
+            axang._check_data()
+
+        def test_dumb_angle(self, axang):
+            axang.data[0, 3] = -0.5
+            axang._check_data()
+
+        def test_denormalised(self, axang):
+            axang.data[:, 0] = 3
+            axang._check_data()
+
+
+class TestEuler:
+    @pytest.fixture()
+    def good_array(self):
+        return np.asarray([[32, 80, 21],
+                           [40, 10, 11]])
+
+    def test_good_array__init__(self, good_array):
+        assert isinstance(Euler(good_array), Euler)
+
+    @pytest.mark.xfail(raises=ValueError, strict=True)
+    class TestCorruptingData:
+        @pytest.fixture()
+        def euler(self, good_array):
+            return Euler(good_array)
+
+        def test_bad_shape(self, euler):
+            euler.data = euler.data[:, :2]
+            euler._check_data()
+
+        def test_dumb_angle(self, euler):
+            euler.data[0, 0] = 700
+            euler._check_data()
