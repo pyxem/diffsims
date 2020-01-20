@@ -220,12 +220,12 @@ class Euler():
         self._check_data()
         self.data = np.deg2rad(self.data)  # for the transform operation
 
-        if self.axis_convention == 'rzxz':
-            stored_axangle = vectorised_euler2axangle(self.data, axes='rzxz')
+        if self.axis_convention == 'rzxz' or self.axis_convention =='szxz':
+            stored_axangle = vectorised_euler2axangle(self.data, axes=self.axis_convention)
             stored_axangle = vectorised_axangle_to_correct_range(stored_axangle)
 
         else:
-            # warn that this is very slow
+            # This is very slow
             stored_axangle = np.ones((self.data.shape[0], 4))
             for i, row in enumerate(self.data):
                 temp_vect, temp_angle = euler2axangle(row[0], row[1], row[2], self.axis_convention)
@@ -237,8 +237,21 @@ class Euler():
         self.data = np.rad2deg(self.data)  # leaves our eulers safe and sound
         return AxAngle(stored_axangle)
 
-        def to_rotation_list(self):
-            pass
+    def to_rotation_list(self,round_to=2):
+        """
+        Parameters:
+
+        round_to : int or None
+
+        """
+        if round_to is not None:
+            round = np.round(self.data,2)
+        else:
+            round = self.data
+
+        starter_list = round.tolist()
+        tuple_list  = [tuple(x) for x in starter_list]
+        return tuple_list
 
 def rotation_matrix_from_euler_angles(euler_angles):
     """
@@ -282,7 +295,7 @@ def rotate_axangle(Axangles, new_center):
 
 def create_linearly_spaced_array_in_rzxz(resolution):
     """
-    #TODO RENAME
+    Creates an array of euler angles that covers all rotation space.
 
     Parameters
     ----------
@@ -307,19 +320,22 @@ def create_linearly_spaced_array_in_rzxz(resolution):
 
 def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_beta, max_gamma):
     """
+    Creates an array of euler angles that covers a specified range of euler angles.
 
     Parameters
     ----------
     resolution :
-        The final lists will include [0,res,2*res etc]
+        The final lists will include [0,res,2*res etc] (in degrees)
     max_alpha :
-
+        End point of the range of alpha, not included (in degrees)
     max_beta :
-
+        End point of the range of beta, not included (in degrees)
     max_gamma :
+        End point of the range of gamma, not included (in degrees)
 
     Returns
     -------
+    diffsims.Euler
 
     """
     steps_alpha = int(np.ceil((max_alpha - 0)/resolution)) #see docstrings for np.arange, np.linspace has better endpoint handling
