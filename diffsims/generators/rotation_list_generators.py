@@ -22,11 +22,12 @@ Provides users with a range of gridding functions
 
 import numpy as np
 
+from diffsims.utils.rotation_conversion_utils import Euler
 from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,rotate_axangle, \
                                           _create_advanced_linearly_spaced_array_in_rzxz, \
                                           _get_rotation_to_beam_direction
-from diffsims.utils.rotation_conversion_utils import Euler
+
 
 def _returnable_eulers_from_axangle(grid,axis_convention,round_to):
     """ Short snippet that need not be copy pasted across two functions """
@@ -36,20 +37,22 @@ def _returnable_eulers_from_axangle(grid,axis_convention,round_to):
 
 def get_fundemental_zone_grid(space_group_number, resolution):
     """
+    Creates a rotation list for the rotations within the fundemental zone of a given space group.
+
     Parameters
     ----------
 
     space_group_number : int
-
+        Between 1 and 230
 
     resolution : float
         The 'resolution' of the grid (degrees)
 
     Returns
     -------
+    rotation_list : list of tuples
     """
     zone_string = get_proper_point_group_string(space_group_number)
-
     raw_grid = create_linearly_spaced_array_in_rzxz(resolution)  # could cut the count down here
     raw_grid_ax_angle = raw_grid.to_AxAngle()
     fz_grid = reduce_to_fundemental_zone(raw_grid_axangle, zone_string)
@@ -58,6 +61,7 @@ def get_fundemental_zone_grid(space_group_number, resolution):
 
 def get_local_grid(center, max_rotation, resolution):
     """
+    Creates a rotation list for the rotations within max_rotation of center at a given rotation.
 
     Parameters
     ----------
@@ -86,6 +90,7 @@ def get_local_grid(center, max_rotation, resolution):
 
 def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 360)):
     """
+    Creates a rotation list of rotations for which the rotation is about given beam direction
 
     Parameters
     ----------
