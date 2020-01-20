@@ -56,7 +56,6 @@ def test_vectorised_axangle2euler(random_axangles):
         for j in [0, 1, 2]:
             stored_euler[i, j] = a_array[j]
 
-    #can compare directly in radians:
     assert np.allclose(fast,stored_euler)
 
 """ These tests check that AxAngle and Euler behave in good ways """
