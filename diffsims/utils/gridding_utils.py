@@ -45,11 +45,15 @@ def _get_rotation_to_beam_direction(beam_direction):
 
     Parameters
     ----------
-    beam_direction :
+    beam_direction : [vx,vy,vz]
 
     Returns
     -------
     alpha,beta : angles in degrees
+
+    See Also
+    --------
+    generators.get_grid_around_beam_direction
     """
     from transforms3d.euler import axangle2euler
     beam_direction = np.divide(beam_direction,np.linalg.norm(beam_direction))
@@ -71,8 +75,11 @@ def rotation_matrix_from_euler_angles(euler_angles):
 
     Returns
     -------
-    rotation_matrix :
+    rotation_matrix : np.array(3,3)
 
+    See Also
+    --------
+    generators.get_local_grid
     """
     M_initial = euler2mat(0, 0, 0, 'rzxz')
     ai, aj, ak = np.deg2rad(euler_angles[0]), np.deg2rad(euler_angles[1]), np.deg2rad(euler_angles[2])
@@ -91,6 +98,14 @@ def rotate_axangle(Axangles, new_center):
         Axangles in the correct class
     new_center : (alpha,beta,gamma)
         The location of the (0,0,0) rotation as an rzxz euler angle
+
+    Returns 
+    -------
+    AxAngles :
+
+    See Also
+    --------
+    generators.get_local_grid
     """
 
     quats = Axangles.to_Quat()
