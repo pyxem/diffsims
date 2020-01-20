@@ -106,6 +106,26 @@ def vectorised_qmult(q1, qdata):
     z = w1*z2 + z1*w2 + x1*y2 - y1*x2
     return np.array([w, x, y, z]).T
 
+def _get_rotation_to_beam_direction(beam_direction):
+    """ A helper function for getting rotations around a beam direction, the
+    returns the first two angles (szxz) needed to place the viewer looking down the
+    given zone axis.
+
+    Parameters
+    ----------
+    beam_direction :
+
+    Returns
+    -------
+    alpha,beta : angles in degrees
+    """
+    from transforms3d.euler import axangle2euler
+    beam_direction = np.divide(beam_direction,np.linalg.norm(beam_direction))
+    axis = np.cross(beam_direction,[0,0,1]) # [0,0,1] is the starting direction for diffsims
+    angle = np.arcsin(axis)
+    alpha,beta,gamma = *axangle2euler(axis,angle,'szxz')
+    return np.rad2deg(alpha),np.rad2deg(beta)
+
 class AxAngle():
     """
     Class storing rotations in the axis-angle convention. Each row reads

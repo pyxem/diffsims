@@ -23,7 +23,8 @@ Provides users with a range of gridding functions
 import numpy as np
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, get_proper_point_group_string, \
                                           reduce_to_fundemental_zone, rotate_axangle, \
-                                          _create_advanced_linearly_spaced_array_in_rzxz, Euler
+                                          _create_advanced_linearly_spaced_array_in_rzxz, Euler. \
+                                          _get_rotation_to_beam_direction
 
 
 
@@ -89,13 +90,13 @@ def get_local_grid(center, max_rotation, resolution):
     return rotation_list
 
 
-def get_grid_around_beam_direction(grid_center,resolution, angular_range=(0, 360)):
+def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 360)):
     """
 
     Parameters
     ----------
-    grid_center : 3 angle tuple
-
+    beam_direction : [x,y,z]
+        A desired beam direction
 
     resolution : float
         The 'resolution' of the grid (degrees)
@@ -109,13 +110,12 @@ def get_grid_around_beam_direction(grid_center,resolution, angular_range=(0, 360
     rotation_list : list of tuples
     """
     from itertools import product
-    """ Find ax and ay for szxz convention """
 
-
+    rotation_alpha, rotation_beta = _get_rotation_to_beam_direction(beam_direction)
     # see _create_advanced_linearly_spaced_array_in_rzxz for details
     steps_gamma = int(np.ceil((angular_range[1] - angular_range[0])/resolution))
-    alpha = np.asarray([0]) "0 ---> ax"
-    beta =  np.asarray([0]) "0 ---> ay"
+    alpha = np.asarray([rotation_alpha])
+    beta =  np.asarray([rotation_beta])
     gamma = np.linspace(angular_range[0],angular_range[1], num=steps_gamma, endpoint=False)
     z = np.asarray(list(product(alpha, beta, gamma)))
     raw_grid = Euler(z, axis_convention='szxz')
