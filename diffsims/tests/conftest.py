@@ -49,6 +49,6 @@ def random_quats():
 
 @pytest.fixture()
 def random_axangles():
-    """ Unnormalised axes, & rotation between 0 and 2 pi """
-    axangle_rand = np.random.random(size=(1000,4)) * 2 * np.pi
+    """ Unnormalised axes, & rotation between -pi and 2 pi """
+    axangle_rand = (np.random.random(size=(1000,4)) * 3 * np.pi) - np.pi
     return axangle_rand
