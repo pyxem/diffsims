@@ -27,7 +27,6 @@ from transforms3d.quaternions import quat2axangle, axangle2quat, mat2quat, qmult
 from diffsims.utils.rotation_conversion_utils import *
 
 
-
 def vectorised_qmult(q1, qdata):
     """ A vectorised implementation that multiplies qdata (array) by q1 (single quaternion) """
 
