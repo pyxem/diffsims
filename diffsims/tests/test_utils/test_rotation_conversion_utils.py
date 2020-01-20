@@ -22,7 +22,7 @@ import numpy as np
 from transforms3d.euler import euler2quat, quat2axangle, axangle2euler
 from diffsims.utils.rotation_conversion_utils import vectorised_euler2quat,vectorised_quat2axangle,vectorised_axangle2euler,\
                                                      vectorised_axangle_to_correct_range, convert_axangle_to_correct_range, \
-                                                     Euler, AxAngle 
+                                                     Euler, AxAngle
 
 @pytest.mark.parametrize("axis_convention",['rzxz','szxz'])
 def test_vectorised_euler2quat(random_eulers,axis_convention):
@@ -72,7 +72,9 @@ def test_convert_to_correct_range_vectorisation(random_axangles):
             stored_axangles[i, j] = temp_vect[j]
             stored_axangles[i, 3] = temp_angle  # in radians!
 
-    assert np.allclose(fast,stored_axangles)
+    assert np.all(stored_axangles[:,3] >= 0)
+    assert np.all(stored_axangles[:,3] < np.pi)
+    assert np.allclose(fast,stored_axangles,atol=1e-3)
 
 
 """ These tests check that AxAngle and Euler behave in good ways """
@@ -97,6 +99,31 @@ def test_slow_to_euler_case(random_eulers):
     e = Euler(random_eulers,'sxyz')
     axangle = e.to_AxAngle()
     assert isinstance(axangle, AxAngle)
+
+class TestsThatFail:
+    @pytest.mark.xfail(strict=True)
+    def test_odd_convention_euler2quat(random_eulers):
+        e = Euler(random_eulers,axis_convention='sxyz')
+        e.to_Axangle()
+
+    @pytest.mark.xfail(strict=True)
+    def test_odd_convention_mat2euler(random_axangles):
+        ax = AxAngle(random_axangles)
+        ax.to_Euler(axis_convention='sxyz')
+
+    @pytest.mark.xfail(strict=True)
+    def test_inf_quat():
+        qdata = np.asarray([0,np.inf,1,1])
+        edata = quat2euler(qdata)
+
+    @pytest.mark.xfail(strict=True)
+    def test_small_quat():
+        qdata = np.asarray([1e-10,1e-8,1e-10,1e-10])
+        edata = quat2euler(qdata)
+
+
+
+
 
 class TestAxAngle:
     @pytest.fixture()

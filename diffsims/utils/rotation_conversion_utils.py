@@ -354,9 +354,12 @@ def vectorised_axangle_to_correct_range(data):
     convert_axangle_to_correct_range : for single data items
     """
 
-    # second clause in unvectorised
     z = data.copy()
-    z[:,3] = np.where(np.logical_and(z[:,3] >= -np.pi,z[:,3] < 0),-z[:,3],z[:,3])
+
+    # second clause in unvectorised
+    second_case_truth = np.logical_and(z[:,3] >= -np.pi,z[:,3] < 0)
+    for i in [0,1,2,3]:
+        z[:,i] = np.where(second_case_truth,-z[:,i],z[:,i])
 
     # third clause in unvectorised
     third_case_truth = np.logical_and(z[:,3] >= np.pi, z[:,3] <= 2 * np.pi)
