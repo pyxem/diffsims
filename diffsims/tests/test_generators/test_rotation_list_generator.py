@@ -22,8 +22,9 @@ from diffsims.generators.rotation_list_generators import get_local_grid, get_gri
 from diffsims.utils.rotation_conversion_utils import Euler
 
 
-def test_get_local_grid():
-    grid = get_local_grid((0,0,0),10,2)
+@pytest.mark.parametrize("center",[(0,0,0),(0,10,0)])
+def test_get_local_grid(center):
+    grid = get_local_grid(center,10,2)
     assert isinstance(grid,list)
     assert isinstance(grid[0],tuple)
 
