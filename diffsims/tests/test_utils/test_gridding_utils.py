@@ -20,7 +20,7 @@ import pytest
 import numpy as np
 
 from diffsims.utils.rotation_conversion_utils import AxAngle,Euler, vectorised_axangle_to_correct_range, convert_axangle_to_correct_range
-from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
+from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone, numpy_bounding_plane
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, vectorised_qmult, \
                                           _create_advanced_linearly_spaced_array_in_rzxz
 
@@ -70,3 +70,8 @@ def test_select_fundemental_zone():
     for _space_group in np.arange(1, 231):
         fz_string = get_proper_point_group_string(_space_group)
         assert fz_string in ['1', '2', '222', '3', '32', '6', '622', '4', '422', '432', '23']
+
+@pytest.mark.xfail(strict=True)
+def test_edge_case_numpy_bounding_plane():
+    z = np.asarray([1,1,1,np.inf])
+    numpy_bounding_plane(data=z,vector=[1,1,1],distance=1)
