@@ -70,13 +70,6 @@ def axangle2rodrigo_frank(z):
     z[:, 3] = np.tan(np.divide(z[:, 3], 2))
     return z
 
-
-def rodrigo_frank_to_axangle():
-    #converts to [vx,vy,vz,omega]
-    # omega = arctan(RF) * 2
-    pass
-
-
 def numpy_bounding_plane(data, vector, distance):
     """
 
@@ -181,7 +174,7 @@ def generate_mask_from_Rodrigo_Frank(Axangles, point_group_str):
         mask = tetragonal_group(rf)
     elif point_group_str == '432':
         mask = octahedral_group(rf)
-        
+
     return mask
 
 
