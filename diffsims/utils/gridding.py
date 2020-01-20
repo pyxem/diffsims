@@ -23,7 +23,7 @@ Provides users with a range of gridding functions
 import numpy as np
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, get_proper_point_group_string, \
                                           reduce_to_fundemental_zone, rotate_axangle, \
-                                          _create_advanced_linearly_spaced_array_in_rzxz
+                                          _create_advanced_linearly_spaced_array_in_rzxz, Euler
 
 
 
@@ -77,25 +77,25 @@ def get_local_grid(center, max_rotation, resolution):
 
     Returns
     -------
+    rotation_list : list of tuples
     """
     raw_grid = _create_advanced_linearly_spaced_array_in_rzxz(resolution,360,max_rotation + 10,360)
     raw_grid_axangle = raw_grid.to_AxAngle()
-    raw_grid_axangle.remove_large_rotations(max_rotation)
+    raw_grid_axangle.remove_large_rotations(np.deg2rad(max_rotation))
     if not np.all(np.asarray(center) == 0):
         raw_grid_axangle = rotate_axangle(raw_grid_axangle, center)
-    returnable_euler = raw_grid_axangle.to_Euler(axis_convention='rzxz')
-    # figure out the final return style.
-    return returnable_euler
+    eulers = raw_grid_axangle.to_Euler(axis_convention='rzxz')
+    rotation_list = eulers.to_rotation_list(round_to=2)
+    return rotation_list
 
 
-def get_grid_around_beam_direction(beam_direction, resolution, angular_range=(0, 360)):
+def get_grid_around_beam_direction(grid_center,resolution, angular_range=(0, 360)):
     """
 
     Parameters
     ----------
-    beam_direction : 3 angle tuple
-        An orientation that acts as the center of the grid, specified in the
-        'rzxz' convention (degrees)
+    grid_center : 3 angle tuple
+
 
     resolution : float
         The 'resolution' of the grid (degrees)
@@ -106,4 +106,19 @@ def get_grid_around_beam_direction(beam_direction, resolution, angular_range=(0,
 
     Returns
     -------
+    rotation_list : list of tuples
     """
+    from itertools import product
+    """ Find ax and ay for szxz convention """
+
+
+    # see _create_advanced_linearly_spaced_array_in_rzxz for details
+    steps_gamma = int(np.ceil((angular_range[1] - angular_range[0])/resolution))
+    alpha = np.asarray([0]) "0 ---> ax"
+    beta =  np.asarray([0]) "0 ---> ay"
+    gamma = np.linspace(angular_range[0],angular_range[1], num=steps_gamma, endpoint=False)
+    z = np.asarray(list(product(alpha, beta, gamma)))
+    raw_grid = Euler(z, axis_convention='szxz')
+    grid_rzxz = raw_grid.to_AxAngle().to_Euler(axis_convention='rzxz')
+    rotation_list = grid_rzxz.to_rotation_list(round_to=2)
+    return rotation_list
