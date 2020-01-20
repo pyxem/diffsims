@@ -128,9 +128,28 @@ def dihedral_group(data, order):
 
     order :
         The order of the dihedral group
-
+    Notes
+    -----
+    This makes use of the convention that puts the cyclic axis along 'z', an puts a minor axis along 'x'
     """
-    pass
+    mask_cyclic_axis = cyclic_group(data,order)
+
+    angle_between_perpendicular_axes = np.deg2rad(180/order)
+    angle_counter = 0
+    normal_vector_list = []
+    while angle_counter < (2*pi):
+        normal_vector = [cos(angle_counter),sin(angle_counter),0]
+        normal_vector_list.append(normal_vector)
+        angle_counter += angle_between_perpendicular_axes
+
+    mask_other_axes = np.ones_like(data)
+    for normal_vector in normal_vector_list:
+        local_mask = numpy_bounding_plane(data,normal_vector,1)
+        mask_other_axes = np.logical_and(mask_other_axes,mask)
+
+    mask = np.logical_and(mask_cyclic_axis,mask_other_axes)
+
+    return mask
 
 def tetragonal_group(data):
     """
