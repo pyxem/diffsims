@@ -28,7 +28,7 @@ from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, 
 
 
 
-def get_fundemental_zone_grid(space_group_number, resolution, center=(0, 0, 0)):
+def get_fundemental_zone_grid(space_group_number, resolution):
     """
     Parameters
     ----------
@@ -38,10 +38,6 @@ def get_fundemental_zone_grid(space_group_number, resolution, center=(0, 0, 0)):
 
     resolution : float
         The 'resolution' of the grid (degrees)
-
-    center : 3 angle tuple
-        The orientation that acts as the center of the grid, specified in the
-        'rzxz' convention (degrees)
 
     Returns
     -------
@@ -56,7 +52,6 @@ def get_fundemental_zone_grid(space_group_number, resolution, center=(0, 0, 0)):
     see Figure 5 of "On 3 dimensional misorientation spaces"
     """
     fz_grid = reduce_to_fundemental_zone(raw_grid_axangle, zone_string)
-    # rotate to the center
     # convert to rzxz
     return None
 
