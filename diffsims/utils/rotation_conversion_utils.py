@@ -405,6 +405,24 @@ class AxAngle():
         self.data = self.data[self.data[:, 3] < threshold_angle]
         return None
 
+    def remove_with_mask(self,mask):
+        """
+        Removes rotations using a mask
+
+        Parameters
+        ----------
+        mask : np.array
+
+
+        Returns
+        -------
+        None :
+            This functions operates in place
+        """
+        self._check_data()
+        self.data = self.data[mask]
+        return None
+        
     def to_Euler(self, axis_convention):
         """
         Produces euler angles from the axis-angle pairs.
