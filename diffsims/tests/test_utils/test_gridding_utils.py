@@ -26,17 +26,6 @@ from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, 
 
 from transforms3d.quaternions import qmult
 
-def test_interconversion_euler_axangle(random_axangles):
-    """
-    This function checks (with random numbers) that .to_Axangle() and .to_Euler()
-    go back and forth correctly
-    """
-    axangle = AxAngle(random_axangles)
-    e = transform.to_Euler(axis_convention='rzxz')
-    transform_back = e.to_AxAngle()
-    assert isinstance(transform_back, AxAngle)
-    assert np.allclose(transform_back.data, axangle.data)
-
 """ These these test vectorizations """
 
 def test_qmult_vectorisation(random_quats):

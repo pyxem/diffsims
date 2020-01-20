@@ -60,6 +60,19 @@ def test_vectorised_axangle2euler(random_axangles):
 
 """ These tests check that AxAngle and Euler behave in good ways """
 
+def test_interconversion_euler_axangle(random_axangles):
+    """
+    This function checks (with random numbers) that .to_Axangle() and .to_Euler()
+    go back and forth correctly
+    """
+    z = random_axangles.copy()
+    z[:,:3] = np.divide(random_axangles[:,:3],np.linalg.norm(random_axangles[:,:3],axis=1).reshape(z.shape[0],1)) #normalise
+    axangle = AxAngle(z)
+    e = axangle.to_Euler(axis_convention='rzxz')
+    transform_back = e.to_AxAngle()
+    assert isinstance(transform_back, AxAngle)
+    assert np.allclose(transform_back.data, axangle.data)
+
 class TestAxAngle:
     @pytest.fixture()
     def good_array(self):
