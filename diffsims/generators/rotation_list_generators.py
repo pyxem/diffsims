@@ -30,7 +30,7 @@ from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,r
 
 
 def _returnable_eulers_from_axangle(grid,axis_convention,round_to):
-    """ Short snippet that need not be copy pasted across two functions """
+    """ Converts a grid of orientations in axis-angle space to Euler angles following a user specified convention and rounding."""
     eulers = grid.to_Euler(axis_convention=axis_convention)
     rotation_list = eulers.to_rotation_list(round_to=round_to)
     return rotation_list
