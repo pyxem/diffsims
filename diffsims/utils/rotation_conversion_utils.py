@@ -150,11 +150,11 @@ def vectorised_quat2axangle(q):
         w,x,y,z = np.divide(w,s),np.divide(x,s),np.divide(y,s),np.divide(z,s)
 
     len_img = np.sqrt((x*x)+(y*y)+(z*z))
-    # case where the vector is nearly [0,0,0], return [1,0,0,0]
+    # case where the vector is nearly [0,0,0], return axangle [1,0,0,0], q = [1,1,0,0] does it
     x = np.where(len_img==0,1,x)
     y = np.where(len_img==0,0,y)
     z = np.where(len_img==0,0,z)
-    w  = np.where(len_img==0,0,w)
+    w  = np.where(len_img==0,1,w)
 
     len_img = np.sqrt((x*x)+(y*y)+(z*z)) #recalculated so we avoid a divide by zero
     xr,yr,zr = np.divide(x,len_img),np.divide(y,len_img),np.divide(z,len_img)
