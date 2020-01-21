@@ -27,7 +27,7 @@ def test_get_local_grid(center):
     grid = get_local_grid(center,10,2)
     assert isinstance(grid,list)
     assert isinstance(grid[0],tuple)
-    assert center is grid
+    assert center in grid
     center_plus_2 = (center[0],center[1],center[2]+2)
     assert center_plus_2 in grid
 
