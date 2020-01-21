@@ -65,7 +65,7 @@ def get_local_grid(center, max_rotation, resolution):
     Parameters
     ----------
     center : 3 angle tuple
-        The orientation that acts as the center of the grid, specified in the
+        The orientation that acts as the center of the grid, as euler angles specified in the
         'rzxz' convention (degrees)
 
     max_rotation : float
@@ -116,7 +116,7 @@ def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 
     beta =  np.asarray([rotation_beta])
     gamma = np.linspace(angular_range[0],angular_range[1], num=steps_gamma, endpoint=False)
     z = np.asarray(list(product(alpha, beta, gamma)))
-    raw_grid = Euler(z, axis_convention='szxz')
+    raw_grid = Euler(z, axis_convention='szxz') #we make use of an uncommon euler angle set here for speed
     grid_rzxz = raw_grid.to_AxAngle().to_Euler(axis_convention='rzxz')
     rotation_list = grid_rzxz.to_rotation_list(round_to=2)
     return rotation_list
