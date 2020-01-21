@@ -22,12 +22,16 @@ from diffsims.generators.rotation_list_generators import get_local_grid, get_gri
 from diffsims.utils.rotation_conversion_utils import Euler
 
 
-@pytest.mark.parametrize("center",[(0,0,0),(0,10,0)])
+@pytest.mark.parametrize("center",[(0.0,0.0,0.0),(0.0,10.0,0.0)])
 def test_get_local_grid(center):
     grid = get_local_grid(center,10,2)
     assert isinstance(grid,list)
     assert isinstance(grid[0],tuple)
+    assert center is grid
+    center_plus_2 = (center[0],center[1],center[2]+2)
+    assert center_plus_2 in grid
 
+@pytest.mark.skip(reason="functionality under discussion")
 def test_get_grid_around_beam_direction():
     grid_simple = get_grid_around_beam_direction([1,1,1],1,(0, 360))
     assert isinstance(grid_simple,list)
