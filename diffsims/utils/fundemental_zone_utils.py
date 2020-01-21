@@ -1,4 +1,4 @@
-rodrigues# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # Copyright 2017-2019 The diffsims developers
 #
 # This file is part of diffsims.
