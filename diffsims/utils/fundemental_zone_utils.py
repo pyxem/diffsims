@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+rodrigues# -*- coding: utf-8 -*-
 # Copyright 2017-2019 The diffsims developers
 #
 # This file is part of diffsims.
@@ -67,7 +67,7 @@ def get_proper_point_group_string(space_group_number):
             return '23'  # tet
 
 
-def axangle2rodrigo_frank(z):
+def axangle2rodrigues_frank(z):
     """ Returns a copy of the array converted from [vx,vy,vz,omega] to [vx,vy,vz,RF]
     with RF = tan(omega/2) """
 
@@ -83,7 +83,7 @@ def numpy_bounding_plane(data, vector, distance):
     Parameters
     ----------
     data :
-        The candidate rotations in Rodrigo-Frank to be removed/kept
+        The candidate rotations in Rodrigues-Frank to be removed/kept
 
     vector :
         The direction perpendicular to the plane under consideration
@@ -116,7 +116,7 @@ def cyclic_group(data, order):
     Parameters
     ----------
     data : np.array
-        The candidate rotations in Rodrigo-Frank to be removed/kept
+        The candidate rotations in Rodrigues-Frank to be removed/kept
 
     order :
         The order of the cyclic group
@@ -143,7 +143,7 @@ def dihedral_group(data, order):
     Parameters
     ----------
     data : np.array
-        The candidate rotations in Rodrigo-Frank
+        The candidate rotations in Rodrigues-Frank
 
     order :
         The order of the dihedral group
@@ -183,7 +183,7 @@ def tetragonal_group(data):
     Parameters
     ----------
     data : np.array
-        The candidate rotations in Rodrigo-Frank
+        The candidate rotations in Rodrigues-Frank
 
     Returns
     -------
@@ -205,7 +205,7 @@ def octahedral_group(data):
     Parameters
     ----------
     data : np.array
-        The candidate rotations in Rodrigo-Frank
+        The candidate rotations in Rodrigues-Frank
 
     Returns
     -------
@@ -233,8 +233,8 @@ def remove_out_of_domain_rotations(Axangles,point_group_str):
 
     return Axangles
 
-def generate_mask_from_Rodrigo_Frank(Axangles, point_group_str):
-    rf_data = axangle2rodrigo_frank(Axangles.data)
+def generate_mask_from_rodrigues_frank(Axangles, point_group_str):
+    rf_data = axangle2rodrigues_frank(Axangles.data)
     if point_group_str in ['1', '2', '3', '4', '6']:
         mask = cyclic_group(rf_data, order=int(point_group_str))
     elif point_group_str in ['222', '32', '422', '622']:
@@ -264,6 +264,6 @@ def reduce_to_fundemental_zone(Axangles, point_group_str):
 
     # we know what are max angles are, so save some time by cutting out chunks
     Axangles = remove_out_of_domain_rotations(Axangles,point_group_str)
-    mask = generate_mask_from_Rodrigo_Frank(Axangles, point_group_str)
+    mask = generate_mask_from_rodrigues_frank(Axangles, point_group_str)
     Axangles.remove_with_mask(mask)
     return Axangles
