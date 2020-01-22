@@ -7,4 +7,3 @@ omit =
      */diffsims/utils/scattering_params.py
      */diffsims/version.py
      */diffsims/utils/__init__.py
-     */diffsims/tests/*
