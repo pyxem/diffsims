@@ -21,6 +21,7 @@ Provides users with a range of gridding functions
 """
 
 import numpy as np
+import warnings
 
 from diffsims.utils.rotation_conversion_utils import Euler
 from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
@@ -87,7 +88,7 @@ def get_local_grid(center, max_rotation, resolution):
     return _returnable_eulers_from_axangle(raw_grid_axangle,'rzxz',round_to=2)
 
 
-def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 360)):
+def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 360),cubic=False):
     """
     Creates a rotation list of rotations for which the rotation is about given beam direction
 
@@ -102,6 +103,9 @@ def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 
     angular_range : tuple
         The minimum (included) and maximum (excluded) rotation around the beam direction to be included
 
+    cubic : bool (Default=False)
+        This only works for cubic systems at the present, when False this raises a warning, set to
+        True to supress said warning
 
     Returns
     -------
@@ -109,6 +113,8 @@ def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 
     """
     from itertools import product
 
+    if not cubic:
+        warnings.warn("This code only works for cubic systems at present")
     rotation_alpha, rotation_beta = _get_rotation_to_beam_direction(beam_direction)
     # see _create_advanced_linearly_spaced_array_in_rzxz for details
     steps_gamma = int(np.ceil((angular_range[1] - angular_range[0])/resolution))

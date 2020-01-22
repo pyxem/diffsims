@@ -31,7 +31,6 @@ def test_get_local_grid(center):
     center_plus_2 = (center[0],center[1],center[2]+2)
     assert center_plus_2 in grid
 
-@pytest.mark.skip(reason="functionality under discussion")
 def test_get_grid_around_beam_direction():
     grid_simple = get_grid_around_beam_direction([1,1,1],1,(0, 360))
     assert isinstance(grid_simple,list)
