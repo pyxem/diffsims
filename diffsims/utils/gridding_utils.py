@@ -193,3 +193,11 @@ def get_beam_directions(resolution,crystal_system,equal='angle'):
         steps_psi   = int(np.ceil((psi_max - psi_max)/resolution))
         theta = np.linspace(0,theta_max,num=steps_theta)
         psi   = np.linspace(psi_min,psi_max,num=steps_theta)
+
+    points_in_spherical_polars = 'x'
+    if crystal_system = 'cubic':
+        # reject points below the geodesic
+        # add points on the geodesic
+        pass
+    points_in_cartesians = 'x'
+    points_as_eulers_from_North_Pole = 'x'
