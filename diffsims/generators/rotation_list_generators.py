@@ -58,6 +58,27 @@ def get_fundemental_zone_grid(space_group_number, resolution):
     fz_grid_axangle = reduce_to_fundemental_zone(raw_grid_axangle, zone_string)
     return _returnable_eulers_from_axangle(fz_grid_axangle,'rzxz',round_to=2)
 
+def get_grid_streographic(crystal_system,resolution):
+    """
+    Creates a rotation list by combining the minimum region of the streogram's beam directions
+    with in plane rotations
+
+    Parameters
+    ----------
+    crytal_system : string
+        'cubic','hexagonal','tetragonal','orthorhombic','monoclinic','trigonal' add 'triclinc' which acts as 'none'
+
+    resolution : float
+        Rotations about beam directions and beam directions are seperated by rotations of the size 'resolution'
+    """
+    beam_directions = Euler(get_beam_directions(crystal_system,resolution,equal='angle'),axis_convention='rzxz')
+    # convert to szxz 
+    # drop in all the inplane rotations to form z
+    raw_grid = Euler(z, axis_convention='szxz')
+    grid_rzxz = raw_grid.to_AxAngle().to_Euler(axis_convention='rzxz') #convert back Bunge convention to return
+    rotation_list = grid_rzxz.to_rotation_list(round_to=2)
+    return rotation_list
+
 
 def get_local_grid(center, max_rotation, resolution):
     """
