@@ -118,10 +118,15 @@ def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 
     rotation_alpha, rotation_beta = _get_rotation_to_beam_direction(beam_direction)
     # see _create_advanced_linearly_spaced_array_in_rzxz for details
     steps_gamma = int(np.ceil((angular_range[1] - angular_range[0])/resolution))
+
     alpha = np.asarray([rotation_alpha])
     beta =  np.asarray([rotation_beta])
     gamma = np.linspace(angular_range[0],angular_range[1], num=steps_gamma, endpoint=False)
-    z = np.asarray(list(product(alpha, beta, gamma)))
+
+    agamma = np.asarray(list(product(alpha,gamma)))
+    bgamma = np.asarray(list(product(beta,gamma)))
+    z = np.hstack((agamma[:,0].reshape((-1,1)),bgamma))
+
     raw_grid = Euler(z, axis_convention='szxz') #we make use of an uncommon euler angle set here for speed
     grid_rzxz = raw_grid.to_AxAngle().to_Euler(axis_convention='rzxz')
     rotation_list = grid_rzxz.to_rotation_list(round_to=2)
