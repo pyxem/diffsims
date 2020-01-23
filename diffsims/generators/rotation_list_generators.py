@@ -82,7 +82,7 @@ def get_grid_streographic(crystal_system,resolution):
 
     ipalpha  = np.asarray(list(product(alpha,np.asarray(in_plane))))
     ipbeta   = np.asarray(list(product(beta,np.asarray(in_plane))))
-    z = np.rad2deg(np.hstack(ipalpha[:,0],ipbeta))
+    z = np.rad2deg(np.hstack(ipalpha[:,0].reshape((-1,1)),ipbeta))
 
     raw_grid = Euler(z, axis_convention='szxz')
     grid_rzxz = raw_grid.to_AxAngle().to_Euler(axis_convention='rzxz') #convert back Bunge convention to return
