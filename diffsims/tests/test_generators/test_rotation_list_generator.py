@@ -18,7 +18,7 @@
 
 import pytest
 import numpy as np
-from diffsims.generators.rotation_list_generators import get_local_grid, get_grid_around_beam_direction,get_fundemental_zone_grid
+from diffsims.generators.rotation_list_generators import get_local_grid, get_grid_around_beam_direction, get_fundemental_zone_grid, get_grid_streographic
 from diffsims.utils.rotation_conversion_utils import Euler
 
 
@@ -40,6 +40,9 @@ def test_get_grid_around_beam_direction():
 @pytest.mark.parametrize("space_group_number",[1,3,30,190,215,229])
 def test_get_fundemental_zone_grid(space_group_number):
     grid = get_fundemental_zone_grid(space_group_number,resolution=3)
+
+def test_get_grid_streographic():
+    grid = get_grid_streographic('cubic',1)
 
 
 @pytest.mark.skip(reason="This tests a theoretical underpinning of the code")
