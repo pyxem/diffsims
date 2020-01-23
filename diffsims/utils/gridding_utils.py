@@ -183,3 +183,10 @@ def get_beam_directions(resolution,crystal_system,equal='angle'):
     """
     """
     theta_max,psi_max,psi_min = crystal_system_dictionary[crystal_system]
+
+    if equal == 'area':
+        # http://mathworld.wolfram.com/SpherePointPicking.html
+        # Need to do sensible point counting for this
+        raise NotImplementedError("Use equal='angle' instead")
+    else:
+        
