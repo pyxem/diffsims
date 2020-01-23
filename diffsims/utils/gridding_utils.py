@@ -25,6 +25,7 @@ from itertools import product
 from transforms3d.euler import axangle2euler, euler2axangle, euler2mat
 from transforms3d.quaternions import quat2axangle, axangle2quat, mat2quat, qmult
 from diffsims.utils.rotation_conversion_utils import *
+from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
 
 crystal_system_dictionary =
 {'cubic':[45,54.7,0],
@@ -194,10 +195,17 @@ def get_beam_directions(resolution,crystal_system,equal='angle'):
         theta = np.linspace(0,theta_max,num=steps_theta)
         psi   = np.linspace(psi_min,psi_max,num=steps_theta)
 
-    points_in_spherical_polars = 'x'
+    psi_theta = np.asarray(list(product(psi,theta)))
+    r = np.ones((psi_theta.shape[0],1))
+    points_in_spherical_polars = np.hstack((r,psi_theta))
+
     if crystal_system = 'cubic':
         # reject points below the geodesic
         # add points on the geodesic
         pass
-    points_in_cartesians = 'x'
-    points_as_eulers_from_North_Pole = 'x'
+
+    points_in_cartesians = vectorised_spherical_polars_to_cartesians(z)
+    axis = np.cross([0,0,1],points_in_cartesians) #in unit cartesians so this is fine, [0,0,1] returns [0,0,0]
+    angle = np.arcsin(np.linalg.norm(axis))
+    eulers = AxAngle(np.hstack(axis,angle)).to_Euler(axis_convention='rzxz')
+    return eulers
