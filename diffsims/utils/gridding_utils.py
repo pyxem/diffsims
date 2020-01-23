@@ -99,7 +99,7 @@ def rotate_axangle(Axangles, new_center):
     new_center : (alpha,beta,gamma)
         The location of the (0,0,0) rotation as an rzxz euler angle
 
-    Returns 
+    Returns
     -------
     AxAngles :
 
@@ -169,3 +169,6 @@ def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_be
     gamma = np.linspace(0, max_gamma, num=steps_gamma, endpoint=False)
     z = np.asarray(list(product(alpha, beta, gamma)))
     return Euler(z, axis_convention='rzxz')
+
+def get_beam_directions(resolution,crystal_system,equal='angle'):
+    pass

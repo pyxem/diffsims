@@ -27,7 +27,7 @@ from diffsims.utils.rotation_conversion_utils import Euler
 from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,rotate_axangle, \
                                           _create_advanced_linearly_spaced_array_in_rzxz, \
-                                          _get_rotation_to_beam_direction
+                                          _get_rotation_to_beam_direction, get_beam_directions
 
 
 def _returnable_eulers_from_axangle(grid,axis_convention,round_to):
@@ -72,7 +72,7 @@ def get_grid_streographic(crystal_system,resolution):
         Rotations about beam directions and beam directions are seperated by rotations of the size 'resolution'
     """
     beam_directions = Euler(get_beam_directions(crystal_system,resolution,equal='angle'),axis_convention='rzxz')
-    # convert to szxz 
+    # convert to szxz
     # drop in all the inplane rotations to form z
     raw_grid = Euler(z, axis_convention='szxz')
     grid_rzxz = raw_grid.to_AxAngle().to_Euler(axis_convention='rzxz') #convert back Bunge convention to return
