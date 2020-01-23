@@ -208,5 +208,6 @@ def get_beam_directions(resolution,crystal_system,equal='angle'):
 
     angle = np.arcsin(np.linalg.norm(axes,axis=1))
     normalised_axes = np.divide(axes,np.linalg.norm(axes,axis=1).reshape(-1,1))
-    eulers = AxAngle(np.hstack((normalised_axes,angle.reshape((-1,1))))).to_Euler(axis_convention='rzxz')
+    np_axangles = np.hstack((normalised_axes,angle.reshape((-1,1))))
+    eulers = AxAngle(np_axangles).to_Euler(axis_convention='rzxz')
     return eulers
