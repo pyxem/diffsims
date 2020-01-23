@@ -73,7 +73,7 @@ def get_grid_streographic(crystal_system,resolution):
     """
     from itertools import product
     beam_directions = get_beam_directions(crystal_system,resolution,equal='angle')
-    beam_directions_szxz = beam_directions.toAxAngle().toEuler(axis_convention='szxz') # convert to high speed convention
+    beam_directions_szxz = beam_directions.to_AxAngle().to_Euler(axis_convention='szxz') # convert to high speed convention
 
     # drop in all the inplane rotations to form z
     alpha = beam_directions.data[:,:0]
