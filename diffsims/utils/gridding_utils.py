@@ -205,6 +205,6 @@ def get_beam_directions(resolution,crystal_system,equal='angle'):
 
     points_in_cartesians = vectorised_spherical_polars_to_cartesians(points_in_spherical_polars)
     axis = np.cross([0,0,1],points_in_cartesians) #in unit cartesians so this is fine, [0,0,1] returns [0,0,0]
-    angle = np.arcsin(np.linalg.norm(axis))
-    eulers = AxAngle(np.hstack(axis,angle)).to_Euler(axis_convention='rzxz')
+    angle = np.arcsin(np.linalg.norm(axis,axis=1))
+    eulers = AxAngle(np.hstack((axis,angle.reshape((-1,1))))).to_Euler(axis_convention='rzxz')
     return eulers
