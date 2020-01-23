@@ -180,4 +180,6 @@ def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_be
     return Euler(z, axis_convention='rzxz')
 
 def get_beam_directions(resolution,crystal_system,equal='angle'):
-    pass
+    """
+    """
+    theta_max,psi_max,psi_min = crystal_system_dictionary[crystal_system]
