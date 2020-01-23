@@ -72,7 +72,7 @@ def get_grid_streographic(crystal_system,resolution):
         Rotations about beam directions and beam directions are seperated by rotations of the size 'resolution'
     """
     from itertools import product
-    beam_directions = Euler(get_beam_directions(crystal_system,resolution,equal='angle'),axis_convention='rzxz')
+    beam_directions = get_beam_directions(crystal_system,resolution,equal='angle')
     beam_directions_szxz = beam_directions.toAxAngle().toEuler(axis_convention='szxz') # convert to high speed convention
 
     # drop in all the inplane rotations to form z
