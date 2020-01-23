@@ -26,6 +26,15 @@ from transforms3d.euler import axangle2euler, euler2axangle, euler2mat
 from transforms3d.quaternions import quat2axangle, axangle2quat, mat2quat, qmult
 from diffsims.utils.rotation_conversion_utils import *
 
+crystal_system_dictionary =
+{'cubic':[45,54.7,0],
+ 'hexagonal':[45,90,26.565],
+ 'tetragonal':[45,90,0],
+ 'orthorhombic':[90.90,0],
+ 'trigonal': [45,90,-116.5],
+ 'monoclinic':[90,0,-90],
+ 'none':[360,180,0]}
+
 
 def vectorised_qmult(q1, qdata):
     """ A vectorised implementation that multiplies qdata (array) by q1 (single quaternion) """
