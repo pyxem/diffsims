@@ -42,7 +42,7 @@ def test_get_fundemental_zone_grid(space_group_number):
     grid = get_fundemental_zone_grid(space_group_number,resolution=3)
 
 def test_get_grid_streographic():
-    grid = get_grid_streographic(1,'cubic')
+    grid = get_grid_streographic('cubic',1)
 
 
 @pytest.mark.skip(reason="This tests a theoretical underpinning of the code")

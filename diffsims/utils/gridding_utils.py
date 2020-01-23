@@ -179,7 +179,7 @@ def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_be
     z = np.asarray(list(product(alpha, beta, gamma)))
     return Euler(z, axis_convention='rzxz')
 
-def get_beam_directions(resolution,crystal_system,equal='angle'):
+def get_beam_directions(crystal_system,resolution,equal='angle'):
     """
     """
     theta_max,psi_max,psi_min = crystal_system_dictionary[crystal_system]
