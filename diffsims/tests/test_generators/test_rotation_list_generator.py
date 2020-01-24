@@ -42,20 +42,11 @@ def test_get_grid_around_beam_direction():
 def test_get_fundemental_zone_grid(space_group_number):
     grid = get_fundemental_zone_grid(space_group_number,resolution=3)
 
-@pytest.mark.parametrize("crystal_system",['tetragonal','cubic'])
-def test_get_grid_streographic(crystal_system):
-    grid = get_grid_streographic(crystal_system,1)
+def test_get_grid_streographic():
+    grid = get_grid_streographic('tetragonal',1)
     assert (0,0,0) in grid
-    if crystal_system == 'tetragonal':
-        grid_twice_as_many = get_grid_streographic('orthorhombic',1)
-        assert len(grid_twice_as_many)/len(grid) == 4
-    if crystal_system == 'cubic':
-        # Following "Orientation precision of TEM-based orientation mapping techniques" - Morawiec et al, Ultramicroscopy 136,2014
-        grid = get_grid_streographic(crystal_system,1.6)
-        theory = 234240 #page 113 of the above, as (976*240)
-        grid_length = len(grid)
-        assert grid_length > theory - (0.1) * theory
-        assert grid_length < theory + (0.1) * theory
+    grid_four_times_as_many = get_grid_streographic('orthorhombic',1)
+    assert len(grid_twice_as_many)/len(grid) == 4
 
 @pytest.mark.skip(reason="This tests a theoretical underpinning of the code")
 def test_small_angle_shortcut(): #pragma: no cover
