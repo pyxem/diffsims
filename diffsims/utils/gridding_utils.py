@@ -190,7 +190,7 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
         raise NotImplementedError("Use equal='angle' instead")
     else:
         steps_theta = int(np.ceil((theta_max - 0)/resolution)) #see docstrings for np.arange, np.linspace has better endpoint handling
-        steps_psi   = int(np.ceil((psi_max - psi_max)/resolution))
+        steps_psi   = int(np.ceil((psi_max - psi_min)/resolution))
         theta = np.linspace(0,theta_max,num=steps_theta)
         psi   = np.linspace(psi_min,psi_max,num=steps_theta)
 
@@ -216,14 +216,14 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
         points_in_cartesians = np.vstack((points_in_cartesians,geodesic))
         # the great circle (from [1,1,1] to [1,0,1]) forms a plane (with the origin), points on the same side as (0,0,1) are safe, the others are not
         plane_normal = np.cross(v2,v1) # dotting this with (0,0,1) gives a positive number
-        points_in_cartesians = points_in_cartesians[np.dot(plane_normal,points_in_cartesians.T)>=0] #0 is the points on the geodesic
+        points_in_cartesians = points_in_cartesians[np.dot(points_in_cartesians,plane_normal)>=0] #0 is the points on the geodesic
 
     return points_in_cartesians
 
 def beam_directions_to_euler_angles(points_in_cartesians):
     """
 
-    
+
     Parameters
     ----------
     points_in_cartesians :
