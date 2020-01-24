@@ -191,8 +191,8 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
     elif equal == 'angle':
         steps_theta = int(np.ceil((theta_max - 0)/resolution)) #see docstrings for np.arange, np.linspace has better endpoint handling
         steps_psi   = int(np.ceil((psi_max - psi_min)/resolution))
-        theta = np.linspace(0,theta_max,num=steps_theta)
-        psi   = np.linspace(psi_min,psi_max,num=steps_psi)
+        theta = np.linspace(0,np.deg2rad(theta_max),num=steps_theta)
+        psi   = np.linspace(np.deg2rad(psi_min),np.deg2rad(psi_max),num=steps_psi)
 
     psi_theta = np.asarray(list(product(psi,theta)))
     r = np.ones((psi_theta.shape[0],1))
