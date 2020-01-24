@@ -208,7 +208,8 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
             # https://math.stackexchange.com/questions/1883904/a-time-parameterization-of-geodesics-on-the-sphere
             w = v2 - np.multiply(np.dot(v1,v2),v1)
             w = np.divide(w,np.linalg.norm(w))
-            return np.cos(t)*v1 + np.sin(t)*w #in cartesians, t_end = np.arccos(np.dot(v1,v2))
+            #return in cartesians with t_end = np.arccos(np.dot(v1,v2))
+            return np.add(np.multiply(np.cos(t.reshape(-1,1)),v1),np.multiply(np.sin(t.reshape(-1,1)),w))
 
         t_list = np.linspace(0,np.arccos(np.dot(v1,v2)),num=steps_theta)
         geodesic = cubic_corner_geodesic(t_list)
