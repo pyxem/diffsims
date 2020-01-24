@@ -218,6 +218,17 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
         plane_normal = np.cross(v2,v1) # dotting this with (0,0,1) gives a positive number
         points_in_cartesians = points_in_cartesians[np.dot(plane_normal,points_in_cartesians.T)>=0] #0 is the points on the geodesic
 
+    return points_in_cartesians
+
+def beam_directions_to_euler_angles(points_in_cartesians):
+    """
+
+    
+    Parameters
+    ----------
+    points_in_cartesians :
+
+    """
     axes = np.cross([0,0,1],points_in_cartesians) #in unit cartesians so this is fine, [0,0,1] returns [0,0,0]
     angle = np.arcsin(np.linalg.norm(axes,axis=1))
     normalised_axes = np.where(angle.reshape(-1,1) > 0, np.divide(axes,np.linalg.norm(axes,axis=1).reshape(-1,1)), axes)
