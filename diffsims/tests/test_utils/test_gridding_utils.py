@@ -81,3 +81,9 @@ def test_get_beam_directions(crystal_system,expected_corners):
     for corner in expected_corners:
         norm_corner = np.divide(corner,np.linalg.norm(corner))
         assert np.any(np.isin(z,norm_corner))
+
+def test_beam_directions_cubic():
+    # Following "Orientation precision of TEM-based orientation mapping techniques" - Morawiec et al, Ultramicroscopy 136,2014
+    z = get_beam_directions('cubic',1.6)
+    assert z.shape[0] > 950
+    assert z.shape[0] < 1000
