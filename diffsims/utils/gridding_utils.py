@@ -199,8 +199,8 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
     r = np.ones((psi_theta.shape[0],1))
     points_in_spherical_polars = np.hstack((r,psi_theta))
 
-    # keep only theta ==0 psi ==0, do this with np.abs(theta) > 0 or psi == 0
-    #points_in_spherical_polars = points_in_spherical_polars[np.logical_or(np.abs(psi_theta[:,1])>0,psi_theta[:,0]==0)]
+    # keep only theta ==0 psi ==0, do this with np.abs(theta) > 0 or psi == 0 - more generally use the smallest psi value
+    points_in_spherical_polars = points_in_spherical_polars[np.logical_or(np.abs(psi_theta[:,1])>0,psi_theta[:,0]==np.min(psi_theta[:,0]))]
     points_in_cartesians = vectorised_spherical_polars_to_cartesians(points_in_spherical_polars)
 
     if crystal_system == 'cubic':
