@@ -22,7 +22,7 @@ import numpy as np
 from diffsims.utils.rotation_conversion_utils import AxAngle, Euler
 from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone, numpy_bounding_plane
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, vectorised_qmult, \
-                                          _create_advanced_linearly_spaced_array_in_rzxz
+                                          _create_advanced_linearly_spaced_array_in_rzxz, get_beam_directions
 
 from transforms3d.quaternions import qmult
 
@@ -64,3 +64,20 @@ def test_select_fundemental_zone():
 def test_edge_case_numpy_bounding_plane():
     z = np.asarray([1,1,1,np.inf])
     numpy_bounding_plane(data=z,vector=[1,1,1],distance=1)
+
+""" This tests get_beam_directions """
+@pytest.mark.parametrize("crystal_system,expected_corners",
+                         [
+                         ['monoclinic',[(0,0,1),(0,1,0),(0,-1,0)]],
+                         ['orthorhombic',[(0,0,1),(1,0,0),(0,1,0)]],
+                         ['tetragonal',[(0,0,1),(1,0,0),(1,1,0)]],
+                         ['cubic',[(0,0,1),(1,0,1),(1,1,1)]],
+                         ['hexagonal',[(0,0,1),(2,1,0),(1,1,0)]],
+                         ['trigonal',[(0,0,1),(-2,-1,0),(1,1,0)]]
+                         ])
+def test_get_beam_directions(crystal_system,expected_corners):
+    z = get_beam_directions(crystal_system,1)
+    assert np.allclose(np.linalg.norm(z,axis=1),1)
+    for corner in expected_corners:
+        norm_corner = np.divide(corner,np.linalg.norm(corner))
+        assert np.any(np.isin(z,norm_corner))
