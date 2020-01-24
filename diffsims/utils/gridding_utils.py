@@ -184,15 +184,17 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
     """
     theta_max,psi_max,psi_min = crystal_system_dictionary[crystal_system]
 
+    steps_theta = int(np.ceil((theta_max - 0)/resolution)) #see docstrings for np.arange, np.linspace has better endpoint handling
+    steps_psi   = int(np.ceil((psi_max - psi_min)/resolution))
+    theta = np.linspace(0,np.deg2rad(theta_max),num=steps_theta) # radians as we're about to make spherical polar cordinates
     if equal == 'area':
         # http://mathworld.wolfram.com/SpherePointPicking.html
-        # Need to do sensible point counting for this
-        raise NotImplementedError("Use equal='angle' instead")
+        v_1 = (1 + np.cos(np.deg2rad(psi_max))) / 2
+        v_2 = (1 + np.cos(np.deg2rad(psi_min))) / 2
+        v_array = np.linspace(min(v_1,v_2),max(v_1,v_2),num=steps_psi)
+        psi = np.arccos(2*v_array-1) #in radians
     elif equal == 'angle':
-        steps_theta = int(np.ceil((theta_max - 0)/resolution)) #see docstrings for np.arange, np.linspace has better endpoint handling
-        steps_psi   = int(np.ceil((psi_max - psi_min)/resolution))
         # now in radians as we're about to make spherical polar cordinates
-        theta = np.linspace(0,np.deg2rad(theta_max),num=steps_theta)
         psi   = np.linspace(np.deg2rad(psi_min),np.deg2rad(psi_max),num=steps_psi)
 
     psi_theta = np.asarray(list(product(psi,theta)))
