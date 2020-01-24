@@ -86,4 +86,4 @@ def test_beam_directions_cubic():
     # Following "Orientation precision of TEM-based orientation mapping techniques" - Morawiec et al, Ultramicroscopy 136,2014
     z = get_beam_directions('cubic',1.6)
     assert z.shape[0] > 950
-    assert z.shape[0] < 1000
+    assert z.shape[0] < 1050
