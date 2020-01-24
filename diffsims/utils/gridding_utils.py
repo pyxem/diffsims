@@ -216,7 +216,7 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
         points_in_cartesians = np.vstack((points_in_cartesians,geodesic))
         # the great circle (from [1,1,1] to [1,0,1]) forms a plane (with the origin), points on the same side as (0,0,1) are safe, the others are not
         plane_normal = np.cross(v2,v1) # dotting this with (0,0,1) gives a positive number
-        points_in_cartesians[np.dot(plane_normal,points_in_cartesians.T)>=0] #0 is the points on the geodesic
+        points_in_cartesians = points_in_cartesians[np.dot(plane_normal,points_in_cartesians.T)>=0] #0 is the points on the geodesic
 
     axes = np.cross([0,0,1],points_in_cartesians) #in unit cartesians so this is fine, [0,0,1] returns [0,0,0]
     angle = np.arcsin(np.linalg.norm(axes,axis=1))
