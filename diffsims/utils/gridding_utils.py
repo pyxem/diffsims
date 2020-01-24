@@ -191,6 +191,7 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
     elif equal == 'angle':
         steps_theta = int(np.ceil((theta_max - 0)/resolution)) #see docstrings for np.arange, np.linspace has better endpoint handling
         steps_psi   = int(np.ceil((psi_max - psi_min)/resolution))
+        # now in radians as we're about to make spherical polar cordinates
         theta = np.linspace(0,np.deg2rad(theta_max),num=steps_theta)
         psi   = np.linspace(np.deg2rad(psi_min),np.deg2rad(psi_max),num=steps_psi)
 
@@ -198,6 +199,8 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
     r = np.ones((psi_theta.shape[0],1))
     points_in_spherical_polars = np.hstack((r,psi_theta))
 
+    # keep only theta ==0 psi ==0, do this with np.abs(theta) > 0 or psi == 0
+    #points_in_spherical_polars = points_in_spherical_polars[np.logical_or(np.abs(psi_theta[:,1])>0,psi_theta[:,0]==0)]
     points_in_cartesians = vectorised_spherical_polars_to_cartesians(points_in_spherical_polars)
 
     if crystal_system == 'cubic':
