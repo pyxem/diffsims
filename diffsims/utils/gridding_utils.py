@@ -198,14 +198,26 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
     r = np.ones((psi_theta.shape[0],1))
     points_in_spherical_polars = np.hstack((r,psi_theta))
 
-    if crystal_system == 'cubic':
-        # reject points below the geodesic
-        # add points on the geodesic
-        pass
-
     points_in_cartesians = vectorised_spherical_polars_to_cartesians(points_in_spherical_polars)
-    axes = np.cross([0,0,1],points_in_cartesians) #in unit cartesians so this is fine, [0,0,1] returns [0,0,0]
 
+    if crystal_system = 'cubic':
+        # add in the geodesic that runs [1,1,1] to [1,0,1]
+        v1 = np.divide([1,1,1],np.sqrt(3))
+        v2 = np.divide([1,0,1],np.sqrt(2))
+        def cubic_corner_geodesic(t):
+            # https://math.stackexchange.com/questions/1883904/a-time-parameterization-of-geodesics-on-the-sphere
+            w = v2 - np.multiply(np.dot(v1,v2),v1)
+            w = np.divide(w,np.linalg.norm(w))
+            return np.cos(t)*v1 + np.sin(t)*w #in cartesians, t_end = np.arccos(np.dot(v1,v2))
+
+        t_list = np.linspace(0,np.arcos(np.dot(v1,v2)),num=steps_theta)
+        geodesic = cubic_corner_geodesic(t_list)
+        points_in_cartesians = np.vstack((points_in_cartesians,geodesic))
+        # the great circle (from [1,1,1] to [1,0,1]) forms a plane (with the origin), points on the same side as (0,0,1) are safe, the others are not
+        plane_normal = np.cross(v2,v1) # dotting this with (0,0,1) gives a positive number
+        points_in_cartesians[np.dot(plane_normal,points_in_cartesians)>=0] #0 is the points on the geodesic
+
+    axes = np.cross([0,0,1],points_in_cartesians) #in unit cartesians so this is fine, [0,0,1] returns [0,0,0]
     angle = np.arcsin(np.linalg.norm(axes,axis=1))
     normalised_axes = np.divide(axes,np.linalg.norm(axes,axis=1).reshape(-1,1))
     np_axangles = np.hstack((normalised_axes,angle.reshape((-1,1))))
