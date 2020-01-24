@@ -200,7 +200,7 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
 
     points_in_cartesians = vectorised_spherical_polars_to_cartesians(points_in_spherical_polars)
 
-    if crystal_system = 'cubic':
+    if crystal_system == 'cubic':
         # add in the geodesic that runs [1,1,1] to [1,0,1]
         v1 = np.divide([1,1,1],np.sqrt(3))
         v2 = np.divide([1,0,1],np.sqrt(2))
@@ -210,7 +210,7 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
             w = np.divide(w,np.linalg.norm(w))
             return np.cos(t)*v1 + np.sin(t)*w #in cartesians, t_end = np.arccos(np.dot(v1,v2))
 
-        t_list = np.linspace(0,np.arcos(np.dot(v1,v2)),num=steps_theta)
+        t_list = np.linspace(0,np.arccos(np.dot(v1,v2)),num=steps_theta)
         geodesic = cubic_corner_geodesic(t_list)
         points_in_cartesians = np.vstack((points_in_cartesians,geodesic))
         # the great circle (from [1,1,1] to [1,0,1]) forms a plane (with the origin), points on the same side as (0,0,1) are safe, the others are not

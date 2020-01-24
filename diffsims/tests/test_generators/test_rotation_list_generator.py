@@ -42,7 +42,7 @@ def test_get_fundemental_zone_grid(space_group_number):
     grid = get_fundemental_zone_grid(space_group_number,resolution=3)
 
 @pytest.mark.parametrize("crystal_system",['hexagonal','cubic'])
-def test_get_grid_streographic(crytal_system):
+def test_get_grid_streographic(crystal_system):
     grid = get_grid_streographic(crystal_system,1)
 
 
