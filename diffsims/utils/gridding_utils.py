@@ -30,7 +30,7 @@ from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesian
 crystal_system_dictionary = {'cubic':[45,54.7,0],
  'hexagonal':[45,90,26.565],
  'tetragonal':[45,90,0],
- 'orthorhombic':[90.90,0],
+ 'orthorhombic':[90,90,0],
  'trigonal': [45,90,-116.5],
  'monoclinic':[90,0,-90],
  'none':[360,180,0]}
