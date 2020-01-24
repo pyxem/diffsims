@@ -75,8 +75,24 @@ def test_edge_case_numpy_bounding_plane():
                          ['hexagonal',[(0,0,1),(2,1,0),(1,1,0)]],
                          ['trigonal',[(0,0,1),(-2,-1,0),(1,1,0)]]
                          ])
-def test_get_beam_directions(crystal_system,expected_corners):
-    z = get_beam_directions(crystal_system,1)
+def test_get_beam_directions_equal_angle(crystal_system,expected_corners):
+    z = get_beam_directions(crystal_system,1,'angle')
+    assert np.allclose(np.linalg.norm(z,axis=1),1)
+    for corner in expected_corners:
+        norm_corner = np.divide(corner,np.linalg.norm(corner))
+        assert np.any(np.isin(z,norm_corner))
+
+@pytest.mark.parametrize("crystal_system,expected_corners",
+                         [
+                         ['monoclinic',[(0,0,1),(0,1,0),(0,-1,0)]],
+                         ['orthorhombic',[(0,0,1),(1,0,0),(0,1,0)]],
+                         ['tetragonal',[(0,0,1),(1,0,0),(1,1,0)]],
+                         ['cubic',[(0,0,1),(1,0,1),(1,1,1)]],
+                         ['hexagonal',[(0,0,1),(2,1,0),(1,1,0)]],
+                         ['trigonal',[(0,0,1),(-2,-1,0),(1,1,0)]]
+                         ])
+def test_get_beam_directions_equal_area(crystal_system,expected_corners):
+    z = get_beam_directions(crystal_system,1,equal='area')
     assert np.allclose(np.linalg.norm(z,axis=1),1)
     for corner in expected_corners:
         norm_corner = np.divide(corner,np.linalg.norm(corner))
