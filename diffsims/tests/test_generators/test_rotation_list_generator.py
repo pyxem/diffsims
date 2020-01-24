@@ -37,16 +37,18 @@ def test_get_grid_around_beam_direction():
     assert isinstance(grid_simple[0],tuple)
     assert len(grid_simple) == 360
 
-@pytest.mark.skip(reason="local dev")
 @pytest.mark.parametrize("space_group_number",[1,3,30,190,215,229])
 def test_get_fundemental_zone_grid(space_group_number):
     grid = get_fundemental_zone_grid(space_group_number,resolution=3)
 
 def test_get_grid_streographic():
-    grid = get_grid_streographic('tetragonal',1)
+    grid = get_grid_streographic('tetragonal',1,equal='angle')
     assert (0,0,0) in grid
-    grid_four_times_as_many = get_grid_streographic('orthorhombic',1)
-    assert len(grid_twice_as_many)/len(grid) == 4
+    grid_four_times_as_many = get_grid_streographic('orthorhombic',1,equal='angle')
+
+    # for equal angle you wouldn't expect perfect ratios
+    assert len(grid_four_times_as_many)/len(grid) > 1.9
+    assert len(grid_four_times_as_many)/len(grid) < 2.1
 
 @pytest.mark.skip(reason="This tests a theoretical underpinning of the code")
 def test_small_angle_shortcut(): #pragma: no cover
