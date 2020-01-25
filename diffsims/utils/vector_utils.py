@@ -81,7 +81,9 @@ def vectorised_spherical_polars_to_cartesians(z):
 
     Returns
     -------
-
+    xyz : np.array
+        With rows of
+        x,y,z
     """
     r, psi, theta = z[:,0],z[:,1],z[:,2]
     x = r * np.cos(psi) * np.sin(theta)
