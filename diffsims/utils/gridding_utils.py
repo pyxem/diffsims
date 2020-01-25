@@ -181,6 +181,35 @@ def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_be
 
 def get_beam_directions(crystal_system,resolution,equal='angle'):
     """
+    Produces an array of beam directions, evenly (see equal argument) spaced that lie within the streographic 
+    triangle of the relevant crystal system.
+    
+    Parameters
+    ----------
+    crystal_system : str
+        Allowed are: 'cubic','hexagonal','tetragonal','orthorhombic','monoclinic','trigonal' and 'none'
+    
+    resolution : angle in degrees
+        If the 'equal' option is set to 'angle' this is the misorientation between a beam direction and its 
+        nearest neighbour(s). For 'equal'=='area' the density of points is as in the equal angle case but each
+        point covers an equal area
+        
+    equal : 'angle' (default) or 'area'
+       See the resolution argument
+       
+    Returns 
+    -------
+    points_in_cartesians : np.array (N,3)
+        Rows are x,y,z where z is the 001 pole direction.
+    Notes
+    -----
+    For all cases: The input 'resolution' may differ slightly from the expected value. This is so that each of the corners
+    of the streographic triangle are included. Actual 'resolution' will always be equal to or higher than the input resolution. As 
+    an example, if resolution is set to 4 to cover a range [0,90] we can't include both endpoints. The code makes 23 steps
+    of 3.91 degrees instead.
+    
+    For the cubic case: Each edge of the streographic triangle will behave as expected. The region above the (1,0,1), (1,1,1) edge
+    will (for implementation reasons) be slightly more densly packed than the wider region.
     """
     theta_max,psi_max,psi_min = crystal_system_dictionary[crystal_system]
 
