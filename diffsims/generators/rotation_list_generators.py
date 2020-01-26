@@ -65,11 +65,11 @@ def get_grid_streographic(crystal_system,resolution,equal='angle'):
 
     Parameters
     ----------
-    crytal_system : string
-        'cubic','hexagonal','tetragonal','orthorhombic','monoclinic','trigonal' and 'triclinc'
+    crytal_system : str
+        'cubic','hexagonal','triclinc','tetragonal','orthorhombic','monoclinic' and 'trigonal'
 
-    resolution : float (angle in degrees)
-        Nearest neighbour rotations are seperated by a distance of 'resolution'
+    resolution : float
+        Nearest neighbour rotations are seperated by a distance of 'resolution' in degrees
 
     equal : str
         'angle' or 'area'
