@@ -103,15 +103,15 @@ def rotate_axangle(Axangles, new_center):
 
     Parameters
     ----------
-    Axangles :
-        Axangles in the correct class
+    Axangles : diffsims.Axangles
+        Pre-rotation
     new_center : (alpha,beta,gamma)
         The location of the (0,0,0) rotation as an rzxz euler angle
 
     Returns
     -------
-    AxAngles :
-
+    AxAngles : diffsims.Axangles
+        Rotated
     See Also
     --------
     generators.get_local_grid
