@@ -22,6 +22,7 @@ Provides users with a range of gridding functions
 
 import numpy as np
 import warnings
+from itertools import product
 
 from diffsims.utils.rotation_conversion_utils import Euler
 from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
@@ -78,7 +79,6 @@ def get_grid_streographic(crystal_system,resolution,equal='angle'):
     -------
     rotation_list : list of tuples
     """
-    from itertools import product
     beam_directions_rzxz = beam_directions_to_euler_angles(get_beam_directions(crystal_system,resolution,equal=equal))
     beam_directions_szxz = beam_directions_rzxz.to_AxAngle().to_Euler(axis_convention='szxz') # convert to high speed convention
 
@@ -149,7 +149,6 @@ def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 
     -------
     rotation_list : list of tuples
     """
-    from itertools import product
 
     if not cubic:
         warnings.warn("This code only works for cubic systems at present")
