@@ -98,12 +98,12 @@ def test_get_beam_directions_equal_area(crystal_system,expected_corners):
         norm_corner = np.divide(corner,np.linalg.norm(corner))
         assert np.any(np.isin(z,norm_corner))
 
-@pytest.mark.parametrize("crystal_system",[['cubic','hexagonal']])
+@pytest.mark.parametrize("crystal_system",['cubic','hexagonal'])
 def test_equal_area_same_as_equal_angle(crystal_system):
     z_angle = get_beam_directions(crystal_system,1,equal='angle')
     z_area = get_beam_directions(crystal_system,1,equal='area')
     assert np.all(z_angle.shape()==z_area.shape())
-    
+
 def test_beam_directions_cubic():
     # Following "Orientation precision of TEM-based orientation mapping techniques" - Morawiec et al, Ultramicroscopy 136,2014
     z = get_beam_directions('cubic',1.6)
