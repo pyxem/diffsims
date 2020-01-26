@@ -33,7 +33,7 @@ crystal_system_dictionary = {'cubic':[45,54.7,0],
  'orthorhombic':[90,90,0],
  'trigonal': [45,90,-116.5],
  'monoclinic':[90,0,-90],
- 'none':[360,180,0]}
+ 'triclinic':[360,180,0]}
 
 
 def vectorised_qmult(q1, qdata):
@@ -103,15 +103,15 @@ def rotate_axangle(Axangles, new_center):
 
     Parameters
     ----------
-    Axangles :
-        Axangles in the correct class
+    Axangles : diffsims.Axangles
+        Pre-rotation
     new_center : (alpha,beta,gamma)
         The location of the (0,0,0) rotation as an rzxz euler angle
 
     Returns
     -------
-    AxAngles :
-
+    AxAngles : diffsims.Axangles
+        Rotated
     See Also
     --------
     generators.get_local_grid
@@ -181,33 +181,33 @@ def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_be
 
 def get_beam_directions(crystal_system,resolution,equal='angle'):
     """
-    Produces an array of beam directions, evenly (see equal argument) spaced that lie within the streographic 
+    Produces an array of beam directions, evenly (see equal argument) spaced that lie within the streographic
     triangle of the relevant crystal system.
-    
+
     Parameters
     ----------
     crystal_system : str
-        Allowed are: 'cubic','hexagonal','tetragonal','orthorhombic','monoclinic','trigonal' and 'none'
-    
-    resolution : angle in degrees
-        If the 'equal' option is set to 'angle' this is the misorientation between a beam direction and its 
-        nearest neighbour(s). For 'equal'=='area' the density of points is as in the equal angle case but each
-        point covers an equal area
-        
-    equal : 'angle' (default) or 'area'
-       See the resolution argument
-       
-    Returns 
+        Allowed are: 'cubic','hexagonal','trigonal','tetragonal','orthorhombic','monoclinic','triclinic'
+
+    resolution : float
+        An angle in degrees. If the 'equal' option is set to 'angle' this is the misorientation between a
+        beam direction and its nearest neighbour(s). For 'equal'=='area' the density of points is as in
+        the equal angle case but each point covers an equal area
+
+    equal : str
+        'angle' (default) or 'area'
+
+    Returns
     -------
     points_in_cartesians : np.array (N,3)
         Rows are x,y,z where z is the 001 pole direction.
     Notes
     -----
     For all cases: The input 'resolution' may differ slightly from the expected value. This is so that each of the corners
-    of the streographic triangle are included. Actual 'resolution' will always be equal to or higher than the input resolution. As 
+    of the streographic triangle are included. Actual 'resolution' will always be equal to or higher than the input resolution. As
     an example, if resolution is set to 4 to cover a range [0,90] we can't include both endpoints. The code makes 23 steps
     of 3.91 degrees instead.
-    
+
     For the cubic case: Each edge of the streographic triangle will behave as expected. The region above the (1,0,1), (1,1,1) edge
     will (for implementation reasons) be slightly more densly packed than the wider region.
     """
@@ -260,11 +260,11 @@ def beam_directions_to_euler_angles(points_in_cartesians):
 
     Parameters
     ----------
-    points_in_cartesians : 
+    points_in_cartesians :
          Generally output from get_beam_directions()
     Returns
     -------
-    diffsims.Euler : 
+    diffsims.Euler :
          The appropriate euler angles
     """
     axes = np.cross([0,0,1],points_in_cartesians) #in unit cartesians so this is fine, [0,0,1] returns [0,0,0]
