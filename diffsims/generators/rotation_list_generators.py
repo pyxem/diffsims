@@ -66,25 +66,25 @@ def get_grid_streographic(crystal_system,resolution,equal='angle'):
     Parameters
     ----------
     crytal_system : string
-        'cubic','hexagonal','tetragonal','orthorhombic','monoclinic','trigonal' add 'triclinc' which acts as 'none'
+        'cubic','hexagonal','tetragonal','orthorhombic','monoclinic','trigonal' and 'triclinc'
 
     resolution : float (angle in degrees)
         Nearest neighbour rotations are seperated by a distance of 'resolution'
 
-    equal : 'angle' or 'area'
-        See docstrings for diffsims.utils.gridding_utils.get_beam_directions
-        
+    equal : str
+        'angle' or 'area'
+
     Returns
     -------
-    rotation_list : 
+    rotation_list : list of tuples
     """
     from itertools import product
     beam_directions_rzxz = beam_directions_to_euler_angles(get_beam_directions(crystal_system,resolution,equal=equal))
     beam_directions_szxz = beam_directions_rzxz.to_AxAngle().to_Euler(axis_convention='szxz') # convert to high speed convention
 
     # drop in all the inplane rotations to form z
-    alpha = beam_directions.data[:,0]
-    beta  = beam_directions.data[:,1]
+    alpha = beam_directions_szxz.data[:,0]
+    beta  = beam_directions_szxz.data[:,1]
     in_plane = np.arange(0,360,resolution)
 
     ipalpha  = np.asarray(list(product(alpha,np.asarray(in_plane))))
