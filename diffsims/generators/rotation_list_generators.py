@@ -22,16 +22,18 @@ Provides users with a range of gridding functions
 
 import numpy as np
 import warnings
+from itertools import product
 
 from diffsims.utils.rotation_conversion_utils import Euler
 from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,rotate_axangle, \
                                           _create_advanced_linearly_spaced_array_in_rzxz, \
-                                          _get_rotation_to_beam_direction
+                                          _get_rotation_to_beam_direction, get_beam_directions, beam_directions_to_euler_angles
 
 
 def _returnable_eulers_from_axangle(grid,axis_convention,round_to):
-    """ Converts a grid of orientations in axis-angle space to Euler angles following a user specified convention and rounding."""
+    """ Converts a grid of orientations in axis-angle space to Euler
+    angles following a user specified convention and rounding."""
     eulers = grid.to_Euler(axis_convention=axis_convention)
     rotation_list = eulers.to_rotation_list(round_to=round_to)
     return rotation_list
@@ -58,6 +60,47 @@ def get_fundemental_zone_grid(space_group_number, resolution):
     fz_grid_axangle = reduce_to_fundemental_zone(raw_grid_axangle, zone_string)
     return _returnable_eulers_from_axangle(fz_grid_axangle,'rzxz',round_to=2)
 
+def get_grid_streographic(crystal_system,resolution,equal='angle'):
+    """
+    Creates a rotation list by determining the beam directions within the symmetry reduced
+    region of the inverse pole figure, corresponding to the specified crystal system, and
+    combining this with rotations about the beam direction at a given resolution.
+
+    Parameters
+    ----------
+    crytal_system : str
+        'cubic','hexagonal','trigonal','tetragonal','orthorhombic','monoclinic' and 'triclinic'
+
+    resolution : float
+        The maximum misorientation between rotations in the list, as defined according to
+        the parameter 'equal'. Specified as an angle in degrees.
+    equal : str
+        'angle' or 'area'. If 'angle', the misorientation is calculated between each beam direction
+        and its nearest neighbour(s). If 'area', the density of points is as in the equal angle case
+        but each point covers an equal area.
+
+    Returns
+    -------
+    rotation_list : list of tuples
+        List of rotations 
+    """
+    beam_directions_rzxz = beam_directions_to_euler_angles(get_beam_directions(crystal_system,resolution,equal=equal))
+    beam_directions_szxz = beam_directions_rzxz.to_AxAngle().to_Euler(axis_convention='szxz') # convert to high speed convention
+
+    # drop in all the inplane rotations to form z
+    alpha = beam_directions_szxz.data[:,0]
+    beta  = beam_directions_szxz.data[:,1]
+    in_plane = np.arange(0,360,resolution)
+
+    ipalpha  = np.asarray(list(product(alpha,np.asarray(in_plane))))
+    ipbeta   = np.asarray(list(product(beta,np.asarray(in_plane))))
+    z = np.hstack((ipalpha[:,0].reshape((-1,1)),ipbeta))
+
+    raw_grid = Euler(z, axis_convention='szxz')
+    grid_rzxz = raw_grid.to_AxAngle().to_Euler(axis_convention='rzxz') #convert back Bunge convention to return
+    rotation_list = grid_rzxz.to_rotation_list(round_to=2)
+    return rotation_list
+
 
 def get_local_grid(center, max_rotation, resolution):
     """
@@ -65,7 +108,7 @@ def get_local_grid(center, max_rotation, resolution):
 
     Parameters
     ----------
-    center : 3 angle tuple
+    center : tuple
         The orientation that acts as the center of the grid, as euler angles specified in the
         'rzxz' convention (degrees)
 
@@ -103,15 +146,14 @@ def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 
     angular_range : tuple
         The minimum (included) and maximum (excluded) rotation around the beam direction to be included
 
-    cubic : bool (Default=False)
+    cubic : bool
         This only works for cubic systems at the present, when False this raises a warning, set to
-        True to supress said warning
+        True to supress said warning. The default is False
 
     Returns
     -------
     rotation_list : list of tuples
     """
-    from itertools import product
 
     if not cubic:
         warnings.warn("This code only works for cubic systems at present")

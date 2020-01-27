@@ -18,7 +18,7 @@
 
 import pytest
 import numpy as np
-from diffsims.generators.rotation_list_generators import get_local_grid, get_grid_around_beam_direction,get_fundemental_zone_grid
+from diffsims.generators.rotation_list_generators import get_local_grid, get_grid_around_beam_direction, get_fundemental_zone_grid, get_grid_streographic
 from diffsims.utils.rotation_conversion_utils import Euler
 
 
@@ -41,6 +41,14 @@ def test_get_grid_around_beam_direction():
 def test_get_fundemental_zone_grid(space_group_number):
     grid = get_fundemental_zone_grid(space_group_number,resolution=3)
 
+def test_get_grid_streographic():
+    grid = get_grid_streographic('tetragonal',1,equal='angle')
+    assert (0,0,0) in grid
+    grid_four_times_as_many = get_grid_streographic('orthorhombic',1,equal='angle')
+
+    # for equal angle you wouldn't expect perfect ratios
+    assert len(grid_four_times_as_many)/len(grid) > 1.9
+    assert len(grid_four_times_as_many)/len(grid) < 2.1
 
 @pytest.mark.skip(reason="This tests a theoretical underpinning of the code")
 def test_small_angle_shortcut(): #pragma: no cover
