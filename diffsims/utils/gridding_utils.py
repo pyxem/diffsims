@@ -169,7 +169,9 @@ def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_be
     diffsims.Euler
 
     """
-    steps_alpha = int(np.ceil((max_alpha - 0)/resolution)) #see docstrings for np.arange, np.linspace has better endpoint handling
+    # We use np.linspace rather than np.arange to get list of evenly spaced Euler
+    # angles due to better end point handling. Therefore convert "step_size" to a "num"
+    steps_alpha = int(np.ceil((max_alpha - 0)/resolution))
     steps_beta  = int(np.ceil((max_beta  - 0)/resolution))
     steps_gamma = int(np.ceil((max_gamma - 0)/resolution))
 
