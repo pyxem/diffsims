@@ -32,7 +32,8 @@ from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,r
 
 
 def _returnable_eulers_from_axangle(grid,axis_convention,round_to):
-    """ Converts a grid of orientations in axis-angle space to Euler angles following a user specified convention and rounding."""
+    """ Converts a grid of orientations in axis-angle space to Euler
+    angles following a user specified convention and rounding."""
     eulers = grid.to_Euler(axis_convention=axis_convention)
     rotation_list = eulers.to_rotation_list(round_to=round_to)
     return rotation_list
@@ -61,23 +62,27 @@ def get_fundemental_zone_grid(space_group_number, resolution):
 
 def get_grid_streographic(crystal_system,resolution,equal='angle'):
     """
-    Creates a rotation list by combining the minimum region of the streogram's beam directions
-    with in plane rotations
+    Creates a rotation list by determining the beam directions within the symmetry reduced
+    region of the inverse pole figure, corresponding to the specified crystal system, and
+    combining this with rotations about the beam direction at a given resolution.
 
     Parameters
     ----------
     crytal_system : str
-        'cubic','hexagonal','triclinc','tetragonal','orthorhombic','monoclinic' and 'trigonal'
+        'cubic','hexagonal','trigonal','tetragonal','orthorhombic','monoclinic' and 'triclinic'
 
     resolution : float
-        Nearest neighbour rotations are seperated by a distance of 'resolution' in degrees
-
+        The maximum misorientation between rotations in the list, as defined according to
+        the parameter 'equal'. Specified as an angle in degrees.
     equal : str
-        'angle' or 'area'
+        'angle' or 'area'. If 'angle', the misorientation is calculated between each beam direction
+        and its nearest neighbour(s). If 'area', the density of points is as in the equal angle case
+        but each point covers an equal area.
 
     Returns
     -------
     rotation_list : list of tuples
+        List of rotations 
     """
     beam_directions_rzxz = beam_directions_to_euler_angles(get_beam_directions(crystal_system,resolution,equal=equal))
     beam_directions_szxz = beam_directions_rzxz.to_AxAngle().to_Euler(axis_convention='szxz') # convert to high speed convention
@@ -103,7 +108,7 @@ def get_local_grid(center, max_rotation, resolution):
 
     Parameters
     ----------
-    center : 3 angle tuple
+    center : tuple
         The orientation that acts as the center of the grid, as euler angles specified in the
         'rzxz' convention (degrees)
 
@@ -141,9 +146,9 @@ def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 
     angular_range : tuple
         The minimum (included) and maximum (excluded) rotation around the beam direction to be included
 
-    cubic : bool (Default=False)
+    cubic : bool
         This only works for cubic systems at the present, when False this raises a warning, set to
-        True to supress said warning
+        True to supress said warning. The default is False
 
     Returns
     -------
