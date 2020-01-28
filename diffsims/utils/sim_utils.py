@@ -372,7 +372,7 @@ def simulate_rotated_structure(diffraction_generator, structure, rotation_matrix
     stdbase = structure.lattice.stdbase
     stdbase_inverse = np.linalg.inv(stdbase)
     rotation_matrix_diffpy = stdbase_inverse @ rotation_matrix @ stdbase
-    
+
     lattice_rotated = diffpy.structure.lattice.Lattice(
         *structure.lattice.abcABG(),
         baserot=rotation_matrix_diffpy)
@@ -407,7 +407,8 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     spot_distances : numpy.array
         Distance of reciprocal lattice points in sphere from the origin.
     """
-    a, b, c = reciprocal_lattice.a, reciprocal_lattice.b, reciprocal_lattice.c
+    standard_base = diffpy.structure.lattice.Lattice(base=reciprocal_lattice.stdbase)
+    a, b, c = standard_base.a, standard_base.b, standard_base.c
     h_max = np.floor(reciprocal_radius / a)
     k_max = np.floor(reciprocal_radius / b)
     l_max = np.floor(reciprocal_radius / c)
@@ -416,7 +417,7 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     k_list = np.arange(-k_max, k_max + 1)
     l_list = np.arange(-l_max, l_max + 1)
     potential_points = np.asarray(list(product(h_list, k_list, l_list)))
-    in_sphere = np.abs(reciprocal_lattice.dist(potential_points, [0, 0, 0])) < reciprocal_radius
+    in_sphere = np.abs(standard_base.dist(potential_points, [0, 0, 0])) < reciprocal_radius
     spot_indicies = potential_points[in_sphere]
     spot_coords = reciprocal_lattice.cartesian(spot_indicies)
     spot_distances = reciprocal_lattice.dist(spot_indicies, [0, 0, 0])
