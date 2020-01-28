@@ -22,6 +22,7 @@ import numpy as np
 from scipy.constants import h, m_e, e, c, pi
 import collections
 import diffpy.structure
+from itertools import product
 
 from transforms3d.axangles import axangle2mat
 from transforms3d.euler import mat2euler
@@ -412,7 +413,6 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     h_max = np.floor(reciprocal_radius / a)
     k_max = np.floor(reciprocal_radius / b)
     l_max = np.floor(reciprocal_radius / c)
-    from itertools import product
     h_list = np.arange(-h_max, h_max + 1) #arange has a non-inclusive endpoint
     k_list = np.arange(-k_max, k_max + 1)
     l_list = np.arange(-l_max, l_max + 1)
