@@ -35,6 +35,20 @@ def test_constructor():
     np.testing.assert_equal(library.struct_lib['a'], (1, 3))
     np.testing.assert_equal(library.struct_lib['b'], (2, 4))
 
+def test_from_orientations_method():
+    #as above
+    identifiers = ['a', 'b']
+    structures = [1, 2]
+    orientations = [3, 4]
+    library = StructureLibrary.from_orientation_lists(identifiers,structures,orientations)
+
+def test_from_systems_methods():
+    identifiers = ['a', 'b']
+    structures = [1, 2]
+    systems = ['cubic', 'hexagonal']
+    library = StructureLibrary.from_crystal_systems(identifiers,structures,systems,resolution=1,equal='angle')
+
+
 
 @pytest.mark.parametrize('identifiers, structures, orientations', [
     (['a'], [1, 2], [3, 4]),
