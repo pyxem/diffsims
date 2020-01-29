@@ -46,7 +46,7 @@ def test_from_systems_methods():
     identifiers = ['a', 'b']
     structures = [1, 2]
     systems = ['cubic', 'hexagonal']
-    library = StructureLibrary.from_crystal_systems(identifiers,structures,systems,resolution=1,equal='angle')
+    library = StructureLibrary.from_crystal_systems(identifiers,structures,systems,resolution=2,equal='angle')
 
 
 
