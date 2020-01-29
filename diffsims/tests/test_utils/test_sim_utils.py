@@ -25,37 +25,6 @@ from diffsims.utils.sim_utils import get_electron_wavelength, \
     get_vectorized_list_for_atomic_scattering_factors, get_points_in_sphere, \
     simulate_kinematic_scattering, is_lattice_hexagonal, uvtw_to_uvw
 
-
-def create_lattice_structure(a, b, c, alpha, beta, gamma):
-    lattice = diffpy.structure.lattice.Lattice(a, b, c, alpha, beta, gamma)
-    atom = diffpy.structure.atom.Atom(atype='Si', xyz=[0, 0, 0], lattice=lattice)
-    return diffpy.structure.Structure(atoms=[atom], lattice=lattice)
-
-
-def create_structure_cubic():
-    return create_lattice_structure(1, 1, 1, 90, 90, 90)
-
-
-def create_structure_hexagonal():
-    return create_lattice_structure(1, 1, 1, 90, 90, 120)
-
-
-def create_structure_orthorombic():
-    return create_lattice_structure(1, 2, 3, 90, 90, 90)
-
-
-def create_structure_tetragonal():
-    return create_lattice_structure(1, 1, 2, 90, 90, 90)
-
-
-def create_structure_trigonal():
-    return create_lattice_structure(1, 1, 1, 100, 100, 100)
-
-
-def create_structure_monoclinic():
-    return create_lattice_structure(1, 2, 3, 90, 100, 90)
-
-
 @pytest.mark.parametrize('accelerating_voltage, wavelength', [
     (100, 0.0370143659),
     (200, 0.0250793403),
