@@ -83,8 +83,8 @@ class DiffractionGenerator(object):
 
     def calculate_ed_data(self,
                           structure,
-                          rotation,
                           reciprocal_radius,
+                          rotation=(0,0,0),
                           with_direct_beam=True):
         """Calculates the Electron Diffraction data for a structure.
 
@@ -94,11 +94,12 @@ class DiffractionGenerator(object):
             The structure for which to derive the diffraction pattern. Note that
             the structure must be rotated to the appropriate orientation and
             that testing is conducted on unit cells (rather than supercells).
-        rotation : tuple
-            Euler angles, in degrees, in the rzxz convention
         reciprocal_radius : float
             The maximum radius of the sphere of reciprocal space to sample, in
             reciprocal angstroms.
+        rotation : tuple
+            Euler angles, in degrees, in the rzxz convention. Default is (0,0,0)
+            which aligns 'z' with the electron beam
         with_direct_beam : bool
             If True, the direct beam is included in the simulated diffraction
             pattern. If False, it is not.
