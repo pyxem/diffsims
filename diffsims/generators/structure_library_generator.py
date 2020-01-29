@@ -23,17 +23,6 @@ from diffsims.utils.sim_utils import rotation_list_stereographic
 
 """Generating structure libraries."""
 
-# Inverse pole figure corners for crystal systems
-stereographic_corners = {
-    'cubic': [(0, 0, 1), (1, 0, 1), (1, 1, 1)],
-    'hexagonal': [(0, 0, 0, 1), (1, 0, -1, 0), (1, 1, -2, 0)],
-    'orthorhombic': [(0, 0, 1), (1, 0, 0), (0, 1, 0)],
-    'tetragonal': [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
-    'trigonal': [(0, 0, 0, 1), (0, -1, 1, 0), (1, -1, 0, 0)],
-    'monoclinic': [(0, 0, 1), (0, 1, 0), (0, -1, 0)]
-}
-
-
 class StructureLibraryGenerator:
     """Generates a structure library for the given phases
 
