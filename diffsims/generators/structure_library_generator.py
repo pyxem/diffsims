@@ -19,7 +19,8 @@
 import numpy as np
 
 from diffsims.libraries.structure_library import StructureLibrary
-from diffsims.utils.sim_utils import rotation_list_stereographic
+from diffsims.generators.rotation_list_generators import get_grid_streographic
+
 
 """Generating structure libraries."""
 
