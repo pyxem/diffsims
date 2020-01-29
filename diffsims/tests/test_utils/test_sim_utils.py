@@ -23,8 +23,7 @@ import diffpy
 from diffsims.utils.sim_utils import get_electron_wavelength, \
     get_interaction_constant, get_unique_families, get_kinematical_intensities, \
     get_vectorized_list_for_atomic_scattering_factors, get_points_in_sphere, \
-    simulate_kinematic_scattering, is_lattice_hexagonal, uvtw_to_uvw, \
-    rotation_list_stereographic
+    simulate_kinematic_scattering, is_lattice_hexagonal, uvtw_to_uvw
 
 
 def create_lattice_structure(a, b, c, alpha, beta, gamma):
@@ -143,65 +142,3 @@ def test_kinematic_simulator_invalid_illumination():
 def test_uvtw_to_uvw(uvtw, uvw):
     val = uvtw_to_uvw(uvtw)
     np.testing.assert_almost_equal(val, uvw)
-
-
-# Three corners of the rotation lists, for comparison
-structure_cubic_rotations = [
-    [0, 0, 0],
-    [90, 45, 0],
-    [135, 54.73561032, 0]
-]
-
-structure_hexagonal_rotations = [
-    [0, 0, 0],
-    [90, 90, 0],
-    [120, 90, 0]
-]
-
-structure_orthogonal_rotations = [
-    [0, 0, 0],
-    [90, 90, 0],
-    [180, 90, 0]
-]
-
-structure_tetragonal_rotations = [
-    [0, 0, 0],
-    [90, 90, 0],
-    [135, 90, 0]
-]
-
-structure_trigonal_rotations = [
-    [0, 0, 0],
-    [-28.64458044, 75.45951959, 0],
-    [38.93477108, 90, 0]
-]
-
-structure_monoclinic_rotations = [
-    [0, 0, 0],
-    [0, 90, 0],
-    [180, 90, 0]
-]
-
-
-@pytest.mark.parametrize('structure, corner_a, corner_b, corner_c, rotation_list', [
-    (create_structure_cubic(), (0, 0, 1), (1, 0, 1), (1, 1, 1), structure_cubic_rotations),
-    (create_structure_hexagonal(), (0, 0, 0, 1), (1, 0, -1, 0), (1, 1, -2, 0), structure_hexagonal_rotations),
-    (create_structure_orthorombic(), (0, 0, 1), (1, 0, 0), (0, 1, 0), structure_orthogonal_rotations),
-    (create_structure_tetragonal(), (0, 0, 1), (1, 0, 0), (1, 1, 0), structure_tetragonal_rotations),
-    (create_structure_trigonal(), (0, 0, 0, 1), (0, -1, 1, 0), (1, -1, 0, 0), structure_trigonal_rotations),
-    (create_structure_monoclinic(), (0, 0, 1), (0, 1, 0), (0, -1, 0), structure_monoclinic_rotations),
-])
-def test_rotation_list_stereographic(structure, corner_a, corner_b, corner_c, rotation_list):
-    val = rotation_list_stereographic(structure, corner_a, corner_b, corner_c, [0], np.deg2rad(10))
-    for expected in rotation_list:
-        assert any((np.allclose(expected, actual) for actual in val))
-
-
-@pytest.mark.xfail(raises=ValueError)
-@pytest.mark.parametrize('structure, corner_a, corner_b, corner_c, inplane_rotations, resolution, rotation_list', [
-    (create_structure_cubic(), (0, 0, 1), (0, 0, 1), (1, 1, 1), [0], np.deg2rad(10), structure_cubic_rotations),
-    (create_structure_cubic(), (0, 0, 1), (1, 0, 1), (0, 0, 1), [0], np.deg2rad(10), structure_cubic_rotations)
-])
-def test_rotation_list_stereographic_raises_invalid_corners(
-        structure, corner_a, corner_b, corner_c, inplane_rotations, resolution, rotation_list):
-    rotation_list_stereographic(structure, corner_a, corner_b, corner_c, inplane_rotations, resolution)
