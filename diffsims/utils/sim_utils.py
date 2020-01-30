@@ -346,46 +346,6 @@ def simulate_kinematic_scattering(atomic_coordinates,
 
     return intensity
 
-
-def simulate_rotated_structure(diffraction_generator, structure, rotation_matrix, reciprocal_radius, with_direct_beam):
-    """Calculate electron diffraction data for a structure after rotating it.
-
-    Parameters
-    ----------
-    diffraction_generator : DiffractionGenerator
-        Diffraction generator used to simulate diffraction patterns
-    structure : diffpy.structure.Structure
-        Structure object to simulate
-    rotation_matrix : ndarray
-        3x3 matrix describing the base rotation to apply to the structure, applied on the left of the vector
-    reciprocal_radius : float
-        The maximum g-vector magnitude to be included in the simulations.
-    with_direct_beam : bool
-        Include the direct beam peak
-
-    Returns
-    -------
-    simulation : DiffractionSimulation
-        The simulation data generated from the given structure and rotation.
-    """
-    # Convert left multiply (input) to right multiply (diffpy)
-    stdbase = structure.lattice.stdbase
-    stdbase_inverse = np.linalg.inv(stdbase)
-    rotation_matrix_diffpy = stdbase_inverse @ rotation_matrix @ stdbase
-
-    lattice_rotated = diffpy.structure.lattice.Lattice(
-        *structure.lattice.abcABG(),
-        baserot=rotation_matrix_diffpy)
-    # Don't change the original
-    structure_rotated = diffpy.structure.Structure(structure)
-    structure_rotated.placeInLattice(lattice_rotated)
-
-    return diffraction_generator.calculate_ed_data(
-        structure_rotated,
-        reciprocal_radius,
-        with_direct_beam)
-
-
 def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     """Finds all reciprocal lattice points inside a given reciprocal sphere.
     Utilised within the DiffractionGenerator.
