@@ -30,7 +30,6 @@ from diffsims.libraries.diffraction_library import DiffractionLibrary
 from diffsims.libraries.vector_library import DiffractionVectorLibrary
 
 from diffsims.utils.sim_utils import get_points_in_sphere
-from diffsims.utils.sim_utils import simulate_rotated_structure
 from diffsims.utils.vector_utils import get_angle_cartesian_vec
 
 
@@ -101,8 +100,7 @@ class DiffractionLibraryGenerator:
             intensities = np.empty(num_orientations, dtype='object')
             # Iterate through orientations of each phase.
             for i, orientation in enumerate(tqdm(orientations, leave=False)):
-                matrix = euler2mat(*np.deg2rad(orientation), 'rzxz')
-                simulation = simulate_rotated_structure(diffractor, structure, matrix, reciprocal_radius, with_direct_beam)
+                simulation = diffractor.calculate_ed_data(structure,reciprocal_radius,rotation=orientation,with_direct_beam=with_direct_beam)
 
                 # Calibrate simulation
                 simulation.calibration = calibration
