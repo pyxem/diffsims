@@ -17,6 +17,7 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import diffsims as ds
+from diffsims.generators.rotation_list_generators import get_grid_streographic
 
 
 class StructureLibrary():
@@ -54,3 +55,51 @@ class StructureLibrary():
         self.struct_lib = dict()
         for ident, struct, ori in zip(identifiers, structures, orientations):
             self.struct_lib[ident] = (struct, ori)
+
+    @classmethod
+    def from_orientation_lists(cls,identifiers,structures,orientations):
+        """
+        Creates a structure library from "manual" orientation lists
+
+        Parameters
+        ----------
+        identifiers : list of strings/ints
+            A list of phase identifiers referring to different atomic structures.
+        structures : list of diffpy.structure.Structure objects.
+            A list of diffpy.structure.Structure objects describing the atomic
+            structure associated with each phase in the library.
+        orientations : list of lists of tuples
+            A list over identifiers of lists of euler angles (as tuples) in the rzxz
+            convention and in degrees.
+        Returns
+        -------
+        StructureLibrary
+        """
+        return cls(identifiers,structures,orientations)
+
+    @classmethod
+    def from_crystal_systems(cls,identifiers,structures,systems,resolution,equal='angle'):
+        """
+        Creates a structure library from crystal system derived orientation lists
+
+        Parameters
+        ----------
+        identifiers : list of strings/ints
+            A list of phase identifiers referring to different atomic structures.
+        structures : list of diffpy.structure.Structure objects.
+            A list of diffpy.structure.Structure objects describing the atomic
+            structure associated with each phase in the library.
+        systems : list
+            A list over indentifiers of crystal systems
+        resolution : float
+            resolution in degrees
+        equal : str
+            Default is 'angle'
+        Returns
+        -------
+        StructureLibrary
+        """
+        orientations = []
+        for system in systems:
+            orientations.append(get_grid_streographic(system,resolution,equal))
+        return cls(identifiers,structures,orientations)
