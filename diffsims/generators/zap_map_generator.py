@@ -16,6 +16,40 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+import numpy as np
+from transforms3d.euler import axangle2euler
+
+def get_rotation_from_z(structure,d):
+    """
+    Finds the rotation that takes [001] to a given zone axis.
+
+    Parameters
+    ----------
+    structure :
+
+    d :
+
+
+    Returns
+    -------
+    euler_angles : tuple
+        'rzxz' in degrees
+
+    See Also
+    --------
+    generate_zap_map
+    get_grid_around_beam_direction
+    """
+
+    if np.dot(d,[0,0,1]) == np.linalg.norm(d):
+        return (0,0,1)
+
+    cd = structure.lattice.cartesian(d)
+    cd = cd / np.linalg.norm(cd)
+    v = np.cross(d,cd)
+    angle = np.arccos(np.dot([0,0,1],cd))
+    euler = axangle2euler(v,angle,axes='rzxz')
+    return np.rad2deg(euler)
 
 def generate_zap_map(structure,simulator,density):
     """
