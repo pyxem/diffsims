@@ -19,16 +19,16 @@
 import numpy as np
 from transforms3d.euler import axangle2euler
 
-def get_rotation_from_z(structure,d):
+def get_rotation_from_z(structure,direction):
     """
     Finds the rotation that takes [001] to a given zone axis.
 
     Parameters
     ----------
-    structure :
+    structure : diffpy.structure
 
-    d :
-
+    direction : array like
+        [UVW]
 
     Returns
     -------
@@ -41,14 +41,17 @@ def get_rotation_from_z(structure,d):
     get_grid_around_beam_direction
     """
 
-    if np.dot(d,[0,0,1]) == np.linalg.norm(d):
+    # Case where we don't need a rotation
+    if np.dot(direction,[0,0,1]) == np.linalg.norm(d):
         return (0,0,1)
 
-    cd = structure.lattice.cartesian(d)
-    cd = cd / np.linalg.norm(cd)
-    v = np.cross(d,cd)
-    angle = np.arccos(np.dot([0,0,1],cd))
-    euler = axangle2euler(v,angle,axes='rzxz')
+    # Normalize our directions
+    cartesian_direction = structure.lattice.cartesian(direction)
+    cartesian_direction = cartesian_direction / np.linalg.norm(cartesian_direction)
+
+    rotation_axis = np.cross([0,0,1],cartesian_direction)
+    rotation_angle = np.arccos(np.dot([0,0,1],cartesian_direction))
+    euler = axangle2euler(rotation_axis,rotation_angle,axes='rzxz')
     return np.rad2deg(euler)
 
 def generate_zap_map(structure,simulator,density):
@@ -69,4 +72,9 @@ def generate_zap_map(structure,simulator,density):
     zap_dictionary : dict
         Keys are zone axes, values are simulations
     """
+    # generate list of zone axes directions
+    # run a loop over these that
+    # (a) extracts the rotation
+    # (b) calculates the simulation
+
     pass
