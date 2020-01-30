@@ -37,8 +37,7 @@ def test_from_systems_methods():
     structures = [1, 2]
     systems = ['cubic', 'hexagonal']
     library = StructureLibrary.from_crystal_systems(identifiers,structures,systems,resolution=2,equal='angle')
-    np.testing.assert_equal(library.struct_lib['b'], (2, 4))
-    assert len(library.struct_lib['a']) < len(library.struct_lib['b']) #cubic is less area the hexagonal
+    assert len(library.struct_lib['a'][1]) < len(library.struct_lib['b'][1]) #cubic is less area the hexagonal
 
 
 @pytest.mark.parametrize('identifiers, structures, orientations', [
