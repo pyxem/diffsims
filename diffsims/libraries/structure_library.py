@@ -68,7 +68,7 @@ class StructureLibrary():
         structures : list of diffpy.structure.Structure objects.
             A list of diffpy.structure.Structure objects describing the atomic
             structure associated with each phase in the library.
-        orientations : list
+        orientations : list of lists of tuples
             A list over identifiers of lists of euler angles (as tuples) in the rzxz
             convention and in degrees.
         Returns
@@ -90,7 +90,7 @@ class StructureLibrary():
             A list of diffpy.structure.Structure objects describing the atomic
             structure associated with each phase in the library.
         systems : list
-            A list over indetfiers of crystal systems
+            A list over indentifiers of crystal systems
         resolution : float
             resolution in degrees
         equal : str
