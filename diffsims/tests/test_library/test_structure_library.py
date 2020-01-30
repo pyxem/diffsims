@@ -21,33 +21,24 @@ import numpy as np
 
 from diffsims.libraries.structure_library import StructureLibrary
 
-
-def test_constructor():
+def test_from_orientations_method():
     identifiers = ['a', 'b']
-    # Arbitrary values for tracking
     structures = [1, 2]
     orientations = [3, 4]
-    library = StructureLibrary(identifiers, structures, orientations)
-
+    library = StructureLibrary.from_orientation_lists(identifiers,structures,orientations)
     np.testing.assert_equal(library.identifiers, identifiers)
     np.testing.assert_equal(library.structures, structures)
     np.testing.assert_equal(library.orientations, orientations)
     np.testing.assert_equal(library.struct_lib['a'], (1, 3))
     np.testing.assert_equal(library.struct_lib['b'], (2, 4))
 
-def test_from_orientations_method():
-    #as above
-    identifiers = ['a', 'b']
-    structures = [1, 2]
-    orientations = [3, 4]
-    library = StructureLibrary.from_orientation_lists(identifiers,structures,orientations)
-
 def test_from_systems_methods():
     identifiers = ['a', 'b']
     structures = [1, 2]
     systems = ['cubic', 'hexagonal']
     library = StructureLibrary.from_crystal_systems(identifiers,structures,systems,resolution=2,equal='angle')
-
+    np.testing.assert_equal(library.struct_lib['b'], (2, 4))
+    assert len(library.struct_lib['a']) < len(library.struct_lib['b'])
 
 
 @pytest.mark.parametrize('identifiers, structures, orientations', [
