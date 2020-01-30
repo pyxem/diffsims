@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2019 The diffsims developers
+# Copyright 2017-2020 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -82,7 +82,7 @@ def get_grid_streographic(crystal_system,resolution,equal='angle'):
     Returns
     -------
     rotation_list : list of tuples
-        List of rotations 
+        List of rotations
     """
     beam_directions_rzxz = beam_directions_to_euler_angles(get_beam_directions(crystal_system,resolution,equal=equal))
     beam_directions_szxz = beam_directions_rzxz.to_AxAngle().to_Euler(axis_convention='szxz') # convert to high speed convention
