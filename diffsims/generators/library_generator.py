@@ -30,7 +30,6 @@ from diffsims.libraries.diffraction_library import DiffractionLibrary
 from diffsims.libraries.vector_library import DiffractionVectorLibrary
 
 from diffsims.utils.sim_utils import get_points_in_sphere
-from diffsims.utils.sim_utils import simulate_rotated_structure
 from diffsims.utils.vector_utils import get_angle_cartesian_vec
 
 
