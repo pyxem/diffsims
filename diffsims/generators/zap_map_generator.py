@@ -67,14 +67,22 @@ def generate_zap_map(structure,simulator,density):
     density : str
         '3' for the corners or '7' (corners + 3 midpoints + 1 centroid)
 
+    **kwargs :
+        keyword arguments to be passed to simulator.calculate_ed_data()
     Returns
     -------
     zap_dictionary : dict
         Keys are zone axes, values are simulations
     """
+    if reciprocal_radius not in kwargs.keys():
+        # make sensible guess using the lattice parameters of structure
+
     # generate list of zone axes directions
     # run a loop over these that
-    # (a) extracts the rotation
-    # (b) calculates the simulation
+    zap_dictionary = {}
+    for direction in direction_list:
+        rotation_rzxz = get_rotation_from_z(structure,direction)
+        simulation = simulator.calculate_ed_data(structure,reciprocal_radius,rotation=rotation_rzxz,**kwargs)
+        # adds the direction and simulation to dictionary
 
     pass
