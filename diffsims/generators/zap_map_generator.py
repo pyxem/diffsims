@@ -55,8 +55,9 @@ def get_rotation_from_z(structure,direction):
     return np.rad2deg(euler)
 
 def get_three_on_widest_dimension(structure):
-    # make sensible guess using the lattice parameters of structure
-    # gets three on spots (100) (200) and (300) for the longest (real space) cell direction
+    shortest_real_space = min((structure.a,structure.b,structure.c))
+    d_star_max = 1/shortest_real_space
+    reciprocal_radius = 3 * d_star_max
     return reciprocal_radius
 
 def generate_directional_patterns(structure,simulator,direction_list):
