@@ -20,14 +20,22 @@ import pytest
 
 from diffsims.generators.zap_map_generator import get_rotation_from_z
 
-@pytest.mark.parametrize("sample_system",['cubic'])
+@pytest.fixture
+def cubic():
+    """An atomic structure represented using diffpy
+    """
+    latt = diffpy.structure.lattice.Lattice(3,3,3,90,90,90)
+    atom = diffpy.structure.atom.Atom(atype='Ni',xyz=[0,0,0],lattice=latt)
+    return diffpy.structure.Structure(atoms=[atom],lattice=latt)
+
+@pytest.mark.parametrize("sample_system",[cubic])
 def test_zero_rotation_cases(sample_system):
     r_test = get_rotation_from_z(sample_system,[0,0,2])
     assert r_test == (0,0,0)
 
 
-@pytest.mark.parametrize("sample_system",['cubic'])
-class TestOrthonormals():
+@pytest.mark.parametrize("sample_system",[cubic])
+class TestOrthonormals:
 
     def test_rotation_to_x_axis(self,sample_system):
         r_to_x = get_rotation_from_z(sample_system,[0,1,0])
