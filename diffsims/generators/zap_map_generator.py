@@ -42,7 +42,7 @@ def get_rotation_from_z(structure,direction):
     """
 
     # Case where we don't need a rotation
-    if np.dot(direction,[0,0,1]) == np.linalg.norm(d):
+    if np.dot(direction,[0,0,1]) == np.linalg.norm(direction):
         return (0,0,0)
 
     # Normalize our directions
