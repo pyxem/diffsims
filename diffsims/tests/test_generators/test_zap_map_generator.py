@@ -20,22 +20,24 @@ import pytest
 
 from diffsims.generators.zap_map_generator import get_rotation_from_z
 
-@pytest.mark.parametrize("sample_system",[cubic])
+@pytest.mark.parametrize("sample_system",['cubic'])
 def test_zero_rotation_cases(sample_system):
     r_test = get_rotation_from_z(sample_system,[0,0,2])
     assert r_test == (0,0,0)
 
-class TestOrthonormals:
 
-    def test_rotation_to_x_axis(self):
+@pytest.mark.parametrize("sample_system",['cubic'])
+class TestOrthonormals():
+
+    def test_rotation_to_x_axis(self,sample_system):
         r_to_x = get_rotation_from_z(sample_system,[0,1,0])
-        assert r_test ==
+        assert np.allclose(r_test,(0,90,0))
 
-    def test_rotation_to_y_axis(self):
+    def test_rotation_to_y_axis(self,sample_system):
         r_to_y = get_rotation_from_z(sample_system,[1,0,0])
-        assert r_test
+        assert np.allclose(r_test,(90,90,0))
 
-    def test_rotations_to_yz(self):
+    def test_rotations_to_yz(self,sample_system):
         """ We rotate from z towards y, in the cubic case the angle
         will be 45, ---- """
         r_to_yz = get_rotation_from_z(sample_system,[0,1,1])
@@ -43,13 +45,14 @@ class TestOrthonormals:
         cos_lattice = sample_system.b / sample_system.c
         assert cos_angle == cos_lattice
 
-    def test_rotation_to_111(self):
+    def test_rotation_to_111(self,sample_system):
         """ Cubic case is known Z for 45° and around X by 54.74° """
+        pass
 
 class TestHexagonal:
     """ Results are taken from """
 
-    def test_rotation_to_streographic_corner_a():
+    def test_rotation_to_streographic_corner_a(self):
         pass
-    def test_rotation_to_streographic_corner_b():
+    def test_rotation_to_streographic_corner_b(self):
         pass
