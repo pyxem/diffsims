@@ -54,8 +54,20 @@ def get_rotation_from_z(structure,direction):
     euler = axangle2euler(rotation_axis,rotation_angle,axes='rzxz')
     return np.rad2deg(euler)
 
-def get_three_on_widest_dimension(structure):
-    shortest_real_space = min((structure.a,structure.b,structure.c))
+def get_sensible_reciprocal_radius(structure):
+    """
+    Returns a reasonable reciprocal_radius if user hasn't specified one  
+
+    Parameters
+    ----------
+    structure : diffpy.structure
+
+    Returns
+    -------
+    reciprocal_radius : float
+    """
+    lattice = structure.lattice
+    shortest_real_space = min((lattice.a,lattice.b,lattice.c))
     d_star_max = 1/shortest_real_space
     reciprocal_radius = 3 * d_star_max
     return reciprocal_radius
@@ -65,7 +77,7 @@ def generate_directional_patterns(structure,simulator,direction_list):
     """
 
     if reciprocal_radius not in kwargs.keys():
-        reciprocal_radius = get_three_on_widest_dimension(structure)
+        reciprocal_radius = get_sensible_reciprocal_radius(structure)
     else:
         reciprocal_radius = kwargs['reciprocal_radius']
 
