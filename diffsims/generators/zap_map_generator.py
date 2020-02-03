@@ -56,7 +56,7 @@ def get_rotation_from_z(structure,direction):
 
 def get_sensible_reciprocal_radius(structure):
     """
-    Returns a reasonable reciprocal_radius if user hasn't specified one  
+    Returns a reasonable reciprocal_radius if user hasn't specified one
 
     Parameters
     ----------
@@ -72,8 +72,23 @@ def get_sensible_reciprocal_radius(structure):
     reciprocal_radius = 3 * d_star_max
     return reciprocal_radius
 
-def generate_directional_patterns(structure,simulator,direction_list):
+def generate_directional_simulations(structure,simulator,direction_list):
     """
+    Produces simualtion of a structure aligned with certain axes
+
+    Parameters
+    ----------
+    structure : diffpy.structure
+
+    simulator :
+
+    direction_list : list of lists
+        A list of [UVW] indicies, eg) [[1,0,0],[1,1,0]]
+
+    Returns
+    -------
+    direction_dictionary : dict
+        Keys are zone axes, values are simulations
     """
 
     if reciprocal_radius not in kwargs.keys():
@@ -108,14 +123,15 @@ def generate_zap_map(structure,simulator,density):
     -------
     zap_dictionary : dict
         Keys are zone axes, values are simulations
+
+    Example
+    -------
+
     """
 
     # generate list of zone axes directions
     #direction_list =
 
-    zap_dictionary = generate_directional_patterns(structure,simulator,direction_list,**kwargs)
+    zap_dictionary = generate_directional_simulations(structure,simulator,direction_list,**kwargs)
 
     pass
-
-def plot_dict_of_simulation(dict_of_sims,calibration,sim_param_1,sim_param_2):
-    """ Not to be used for quantative work """
