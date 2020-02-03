@@ -43,7 +43,7 @@ def get_rotation_from_z(structure,direction):
 
     # Case where we don't need a rotation
     if np.dot(direction,[0,0,1]) == np.linalg.norm(d):
-        return (0,0,1)
+        return (0,0,0)
 
     # Normalize our directions
     cartesian_direction = structure.lattice.cartesian(direction)
@@ -53,6 +53,27 @@ def get_rotation_from_z(structure,direction):
     rotation_angle = np.arccos(np.dot([0,0,1],cartesian_direction))
     euler = axangle2euler(rotation_axis,rotation_angle,axes='rzxz')
     return np.rad2deg(euler)
+
+def get_three_on_widest_dimension(structure):
+    # make sensible guess using the lattice parameters of structure
+    # gets three on spots (100) (200) and (300) for the longest (real space) cell direction
+    return reciprocal_radius
+
+def generate_directional_patterns(structure,simulator,direction_list):
+    """
+    """
+
+    if reciprocal_radius not in kwargs.keys():
+        reciprocal_radius = get_three_on_widest_dimension(structure)
+    else:
+        reciprocal_radius = kwargs['reciprocal_radius']
+
+    direction_dictionary = {}
+    for direction in direction_list:
+        rotation_rzxz = get_rotation_from_z(structure,direction)
+        simulation = simulator.calculate_ed_data(structure,reciprocal_radius,rotation=rotation_rzxz,**kwargs)
+        # adds the direction and simulation to dictionary
+    return direction_dictionary
 
 def generate_zap_map(structure,simulator,density):
     """
@@ -67,14 +88,21 @@ def generate_zap_map(structure,simulator,density):
     density : str
         '3' for the corners or '7' (corners + 3 midpoints + 1 centroid)
 
+    **kwargs :
+        keyword arguments to be passed to simulator.calculate_ed_data()
+
     Returns
     -------
     zap_dictionary : dict
         Keys are zone axes, values are simulations
     """
+
     # generate list of zone axes directions
-    # run a loop over these that
-    # (a) extracts the rotation
-    # (b) calculates the simulation
+    #direction_list =
+
+    zap_dictionary = generate_directional_patterns(structure,simulator,direction_list,**kwargs)
 
     pass
+
+def plot_dict_of_simulation(dict_of_sims,calibration,sim_param_1,sim_param_2):
+    """ Not to be used for quantative work """
