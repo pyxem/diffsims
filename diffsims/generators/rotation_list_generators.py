@@ -142,7 +142,7 @@ def get_grid_around_beam_direction(beam_rotation,resolution, angular_range=(0, 3
         A desired beam direction as a rotation, usually found via
 
     resolution : float
-        The 'resolution' of the grid (degrees)
+        The resolution of the grid (degrees)
 
     angular_range : tuple
         The minimum (included) and maximum (excluded) rotation around the beam direction to be included
