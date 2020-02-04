@@ -138,10 +138,10 @@ def generate_zap_map(structure,simulator,system='cubic',reciprocal_radius=1,dens
     """
 
     corners_dict = {'cubic': [(0, 0, 1), (1, 0, 1), (1, 1, 1)],
-    'hexagonal': [(0, 0, 0, 1), (1, 0, -1, 0), (1, 1, -2, 0)],
+    'hexagonal': [(0, 0, 1), (2, 1, 0), (1, 1, 0)],
     'orthorhombic': [(0, 0, 1), (1, 0, 0), (0, 1, 0)],
     'tetragonal': [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
-    'trigonal': [(0, 0, 0, 1), (0, -1, 1, 0), (1, -1, 0, 0)],
+    'trigonal': [(0, 0, 1), (-1, -2, 0), (1, -1, 0)],
     'monoclinic': [(0, 0, 1), (0, 1, 0), (0, -1, 0)]}
     #TODO include triclinic
 
