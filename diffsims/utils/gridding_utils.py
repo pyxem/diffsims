@@ -49,34 +49,6 @@ def vectorised_qmult(q1, qdata):
     z = w1*z2 + z1*w2 + x1*y2 - y1*x2
     return np.array([w, x, y, z]).T
 
-
-#TODO: delete, this is superceded.
-def _get_rotation_to_beam_direction(beam_direction):
-    """ A helper function for getting rotations around a beam direction, the
-    returns the first two angles (szxz) needed to place the viewer looking down the
-    given zone axis.
-
-    Parameters
-    ----------
-    beam_direction : [vx,vy,vz]
-
-    Returns
-    -------
-    alpha,beta : angles in degrees
-
-    See Also
-    --------
-    generators.get_grid_around_beam_direction
-    """
-    from transforms3d.euler import axangle2euler
-    beam_direction = np.divide(beam_direction,np.linalg.norm(beam_direction))
-    axis = np.cross(beam_direction,[0,0,1]) # [0,0,1] is the starting direction for diffsims
-    angle = np.arcsin(np.linalg.norm(axis))
-    alpha,beta,gamma = axangle2euler(axis,angle,'szxz')
-    return np.rad2deg(alpha),np.rad2deg(beta)
-
-
-
 def rotation_matrix_from_euler_angles(euler_angles):
     """
     Finds the rotation matrix that takes (0,0,0) to (alpha,beta,gamma)
@@ -259,28 +231,3 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
         points_in_cartesians = points_in_cartesians[np.dot(points_in_cartesians,plane_normal)>=0] #0 is the points on the geodesic
 
     return points_in_cartesians
-
-#TODO: This is superceded by the ZAP map functionality.
-def beam_directions_to_euler_angles(points_in_cartesians):
-    """
-    Converts an array of cartesians (x,y,z unit basis vectors) to the euler angles that would take [0,0,1] to [x,y,z]
-
-    Parameters
-    ----------
-    points_in_cartesians :
-         Generally output from get_beam_directions()
-    Returns
-    -------
-    diffsims.Euler :
-         The appropriate euler angles
-    """
-    axes = np.cross([0,0,1],points_in_cartesians) #in unit cartesians so this is fine, [0,0,1] returns [0,0,0]
-    norms = np.linalg.norm(axes,axis=1).reshape(-1,1)
-    angle = np.arcsin(norms)
-
-    normalised_axes = np.ones_like(axes)
-    np.divide(axes,norms,out=normalised_axes,where=norms!=0)
-
-    np_axangles = np.hstack((normalised_axes,angle.reshape((-1,1))))
-    eulers = AxAngle(np_axangles).to_Euler(axis_convention='rzxz')
-    return eulers
