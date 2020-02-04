@@ -24,6 +24,7 @@ import numpy as np
 import warnings
 from itertools import product
 
+from diffsims.generators.zap_map_generator import get_rotation_from_z
 from diffsims.utils.rotation_conversion_utils import Euler
 from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,rotate_axangle, \
@@ -82,7 +83,7 @@ def get_grid_streographic(crystal_system,resolution,equal='angle'):
     Returns
     -------
     rotation_list : list of tuples
-        List of rotations 
+        List of rotations
     """
     beam_directions_rzxz = beam_directions_to_euler_angles(get_beam_directions(crystal_system,resolution,equal=equal))
     beam_directions_szxz = beam_directions_rzxz.to_AxAngle().to_Euler(axis_convention='szxz') # convert to high speed convention
@@ -131,14 +132,14 @@ def get_local_grid(center, max_rotation, resolution):
     return _returnable_eulers_from_axangle(raw_grid_axangle,'rzxz',round_to=2)
 
 
-def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 360),cubic=False):
+def get_grid_around_beam_direction(beam_rotation,resolution, angular_range=(0, 360)):
     """
     Creates a rotation list of rotations for which the rotation is about given beam direction
 
     Parameters
     ----------
-    beam_direction : [x,y,z]
-        A desired beam direction
+    beam_rotation : ())
+        A desired beam direction as a rotation, usually found via
 
     resolution : float
         The 'resolution' of the grid (degrees)
@@ -146,18 +147,14 @@ def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 
     angular_range : tuple
         The minimum (included) and maximum (excluded) rotation around the beam direction to be included
 
-    cubic : bool
-        This only works for cubic systems at the present, when False this raises a warning, set to
-        True to supress said warning. The default is False
-
     Returns
     -------
     rotation_list : list of tuples
     """
 
-    if not cubic:
-        warnings.warn("This code only works for cubic systems at present")
-    rotation_alpha, rotation_beta = _get_rotation_to_beam_direction(beam_direction)
+    # convert to szxz
+    rotation_alpha, rotation_beta = #extract
+
     # see _create_advanced_linearly_spaced_array_in_rzxz for details
     steps_gamma = int(np.ceil((angular_range[1] - angular_range[0])/resolution))
     alpha = np.asarray([rotation_alpha])
