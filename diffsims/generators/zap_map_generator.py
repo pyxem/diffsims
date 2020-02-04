@@ -39,6 +39,12 @@ def get_rotation_from_z(structure,direction):
     --------
     generate_zap_map
     get_grid_around_beam_direction
+
+    Notes
+    -----
+    This implementation works with an initial implementation that has +x as left to right,
+    +y as bottom to top and +z as out of the plane of a page. Rotatins are counter clockwise
+    as you look from the tip of the axis towards the origin
     """
 
     # Case where we don't need a rotation
