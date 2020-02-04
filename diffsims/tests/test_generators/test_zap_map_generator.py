@@ -63,11 +63,18 @@ class TestHexagonal:
 @pytest.mark.parametrize('system',['cubic','hexagonal','trigonal','orthorhombic','tetragonal','monoclinic'])
 def test_zap_map_all_systems(default_structure,default_simulator,system):
     z_dict = generate_zap_map(default_structure,default_simulator,system=system)
+    assert (0,0,1) in z_dict.keys()
+    assert (0,0,0) not in z_dict.keys()
 
 
 @pytest.mark.parametrize('density',['3','7'])
 def test_zap_map_density_changes(default_structure,default_simulator,density):
+    """ Checks density arguments are passed correctly """
     z_dict = generate_zap_map(default_structure,default_simulator,density=density)
+    if density == '3':
+        assert str(len(z_dict.keys())) == 3
+    elif density == '7':
+        assert str(len(z_dict.keys())) > 5 #monoclinic case gives 6 rather than 7
 
 def test_zap_map_kwargs(default_structure,default_simulator):
     z_dict_no_beam = generate_zap_map(default_structure,default_simulator,with_direct_beam=False)

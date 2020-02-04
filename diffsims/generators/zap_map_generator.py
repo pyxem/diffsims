@@ -51,6 +51,10 @@ def get_rotation_from_z(structure,direction):
     if np.dot(direction,[0,0,1]) == np.linalg.norm(direction):
         return (0,0,0)
 
+    # Case where the direction is [0,0,0]
+    if np.allclose(direction,0):
+        return (0,0,0)
+
     # Normalize our directions
     cartesian_direction = structure.lattice.cartesian(direction)
     cartesian_direction = cartesian_direction / np.linalg.norm(cartesian_direction)
@@ -84,6 +88,8 @@ def generate_directional_simulations(structure,simulator,direction_list,reciproc
 
     direction_dictionary = {}
     for direction in direction_list:
+        if np.allclose(direction,0):
+            break
         rotation_rzxz = get_rotation_from_z(structure,direction)
         simulation = simulator.calculate_ed_data(structure,reciprocal_radius,rotation=rotation_rzxz,**kwargs)
         direction_dictionary[direction] = simulation
@@ -122,7 +128,7 @@ def generate_zap_map(structure,simulator,system='cubic',reciprocal_radius=1,dens
         Default to 1
 
     density : str
-        '3' for the corners or '7' (corners + 3 midpoints + 1 centroid)
+        '3' for the corners or '7' (corners + midpoints + centroids)
 
     **kwargs :
         keyword arguments to be passed to simulator.calculate_ed_data()
