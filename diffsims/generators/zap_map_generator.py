@@ -60,46 +60,7 @@ def get_rotation_from_z(structure,direction):
     euler = axangle2euler(rotation_axis,rotation_angle,axes='rzxz')
     return np.rad2deg(euler)
 
-def get_sensible_reciprocal_radius(structure):
-    """
-    Returns a reasonable reciprocal_radius if user hasn't specified one
-
-    Parameters
-    ----------
-    structure : diffpy.structure
-
-    Returns
-    -------
-    reciprocal_radius : float
-    """
-    lattice = structure.lattice
-    shortest_real_space = min((lattice.a,lattice.b,lattice.c))
-    d_star_max = 1/shortest_real_space
-    reciprocal_radius = 3 * d_star_max
-    return reciprocal_radius
-
-def get_system_from_lattice(structure,trigonal=False):
-    lattice = structure.lattice
-    if lattice.gamma == 120:
-        if trigonal:
-            return 'trigonal'
-        else:
-            return 'hexagonal'
-    if lattice.b != lattice.c:
-        if lattice.gamma == 90:
-            if lattice.a != lattice.b:
-                return 'orthorhombic'
-            else:
-                return 'tetragonal'
-        else:
-            return 'monoclinic'
-    if lattice.a == lattice.b:
-        return 'cubic'
-
-    return 'triclinic'
-
-
-def generate_directional_simulations(structure,simulator,direction_list):
+def generate_directional_simulations(structure,simulator,direction_list,reciprocal_radius=1,**kwargs):
     """
     Produces simualtion of a structure aligned with certain axes
 
@@ -112,16 +73,14 @@ def generate_directional_simulations(structure,simulator,direction_list):
     direction_list : list of lists
         A list of [UVW] indicies, eg) [[1,0,0],[1,1,0]]
 
+    reciprocal_radius : float
+        Default to 1
+
     Returns
     -------
     direction_dictionary : dict
         Keys are zone axes, values are simulations
     """
-
-    if reciprocal_radius not in kwargs.keys():
-        reciprocal_radius = get_sensible_reciprocal_radius(structure)
-    else:
-        reciprocal_radius = kwargs['reciprocal_radius']
 
     direction_dictionary = {}
     for direction in direction_list:
@@ -131,7 +90,7 @@ def generate_directional_simulations(structure,simulator,direction_list):
 
     return direction_dictionary
 
-def generate_zap_map(structure,simulator,density):
+def generate_zap_map(structure,simulator,system='cubic',reciprocal_radius=1,density='7',**kwargs):
     """
     Produces a number of zone axis patterns for a structure
 
@@ -140,6 +99,12 @@ def generate_zap_map(structure,simulator,density):
     structure : diffpy.structure
 
     simulator : diffsims.diffraction_generator
+
+    system : str
+        'cubic','hexagonal', 'trigonal', 'tetragonal','orthorhombic','monoclinic' or 'triclinic' - defaults to 'cubic'
+
+    reciprocal_radius : float
+        Default to 1
 
     density : str
         '3' for the corners or '7' (corners + 3 midpoints + 1 centroid)
@@ -165,10 +130,9 @@ def generate_zap_map(structure,simulator,density):
     'monoclinic': [(0, 0, 1), (0, 1, 0), (0, -1, 0)]}
     #TODO include triclinic
 
-    system = get_system_from_lattice(structure)
-    if density == 3:
+    if density == '3':
         direction_list = corners_dict[system]
-    elif density ==7:
+    elif density == '7':
         pass #TODO: write a function to do this
 
     zap_dictionary = generate_directional_simulations(structure,simulator,direction_list,**kwargs)
