@@ -24,6 +24,8 @@ import numpy as np
 import warnings
 from itertools import product
 
+from transforms3d.euler import euler2axangle,axangle2euler
+
 from diffsims.utils.rotation_conversion_utils import Euler
 from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,rotate_axangle, \
@@ -158,7 +160,8 @@ def get_grid_around_beam_direction(beam_rotation,resolution, angular_range=(0, 3
     """
 
     beam_rotation = np.deg2rad(beam_rotation)
-    euler_szxz = axangle2euler(euler2axangle(beam_rotation[0],beam_rotation[1],beam_rotation[2],'rzxz'),'szxz') # convert to szxz
+    axangle = euler2axangle(beam_rotation[0],beam_rotation[1],beam_rotation[2],'rzxz')
+    euler_szxz = axangle2euler(axangle[0],axangle[1],'szxz') # convert to szxz
     rotation_alpha, rotation_beta = np.rad2deg(euler_szxz[0]),np.rad2deg(euler_szxz[1])
 
     # see _create_advanced_linearly_spaced_array_in_rzxz for details
