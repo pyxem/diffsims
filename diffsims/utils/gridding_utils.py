@@ -231,3 +231,26 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
         points_in_cartesians = points_in_cartesians[np.dot(points_in_cartesians,plane_normal)>=0] #0 is the points on the geodesic
 
     return points_in_cartesians
+
+def beam_directions_to_euler_angles(points_in_cartesians):
+    """
+    Converts an array of cartesians (x,y,z unit basis vectors) to the euler angles that would take [0,0,1] to [x,y,z]
+    Parameters
+    ----------
+    points_in_cartesians :
+         Generally output from get_beam_directions()
+    Returns
+    -------
+    diffsims.Euler :
+         The appropriate euler angles
+    """
+    axes = np.cross([0,0,1],points_in_cartesians) #in unit cartesians so this is fine, [0,0,1] returns [0,0,0]
+    norms = np.linalg.norm(axes,axis=1).reshape(-1,1)
+    angle = np.arcsin(norms)
+
+    normalised_axes = np.ones_like(axes)
+    np.divide(axes,norms,out=normalised_axes,where=norms!=0)
+
+    np_axangles = np.hstack((normalised_axes,angle.reshape((-1,1))))
+    eulers = AxAngle(np_axangles).to_Euler(axis_convention='rzxz')
+    return eulers
