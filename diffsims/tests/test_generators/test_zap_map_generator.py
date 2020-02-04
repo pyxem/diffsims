@@ -26,7 +26,7 @@ def test_zero_rotation_cases(default_structure):
     r_test = get_rotation_from_z(default_structure,[0,0,2])
     assert r_test == (0,0,0)
 
-class TestOrthonormals():
+class TestOrthonormals:
 
     @pytest.fixture(params=[(3,3,3),(3,3,4),(3,4,5)])
     def sample_system(self,request):
