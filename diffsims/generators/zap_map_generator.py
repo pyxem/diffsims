@@ -78,6 +78,27 @@ def get_sensible_reciprocal_radius(structure):
     reciprocal_radius = 3 * d_star_max
     return reciprocal_radius
 
+def get_system_from_lattice(structure,trigonal=False):
+    lattice = structure.lattice
+    if lattice.gamma == 120:
+        if trigonal:
+            return 'trigonal'
+        else:
+            return 'hexagonal'
+    if lattice.b != lattice.c:
+        if lattice.gamma == 90:
+            if lattice.a != lattice.b:
+                return 'orthorhombic'
+            else:
+                return 'tetragonal'
+        else:
+            return 'monoclinic'
+    if lattice.a == lattice.b:
+        return 'cubic'
+
+    return 'triclinic'
+
+
 def generate_directional_simulations(structure,simulator,direction_list):
     """
     Produces simualtion of a structure aligned with certain axes
@@ -106,7 +127,8 @@ def generate_directional_simulations(structure,simulator,direction_list):
     for direction in direction_list:
         rotation_rzxz = get_rotation_from_z(structure,direction)
         simulation = simulator.calculate_ed_data(structure,reciprocal_radius,rotation=rotation_rzxz,**kwargs)
-        # adds the direction and simulation to dictionary
+        direction_dictionary[direction] = simulation
+
     return direction_dictionary
 
 def generate_zap_map(structure,simulator,density):
@@ -135,9 +157,19 @@ def generate_zap_map(structure,simulator,density):
 
     """
 
-    # generate list of zone axes directions
-    #direction_list =
+    corners_dict = {'cubic': [(0, 0, 1), (1, 0, 1), (1, 1, 1)],
+    'hexagonal': [(0, 0, 0, 1), (1, 0, -1, 0), (1, 1, -2, 0)],
+    'orthorhombic': [(0, 0, 1), (1, 0, 0), (0, 1, 0)],
+    'tetragonal': [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
+    'trigonal': [(0, 0, 0, 1), (0, -1, 1, 0), (1, -1, 0, 0)],
+    'monoclinic': [(0, 0, 1), (0, 1, 0), (0, -1, 0)]}
+
+    system = get_system_from_lattice(structure)
+    if density == 3:
+        direction_list = corners_dict[system]
+    elif density ==7:
+        pass
 
     zap_dictionary = generate_directional_simulations(structure,simulator,direction_list,**kwargs)
 
-    pass
+    return zap_dictionary
