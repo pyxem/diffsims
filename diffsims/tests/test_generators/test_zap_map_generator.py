@@ -70,4 +70,8 @@ def test_zap_map_density_changes(default_structure,default_simulator,density):
     z_dict = generate_zap_map(default_structure,default_simulator,density=density)
 
 def test_zap_map_kwargs(default_structure,default_simulator):
-    z_dict = generate_zap_map(default_structure,default_simulator,with_direct_beam=False)
+    z_dict_no_beam = generate_zap_map(default_structure,default_simulator,with_direct_beam=False)
+    z_dict_yes_beam = generate_zap_map(default_structure,default_simulator,with_direct_beam=True)
+    for k in z_dict_no_beam.keys():
+        assert k in z_dict_yes_beam.keys() #both dictionary's have the same keys
+        assert z_dict_no_beam[k].intensities.shape[0] == z_dict_yes_beam[k].intensities.shape[0] - 1
