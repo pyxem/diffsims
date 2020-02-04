@@ -60,7 +60,7 @@ class TestHexagonal:
     def test_rotation_to_streographic_corner_b(self):
         pass
 
-@pytest.mark.parametrize('system',['cubic','hexagonal','trigonal','orthorhombic','tetragonal','monoclinic','triclinic'])
+@pytest.mark.parametrize('system',['cubic','hexagonal','trigonal','orthorhombic','tetragonal','monoclinic'])
 def test_zap_map_all_systems(default_structure,default_simulator,system):
     z_dict = generate_zap_map(default_structure,default_simulator,system=system)
 

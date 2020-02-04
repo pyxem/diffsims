@@ -116,7 +116,7 @@ def generate_zap_map(structure,simulator,system='cubic',reciprocal_radius=1,dens
     simulator : diffsims.diffraction_generator
 
     system : str
-        'cubic','hexagonal', 'trigonal', 'tetragonal','orthorhombic','monoclinic' or 'triclinic' - defaults to 'cubic'
+        'cubic','hexagonal', 'trigonal', 'tetragonal','orthorhombic','monoclinic' - defaults to 'cubic'
 
     reciprocal_radius : float
         Default to 1
@@ -143,7 +143,6 @@ def generate_zap_map(structure,simulator,system='cubic',reciprocal_radius=1,dens
     'tetragonal': [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
     'trigonal': [(0, 0, 1), (-1, -2, 0), (1, -1, 0)],
     'monoclinic': [(0, 0, 1), (0, 1, 0), (0, -1, 0)]}
-    #TODO include triclinic
 
     if density == '3':
         direction_list = corners_dict[system]
