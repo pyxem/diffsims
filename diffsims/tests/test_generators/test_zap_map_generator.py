@@ -20,7 +20,7 @@ import pytest
 
 import diffpy.structure
 import numpy as np
-from diffsims.generators.zap_map_generator import get_rotation_from_z
+from diffsims.generators.zap_map_generator import get_rotation_from_z, generate_zap_map
 
 def test_zero_rotation_cases(default_structure):
     r_test = get_rotation_from_z(default_structure,[0,0,2])
@@ -59,3 +59,15 @@ class TestHexagonal:
         pass
     def test_rotation_to_streographic_corner_b(self):
         pass
+
+@pytest.mark.parametrize('system',['cubic','hexagonal','trigonal','orthorhombic','tetragonal','monoclinic','triclinic'])
+def test_zap_map_all_systems(default_structure,default_simulator,system):
+    z_dict = generate_zap_map(default_structure,default_simulator,system=system)
+
+
+@pytest.mark.parametrize('density',['3','7'])
+def test_zap_map_density_changes(default_structure,default_simulator,density):
+    z_dict = generate_zap_map(default_structure,default_simulator,density=density)
+
+def test_zap_map_kwargs(default_structure,default_simulator):
+    z_dict = generate_zap_map(default_structure,default_simulator,with_direct_beam=False)
