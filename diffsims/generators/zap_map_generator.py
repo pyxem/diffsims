@@ -90,6 +90,21 @@ def generate_directional_simulations(structure,simulator,direction_list,reciproc
 
     return direction_dictionary
 
+def corners_to_centroid_and_edge_centers(corners):
+    """
+
+    Parameters
+    ----------
+    corners : list of lists
+
+    """
+    ca,cb,cc = corners[0],corners[1],corners[2]
+    mean = tuple(np.add(np.add(ca,cb),cc))
+    cab  = tuple(np.add(ca,cb))
+    cbc  = tuple(np.add(cb,cc))
+    cac  = tuple(np.add(ca,cc))
+    return [ca,cb,cc,mean,cab,cbc,cac]
+
 def generate_zap_map(structure,simulator,system='cubic',reciprocal_radius=1,density='7',**kwargs):
     """
     Produces a number of zone axis patterns for a structure
@@ -133,7 +148,7 @@ def generate_zap_map(structure,simulator,system='cubic',reciprocal_radius=1,dens
     if density == '3':
         direction_list = corners_dict[system]
     elif density == '7':
-        pass #TODO: write a function to do this
+        direction_list  = corners_to_centroid_and_edge_centers(corners_dict[system])
 
     zap_dictionary = generate_directional_simulations(structure,simulator,direction_list,**kwargs)
 
