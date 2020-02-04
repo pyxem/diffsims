@@ -49,6 +49,8 @@ def vectorised_qmult(q1, qdata):
     z = w1*z2 + z1*w2 + x1*y2 - y1*x2
     return np.array([w, x, y, z]).T
 
+
+#TODO: delete, this is superceded.
 def _get_rotation_to_beam_direction(beam_direction):
     """ A helper function for getting rotations around a beam direction, the
     returns the first two angles (szxz) needed to place the viewer looking down the
@@ -258,6 +260,7 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
 
     return points_in_cartesians
 
+#TODO: This is superceded by the ZAP map functionality.
 def beam_directions_to_euler_angles(points_in_cartesians):
     """
     Converts an array of cartesians (x,y,z unit basis vectors) to the euler angles that would take [0,0,1] to [x,y,z]
