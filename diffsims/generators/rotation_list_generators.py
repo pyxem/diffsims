@@ -28,7 +28,7 @@ from diffsims.utils.rotation_conversion_utils import Euler
 from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,rotate_axangle, \
                                           _create_advanced_linearly_spaced_array_in_rzxz, \
-                                          _get_rotation_to_beam_direction, get_beam_directions, beam_directions_to_euler_angles
+                                          get_beam_directions
 
 
 def _returnable_eulers_from_axangle(grid,axis_convention,round_to):
