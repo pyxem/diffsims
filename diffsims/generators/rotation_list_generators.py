@@ -157,7 +157,8 @@ def get_grid_around_beam_direction(beam_rotation,resolution, angular_range=(0, 3
     >>> grid = get_grid_around_beam_direction(beam_rotation,1)
     """
 
-    euler_szxz = axangle2euler(euler2axangle(,,,'rzxz'),'szxz') # convert to szxz
+    beam_rotation = np.deg2rad(beam_rotation)
+    euler_szxz = axangle2euler(euler2axangle(beam_rotation[0],beam_rotation[1],beam_rotation[2],'rzxz'),'szxz') # convert to szxz
     rotation_alpha, rotation_beta = np.rad2deg(euler_szxz[0]),np.rad2deg(euler_szxz[1])
 
     # see _create_advanced_linearly_spaced_array_in_rzxz for details
