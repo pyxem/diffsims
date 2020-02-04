@@ -35,7 +35,7 @@ crystal_system_dictionary = {'cubic':[45,54.7,0],
  'tetragonal':[45,90,0],
  'orthorhombic':[90,90,0],
  'monoclinic':[90,0,-90],
- 'triclinic':[360,180,0]}
+ 'triclinic':[180,360,0]}
 
 
 def vectorised_qmult(q1, qdata):
