@@ -22,53 +22,35 @@ import diffpy.structure
 import numpy as np
 from diffsims.generators.zap_map_generator import get_rotation_from_z
 
-@pytest.fixture
-def cubic():
-    """An atomic structure represented using diffpy
-    """
-    latt = diffpy.structure.lattice.Lattice(3,3,3,90,90,90)
-    atom = diffpy.structure.atom.Atom(atype='Ni',xyz=[0,0,0],lattice=latt)
-    return diffpy.structure.Structure(atoms=[atom],lattice=latt)
-
-
-@pytest.mark.parametrize("sample_system",[cubic])
-def test_zero_rotation_cases(sample_system):
-    r_test = get_rotation_from_z(sample_system,[0,0,2])
+def test_zero_rotation_cases(default_structure):
+    r_test = get_rotation_from_z(default_structure,[0,0,2])
     assert r_test == (0,0,0)
-
-
-
 
 class TestOrthonormals():
 
     @pytest.fixture(params=[(3,3,3),(3,3,4),(3,4,5)])
     def sample_system(self,request):
-        """An atomic structure represented using diffpy
-        """
+        """Orthonormal structures"""
         a,b,c = request.param[0],request.param[1],request.param[2]
         latt = diffpy.structure.lattice.Lattice(a,b,c,90,90,90)
         atom = diffpy.structure.atom.Atom(atype='Ni',xyz=[0,0,0],lattice=latt)
         return diffpy.structure.Structure(atoms=[atom],lattice=latt)
 
-    def test_rotation_to_x_axis(self,sample_system):
-        r_to_x = get_rotation_from_z(sample_system,[0,1,0])
-        assert np.allclose(r_to_x,(0,90,0))
+    def test_rotation_to__static_x_axis(self,sample_system):
+        r_to_x = get_rotation_from_z(sample_system,[1,0,0])
+        assert np.allclose(r_to_x,(90,90,-90))
 
-    def test_rotation_to_y_axis(self,sample_system):
-        r_to_y = get_rotation_from_z(sample_system,[1,0,0])
-        assert np.allclose(r_to_y,(90,90,0))
+    def test_rotation_to_static_y_axis(self,sample_system):
+        r_to_y = get_rotation_from_z(sample_system,[0,1,0])
+        assert np.allclose(r_to_y,(180,90,-180))
 
-    def test_rotations_to_yz(self,sample_system):
-        """ We rotate from z towards y, in the cubic case the angle
-        will be 45, ---- """
+    def test_rotations_to_static_yz(self,sample_system):
+        """ We rotate from z towards y, and compare the results to geometry"""
         r_to_yz = get_rotation_from_z(sample_system,[0,1,1])
-        cos_angle = np.cos(np.deg2rad(r_to_yz[2]))
-        cos_lattice = sample_system.lattice.b / sample_system.lattice.c
-        assert cos_angle == cos_lattice
+        tan_angle = np.tan(np.deg2rad(r_to_yz[1]))
+        tan_lattice = sample_system.lattice.b / sample_system.lattice.c
+        assert np.allclose(tan_angle,tan_lattice,atol=1e-5)
 
-    def test_rotation_to_111(self,sample_system):
-        """ Cubic case is known Z for 45° and around X by 54.74° """
-        pass
 
 class TestHexagonal:
     """ Results are taken from """
