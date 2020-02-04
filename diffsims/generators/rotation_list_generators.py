@@ -24,7 +24,6 @@ import numpy as np
 import warnings
 from itertools import product
 
-from diffsims.generators.zap_map_generator import get_rotation_from_z
 from diffsims.utils.rotation_conversion_utils import Euler
 from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,rotate_axangle, \
@@ -138,8 +137,8 @@ def get_grid_around_beam_direction(beam_rotation,resolution, angular_range=(0, 3
 
     Parameters
     ----------
-    beam_rotation : ())
-        A desired beam direction as a rotation, usually found via
+    beam_rotation : tuple
+        A desired beam direction as a rotation (rzxz eulers), usually found via get_rotation_from_z
 
     resolution : float
         The resolution of the grid (degrees)
@@ -150,6 +149,12 @@ def get_grid_around_beam_direction(beam_rotation,resolution, angular_range=(0, 3
     Returns
     -------
     rotation_list : list of tuples
+
+    Example
+    -------
+    >>> from diffsims.generators.zap_map_generator import get_rotation_from_z
+    >>> beam_rotation = get_rotation_from_z(structure,[1,1,1])
+    >>> grid = get_grid_around_beam_direction(beam_rotation,1)
     """
 
     # convert to szxz

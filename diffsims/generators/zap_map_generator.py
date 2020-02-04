@@ -154,7 +154,7 @@ def generate_zap_map(structure,simulator,density):
 
     Example
     -------
-
+    #TODO: illustrate how to plot a bunch of sims
     """
 
     corners_dict = {'cubic': [(0, 0, 1), (1, 0, 1), (1, 1, 1)],
@@ -163,12 +163,13 @@ def generate_zap_map(structure,simulator,density):
     'tetragonal': [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
     'trigonal': [(0, 0, 0, 1), (0, -1, 1, 0), (1, -1, 0, 0)],
     'monoclinic': [(0, 0, 1), (0, 1, 0), (0, -1, 0)]}
+    #TODO include triclinic
 
     system = get_system_from_lattice(structure)
     if density == 3:
         direction_list = corners_dict[system]
     elif density ==7:
-        pass
+        pass #TODO: write a function to do this
 
     zap_dictionary = generate_directional_simulations(structure,simulator,direction_list,**kwargs)
 
