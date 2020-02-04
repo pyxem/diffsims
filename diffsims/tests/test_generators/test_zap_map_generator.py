@@ -24,7 +24,10 @@ from diffsims.generators.zap_map_generator import get_rotation_from_z, generate_
 
 def test_zero_rotation_cases(default_structure):
     r_test = get_rotation_from_z(default_structure,[0,0,2])
+    r_test_zero = get_rotation_from_z(default_structure,[0,0,0])
     assert r_test == (0,0,0)
+    assert r_test_zero == (0,0,0)
+
 
 class TestOrthonormals:
 
@@ -52,20 +55,11 @@ class TestOrthonormals:
         assert np.allclose(tan_angle,tan_lattice,atol=1e-5)
 
 
-class TestHexagonal:
-    """ Results are taken from """
-
-    def test_rotation_to_streographic_corner_a(self):
-        pass
-    def test_rotation_to_streographic_corner_b(self):
-        pass
-
 @pytest.mark.parametrize('system',['cubic','hexagonal','trigonal','orthorhombic','tetragonal','monoclinic'])
 def test_zap_map_all_systems(default_structure,default_simulator,system):
     z_dict = generate_zap_map(default_structure,default_simulator,system=system)
     assert (0,0,1) in z_dict.keys()
     assert (0,0,0) not in z_dict.keys()
-
 
 @pytest.mark.parametrize('density',['3','7'])
 def test_zap_map_density_changes(default_structure,default_simulator,density):
