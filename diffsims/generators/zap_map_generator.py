@@ -28,7 +28,7 @@ def get_rotation_from_z(structure,direction):
     structure : diffpy.structure
 
     direction : array like
-        [UVW]
+        [UVW] direction that the 'z' axis should end up point down.
 
     Returns
     -------
@@ -42,8 +42,8 @@ def get_rotation_from_z(structure,direction):
 
     Notes
     -----
-    This implementation works with an initial implementation that has +x as left to right,
-    +y as bottom to top and +z as out of the plane of a page. Rotatins are counter clockwise
+    This implementation works with an axis arrangement that has +x as left to right,
+    +y as bottom to top and +z as out of the plane of a page. Rotations are counter clockwise
     as you look from the tip of the axis towards the origin
     """
 
@@ -55,6 +55,7 @@ def get_rotation_from_z(structure,direction):
     cartesian_direction = structure.lattice.cartesian(direction)
     cartesian_direction = cartesian_direction / np.linalg.norm(cartesian_direction)
 
+    #Find the rotation using cartesian vector geometry
     rotation_axis = np.cross([0,0,1],cartesian_direction)
     rotation_angle = np.arccos(np.dot([0,0,1],cartesian_direction))
     euler = axangle2euler(rotation_axis,rotation_angle,axes='rzxz')
