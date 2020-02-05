@@ -133,7 +133,7 @@ def cyclic_group(data, order):
     # As pi rotations are present in the input and output we avoid a call to numpy_bounding_plane
     z_distance = np.multiply(data[:,2], data[:,3]) # gets the z component of the distance, can be nan
     z_distance = np.abs(np.nan_to_num(z_distance))  # case pi rotation, 0 z component of vector
-    mask = z_distance < np.tan(np.pi / (2*order))
+    mask =  z_distance < np.tan(np.pi / (2*order))
     return mask
 
 def dihedral_group(data, order):
