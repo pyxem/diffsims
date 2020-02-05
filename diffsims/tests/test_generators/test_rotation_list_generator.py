@@ -39,7 +39,11 @@ def test_get_grid_around_beam_direction():
 
 @pytest.mark.parametrize("space_group_number",[1,3,30,190,215,229])
 def test_get_fundemental_zone_grid(space_group_number):
-    grid = get_fundemental_zone_grid(space_group_number,resolution=3)
+    grid_narrow = get_fundemental_zone_grid(space_group_number,resolution=6)
+    grid_wide = get_fundemental_zone_grid(space_group_number,resolution=12)
+    assert (len(grid_narrow)/len(grid_wide)) > (2**3) - 1 #lower bounds
+    assert (len(grid_narrow)/len(grid_wide)) < (2**3) + 1 #upper bounds
+
 
 def test_get_grid_streographic():
     grid = get_grid_streographic('tetragonal',1,equal='angle')
