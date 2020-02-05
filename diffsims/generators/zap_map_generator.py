@@ -26,6 +26,7 @@ def get_rotation_from_z_to_direction(structure,direction):
     Parameters
     ----------
     structure : diffpy.structure
+        The structure for which a rotation needs to be found
 
     direction : array like
         [UVW] direction that the 'z' axis should end up point down.
@@ -68,8 +69,10 @@ def generate_directional_simulations(structure,simulator,direction_list,reciproc
     Parameters
     ----------
     structure : diffpy.structure
+        The structure from which simulations need to be produced
 
-    simulator :
+    simulator : DiffractionGenerator
+        The diffraction generator object used to produce the simulations
 
     direction_list : list of lists
         A list of [UVW] indicies, eg) [[1,0,0],[1,1,0]]
@@ -95,11 +98,19 @@ def generate_directional_simulations(structure,simulator,direction_list,reciproc
 
 def corners_to_centroid_and_edge_centers(corners):
     """
+    Produces the midpoints and center of a trio of corners
 
     Parameters
     ----------
     corners : list of lists
+        Three corners of a streographic triangle
 
+    Returns
+    -------
+    list_of_corners : list
+        Length 7, elements ca,cb,cc,mean,cab,cbc,cac where naming is such that
+        ca is the first corner of the input, and cab is the midpoint between
+        corner a and corner b.
     """
     ca,cb,cc = corners[0],corners[1],corners[2]
     mean = tuple(np.add(np.add(ca,cb),cc))
@@ -115,17 +126,18 @@ def generate_zap_map(structure,simulator,system='cubic',reciprocal_radius=1,dens
     Parameters
     ----------
     structure : diffpy.structure
+        The structure to be simulated
 
-    simulator : diffsims.diffraction_generator
-
+    simulator : DiffractionGenerator
+        The simulator used to generate the simulations
     system : str
-        'cubic','hexagonal', 'trigonal', 'tetragonal','orthorhombic','monoclinic' - defaults to 'cubic'
+        'cubic','hexagonal', 'trigonal', 'tetragonal','orthorhombic','monoclinic' - Defaults to 'cubic'
 
     reciprocal_radius : float
-        Default to 1
+        The range of reciprocal lattice spots to be included. Default to 1
 
     density : str
-        '3' for the corners or '7' (corners + midpoints + centroids)
+        '3' for the corners or '7' (corners + midpoints + centroids). Defaults to 7
 
     **kwargs :
         keyword arguments to be passed to simulator.calculate_ed_data()
