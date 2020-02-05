@@ -140,7 +140,7 @@ def get_grid_around_beam_direction(beam_rotation,resolution, angular_range=(0, 3
     Parameters
     ----------
     beam_rotation : tuple
-        A desired beam direction as a rotation (rzxz eulers), usually found via get_rotation_from_z
+        A desired beam direction as a rotation (rzxz eulers), usually found via get_rotation_from_z_to_direction
 
     resolution : float
         The resolution of the grid (degrees)
@@ -154,8 +154,8 @@ def get_grid_around_beam_direction(beam_rotation,resolution, angular_range=(0, 3
 
     Example
     -------
-    >>> from diffsims.generators.zap_map_generator import get_rotation_from_z
-    >>> beam_rotation = get_rotation_from_z(structure,[1,1,1])
+    >>> from diffsims.generators.zap_map_generator import get_rotation_from_z_to_direction
+    >>> beam_rotation = get_rotation_from_z_to_direction(structure,[1,1,1])
     >>> grid = get_grid_around_beam_direction(beam_rotation,1)
     """
 

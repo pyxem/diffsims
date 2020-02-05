@@ -19,7 +19,7 @@
 import numpy as np
 from transforms3d.euler import axangle2euler
 
-def get_rotation_from_z(structure,direction):
+def get_rotation_from_z_to_direction(structure,direction):
     """
     Finds the rotation that takes [001] to a given zone axis.
 
@@ -87,7 +87,7 @@ def generate_directional_simulations(structure,simulator,direction_list,reciproc
     for direction in direction_list:
         if np.allclose(direction,0):
             break
-        rotation_rzxz = get_rotation_from_z(structure,direction)
+        rotation_rzxz = get_rotation_from_z_to_direction(structure,direction)
         simulation = simulator.calculate_ed_data(structure,reciprocal_radius,rotation=rotation_rzxz,**kwargs)
         direction_dictionary[direction] = simulation
 
