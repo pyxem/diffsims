@@ -130,6 +130,7 @@ def generate_zap_map(structure,simulator,system='cubic',reciprocal_radius=1,dens
 
     simulator : DiffractionGenerator
         The simulator used to generate the simulations
+
     system : str
         'cubic','hexagonal', 'trigonal', 'tetragonal','orthorhombic','monoclinic' - Defaults to 'cubic'
 
@@ -149,7 +150,15 @@ def generate_zap_map(structure,simulator,system='cubic',reciprocal_radius=1,dens
 
     Example
     -------
-    #TODO: illustrate how to plot a bunch of sims
+    Plot all of the patterns that you have generated
+
+    >>> zap_map = generate_zap_map(structure,simulator,'hexagonal',density='3')
+    >>> for k in zap_map.keys():
+    >>>     pattern = zap_map[k]
+    >>>     pattern.calibration = 4e-3
+    >>>     plt.imshow(pattern.get_diffraction_pattern(),vmax=0.02)
+    >>>     plt.figure()
+    
     """
 
     corners_dict = {'cubic': [(0, 0, 1), (1, 0, 1), (1, 1, 1)],
