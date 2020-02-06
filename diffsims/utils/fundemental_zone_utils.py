@@ -104,7 +104,7 @@ def numpy_bounding_plane(data, vector, distance):
         raise ValueError("Your data contains rotations of pi")
 
     n_vector = np.divide(vector,np.linalg.norm(vector))
-    inner_region = np.abs(np.dot(data[:,:3],n_vector)) < distance
+    inner_region = (np.abs(np.dot(data[:,:3],n_vector))*data[:,3]) < distance
 
     return inner_region
 
