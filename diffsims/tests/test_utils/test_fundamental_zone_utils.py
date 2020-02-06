@@ -34,6 +34,15 @@ def sparse_rzxz_grid():
     axangle = z.to_AxAngle()
     return axangle
 
+def assert_volume_changes_obeyed(r,start_size,volume):
+    """
+
+    """
+
+    assert r.data.shape[0] > 0
+    assert r.data.shape[0] < (start_size*volume*1.1)
+    assert r.data.shape[0] > (start_size*volume*0.9)
+
 """ Tests of internal functionality """
 
 def test_select_fundemental_zone():
@@ -106,9 +115,9 @@ def test_orthogonal_linear_case_for_cyclic_group(fz_string):
 def test_cyclic_groups(sparse_rzxz_grid,order):
     start_size = sparse_rzxz_grid.data.shape[0]
     r = reduce_to_fundemental_zone(sparse_rzxz_grid,order)
-    assert r.data.shape[0] > 0
-    assert r.data.shape[0] > (start_size/(1.1*int(order)))
-    assert r.data.shape[0] < (start_size/(0.9*int(order)))
+    volume = 1/int(order)
+    assert_volume_changes_obeyed(r,start_size,volume)
+
 
 """ Dihedral case """
 
@@ -127,9 +136,7 @@ def test_dihedral_groups(sparse_rzxz_grid,point_group_str):
     volume = 1 / (2*order) # From page 103 of Morawiec
     start_size = sparse_rzxz_grid.data.shape[0]
     r = reduce_to_fundemental_zone(sparse_rzxz_grid,point_group_str)
-    assert r.data.shape[0] > 0
-    assert r.data.shape[0] > (start_size * volume * 0.9)
-    assert r.data.shape[0] < (start_size * volume * 1.1)
+    assert_volume_changes_obeyed(r,start_size,volume)
 
 """ Cubic cases """
 
@@ -137,14 +144,10 @@ def test_tetragonal_group(sparse_rzxz_grid):
     volume = 1 / (12) # From "On three dimensional misorientation spaces"
     start_size = sparse_rzxz_grid.data.shape[0]
     r = reduce_to_fundemental_zone(sparse_rzxz_grid,'23')
-    assert r.data.shape[0] > 0
-    assert r.data.shape[0] > (start_size * volume * 0.9)
-    assert r.data.shape[0] < (start_size * volume * 1.1)
+    assert_volume_changes_obeyed(r,start_size,volume)
 
 def test_octahedral_group(sparse_rzxz_grid):
     volume = 1 / (24) # From "On three dimensional misorientation spaces"
     start_size = sparse_rzxz_grid.data.shape[0]
     r = reduce_to_fundemental_zone(sparse_rzxz_grid,'432')
-    assert r.data.shape[0] > 0
-    assert r.data.shape[0] > (start_size * volume * 0.9)
-    assert r.data.shape[0] < (start_size * volume * 1.1)
+    assert_volume_changes_obeyed(r,start_size,volume)
