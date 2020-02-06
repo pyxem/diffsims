@@ -130,3 +130,21 @@ def test_dihedral_groups(sparse_rzxz_grid,point_group_str):
     assert r.data.shape[0] > 0
     assert r.data.shape[0] > (start_size * volume * 0.9)
     assert r.data.shape[0] < (start_size * volume * 1.1)
+
+""" Cubic cases """
+
+def test_tetragonal_group(sparse_rzxz_grid):
+    volume = 1 / (12) # From "On three dimensional misorientation spaces"
+    start_size = sparse_rzxz_grid.data.shape[0]
+    r = reduce_to_fundemental_zone(sparse_rzxz_grid,'23')
+    assert r.data.shape[0] > 0
+    assert r.data.shape[0] > (start_size * volume * 0.9)
+    assert r.data.shape[0] < (start_size * volume * 1.1)
+
+def test_octahedral_group(sparse_rzxz_grid):
+    volume = 1 / (24) # From "On three dimensional misorientation spaces"
+    start_size = sparse_rzxz_grid.data.shape[0]
+    r = reduce_to_fundemental_zone(sparse_rzxz_grid,'432')
+    assert r.data.shape[0] > 0
+    assert r.data.shape[0] > (start_size * volume * 0.9)
+    assert r.data.shape[0] < (start_size * volume * 1.1)
