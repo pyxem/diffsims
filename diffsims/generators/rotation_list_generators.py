@@ -24,11 +24,13 @@ import numpy as np
 import warnings
 from itertools import product
 
+from transforms3d.euler import euler2axangle,axangle2euler
+
 from diffsims.utils.rotation_conversion_utils import Euler
 from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,rotate_axangle, \
                                           _create_advanced_linearly_spaced_array_in_rzxz, \
-                                          _get_rotation_to_beam_direction, get_beam_directions, beam_directions_to_euler_angles
+                                          get_beam_directions, beam_directions_to_euler_angles
 
 
 def _returnable_eulers_from_axangle(grid,axis_convention,round_to):
@@ -131,33 +133,37 @@ def get_local_grid(center, max_rotation, resolution):
     return _returnable_eulers_from_axangle(raw_grid_axangle,'rzxz',round_to=2)
 
 
-def get_grid_around_beam_direction(beam_direction,resolution, angular_range=(0, 360),cubic=False):
+def get_grid_around_beam_direction(beam_rotation,resolution, angular_range=(0, 360)):
     """
     Creates a rotation list of rotations for which the rotation is about given beam direction
 
     Parameters
     ----------
-    beam_direction : [x,y,z]
-        A desired beam direction
+    beam_rotation : tuple
+        A desired beam direction as a rotation (rzxz eulers), usually found via get_rotation_from_z_to_direction
 
     resolution : float
-        The 'resolution' of the grid (degrees)
+        The resolution of the grid (degrees)
 
     angular_range : tuple
         The minimum (included) and maximum (excluded) rotation around the beam direction to be included
 
-    cubic : bool
-        This only works for cubic systems at the present, when False this raises a warning, set to
-        True to supress said warning. The default is False
-
     Returns
     -------
     rotation_list : list of tuples
+
+    Example
+    -------
+    >>> from diffsims.generators.zap_map_generator import get_rotation_from_z_to_direction
+    >>> beam_rotation = get_rotation_from_z_to_direction(structure,[1,1,1])
+    >>> grid = get_grid_around_beam_direction(beam_rotation,1)
     """
 
-    if not cubic:
-        warnings.warn("This code only works for cubic systems at present")
-    rotation_alpha, rotation_beta = _get_rotation_to_beam_direction(beam_direction)
+    beam_rotation = np.deg2rad(beam_rotation)
+    axangle = euler2axangle(beam_rotation[0],beam_rotation[1],beam_rotation[2],'rzxz')
+    euler_szxz = axangle2euler(axangle[0],axangle[1],'szxz') # convert to szxz
+    rotation_alpha, rotation_beta = np.rad2deg(euler_szxz[0]),np.rad2deg(euler_szxz[1])
+
     # see _create_advanced_linearly_spaced_array_in_rzxz for details
     steps_gamma = int(np.ceil((angular_range[1] - angular_range[0])/resolution))
     alpha = np.asarray([rotation_alpha])

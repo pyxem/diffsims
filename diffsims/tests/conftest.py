@@ -22,15 +22,23 @@ import numpy as np
 from transforms3d.euler import euler2mat
 
 from diffsims.libraries.vector_library import DiffractionVectorLibrary
+from diffsims.generators.diffraction_generator import DiffractionGenerator
 
 @pytest.fixture
 def default_structure():
-    """An atomic structure represetned using diffpy
+    """An atomic structure represented using diffpy
     """
     latt = diffpy.structure.lattice.Lattice(3,3,5,90,90,120)
     atom = diffpy.structure.atom.Atom(atype='Ni',xyz=[0,0,0],lattice=latt)
     hexagonal_structure = diffpy.structure.Structure(atoms=[atom],lattice=latt)
     return hexagonal_structure
+
+@pytest.fixture
+def default_simulator():
+    accelerating_voltage = 300
+    max_excitation_error = 1e-2
+    return DiffractionGenerator(accelerating_voltage,max_excitation_error)
+
 
 @pytest.fixture()
 def random_eulers():
