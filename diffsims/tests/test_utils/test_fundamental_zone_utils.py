@@ -20,7 +20,8 @@ import pytest
 import numpy as np
 
 from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone,\
-                                                  numpy_bounding_plane, cyclic_group, remove_out_of_domain_rotations,\
+                                                  numpy_bounding_plane, cyclic_group, dihedral_group, \
+                                                  remove_out_of_domain_rotations,\
                                                   generate_mask_from_rodrigues_frank
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz
 from diffsims.utils.rotation_conversion_utils import Euler,AxAngle
@@ -29,15 +30,9 @@ from diffsims.utils.rotation_conversion_utils import Euler,AxAngle
 
 @pytest.fixture()
 def sparse_rzxz_grid():
-    z = create_linearly_spaced_array_in_rzxz(2)
+    z = create_linearly_spaced_array_in_rzxz(5)
     axangle = z.to_AxAngle()
     return axangle
-
-@pytest.fixture()
-def along_x_axis():
-    axis = np.hstack((np.ones((2000,1)),np.zeros((2000,2))))
-    angle = np.linspace(-np.pi,np.pi,2000)
-    return AxAngle(np.hstack((axis,angle.reshape(-1,1))))
 
 """ Tests of internal functionality """
 
@@ -76,6 +71,11 @@ def test_generate_mask_from_rodrigues_frank(sparse_rzxz_grid,point_group_str):
             assert np.sum(mask) > 0
             assert np.sum(mask) < (start_size*0.8)
 
+@pytest.mark.xfail(strict=True)
+def test_edge_case_numpy_bounding_plane():
+    z = np.asarray([1,1,1,np.inf])
+    numpy_bounding_plane(data=z,vector=[1,1,1],distance=1)
+
 """ Broad test that the code runs """
 @pytest.mark.parametrize("fz_string", ['1', '2', '222', '3', '32', '6', '622', '4', '422', '432', '23'])
 def test_non_zero_returns(sparse_rzxz_grid,fz_string):
@@ -88,14 +88,17 @@ def test_non_zero_returns(sparse_rzxz_grid,fz_string):
 def test_cyclic(order):
     """ Uniform spacing in RF """
     axis = np.hstack((np.zeros((2000,2)),np.ones((2000,1))))
-    rf = np.tan(np.linspace(0,np.pi,2000))
+    rf = np.tan(np.linspace(0,np.pi/2,2000))
     z = np.hstack((axis,rf.reshape(-1,1)))
     reduced = cyclic_group(z,order)
     assert np.allclose(np.sum(reduced),2000/order,atol=3)
 
 @pytest.mark.parametrize("fz_string",['1','2','3','4','6'])
-def test_orthogonal_linear_case_for_cyclic_group(along_x_axis,fz_string):
+def test_orthogonal_linear_case_for_cyclic_group(fz_string):
     """ Rotations about x feel no effect of the cyclic group """
+    axis = np.hstack((np.ones((2000,1)),np.zeros((2000,2))))
+    angle = np.linspace(-np.pi,np.pi,2000)
+    along_x_axis = AxAngle(np.hstack((axis,angle.reshape(-1,1))))
     reduced = reduce_to_fundemental_zone(along_x_axis,fz_string)
     assert reduced.data.shape[0] == along_x_axis.data.shape[0]
 
@@ -109,6 +112,15 @@ def test_cyclic_groups(sparse_rzxz_grid,order):
 
 """ Dihedral case """
 
+@pytest.mark.parametrize("order",[2,3,4,6])
+def test_x_direction_dihedral(order):
+    """ Uniform spacing in RF """
+    axis = np.hstack((np.ones((2000,1)),np.zeros((2000,2))))
+    rf = np.tan(np.linspace(0,np.pi/2,2000))
+    z = np.hstack((axis,rf.reshape(-1,1)))
+    reduced = dihedral_group(z,order)
+    assert np.allclose(np.sum(reduced),2000/2,atol=3)
+
 @pytest.mark.parametrize("point_group_str",['222', '32', '422', '622'])
 def test_dihedral_groups(sparse_rzxz_grid,point_group_str):
     order = int(point_group_str[0])
@@ -118,10 +130,3 @@ def test_dihedral_groups(sparse_rzxz_grid,point_group_str):
     assert r.data.shape[0] > 0
     assert r.data.shape[0] > (start_size * volume * 0.9)
     assert r.data.shape[0] < (start_size * volume * 1.1)
-
-
-""" Internal edge cases """
-@pytest.mark.xfail(strict=True)
-def test_edge_case_numpy_bounding_plane():
-    z = np.asarray([1,1,1,np.inf])
-    numpy_bounding_plane(data=z,vector=[1,1,1],distance=1)
