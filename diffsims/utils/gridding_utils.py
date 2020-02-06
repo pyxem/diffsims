@@ -35,7 +35,7 @@ crystal_system_dictionary = {'cubic':[45,54.7,0],
  'tetragonal':[45,90,0],
  'orthorhombic':[90,90,0],
  'monoclinic':[90,0,-90],
- 'triclinic':[360,180,0]}
+ 'triclinic':[180,360,0]}
 
 
 def vectorised_qmult(q1, qdata):
@@ -48,32 +48,6 @@ def vectorised_qmult(q1, qdata):
     y = w1*y2 + y1*w2 + z1*x2 - x1*z2
     z = w1*z2 + z1*w2 + x1*y2 - y1*x2
     return np.array([w, x, y, z]).T
-
-def _get_rotation_to_beam_direction(beam_direction):
-    """ A helper function for getting rotations around a beam direction, the
-    returns the first two angles (szxz) needed to place the viewer looking down the
-    given zone axis.
-
-    Parameters
-    ----------
-    beam_direction : [vx,vy,vz]
-
-    Returns
-    -------
-    alpha,beta : angles in degrees
-
-    See Also
-    --------
-    generators.get_grid_around_beam_direction
-    """
-    from transforms3d.euler import axangle2euler
-    beam_direction = np.divide(beam_direction,np.linalg.norm(beam_direction))
-    axis = np.cross(beam_direction,[0,0,1]) # [0,0,1] is the starting direction for diffsims
-    angle = np.arcsin(np.linalg.norm(axis))
-    alpha,beta,gamma = axangle2euler(axis,angle,'szxz')
-    return np.rad2deg(alpha),np.rad2deg(beta)
-
-
 
 def rotation_matrix_from_euler_angles(euler_angles):
     """
@@ -261,7 +235,6 @@ def get_beam_directions(crystal_system,resolution,equal='angle'):
 def beam_directions_to_euler_angles(points_in_cartesians):
     """
     Converts an array of cartesians (x,y,z unit basis vectors) to the euler angles that would take [0,0,1] to [x,y,z]
-
     Parameters
     ----------
     points_in_cartesians :
