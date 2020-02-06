@@ -20,11 +20,11 @@ import pytest
 
 import diffpy.structure
 import numpy as np
-from diffsims.generators.zap_map_generator import get_rotation_from_z, generate_zap_map
+from diffsims.generators.zap_map_generator import get_rotation_from_z_to_direction, generate_zap_map
 
 def test_zero_rotation_cases(default_structure):
-    r_test = get_rotation_from_z(default_structure,[0,0,2])
-    r_test_zero = get_rotation_from_z(default_structure,[0,0,0])
+    r_test = get_rotation_from_z_to_direction(default_structure,[0,0,2])
+    r_test_zero = get_rotation_from_z_to_direction(default_structure,[0,0,0])
     assert r_test == (0,0,0)
     assert r_test_zero == (0,0,0)
 
@@ -40,16 +40,16 @@ class TestOrthonormals:
         return diffpy.structure.Structure(atoms=[atom],lattice=latt)
 
     def test_rotation_to__static_x_axis(self,sample_system):
-        r_to_x = get_rotation_from_z(sample_system,[1,0,0])
+        r_to_x = get_rotation_from_z_to_direction(sample_system,[1,0,0])
         assert np.allclose(r_to_x,(90,90,-90))
 
     def test_rotation_to_static_y_axis(self,sample_system):
-        r_to_y = get_rotation_from_z(sample_system,[0,1,0])
+        r_to_y = get_rotation_from_z_to_direction(sample_system,[0,1,0])
         assert np.allclose(r_to_y,(180,90,-180))
 
     def test_rotations_to_static_yz(self,sample_system):
         """ We rotate from z towards y, and compare the results to geometry"""
-        r_to_yz = get_rotation_from_z(sample_system,[0,1,1])
+        r_to_yz = get_rotation_from_z_to_direction(sample_system,[0,1,1])
         tan_angle = np.tan(np.deg2rad(r_to_yz[1]))
         tan_lattice = sample_system.lattice.b / sample_system.lattice.c
         assert np.allclose(tan_angle,tan_lattice,atol=1e-5)
