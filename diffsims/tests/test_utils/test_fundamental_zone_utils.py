@@ -95,7 +95,7 @@ def test_non_zero_returns(sparse_rzxz_grid,fz_string):
 
 @pytest.mark.parametrize("order",[1,2,3,4,6])
 def test_cyclic(order):
-    """ Uniform spacing in RF """
+    """ Uniform spacing in angle space """
     axis = np.hstack((np.zeros((2000,2)),np.ones((2000,1))))
     rf = np.tan(np.linspace(0,np.pi/2,2000))
     z = np.hstack((axis,rf.reshape(-1,1)))
@@ -123,7 +123,7 @@ def test_cyclic_groups(sparse_rzxz_grid,order):
 
 @pytest.mark.parametrize("order",[2,3,4,6])
 def test_x_direction_dihedral(order):
-    """ Uniform spacing in RF """
+    """ Uniform spacing in angle space """
     axis = np.hstack((np.ones((2000,1)),np.zeros((2000,2))))
     rf = np.tan(np.linspace(0,np.pi/2,2000))
     z = np.hstack((axis,rf.reshape(-1,1)))
