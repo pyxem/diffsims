@@ -138,18 +138,22 @@ def test_dihedral_groups(sparse_rzxz_grid,point_group_str):
     r = reduce_to_fundemental_zone(sparse_rzxz_grid,point_group_str)
     assert_volume_changes_obeyed(r,start_size,volume)
 
-""" Cubic cases """
+""" Cubic case """
 
-@pytest.mark.skip(reason="Not figure out what the volume term should be")
-def test_tetragonal_group(sparse_rzxz_grid):
-    volume = 1 / (8) # CHECK!
-    start_size = sparse_rzxz_grid.data.shape[0]
-    r = reduce_to_fundemental_zone(sparse_rzxz_grid,'23')
-    assert_volume_changes_obeyed(r,start_size,volume)
+@pytest.fixture()
+def dense_rzxz_grid():
+    z = create_linearly_spaced_array_in_rzxz(1)
+    axangle = z.to_AxAngle()
+    return axangle
 
-@pytest.mark.skip(reason="Not figured out what the volume should be")
-def test_octahedral_group(sparse_rzxz_grid):
-    volume = 1 / (14) # CHECK!
-    start_size = sparse_rzxz_grid.data.shape[0]
-    r = reduce_to_fundemental_zone(sparse_rzxz_grid,'432')
-    assert_volume_changes_obeyed(r,start_size,volume)
+def test_tetragonal_group(dense_rzxz_grid):
+    full_volume  = (4/3) * np.pi * (180)**3
+    outer_volume = (4/3) * np.pi * (90)**3
+    #https://en.wikipedia.org/wiki/Octahedron
+    r_inner = 90 * np.sqrt(1/3)
+    inner_volume = (4/3) * np.pi * (r_inner)**3
+    start_size = dense_rzxz_grid.data.shape[0]
+    r = reduce_to_fundemental_zone(dense_rzxz_grid,'23')
+    observed_ratio = r.data.shape[0] / start_size
+    assert observed_ratio < outer_volume/full_volume
+    assert observed_ratio > inner_volume/full_volume
