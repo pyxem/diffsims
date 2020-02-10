@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Fundemental Zone Functionality """
+""" Fundamental Zone Functionality """
 
 import numpy as np
 
@@ -247,7 +247,7 @@ def generate_mask_from_rodrigues_frank(Axangles, point_group_str):
     return mask
 
 
-def reduce_to_fundemental_zone(Axangles, point_group_str):
+def reduce_to_fundamental_zone(Axangles, point_group_str):
     """
     Parameters
     ----------

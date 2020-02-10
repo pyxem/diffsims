@@ -18,7 +18,7 @@
 
 import pytest
 import numpy as np
-from diffsims.generators.rotation_list_generators import get_local_grid, get_grid_around_beam_direction, get_fundemental_zone_grid, get_grid_streographic
+from diffsims.generators.rotation_list_generators import get_local_grid, get_grid_around_beam_direction, get_fundamental_zone_grid, get_grid_streographic
 from diffsims.utils.rotation_conversion_utils import Euler
 
 
@@ -38,9 +38,9 @@ def test_get_grid_around_beam_direction():
     assert len(grid_simple) == 360
 
 @pytest.mark.parametrize("space_group_number",[1,3,30,190,215,229])
-def test_get_fundemental_zone_grid(space_group_number):
-    grid_narrow = get_fundemental_zone_grid(space_group_number,resolution=6)
-    grid_wide = get_fundemental_zone_grid(space_group_number,resolution=12)
+def test_get_fundamental_zone_grid(space_group_number):
+    grid_narrow = get_fundamental_zone_grid(space_group_number,resolution=6)
+    grid_wide = get_fundamental_zone_grid(space_group_number,resolution=12)
     assert (len(grid_narrow)/len(grid_wide)) > (2**3) - 1 #lower bounds
     assert (len(grid_narrow)/len(grid_wide)) < (2**3) + 1 #upper bounds
 

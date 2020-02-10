@@ -27,7 +27,7 @@ from itertools import product
 from transforms3d.euler import euler2axangle,axangle2euler
 
 from diffsims.utils.rotation_conversion_utils import Euler
-from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone
+from diffsims.utils.fundamental_zone_utils import get_proper_point_group_string, reduce_to_fundamental_zone
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz,rotate_axangle, \
                                           _create_advanced_linearly_spaced_array_in_rzxz, \
                                           get_beam_directions, beam_directions_to_euler_angles
@@ -40,9 +40,9 @@ def _returnable_eulers_from_axangle(grid,axis_convention,round_to):
     rotation_list = eulers.to_rotation_list(round_to=round_to)
     return rotation_list
 
-def get_fundemental_zone_grid(space_group_number, resolution):
+def get_fundamental_zone_grid(space_group_number, resolution):
     """
-    Creates a rotation list for the rotations within the fundemental zone of a given space group.
+    Creates a rotation list for the rotations within the fundamental zone of a given space group.
 
     Parameters
     ----------
@@ -59,7 +59,7 @@ def get_fundemental_zone_grid(space_group_number, resolution):
     zone_string = get_proper_point_group_string(space_group_number)
     raw_grid = create_linearly_spaced_array_in_rzxz(resolution)  # see discussion in diffsims/#50
     raw_grid_axangle = raw_grid.to_AxAngle()
-    fz_grid_axangle = reduce_to_fundemental_zone(raw_grid_axangle, zone_string)
+    fz_grid_axangle = reduce_to_fundamental_zone(raw_grid_axangle, zone_string)
     return _returnable_eulers_from_axangle(fz_grid_axangle,'rzxz',round_to=2)
 
 def get_grid_streographic(crystal_system,resolution,equal='angle'):

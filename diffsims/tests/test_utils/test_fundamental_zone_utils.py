@@ -19,14 +19,14 @@
 import pytest
 import numpy as np
 
-from diffsims.utils.fundemental_zone_utils import get_proper_point_group_string, reduce_to_fundemental_zone,\
+from diffsims.utils.fundamental_zone_utils import get_proper_point_group_string, reduce_to_fundamental_zone,\
                                                   numpy_bounding_plane, cyclic_group, dihedral_group, \
                                                   remove_out_of_domain_rotations,\
                                                   generate_mask_from_rodrigues_frank
 from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz
 from diffsims.utils.rotation_conversion_utils import Euler,AxAngle
 
-""" These tests check the fundemental_zone section of the code """
+""" These tests check the fundamental_zone section of the code """
 
 @pytest.fixture()
 def sparse_rzxz_grid():
@@ -57,7 +57,7 @@ def assert_volume_changes_obeyed(r,start_size,volume):
 
 """ Tests of internal functionality """
 
-def test_select_fundemental_zone():
+def test_select_fundamental_zone():
     """ Makes sure all the ints from 1 to 230 give answers """
     # Not done with parametrize to avoid clogging the output log (it's 230 tests if you do it that way)
     for _space_group in np.arange(1, 231):
@@ -102,7 +102,7 @@ def test_edge_case_numpy_bounding_plane():
 @pytest.mark.parametrize("fz_string", ['1', '2', '222', '3', '32', '6', '622', '4', '422', '432', '23'])
 def test_non_zero_returns(sparse_rzxz_grid,fz_string):
     """ All code paths must return some orientations """
-    reduced_data = reduce_to_fundemental_zone(sparse_rzxz_grid,fz_string)
+    reduced_data = reduce_to_fundamental_zone(sparse_rzxz_grid,fz_string)
     assert reduced_data.data.shape[0] > 0
 
 """ Cyclic case """
@@ -122,14 +122,14 @@ def test_orthogonal_linear_case_for_cyclic_group(fz_string):
     axis = np.hstack((np.ones((2000,1)),np.zeros((2000,2)))) # x
     angle = np.linspace(-np.pi,np.pi,2000)
     along_x_axis = AxAngle(np.hstack((axis,angle.reshape(-1,1))))
-    reduced = reduce_to_fundemental_zone(along_x_axis,fz_string)
+    reduced = reduce_to_fundamental_zone(along_x_axis,fz_string)
     assert reduced.data.shape[0] == along_x_axis.data.shape[0]
 
 @pytest.mark.parametrize("order",['1','2','3','4','6'])
 def test_cyclic_groups(sparse_rzxz_grid,order):
     """ Asserts volume changes broadly as expected """
     start_size = sparse_rzxz_grid.data.shape[0]
-    r = reduce_to_fundemental_zone(sparse_rzxz_grid,order)
+    r = reduce_to_fundamental_zone(sparse_rzxz_grid,order)
     volume = 1/int(order)
     assert_volume_changes_obeyed(r,start_size,volume)
 
@@ -151,7 +151,7 @@ def test_dihedral_groups(sparse_rzxz_grid,point_group_str):
     order = int(point_group_str[0])
     volume = 1 / (2*order) # From page 103 of Morawiec
     start_size = sparse_rzxz_grid.data.shape[0]
-    r = reduce_to_fundemental_zone(sparse_rzxz_grid,point_group_str)
+    r = reduce_to_fundamental_zone(sparse_rzxz_grid,point_group_str)
     assert_volume_changes_obeyed(r,start_size,volume)
 
 """ Cubic case """
@@ -169,7 +169,7 @@ def test_tetragonal_group(dense_rzxz_grid):
     r_inner = 90 * np.sqrt(1/3) # See https://en.wikipedia.org/wiki/Octahedron
     inner_volume = (4/3) * np.pi * (r_inner)**3
     start_size = dense_rzxz_grid.data.shape[0]
-    r = reduce_to_fundemental_zone(dense_rzxz_grid,'23')
+    r = reduce_to_fundamental_zone(dense_rzxz_grid,'23')
     observed_ratio = r.data.shape[0] / start_size
     assert observed_ratio < outer_volume/full_volume
     assert observed_ratio > inner_volume/full_volume
