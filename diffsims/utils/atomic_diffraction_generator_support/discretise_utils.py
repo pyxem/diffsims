@@ -159,10 +159,6 @@ def __atom_av_cpu(x0, x1, x2, pc, h):  # pragma: no cover
     x0, x1, x2 = x0 - i0, x1 - i1, x2 - i2
     s = 0
     for i in range(pc.shape[0]):
-#         v = __linear_interp(x0, i0, pc[i, 0])
-#         v *= __linear_interp(x1, i1, pc[i, 1])
-#         v *= __linear_interp(x2, i2, pc[i, 2])
-
         v = __quadratic_interp(x0, i0, pc[i, 0])
         v *= __quadratic_interp(x1, i1, pc[i, 1])
         v *= __quadratic_interp(x2, i2, pc[i, 2])
@@ -196,7 +192,6 @@ if _CUDA:  # pragma: no cover
             i = int(n)
             n -= i
 
-#             return __linear_interp_gpu(n, i, pc)
             return __quadratic_interp_gpu(n, i, pc)
 
     @cuda.jit(device=True, inline=True)
@@ -210,9 +205,6 @@ if _CUDA:  # pragma: no cover
         x0, x1, x2 = x0 - i0, x1 - i1, x2 - i2
         s = 0
         for i in range(pc.shape[0]):
-#             v = __linear_interp(x0, i0, pc[i, 0])
-#             v *= __linear_interp(x1, i1, pc[i, 1])
-#             v *= __linear_interp(x2, i2, pc[i, 2])
 
             v = __quadratic_interp(x0, i0, pc[i, 0])
             v *= __quadratic_interp(x1, i1, pc[i, 1])
@@ -349,7 +341,7 @@ def do_binning(x, loc, Rmax, d, GPU):
     Rmax = max(3, Rmax)  # coarsest permited discretisation must be >3A
     # Bin the atoms
     k = int(Rmax / max(d)) + 1
-# Coverage: Cuda code is not tested by travis
+    # Coverage: Cuda code is not tested by travis
     try:  # pragma: no cover
         if not (GPU and _CUDA): raise Exception
         cuda.current_context().deallocations.clear()
@@ -364,18 +356,18 @@ def do_binning(x, loc, Rmax, d, GPU):
         subList = None
         try:
             subList = rebin(x, loc, r, k, mem=.25 * mem)
-# Coverage: line for large memory experiments
+            # Coverage: line for large memory experiments
             if subList.size * subList.itemsize > .25 * mem:  # pragma: no cover
                 subList = None  # treat like memory error
-# Coverage: line for large memory experiments
+            # Coverage: line for large memory experiments
         except MemoryError:  # pragma: no cover
             pass
 
-# Coverage: line for large memory experiments
+        # Coverage: line for large memory experiments
         if subList is None and k == 1:  # pragma: no cover
             # Memory error at smallest k is a failure
             return None, r, mem
-# Coverage: line for large memory experiments
+        # Coverage: line for large memory experiments
         elif subList is None:  # pragma: no cover
             k -= 1  # No extra information
         else:
@@ -611,8 +603,6 @@ def _precomp_atom(a, b, d, pw, ZERO, dtype=FTYPE):
         f = lambda x: sum(a[i] * c_exp(-b[i] * x ** 2) * (pi / b[i]) ** (n_zeros / 2)
                           for i in range(a.size))
         Rmax = .1
-#         while f(Rmax) <= ZERO * f(0):
-#             Rmax /= 2
         while f(Rmax) >= ZERO * f(0):
             Rmax *= 1.1
         h = max(Rmax / 500, max(d) / 10)
@@ -637,8 +627,6 @@ def _precomp_atom(a, b, d, pw, ZERO, dtype=FTYPE):
                 if d[j] == 0:
                     Rmax[i, j] = 1e5
                     continue
-#                 while f(i, j, Rmax[i, j]) < ZERO * f(i, j, 0):
-#                     Rmax[i, j] /= 2
                 while f(i, j, Rmax[i, j]) > ZERO * f(i, j, 0):
                     Rmax[i, j] *= 1.1
                     L = max(L, Rmax[i, j] / h[j] + 2)
@@ -714,14 +702,14 @@ def get_discretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYP
 
     if FT:
         out = empty([X.size for X in x], dtype=dtype[1])
-# Coverage: line for large memory experiments
+        # Coverage: line for large memory experiments
         if out.size == 0:  # pragma: no cover
             return 0 * out
 
         precomp, pms, mem = _precomp_atom(a, b, d, pointwise, ZERO, dtype[0])
 
         notComputed = True
-# Coverage: Cuda code is not tested by travis
+        # Coverage: Cuda code is not tested by travis
         if GPU:  # pragma: no cover
             try:
                 func = __FT3D_pw_gpu if pointwise else __FT3D_av_gpu
@@ -752,7 +740,7 @@ def get_discretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYP
         A = (a * (B / pi) ** (dim / 2)).astype(dtype[0])
 
         out = empty([X.size for X in x], dtype=dtype[0])
-# Coverage: line for large memory experiments
+        # Coverage: line for large memory experiments
         if out.size == 0:  # pragma: no cover
             return 0 * out
 
@@ -762,7 +750,7 @@ def get_discretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYP
         precomp, pms, Rmax = _precomp_atom(A, B, d, pointwise, ZERO, dtype[0])
         subList, r, mem = do_binning(x, loc, Rmax, d, GPU)
 
-# Coverage: line for large memory experiments
+        # Coverage: line for large memory experiments
         if subList is None:  # pragma: no cover
             # Volume is too large for memory, halve it in each dimension
             Slice = [None] * 3
@@ -783,7 +771,7 @@ def get_discretisation(loc, Z, x, GPU=bool(_CUDA), ZERO=None, dtype=(FTYPE, CTYP
             return out
 
         notComputed = True
-# Coverage: Cuda code is not tested by travis
+        # Coverage: Cuda code is not tested by travis
         if GPU:  # pragma: no cover
             try:
                 n = max(1, int(ceil(min(x[0].size, mem / (2 * out[0].size * out.itemsize)) - 1e-5)))
