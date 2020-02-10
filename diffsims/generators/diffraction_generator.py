@@ -84,7 +84,7 @@ class DiffractionGenerator(object):
     def calculate_ed_data(self,
                           structure,
                           reciprocal_radius,
-                          rotation=(0,0,0),
+                          rotation=(0, 0, 0),
                           with_direct_beam=True):
         """Calculates the Electron Diffraction data for a structure.
 
@@ -123,9 +123,9 @@ class DiffractionGenerator(object):
         spot_indicies, cartesian_coordinates, spot_distances = get_points_in_sphere(
             recip_latt, reciprocal_radius)
 
-        ai,aj,ak = np.deg2rad(rotation[0]),np.deg2rad(rotation[1]),np.deg2rad(rotation[2])
-        R = euler2mat(ai,aj,ak,axes='rzxz')
-        cartesian_coordinates = np.matmul(R,cartesian_coordinates.T).T
+        ai, aj, ak = np.deg2rad(rotation[0]), np.deg2rad(rotation[1]), np.deg2rad(rotation[2])
+        R = euler2mat(ai, aj, ak, axes='rzxz')
+        cartesian_coordinates = np.matmul(R, cartesian_coordinates.T).T
 
         # Identify points intersecting the Ewald sphere within maximum
         # excitation error and store the magnitude of their excitation error.

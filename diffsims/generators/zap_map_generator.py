@@ -19,7 +19,8 @@
 import numpy as np
 from transforms3d.euler import axangle2euler
 
-def get_rotation_from_z_to_direction(structure,direction):
+
+def get_rotation_from_z_to_direction(structure, direction):
     """
     Finds the rotation that takes [001] to a given zone axis.
 
@@ -49,20 +50,21 @@ def get_rotation_from_z_to_direction(structure,direction):
     """
 
     # Case where we don't need a rotation, As axis is [0,0,z] or [0,0,0]
-    if np.dot(direction,[0,0,1]) == np.linalg.norm(direction):
-        return (0,0,0)
+    if np.dot(direction, [0, 0, 1]) == np.linalg.norm(direction):
+        return (0, 0, 0)
 
     # Normalize our directions
     cartesian_direction = structure.lattice.cartesian(direction)
     cartesian_direction = cartesian_direction / np.linalg.norm(cartesian_direction)
 
-    #Find the rotation using cartesian vector geometry
-    rotation_axis = np.cross([0,0,1],cartesian_direction)
-    rotation_angle = np.arccos(np.dot([0,0,1],cartesian_direction))
-    euler = axangle2euler(rotation_axis,rotation_angle,axes='rzxz')
+    # Find the rotation using cartesian vector geometry
+    rotation_axis = np.cross([0, 0, 1], cartesian_direction)
+    rotation_angle = np.arccos(np.dot([0, 0, 1], cartesian_direction))
+    euler = axangle2euler(rotation_axis, rotation_angle, axes='rzxz')
     return np.rad2deg(euler)
 
-def generate_directional_simulations(structure,simulator,direction_list,reciprocal_radius=1,**kwargs):
+
+def generate_directional_simulations(structure, simulator, direction_list, reciprocal_radius=1, **kwargs):
     """
     Produces simualtion of a structure aligned with certain axes
 
@@ -88,13 +90,14 @@ def generate_directional_simulations(structure,simulator,direction_list,reciproc
 
     direction_dictionary = {}
     for direction in direction_list:
-        if np.allclose(direction,0):
+        if np.allclose(direction, 0):
             break
-        rotation_rzxz = get_rotation_from_z_to_direction(structure,direction)
-        simulation = simulator.calculate_ed_data(structure,reciprocal_radius,rotation=rotation_rzxz,**kwargs)
+        rotation_rzxz = get_rotation_from_z_to_direction(structure, direction)
+        simulation = simulator.calculate_ed_data(structure, reciprocal_radius, rotation=rotation_rzxz, **kwargs)
         direction_dictionary[direction] = simulation
 
     return direction_dictionary
+
 
 def corners_to_centroid_and_edge_centers(corners):
     """
@@ -112,14 +115,15 @@ def corners_to_centroid_and_edge_centers(corners):
         ca is the first corner of the input, and cab is the midpoint between
         corner a and corner b.
     """
-    ca,cb,cc = corners[0],corners[1],corners[2]
-    mean = tuple(np.add(np.add(ca,cb),cc))
-    cab  = tuple(np.add(ca,cb))
-    cbc  = tuple(np.add(cb,cc))
-    cac  = tuple(np.add(ca,cc))
-    return [ca,cb,cc,mean,cab,cbc,cac]
+    ca, cb, cc = corners[0], corners[1], corners[2]
+    mean = tuple(np.add(np.add(ca, cb), cc))
+    cab = tuple(np.add(ca, cb))
+    cbc = tuple(np.add(cb, cc))
+    cac = tuple(np.add(ca, cc))
+    return [ca, cb, cc, mean, cab, cbc, cac]
 
-def generate_zap_map(structure,simulator,system='cubic',reciprocal_radius=1,density='7',**kwargs):
+
+def generate_zap_map(structure, simulator, system='cubic', reciprocal_radius=1, density='7', **kwargs):
     """
     Produces a number of zone axis patterns for a structure
 
@@ -158,21 +162,21 @@ def generate_zap_map(structure,simulator,system='cubic',reciprocal_radius=1,dens
     >>>     pattern.calibration = 4e-3
     >>>     plt.imshow(pattern.get_diffraction_pattern(),vmax=0.02)
     >>>     plt.figure()
-    
+
     """
 
     corners_dict = {'cubic': [(0, 0, 1), (1, 0, 1), (1, 1, 1)],
-    'hexagonal': [(0, 0, 1), (2, 1, 0), (1, 1, 0)],
-    'orthorhombic': [(0, 0, 1), (1, 0, 0), (0, 1, 0)],
-    'tetragonal': [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
-    'trigonal': [(0, 0, 1), (-1, -2, 0), (1, -1, 0)],
-    'monoclinic': [(0, 0, 1), (0, 1, 0), (0, -1, 0)]}
+                    'hexagonal': [(0, 0, 1), (2, 1, 0), (1, 1, 0)],
+                    'orthorhombic': [(0, 0, 1), (1, 0, 0), (0, 1, 0)],
+                    'tetragonal': [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
+                    'trigonal': [(0, 0, 1), (-1, -2, 0), (1, -1, 0)],
+                    'monoclinic': [(0, 0, 1), (0, 1, 0), (0, -1, 0)]}
 
     if density == '3':
         direction_list = corners_dict[system]
     elif density == '7':
-        direction_list  = corners_to_centroid_and_edge_centers(corners_dict[system])
+        direction_list = corners_to_centroid_and_edge_centers(corners_dict[system])
 
-    zap_dictionary = generate_directional_simulations(structure,simulator,direction_list,**kwargs)
+    zap_dictionary = generate_directional_simulations(structure, simulator, direction_list, **kwargs)
 
     return zap_dictionary

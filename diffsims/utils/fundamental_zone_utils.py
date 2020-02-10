@@ -20,6 +20,7 @@
 
 import numpy as np
 
+
 def get_proper_point_group_string(space_group_number):
     """
     Maps a space-group-number to a point group
@@ -75,6 +76,7 @@ def axangle2rodrigues_frank(z):
     rf[:, 3] = np.tan(np.divide(z[:, 3], 2))
     return rf
 
+
 def numpy_bounding_plane(data, vector, distance):
     """
     Creates a mask formed by two planes that lie at 'distance' from the origin
@@ -103,8 +105,8 @@ def numpy_bounding_plane(data, vector, distance):
     if not np.all(np.isfinite(data)):
         raise ValueError("Your data contains rotations of pi")
 
-    n_vector = np.divide(vector,np.linalg.norm(vector))
-    inner_region = (np.abs(np.dot(data[:,:3],n_vector))*data[:,3]) < distance
+    n_vector = np.divide(vector, np.linalg.norm(vector))
+    inner_region = (np.abs(np.dot(data[:, :3], n_vector)) * data[:, 3]) < distance
 
     return inner_region
 
@@ -131,10 +133,11 @@ def cyclic_group(data, order):
     This makes use of the convention that puts the cyclic axis along z
     """
     # As pi rotations are present in the input and output we avoid a call to numpy_bounding_plane
-    z_distance = np.multiply(data[:,2], data[:,3]) # gets the z component of the distance, can be nan
+    z_distance = np.multiply(data[:, 2], data[:, 3])  # gets the z component of the distance, can be nan
     z_distance = np.abs(np.nan_to_num(z_distance))  # case pi rotation, 0 z component of vector
-    mask =  z_distance < np.tan(np.pi / (2*order))
+    mask = z_distance < np.tan(np.pi / (2 * order))
     return mask
+
 
 def dihedral_group(data, order):
     """
@@ -157,24 +160,25 @@ def dihedral_group(data, order):
     -----
     This makes use of the convention that puts the cyclic axis along 'z', an puts a minor axis along 'x'
     """
-    mask_cyclic_axis = cyclic_group(data,order)
+    mask_cyclic_axis = cyclic_group(data, order)
 
-    angle_between_perpendicular_axes = np.deg2rad(180/order)
+    angle_between_perpendicular_axes = np.deg2rad(180 / order)
     angle_counter = 0
     normal_vector_list = []
-    while angle_counter < (2*np.pi):
-        normal_vector = [np.cos(angle_counter),np.sin(angle_counter),0]
+    while angle_counter < (2 * np.pi):
+        normal_vector = [np.cos(angle_counter), np.sin(angle_counter), 0]
         normal_vector_list.append(normal_vector)
         angle_counter += angle_between_perpendicular_axes
 
-    mask_other_axes = np.ones_like(data[:,3])
+    mask_other_axes = np.ones_like(data[:, 3])
     for normal_vector in normal_vector_list:
-        local_mask = numpy_bounding_plane(data,normal_vector,1)
-        mask_other_axes = np.logical_and(mask_other_axes,local_mask)
+        local_mask = numpy_bounding_plane(data, normal_vector, 1)
+        mask_other_axes = np.logical_and(mask_other_axes, local_mask)
 
-    mask = np.logical_and(mask_cyclic_axis,mask_other_axes)
+    mask = np.logical_and(mask_cyclic_axis, mask_other_axes)
 
     return mask
+
 
 def tetragonal_group(data):
     """
@@ -190,13 +194,14 @@ def tetragonal_group(data):
     mask :
         True when element lies within the bounds of the domain
     """
-    mask = np.ones_like(data[:,3])
-    for normal_vector in [[1,1,1],[1,1,-1],[1,-1,-1],[1,-1,1]]:
-        normal_vector = np.divide(normal_vector,np.sqrt(3))
-        local_mask = numpy_bounding_plane(data,normal_vector,1/np.sqrt(3))
-        mask = np.logical_and(local_mask,mask)
+    mask = np.ones_like(data[:, 3])
+    for normal_vector in [[1, 1, 1], [1, 1, -1], [1, -1, -1], [1, -1, 1]]:
+        normal_vector = np.divide(normal_vector, np.sqrt(3))
+        local_mask = numpy_bounding_plane(data, normal_vector, 1 / np.sqrt(3))
+        mask = np.logical_and(local_mask, mask)
 
     return mask
+
 
 def octahedral_group(data):
     """
@@ -214,24 +219,26 @@ def octahedral_group(data):
     """
 
     sub_mask_threefold = tetragonal_group(data)
-    sub_mask_fourfold = np.ones_like(data[:,3])
-    for normal_vector in [[1,0,0],[0,1,0],[0,0,1]]:
-        local_mask = numpy_bounding_plane(data,normal_vector,np.sqrt(2)-1)
-        sub_mask_fourfold = np.logical_and(local_mask,sub_mask_fourfold)
+    sub_mask_fourfold = np.ones_like(data[:, 3])
+    for normal_vector in [[1, 0, 0], [0, 1, 0], [0, 0, 1]]:
+        local_mask = numpy_bounding_plane(data, normal_vector, np.sqrt(2) - 1)
+        sub_mask_fourfold = np.logical_and(local_mask, sub_mask_fourfold)
 
-    mask = np.logical_and(sub_mask_threefold,sub_mask_fourfold)
+    mask = np.logical_and(sub_mask_threefold, sub_mask_fourfold)
     return mask
 
-def remove_out_of_domain_rotations(Axangles,point_group_str):
+
+def remove_out_of_domain_rotations(Axangles, point_group_str):
     """ see Figure 5 of "On 3 dimensional misorientation spaces" """
     if point_group_str == '432':
         Axangles.remove_large_rotations(np.deg2rad(66))
     elif point_group_str == '222':
         Axangles.remove_large_rotations(np.deg2rad(121))
-    elif point_group_str in ['23','622','32','422']:
+    elif point_group_str in ['23', '622', '32', '422']:
         Axangles.remove_large_rotations(np.deg2rad(106))
 
     return Axangles
+
 
 def generate_mask_from_rodrigues_frank(Axangles, point_group_str):
     rf_data = axangle2rodrigues_frank(Axangles.data)
@@ -263,7 +270,7 @@ def reduce_to_fundamental_zone(Axangles, point_group_str):
     """
 
     # we know what are max angles are, so save some time by cutting out chunks
-    Axangles = remove_out_of_domain_rotations(Axangles,point_group_str)
+    Axangles = remove_out_of_domain_rotations(Axangles, point_group_str)
     mask = generate_mask_from_rodrigues_frank(Axangles, point_group_str)
     Axangles.remove_with_mask(mask)
     return Axangles

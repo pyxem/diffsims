@@ -25,6 +25,7 @@ from diffsims.utils.sim_utils import get_electron_wavelength, \
     get_vectorized_list_for_atomic_scattering_factors, get_points_in_sphere, \
     simulate_kinematic_scattering, is_lattice_hexagonal, uvtw_to_uvw
 
+
 @pytest.mark.parametrize('accelerating_voltage, wavelength', [
     (100, 0.0370143659),
     (200, 0.0250793403),

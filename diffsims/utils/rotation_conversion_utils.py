@@ -38,6 +38,7 @@ Finally - two classes, Euler & AxAngle are provided
 
 import numpy as np
 
+
 def vectorised_euler2quat(eulers, axes='rzxz'):
     """ Applies the transformation that takes eulers to quaternions
 
@@ -59,22 +60,22 @@ def vectorised_euler2quat(eulers, axes='rzxz'):
     This function is a port from transforms3d
     """
 
-    ai = eulers[:,0]
-    aj = eulers[:,1]
-    ak = eulers[:,2]
+    ai = eulers[:, 0]
+    aj = eulers[:, 1]
+    ak = eulers[:, 2]
 
-    _NEXT_AXIS = [1,2,0,1]
+    _NEXT_AXIS = [1, 2, 0, 1]
 
     if axes != 'rzxz' and axes != 'szxz':
         raise ValueError()
     elif axes == 'rzxz':
-        firstaxis,parity,repetition,frame = 2,0,1,1
+        firstaxis, parity, repetition, frame = 2, 0, 1, 1
     elif axes == 'szxz':
-        firstaxis,parity,repetition,frame = 2,0,1,0
+        firstaxis, parity, repetition, frame = 2, 0, 1, 0
 
     i = firstaxis + 1
-    j = _NEXT_AXIS[i+parity-1] + 1
-    k = _NEXT_AXIS[i-parity] + 1
+    j = _NEXT_AXIS[i + parity - 1] + 1
+    k = _NEXT_AXIS[i - parity] + 1
 
     if frame:
         ai, ak = ak, ai
@@ -84,26 +85,26 @@ def vectorised_euler2quat(eulers, axes='rzxz'):
          aj = -aj #not currently supported, commented out for coverage
     """
 
-    ai = np.divide(ai,2.0)
-    aj = np.divide(aj,2.0)
-    ak = np.divide(ak,2.0)
+    ai = np.divide(ai, 2.0)
+    aj = np.divide(aj, 2.0)
+    ak = np.divide(ak, 2.0)
     ci = np.cos(ai)
     si = np.sin(ai)
     cj = np.cos(aj)
     sj = np.sin(aj)
     ck = np.cos(ak)
     sk = np.sin(ak)
-    cc = ci*ck
-    cs = ci*sk
-    sc = si*ck
-    ss = si*sk
+    cc = ci * ck
+    cs = ci * sk
+    sc = si * ck
+    ss = si * sk
 
-    q = np.empty((ai.shape[0],4))
+    q = np.empty((ai.shape[0], 4))
     if repetition:
-        q[:,0] = cj*(cc - ss)
-        q[:,i] = cj*(cs + sc)
-        q[:,j] = sj*(cc + ss)
-        q[:,k] = sj*(cs - sc)
+        q[:, 0] = cj * (cc - ss)
+        q[:, i] = cj * (cs + sc)
+        q[:, j] = sj * (cc + ss)
+        q[:, k] = sj * (cs - sc)
     """
     #Not currently supported, commented out for coverage
     else:
@@ -116,6 +117,7 @@ def vectorised_euler2quat(eulers, axes='rzxz'):
         q[:,j] *= -1.0
     """
     return q
+
 
 def vectorised_quat2axangle(q):
     """ Applies the transformation that takes quaternions to axis angles
@@ -138,32 +140,33 @@ def vectorised_quat2axangle(q):
 
     """
 
-    w,x,y,z = q[:,0],q[:,1],q[:,2],q[:,3]
+    w, x, y, z = q[:, 0], q[:, 1], q[:, 2], q[:, 3]
     Nq = w * w + x * x + y * y + z * z
     if not np.all(np.isfinite(Nq)):
         raise ValueError("You have infinte elements, please check your entry")
     if np.any(Nq < 1e-6):
         raise ValueError("Very small numbers are at risk when we normalise, try normalising your quaternions")
 
-    if np.any(Nq != 1):#normalize
+    if np.any(Nq != 1):  # normalize
         s = np.sqrt(Nq)
-        w,x,y,z = np.divide(w,s),np.divide(x,s),np.divide(y,s),np.divide(z,s)
+        w, x, y, z = np.divide(w, s), np.divide(x, s), np.divide(y, s), np.divide(z, s)
 
-    len_img = np.sqrt((x*x)+(y*y)+(z*z))
+    len_img = np.sqrt((x * x) + (y * y) + (z * z))
     # case where the vector is nearly [0,0,0], return axangle [1,0,0,0], q = [1,1,0,0] does it
-    x = np.where(len_img==0,1,x)
-    y = np.where(len_img==0,0,y)
-    z = np.where(len_img==0,0,z)
-    w  = np.where(len_img==0,1,w)
+    x = np.where(len_img == 0, 1, x)
+    y = np.where(len_img == 0, 0, y)
+    z = np.where(len_img == 0, 0, z)
+    w = np.where(len_img == 0, 1, w)
 
-    len_img = np.sqrt((x*x)+(y*y)+(z*z)) #recalculated so we avoid a divide by zero
-    xr,yr,zr = np.divide(x,len_img),np.divide(y,len_img),np.divide(z,len_img)
+    len_img = np.sqrt((x * x) + (y * y) + (z * z))  # recalculated so we avoid a divide by zero
+    xr, yr, zr = np.divide(x, len_img), np.divide(y, len_img), np.divide(z, len_img)
 
     w[w > 1] = 1
     w[w < -1] = -1
     theta = 2 * np.arccos(w)
-    axangles = np.asarray((xr,yr,zr,theta)).T
+    axangles = np.asarray((xr, yr, zr, theta)).T
     return axangles
+
 
 def vectorised_euler2axangle(eulers, axes='rzxz'):
     """ Applies the transformation that takes eulers to axis-angles
@@ -188,7 +191,8 @@ def vectorised_euler2axangle(eulers, axes='rzxz'):
     for the identity rotation [1,0,0,0] is returned
 
     """
-    return vectorised_quat2axangle(vectorised_euler2quat(eulers,axes))
+    return vectorised_quat2axangle(vectorised_euler2quat(eulers, axes))
+
 
 def vectorised_axangle2mat(axangles):
     """ Applies the transformation that takes eulers to axis-angles
@@ -209,26 +213,35 @@ def vectorised_axangle2mat(axangles):
     This function is a port of the associated function in transforms3d
 
     """
-    x, y, z, angle = axangles[:,0], axangles[:,1], axangles[:,2], axangles[:,3]
+    x, y, z, angle = axangles[:, 0], axangles[:, 1], axangles[:, 2], axangles[:, 3]
 
     # Normalise for safety, skipping divide by zeros
-    n = np.sqrt(x*x + y*y + z*z)
-    x = np.where(n!=0,x/n,0)
-    y = np.where(n!=0,y/n,0)
-    z = np.where(n!=0,z/n,0)
+    n = np.sqrt(x * x + y * y + z * z)
+    x = np.where(n != 0, x / n, 0)
+    y = np.where(n != 0, y / n, 0)
+    z = np.where(n != 0, z / n, 0)
 
-    c = np.cos(angle); s = np.sin(angle); C = 1-c
-    xs = x*s;   ys = y*s;   zs = z*s
-    xC = x*C;   yC = y*C;   zC = z*C
-    xyC = x*yC; yzC = y*zC; zxC = z*xC
+    c = np.cos(angle)
+    s = np.sin(angle)
+    C = 1 - c
+    xs = x * s
+    ys = y * s
+    zs = z * s
+    xC = x * C
+    yC = y * C
+    zC = z * C
+    xyC = x * yC
+    yzC = y * zC
+    zxC = z * xC
     M = np.array([
-            [ x*xC+c,   xyC-zs,   zxC+ys ],
-            [ xyC+zs,   y*yC+c,   yzC-xs ],
-            [ zxC-ys,   yzC+xs,   z*zC+c ]])
+        [x * xC + c, xyC - zs, zxC + ys],
+        [xyC + zs, y * yC + c, yzC - xs],
+        [zxC - ys, yzC + xs, z * zC + c]])
 
     return M
 
-def vectorised_mat2euler(M,axes='rzxz'):
+
+def vectorised_mat2euler(M, axes='rzxz'):
     """
     Applies the transformation to take rotation matricies to euler angles
 
@@ -248,36 +261,36 @@ def vectorised_mat2euler(M,axes='rzxz'):
     -----
     This function is a port from transforms3d
     """
-    _NEXT_AXIS = [1,2,0,1]
+    _NEXT_AXIS = [1, 2, 0, 1]
 
     if axes != 'rzxz' and axes != 'szxz':
         raise ValueError()
     elif axes == 'rzxz':
-        firstaxis,parity,repetition,frame = 2,0,1,1
+        firstaxis, parity, repetition, frame = 2, 0, 1, 1
     elif axes == 'szxz':
-        firstaxis,parity,repetition,frame = 2,0,1,0
+        firstaxis, parity, repetition, frame = 2, 0, 1, 0
 
     i = firstaxis
-    j = _NEXT_AXIS[i+parity]
-    k = _NEXT_AXIS[i-parity+1]
-
+    j = _NEXT_AXIS[i + parity]
+    k = _NEXT_AXIS[i - parity + 1]
 
     if repetition:
-        sy = np.sqrt(M[i, j,:]*M[i, j,:] + M[i, k,:]*M[i, k,:])
+        sy = np.sqrt(M[i, j, :] * M[i, j, :] + M[i, k, :] * M[i, k, :])
 
-        ax = np.where(sy > 0,np.arctan2( M[i, j,:],  M[i, k,:]),np.arctan2(-M[j, k,:],  M[j, j,:]))
-        ay = np.arctan2(sy,M[i, i,:])
-        az = np.where(sy > 0,np.arctan2(M[j, i,:], -M[k, i,:]),0.0)
+        ax = np.where(sy > 0, np.arctan2(M[i, j, :], M[i, k, :]), np.arctan2(-M[j, k, :], M[j, j, :]))
+        ay = np.arctan2(sy, M[i, i, :])
+        az = np.where(sy > 0, np.arctan2(M[j, i, :], -M[k, i, :]), 0.0)
 
     """if parity:
         ax, ay, az = -ax, -ay, -az #not currently supported"""
     if frame:
         ax, az = az, ax
 
-    euler = np.vstack((ax,ay,az)).T
+    euler = np.vstack((ax, ay, az)).T
     return euler
 
-def vectorised_axangle2euler(axangles,axes='rzxz'):
+
+def vectorised_axangle2euler(axangles, axes='rzxz'):
     """ Applies the transformation that takes eulers to axis-angles
 
     Parameters
@@ -297,7 +310,8 @@ def vectorised_axangle2euler(axangles,axes='rzxz'):
     -----
     This function is a port of the associated function(s) in transforms3d.
     """
-    return vectorised_mat2euler(vectorised_axangle2mat(axangles),axes)
+    return vectorised_mat2euler(vectorised_axangle2mat(axangles), axes)
+
 
 def convert_axangle_to_correct_range(vector, angle):
     """
@@ -333,6 +347,7 @@ def convert_axangle_to_correct_range(vector, angle):
 
     return vector, angle
 
+
 def vectorised_axangle_to_correct_range(data):
     """
     This repo uses axis-angle pairs between (0,pi) - however often wider
@@ -357,23 +372,24 @@ def vectorised_axangle_to_correct_range(data):
     z = data.copy()
 
     # second clause in unvectorised
-    second_case_truth = np.logical_and(z[:,3] >= -np.pi,z[:,3] < 0)
-    for i in [0,1,2,3]:
-        z[:,i] = np.where(second_case_truth,-z[:,i],z[:,i])
+    second_case_truth = np.logical_and(z[:, 3] >= -np.pi, z[:, 3] < 0)
+    for i in [0, 1, 2, 3]:
+        z[:, i] = np.where(second_case_truth, -z[:, i], z[:, i])
 
     # third clause in unvectorised
-    third_case_truth = np.logical_and(z[:,3] >= np.pi, z[:,3] <= 2 * np.pi)
-    for i in [0,1,2]: # third clause part 1
-        z[:,i] = np.where(third_case_truth,-z[:,i],z[:,i])
-    z[:,3] = np.where(third_case_truth,2*np.pi - z[:,3],z[:,3]) # third clause part 2
+    third_case_truth = np.logical_and(z[:, 3] >= np.pi, z[:, 3] <= 2 * np.pi)
+    for i in [0, 1, 2]:  # third clause part 1
+        z[:, i] = np.where(third_case_truth, -z[:, i], z[:, i])
+    z[:, 3] = np.where(third_case_truth, 2 * np.pi - z[:, 3], z[:, 3])  # third clause part 2
 
     return z
 
+
 def convert_identity_rotations(data):
     """ Turns 0 angles axangles to [1,0,0,0] """
-    data[:,0][data[:,3] == 0] = 1
-    data[:,1][data[:,3] == 0] = 0
-    data[:,2][data[:,3] == 0] = 0
+    data[:, 0][data[:, 3] == 0] = 1
+    data[:, 1][data[:, 3] == 0] = 0
+    data[:, 2][data[:, 3] == 0] = 0
     return data
 
 
@@ -420,7 +436,7 @@ class AxAngle():
         self.data = self.data[self.data[:, 3] < threshold_angle]
         return None
 
-    def remove_with_mask(self,mask):
+    def remove_with_mask(self, mask):
         """
         Removes rotations using a mask
 
@@ -451,20 +467,19 @@ class AxAngle():
         out_eulers : diffsims.Euler
         """
         self._check_data()
-        eulers = vectorised_axangle2euler(self.data,axis_convention)
+        eulers = vectorised_axangle2euler(self.data, axis_convention)
         eulers = np.rad2deg(eulers)
         return Euler(eulers, axis_convention)
 
     def to_Quat(self):
         """ A lightweight port of transforms3d functionality, vectorised"""
-        self._check_data() #means that our vectors need not be checked for normalisation
-        vector = self.data[:,:3]
-        t2 = self.data[:,3] / 2.0
+        self._check_data()  # means that our vectors need not be checked for normalisation
+        vector = self.data[:, :3]
+        t2 = self.data[:, 3] / 2.0
         st2 = np.sin(t2)
-        w = np.cos(t2).reshape(self.data.shape[0],1)
-        xyz = np.multiply(vector,st2.reshape(self.data.shape[0],1))
-        return np.hstack((w,xyz))
-
+        w = np.cos(t2).reshape(self.data.shape[0], 1)
+        xyz = np.multiply(vector, st2.reshape(self.data.shape[0], 1))
+        return np.hstack((w, xyz))
 
     @classmethod
     def from_Quat(cls, data):
@@ -506,7 +521,7 @@ class Euler():
         self._check_data()
         self.data = np.deg2rad(self.data)  # for the transform operation
 
-        if self.axis_convention == 'rzxz' or self.axis_convention =='szxz':
+        if self.axis_convention == 'rzxz' or self.axis_convention == 'szxz':
             stored_axangle = vectorised_euler2axangle(self.data, axes=self.axis_convention)
             stored_axangle = vectorised_axangle_to_correct_range(stored_axangle)
 
@@ -524,7 +539,7 @@ class Euler():
         self.data = np.rad2deg(self.data)  # leaves our eulers safe and sound
         return AxAngle(stored_axangle)
 
-    def to_rotation_list(self,round_to=2):
+    def to_rotation_list(self, round_to=2):
         """
         Parameters:
 
@@ -533,10 +548,10 @@ class Euler():
         """
 
         if round_to is not None:
-            round = np.round(self.data,2)
+            round = np.round(self.data, 2)
         else:
             round = self.data
 
         starter_list = round.tolist()
-        tuple_list  = [tuple(x) for x in starter_list]
+        tuple_list = [tuple(x) for x in starter_list]
         return tuple_list

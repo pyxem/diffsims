@@ -346,6 +346,7 @@ def simulate_kinematic_scattering(atomic_coordinates,
 
     return intensity
 
+
 def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     """Finds all reciprocal lattice points inside a given reciprocal sphere.
     Utilised within the DiffractionGenerator.
@@ -372,7 +373,7 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     k_max = np.floor(reciprocal_radius / b)
     l_max = np.floor(reciprocal_radius / c)
     from itertools import product
-    h_list = np.arange(-h_max, h_max + 1) #arange has a non-inclusive endpoint
+    h_list = np.arange(-h_max, h_max + 1)  # arange has a non-inclusive endpoint
     k_list = np.arange(-k_max, k_max + 1)
     l_list = np.arange(-l_max, l_max + 1)
     potential_points = np.asarray(list(product(h_list, k_list, l_list)))

@@ -100,7 +100,8 @@ class DiffractionLibraryGenerator:
             intensities = np.empty(num_orientations, dtype='object')
             # Iterate through orientations of each phase.
             for i, orientation in enumerate(tqdm(orientations, leave=False)):
-                simulation = diffractor.calculate_ed_data(structure,reciprocal_radius,rotation=orientation,with_direct_beam=with_direct_beam)
+                simulation = diffractor.calculate_ed_data(
+                    structure, reciprocal_radius, rotation=orientation, with_direct_beam=with_direct_beam)
 
                 # Calibrate simulation
                 simulation.calibration = calibration
