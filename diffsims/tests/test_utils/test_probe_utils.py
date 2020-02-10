@@ -6,7 +6,7 @@ Created on 6 Nov 2019
 
 import pytest
 import numpy as np
-from diffsims.utils.probe_utils import (ProbeFunction, BesselProbe)
+from diffsims.utils.atomic_diffraction_generator_support.probe_utils import (ProbeFunction, BesselProbe)
 
 
 def _toMesh(x):
