@@ -382,7 +382,7 @@ class AtomicDiffractionGenerator:
              np.arange(coordinates[:, -1].min() - 20, coordinates[:, -1].min() + z_range + 20, slice_thickness)]
 
         if mode == 'kinematic':
-            from diffsims.sims import kinematic_simulation as simlib
+            from diffsims.utils import atomic_diffraction_generator_utils as simlib
         else:
             raise NotImplementedError('<mode> = %s is not currently supported' % repr(mode))
 
