@@ -23,12 +23,12 @@ Back end for computing diffraction patterns with a kinematic model.
 
 @author: Rob Tovey
 """
-from diffsims.utils.discretise_utils import get_discretisation
+from diffsims.utils.atomic_diffraction_generator_support.discretise_utils import get_discretisation
 from numpy import array, pi, sin, cos, empty, maximum, sqrt
 from scipy.interpolate import interpn
-from diffsims.utils.fourier_transform import (get_DFT, to_recip, fftshift_phase,
+from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import (get_DFT, to_recip, fftshift_phase,
                                               plan_fft, fast_abs)
-from diffsims.utils.generic_utils import to_mesh
+from diffsims.utils.atomic_diffraction_generator_support.generic_utils import to_mesh
 
 
 def normalise(arr): return arr / arr.max()

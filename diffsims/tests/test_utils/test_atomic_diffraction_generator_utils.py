@@ -6,7 +6,7 @@ Created on 3 Nov 2019
 
 import pytest
 import numpy as np
-from diffsims.sims.kinematic_simulation import (get_diffraction_image, precess_mat, grid2sphere)
+from diffsims.utils.atomic_diffraction_generator_utils import get_diffraction_image, precess_mat, grid2sphere
 
 
 def to_mesh(x):

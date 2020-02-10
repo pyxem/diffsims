@@ -22,7 +22,7 @@
 
 from numpy import unique, require, array, arange, ones, pi, zeros, empty, \
     ascontiguousarray, sqrt, random, isscalar, exp, prod
-from diffsims.utils.generic_utils import get_grid
+from diffsims.utils.atomic_diffraction_generator_support.generic_utils import get_grid
 from psutil import virtual_memory
 from scipy.special import erf
 import numba
