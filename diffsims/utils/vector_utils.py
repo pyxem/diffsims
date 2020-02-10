@@ -66,6 +66,7 @@ def get_angle_cartesian(a, b):
         return 0.0
     return math.acos(max(-1.0, min(1.0, np.dot(a, b) / denom)))
 
+
 def vectorised_spherical_polars_to_cartesians(z):
     """
     Converts an array of spherical polars into an array of
@@ -85,8 +86,8 @@ def vectorised_spherical_polars_to_cartesians(z):
         With rows of
         x,y,z
     """
-    r, psi, theta = z[:,0],z[:,1],z[:,2]
+    r, psi, theta = z[:, 0], z[:, 1], z[:, 2]
     x = r * np.cos(psi) * np.sin(theta)
     y = r * np.sin(psi) * np.sin(theta)
     z = r * np.cos(theta)
-    return np.asarray([x,y,z]).T
+    return np.asarray([x, y, z]).T

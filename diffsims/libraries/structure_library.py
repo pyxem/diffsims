@@ -57,7 +57,7 @@ class StructureLibrary():
             self.struct_lib[ident] = (struct, ori)
 
     @classmethod
-    def from_orientation_lists(cls,identifiers,structures,orientations):
+    def from_orientation_lists(cls, identifiers, structures, orientations):
         """
         Creates a structure library from "manual" orientation lists
 
@@ -75,10 +75,10 @@ class StructureLibrary():
         -------
         StructureLibrary
         """
-        return cls(identifiers,structures,orientations)
+        return cls(identifiers, structures, orientations)
 
     @classmethod
-    def from_crystal_systems(cls,identifiers,structures,systems,resolution,equal='angle'):
+    def from_crystal_systems(cls, identifiers, structures, systems, resolution, equal='angle'):
         """
         Creates a structure library from crystal system derived orientation lists
 
@@ -101,5 +101,5 @@ class StructureLibrary():
         """
         orientations = []
         for system in systems:
-            orientations.append(get_grid_streographic(system,resolution,equal))
-        return cls(identifiers,structures,orientations)
+            orientations.append(get_grid_streographic(system, resolution, equal))
+        return cls(identifiers, structures, orientations)
