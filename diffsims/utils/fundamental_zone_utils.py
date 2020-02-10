@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-""" fundamental Zone Functionality """
+""" Fundamental Zone Functionality """
 
 import numpy as np
 
