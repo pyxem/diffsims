@@ -104,7 +104,7 @@ def numpy_bounding_plane(data, vector, distance):
         raise ValueError("Your data contains rotations of pi")
 
     n_vector = np.divide(vector,np.linalg.norm(vector))
-    inner_region = np.abs(np.dot(data[:,:3],n_vector)) < distance
+    inner_region = (np.abs(np.dot(data[:,:3],n_vector))*data[:,3]) < distance
 
     return inner_region
 
@@ -133,7 +133,7 @@ def cyclic_group(data, order):
     # As pi rotations are present in the input and output we avoid a call to numpy_bounding_plane
     z_distance = np.multiply(data[:,2], data[:,3]) # gets the z component of the distance, can be nan
     z_distance = np.abs(np.nan_to_num(z_distance))  # case pi rotation, 0 z component of vector
-    mask = z_distance < np.tan(np.pi / order)
+    mask =  z_distance < np.tan(np.pi / (2*order))
     return mask
 
 def dihedral_group(data, order):
