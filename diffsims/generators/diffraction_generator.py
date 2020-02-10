@@ -31,7 +31,7 @@ from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from diffsims.utils.sim_utils import get_electron_wavelength, \
     get_kinematical_intensities, get_unique_families, get_points_in_sphere, \
     get_vectorized_list_for_atomic_scattering_factors, is_lattice_hexagonal
-from diffsims.utils.fourier_transform import from_recip
+from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import from_recip
 
 
 class DiffractionGenerator(object):
