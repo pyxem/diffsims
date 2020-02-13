@@ -47,7 +47,7 @@ def random_eulers():
     beta  = np.random.rand(100) * 180
     gamma = np.random.rand(100) * 360
     eulers = np.asarray((alpha,beta,gamma)).T
-    return np.deg2rad(eulers)
+    return eulers
 
 @pytest.fixture()
 def random_quats():
