@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2019 The diffsims developers
+# Copyright 2017-2020 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -17,21 +17,19 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Created on 1 Nov 2019
-
 Back end for computing diffraction patterns with a kinematic model.
-
-@author: Rob Tovey
 """
-from diffsims.utils.discretise_utils import get_discretisation
+
+from diffsims.utils.atomic_diffraction_generator_support.discretise_utils import get_discretisation
 from numpy import array, pi, sin, cos, empty, maximum, sqrt
 from scipy.interpolate import interpn
-from diffsims.utils.fourier_transform import (get_DFT, to_recip, fftshift_phase,
-                                              plan_fft, fast_abs)
-from diffsims.utils.generic_utils import to_mesh
+from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import get_DFT, to_recip, fftshift_phase,\
+                                                                                   plan_fft, fast_abs
+from diffsims.utils.atomic_diffraction_generator_support.generic_utils import to_mesh
 
 
-def normalise(arr): return arr / arr.max()
+def normalise(arr):
+    return arr / arr.max()
 
 
 def get_diffraction_image(coordinates, species, probe, x, wavelength,
@@ -79,7 +77,6 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
     y = to_recip(x)
     if wavelength == 0:
         p = probe(x).mean(-1)
-#         vol = get_discretisation(coordinates, species, x, **kwargs).mean(-1)
         vol = get_discretisation(coordinates, species, x[:2], **kwargs)[..., 0]
         ft = get_DFT(x[:-1], y[:-1])[0]
     else:
@@ -184,12 +181,6 @@ def grid2sphere(arr, x, dx, C):
             return arr[:, :, 0]
 
     y = to_mesh((x[0], x[1], array([0])), dx).reshape(-1, 3)
-#     if C is not None:  # project straight up
-#         w = C - sqrt(maximum(0, C ** 2 - (y ** 2).sum(-1)))
-#         if dx is None:
-#             y[:, 2] = w.reshape(-1)
-#         else:
-#             y += w.reshape(y.shape[0], 1) * dx[2].reshape(1, 3)
 
     if C is not None:  # project on line to centre
         w = 1 / (1 + (y ** 2).sum(-1) / C ** 2)

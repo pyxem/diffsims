@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2019 The diffsims developers
+# Copyright 2017-2020 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -21,8 +21,8 @@ Created on 5 Nov 2019
 
 @author: Rob Tovey
 '''
-from diffsims.utils.fourier_transform import get_DFT, from_recip
-from diffsims.utils.generic_utils import to_mesh
+from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import get_DFT, from_recip
+from diffsims.utils.atomic_diffraction_generator_support.generic_utils import to_mesh
 import numba
 from math import sqrt as c_sqrt
 from numpy import empty, maximum, sqrt, arange, pi, linspace, ones

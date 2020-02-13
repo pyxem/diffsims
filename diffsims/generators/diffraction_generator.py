@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2019 The diffsims developers
+# Copyright 2017-2020 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -22,6 +22,7 @@
 
 import numpy as np
 from math import pi
+from transforms3d.euler import euler2mat
 
 from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.sims.diffraction_simulation import ProfileSimulation
@@ -30,7 +31,7 @@ from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from diffsims.utils.sim_utils import get_electron_wavelength, \
     get_kinematical_intensities, get_unique_families, get_points_in_sphere, \
     get_vectorized_list_for_atomic_scattering_factors, is_lattice_hexagonal
-from diffsims.utils.fourier_transform import from_recip
+from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import from_recip
 
 
 class DiffractionGenerator(object):
@@ -83,6 +84,7 @@ class DiffractionGenerator(object):
     def calculate_ed_data(self,
                           structure,
                           reciprocal_radius,
+                          rotation=(0, 0, 0),
                           with_direct_beam=True):
         """Calculates the Electron Diffraction data for a structure.
 
@@ -95,6 +97,9 @@ class DiffractionGenerator(object):
         reciprocal_radius : float
             The maximum radius of the sphere of reciprocal space to sample, in
             reciprocal angstroms.
+        rotation : tuple
+            Euler angles, in degrees, in the rzxz convention. Default is (0,0,0)
+            which aligns 'z' with the electron beam
         with_direct_beam : bool
             If True, the direct beam is included in the simulated diffraction
             pattern. If False, it is not.
@@ -117,6 +122,10 @@ class DiffractionGenerator(object):
         recip_latt = latt.reciprocal()
         spot_indicies, cartesian_coordinates, spot_distances = get_points_in_sphere(
             recip_latt, reciprocal_radius)
+
+        ai, aj, ak = np.deg2rad(rotation[0]), np.deg2rad(rotation[1]), np.deg2rad(rotation[2])
+        R = euler2mat(ai, aj, ak, axes='rzxz')
+        cartesian_coordinates = np.matmul(R, cartesian_coordinates.T).T
 
         # Identify points intersecting the Ewald sphere within maximum
         # excitation error and store the magnitude of their excitation error.
@@ -373,7 +382,7 @@ class AtomicDiffractionGenerator:
              np.arange(coordinates[:, -1].min() - 20, coordinates[:, -1].min() + z_range + 20, slice_thickness)]
 
         if mode == 'kinematic':
-            from diffsims.sims import kinematic_simulation as simlib
+            from diffsims.utils import atomic_diffraction_generator_utils as simlib
         else:
             raise NotImplementedError('<mode> = %s is not currently supported' % repr(mode))
 

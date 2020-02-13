@@ -6,8 +6,8 @@ Created on 1 Nov 2019
 
 import pytest
 import numpy as np
-from diffsims.utils.discretise_utils import (get_atoms, get_discretisation, _CUDA,
-                                             rebin)
+from diffsims.utils.atomic_diffraction_generator_support.discretise_utils import (get_atoms, get_discretisation, _CUDA,
+                                                                                  rebin)
 dtype, ZERO = ('f4', 'c8'), 1e-10
 params = {'dtype': ('f4', 'c8'), 'ZERO': 1e-10, 'GPU': False}
 
@@ -141,7 +141,7 @@ def test_pointwise(n, shape):
     np.testing.assert_allclose(pw_FT, av_FT, 1e-2)
 
 
-if _CUDA: #pragma: no cover
+if _CUDA:  # pragma: no cover
 
     @pytest.mark.parametrize('n, shape', [
         ([20, 14], (10, 20, 30)),

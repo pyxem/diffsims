@@ -2,11 +2,9 @@
 name: Pull request 
 about: A pull request that fixes a bug or adds a feature
 
-- [ ] ready for review and merge?
 ---
 
 **Release Notes**
-> major or minor (all but urgent bugfixes go in the former)
 > new feature / improvement / bugfix / developer change
 Summary: 1 line per end-user relevant change
 
