@@ -509,7 +509,7 @@ class Euler():
             raise ValueError("Your data is not in the correct shape")
         if np.any(self.data[:] > 360):
             raise ValueError("Some of your angles are greater 360")
-        if np.all(np.abs(self.data[:]) < 2*np.pi):
+        if np.all(np.abs(self.data[:]) < 2 * np.pi):
             warnings.warn("Your angles all seem quite small, are you sure you're not in radians?")
 
         return None

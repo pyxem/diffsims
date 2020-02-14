@@ -24,7 +24,7 @@ from diffsims.utils.atomic_diffraction_generator_support.discretise_utils import
 from numpy import array, pi, sin, cos, empty, maximum, sqrt
 from scipy.interpolate import interpn
 from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import get_DFT, to_recip, fftshift_phase,\
-                                                                                   plan_fft, fast_abs
+    plan_fft, fast_abs
 from diffsims.utils.atomic_diffraction_generator_support.generic_utils import to_mesh
 
 

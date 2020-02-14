@@ -172,9 +172,9 @@ class TestEuler:
         assert isinstance(l[0], tuple)
 
     @pytest.mark.filterwarnings('ignore::UserWarning')
-    def test_warning_code(self,good_array):
+    def test_warning_code(self, good_array):
         euler = Euler(good_array)
-        euler.data[:,:] = 1e-5
+        euler.data[:, :] = 1e-5
         euler._check_data()
 
     @pytest.mark.xfail(raises=ValueError, strict=True)
