@@ -48,7 +48,7 @@ setup(
     install_requires=[
         'scipy>=0.15',
         'numpy>=1.10',
-        'matplotlib-base>=3.1.1',
+        'matplotlib>=3.1.1',
         'tqdm>=0.4.9',
         'transforms3d',
         'diffpy.structure>=3.0.0'  # First Python 3 support
