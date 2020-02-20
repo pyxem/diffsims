@@ -66,7 +66,7 @@ def get_rotation_from_z_to_direction(structure, direction):
 
 def generate_directional_simulations(structure, simulator, direction_list, reciprocal_radius=1, **kwargs):
     """
-    Produces simualtion of a structure aligned with certain axes
+    Produces simulation of a structure aligned with certain axes
 
     Parameters
     ----------
