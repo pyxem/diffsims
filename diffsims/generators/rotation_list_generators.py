@@ -64,7 +64,7 @@ def get_fundamental_zone_grid(space_group_number, resolution):
     return _returnable_eulers_from_axangle(fz_grid_axangle, 'rzxz', round_to=2)
 
 
-def get_grid_streographic(crystal_system, resolution, equal='angle'):
+def get_grid_stereographic(crystal_system, resolution, equal='angle'):
     """
     Creates a rotation list by determining the beam directions within the symmetry reduced
     region of the inverse pole figure, corresponding to the specified crystal system, and
