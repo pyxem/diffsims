@@ -77,7 +77,7 @@ def generate_directional_simulations(structure, simulator, direction_list, recip
         The diffraction generator object used to produce the simulations
 
     direction_list : list of lists
-        A list of [UVW] indicies, eg) [[1,0,0],[1,1,0]]
+        A list of [UVW] indices, eg) [[1,0,0],[1,1,0]]
 
     reciprocal_radius : float
         Default to 1
