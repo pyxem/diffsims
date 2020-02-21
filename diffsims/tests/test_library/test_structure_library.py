@@ -29,9 +29,9 @@ def test_get_library_size():
     first_library = StructureLibrary(identifiers, structures, rotation_list)
     second_library = StructureLibrary(identifiers, structures, orientations)
     # Test for rotation list
-    assert first_library.get_library_size() == 4
+    assert first_library.get_library_size(to_print = True) == 4
     # Test for single orientation
-    assert second_library.get_library_size() == 2
+    assert second_library.get_library_size(to_print = True) == 2
 
 def test_from_orientations_method():
     identifiers = ['a', 'b']
