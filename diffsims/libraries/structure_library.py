@@ -56,6 +56,35 @@ class StructureLibrary():
         for ident, struct, ori in zip(identifiers, structures, orientations):
             self.struct_lib[ident] = (struct, ori)
 
+    def get_library_size(cls, to_print = False):
+        """
+        Returns the number of structures in the current StructureLibrary
+        object. Will also print the number of entries for each structure in
+        the library if the parameter to_print is set to True. Works with both
+        cls.orientations on the form [1,2] and [[1,2], [2,3]](rotation lists).
+
+        Parameters
+        ----------
+        to_print : bool
+            Default is 'False'
+            Returns
+            -------
+            size_library : int
+                Total number of entries in the current StructureLibrary object.
+        """
+        size_library = 0
+        for i in range (len(cls.orientations)):
+            if type(cls.orientations[i]) != list:
+                size_library += 1
+            else:
+                size_library += len(cls.orientations[i])
+            if to_print == True and type(cls.orientations[i]) == list:
+                    print(cls.identifiers[i], "has", \
+                    len(cls.orientations[i]), "number of entries.")
+                    if to_print == True:
+                        print("\nIn total:", size_library, "number of entries")
+                    return size_library
+
     @classmethod
     def from_orientation_lists(cls, identifiers, structures, orientations):
         """

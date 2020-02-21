@@ -21,6 +21,17 @@ import numpy as np
 
 from diffsims.libraries.structure_library import StructureLibrary
 
+def test_get_library_size():
+    identifiers = ['a', 'b']
+    structures = [1, 2]
+    rotation_list = [[3,1], [4,5]]
+    orientations = [1, 2]
+    first_library = StructureLibrary(identifiers, structures, rotation_list)
+    second_library = StructureLibrary(identifiers, structures, orientations)
+    # Test for rotation list
+    assert first_library.get_library_size() == 4
+    # Test for single orientation
+    assert second_library.get_library_size() == 2
 
 def test_from_orientations_method():
     identifiers = ['a', 'b']
