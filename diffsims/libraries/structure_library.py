@@ -17,7 +17,7 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import diffsims as ds
-from diffsims.generators.rotation_list_generators import get_grid_streographic
+from diffsims.generators.rotation_list_generators import get_grid_stereographic
 
 
 class StructureLibrary():
@@ -101,5 +101,5 @@ class StructureLibrary():
         """
         orientations = []
         for system in systems:
-            orientations.append(get_grid_streographic(system, resolution, equal))
+            orientations.append(get_grid_stereographic(system, resolution, equal))
         return cls(identifiers, structures, orientations)

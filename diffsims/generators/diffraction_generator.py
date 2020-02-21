@@ -120,7 +120,7 @@ class DiffractionGenerator(object):
         # Obtain crystallographic reciprocal lattice points within `max_r` and
         # g-vector magnitudes for intensity calculations.
         recip_latt = latt.reciprocal()
-        spot_indicies, cartesian_coordinates, spot_distances = get_points_in_sphere(
+        spot_indices, cartesian_coordinates, spot_distances = get_points_in_sphere(
             recip_latt, reciprocal_radius)
 
         ai, aj, ak = np.deg2rad(rotation[0]), np.deg2rad(rotation[1]), np.deg2rad(rotation[2])
@@ -136,7 +136,7 @@ class DiffractionGenerator(object):
         intersection = proximity < max_excitation_error
         # Mask parameters corresponding to excited reflections.
         intersection_coordinates = cartesian_coordinates[intersection]
-        intersection_indices = spot_indicies[intersection]
+        intersection_indices = spot_indices[intersection]
         proximity = proximity[intersection]
         g_hkls = spot_distances[intersection]
 
@@ -199,12 +199,12 @@ class DiffractionGenerator(object):
 
         # Obtain crystallographic reciprocal lattice points within range
         recip_latt = latt.reciprocal()
-        spot_indicies, _, spot_distances = get_points_in_sphere(recip_latt, reciprocal_radius)
+        spot_indices, _, spot_distances = get_points_in_sphere(recip_latt, reciprocal_radius)
 
         peaks = {}
-        mask = np.logical_not((np.any(spot_indicies, axis=1) == 0))
+        mask = np.logical_not((np.any(spot_indices, axis=1) == 0))
 
-        for hkl, g_hkl in zip(spot_indicies[mask], spot_distances[mask]):
+        for hkl, g_hkl in zip(spot_indices[mask], spot_distances[mask]):
             # Force miller indices to be integers.
             hkl = [int(round(i)) for i in hkl]
 
