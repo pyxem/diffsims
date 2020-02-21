@@ -70,8 +70,8 @@ class StructureLibrary():
             Default is 'False'
             Returns
             -------
-            size_library : int
-                Total number of entries in the current StructureLibrary object.
+        size_library : int
+            Total number of entries in the current StructureLibrary object.
         """
         size_library = 0
         for i in range (len(cls.orientations)):
