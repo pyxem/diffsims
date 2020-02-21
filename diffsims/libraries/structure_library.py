@@ -58,10 +58,11 @@ class StructureLibrary():
 
     def get_library_size(cls, to_print = False):
         """
-        Returns the number of structures in the current StructureLibrary
-        object. Will also print the number of entries for each structure in
-        the library if the parameter to_print is set to True. Works with both
-        cls.orientations on the form [1,2] and [[1,2], [2,3]](rotation lists).
+        Returns the the total number of orientations in the
+        current StructureLibrary object. Will also print the number of orientations
+        for each identifier in the library if the parameter to_print is set to
+        True. Works with both cls.orientations on the form [1,2]
+        and [[1,2], [2,3]](rotation lists).
 
         Parameters
         ----------
