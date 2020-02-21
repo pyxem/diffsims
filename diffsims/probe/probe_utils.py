@@ -61,6 +61,9 @@ def evaluate_aberration_function(kx, ky,
         in unit of meter*radian.  multiply by 2pi/lambda to get dimensionless
 
     """
+    u = kx
+    v = ky
+
     u2 = u*u
     u3 = u2*u
     u4 = u3*u
@@ -80,3 +83,13 @@ def evaluate_aberration_function(kx, ky,
             + 1/4* C32b*(2*u3*v + 2*u*v3)\
 
     return func_aberr
+
+
+def rad_array(arr_len):
+    #create array with values equal to distance in px from centre
+    half_len = arr_len / 2
+    v = np.linspace(-half_len, half_len, arr_len)
+    v = np.repeat(v, arr_len, axis = 0)
+    v = np.reshape(v, (arr_len, arr_len))
+    v = np.sqrt(v**2 + v.T**2)
+    return v
