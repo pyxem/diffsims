@@ -79,11 +79,11 @@ class StructureLibrary():
             else:
                 size_library += len(cls.orientations[i])
             if to_print == True and type(cls.orientations[i]) == list:
-                    print(cls.identifiers[i], "has", \
-                    len(cls.orientations[i]), "number of entries.")
+                print(cls.identifiers[i], "has", \
+                len(cls.orientations[i]), "number of entries.")
                     if to_print == True:
                         print("\nIn total:", size_library, "number of entries")
-                    return size_library
+        return size_library
 
     @classmethod
     def from_orientation_lists(cls, identifiers, structures, orientations):
