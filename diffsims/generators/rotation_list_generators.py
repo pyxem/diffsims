@@ -73,7 +73,7 @@ def get_grid_stereographic(crystal_system, resolution, equal='angle'):
     Parameters
     ----------
     crytal_system : str
-        'cubic','hexagonal','trigonal','tetragonal','orthorhombic','monoclinic' and 'triclinic'
+        'cubic', 'hexagonal', 'trigonal', 'tetragonal', 'orthorhombic', 'monoclinic' and 'triclinic'
 
     resolution : float
         The maximum misorientation between rotations in the list, as defined according to

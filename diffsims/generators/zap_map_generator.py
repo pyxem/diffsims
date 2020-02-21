@@ -77,7 +77,7 @@ def generate_directional_simulations(structure, simulator, direction_list, recip
         The diffraction generator object used to produce the simulations
 
     direction_list : list of lists
-        A list of [UVW] indices, eg) [[1,0,0],[1,1,0]]
+        A list of [UVW] indices, eg. [[1,0,0],[1,1,0]]
 
     reciprocal_radius : float
         Default to 1
@@ -111,7 +111,7 @@ def corners_to_centroid_and_edge_centers(corners):
     Returns
     -------
     list_of_corners : list
-        Length 7, elements ca,cb,cc,mean,cab,cbc,cac where naming is such that
+        Length 7, elements ca, cb, cc, mean, cab, cbc, cac where naming is such that
         ca is the first corner of the input, and cab is the midpoint between
         corner a and corner b.
     """
@@ -136,7 +136,7 @@ def generate_zap_map(structure, simulator, system='cubic', reciprocal_radius=1, 
         The simulator used to generate the simulations
 
     system : str
-        'cubic','hexagonal', 'trigonal', 'tetragonal','orthorhombic','monoclinic' - Defaults to 'cubic'
+        'cubic', 'hexagonal', 'trigonal', 'tetragonal', 'orthorhombic', 'monoclinic' - Defaults to 'cubic'
 
     reciprocal_radius : float
         The range of reciprocal lattice spots to be included. Default to 1
