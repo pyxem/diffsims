@@ -16,11 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
-Created on 5 Nov 2019
-
-@author: Rob Tovey
-'''
 import numba
 from math import sqrt as c_sqrt
 from numpy import empty, maximum, sqrt, arange, pi, linspace, ones
