@@ -149,7 +149,7 @@ def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_be
     # We use np.linspace rather than np.arange to get list of evenly spaced Euler
     # angles due to better end point handling. Therefore convert "step_size" to a "num"
     steps_alpha = int(np.ceil((max_alpha - 0) / resolution))
-    steps_beta = int(np.ceil((max_beta - 0) / resolution))
+    steps_beta = int(np.ceil((max_beta - resolution) / resolution))
     steps_gamma = int(np.ceil((max_gamma - 0) / resolution))
 
     alpha = np.linspace(0, max_alpha, num=steps_alpha, endpoint=False)
@@ -162,7 +162,7 @@ def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_be
     if max_gimbal_rotation > 360:
         max_gimbal_rotation = 360
 
-    gamma_final = np.linspace(0,max_gimbal_rotation,int(np.floor(max_gimbal_rotation/resolution)+1),endpoint=True)
+    gamma_final = np.linspace(0,max_gimbal_rotation,num=int(np.ceil(max_gimbal_rotation/resolution)),endpoint=False)
     z_gimbals = np.hstack((np.zeros((gamma_final.shape[0],2)),gamma_final.reshape(gamma_final.shape[0],-1)))
 
     z = np.vstack((z,z_gimbals))
