@@ -47,12 +47,13 @@ def test_linearly_spaced_array_in_rzxz():
         Two sides of length = 96
         One side of length  = 48
         And thus a total of 96 * 96 * 48 = 442368 points
+        Which is an upper bound after we remove gimbal lock rotations
     """
     grid = create_linearly_spaced_array_in_rzxz(resolution=3.75)
     assert isinstance(grid, Euler)
     assert grid.axis_convention == 'rzxz'
-    assert grid.data.shape == (442368, 3)
-
+    assert grid.data.shape[0] < 442368
+    assert grid.data.shape[1] == 3
 
 """ This tests get_beam_directions """
 
