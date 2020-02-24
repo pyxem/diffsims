@@ -153,9 +153,19 @@ def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_be
     steps_gamma = int(np.ceil((max_gamma - 0) / resolution))
 
     alpha = np.linspace(0, max_alpha, num=steps_alpha, endpoint=False)
-    beta = np.linspace(0, max_beta, num=steps_beta, endpoint=False)
+    beta = np.linspace(resolution, max_beta, num=steps_beta, endpoint=False) #this avoid gimbal lock roations
     gamma = np.linspace(0, max_gamma, num=steps_gamma, endpoint=False)
     z = np.asarray(list(product(alpha, beta, gamma)))
+
+    # We now add the rotations for which the middle angle is zero, we use the form (0,0,gamma)
+    max_gimbal_rotation = max_alpha + max_gamma
+    if max_gimbal_rotation > 360:
+        max_gimbal_rotation = 360
+
+    gamma_final = np.linspace(0,max_gimbal_rotation,int(np.floor(max_gimbal_rotation/resolution)+1),endpoint=True)
+    z_gimbals = np.hstack((np.zeros((gamma_final.shape[0],2)),gamma_final.reshape(gamma_final.shape[0],-1)))
+
+    z = np.vstack((z,z_gimbals))
     return Euler(z, axis_convention='rzxz')
 
 
