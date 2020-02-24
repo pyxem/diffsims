@@ -41,8 +41,8 @@ def test_get_grid_around_beam_direction():
 
 @pytest.mark.parametrize("space_group_number", [1, 3, 30, 190, 215, 229])
 def test_get_fundamental_zone_grid(space_group_number):
-    grid_narrow = get_fundamental_zone_grid(space_group_number, resolution=6)
-    grid_wide = get_fundamental_zone_grid(space_group_number, resolution=12)
+    grid_narrow = get_fundamental_zone_grid(space_group_number, resolution=4)
+    grid_wide = get_fundamental_zone_grid(space_group_number, resolution=8)
     assert (len(grid_narrow) / len(grid_wide)) > (2**3) - 1  # lower bounds
     assert (len(grid_narrow) / len(grid_wide)) < (2**3) + 1  # upper bounds
 
