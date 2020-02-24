@@ -24,14 +24,9 @@ from diffsims.libraries.structure_library import StructureLibrary
 def test_get_library_size():
     identifiers = ['a', 'b']
     structures = [1, 2]
-    rotation_list = [[(0, 0, 0), (0.0, 90.0, -180.0)], [(0, 0, 0), (0, 90.0, -180.0)]]
-    orientations = [[(0, 0, 0)], [(0, 90.0, -180.0)]]
+    rotation_list = [[(0, 0, 0), (0.0, 90.0, -180.0)], [(0, 0, 0)]]
     first_library = StructureLibrary(identifiers, structures, rotation_list)
-    second_library = StructureLibrary(identifiers, structures, orientations)
-    # Test for rotation list
-    assert first_library.get_library_size(to_print = True) == 4
-    # Test for single orientation
-    assert second_library.get_library_size(to_print = True) == 2
+    assert first_library.get_library_size(to_print = True) == 3
 
 def test_from_orientations_method():
     identifiers = ['a', 'b']
