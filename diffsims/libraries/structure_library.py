@@ -75,11 +75,11 @@ class StructureLibrary():
         """
         size_library = 0
         for i in range (len(self.orientations)):
-            if type(self.orientations[i]) != list:
+            if type(self.orientations[i]) != tuple:
                 size_library += 1
             else:
                 size_library += len(self.orientations[i])
-            if to_print == True and type(self.orientations[i]) == list:
+            if to_print == True and type(self.orientations[i]) == tuple:
                 print(self.identifiers[i], "has", \
                 len(self.orientations[i]), "number of entries.")
         if to_print == True:
