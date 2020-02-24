@@ -105,7 +105,7 @@ class StructureLibrary():
             orientations.append(get_grid_streographic(system, resolution, equal))
         return cls(identifiers, structures, orientations)
     
-     def get_library_size(self, to_print = False):
+    def get_library_size(self, to_print = False):
         """
         Returns the the total number of orientations in the
         current StructureLibrary object. Will also print the number of orientations
