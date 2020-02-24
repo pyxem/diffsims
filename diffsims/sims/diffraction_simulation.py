@@ -146,7 +146,7 @@ class DiffractionSimulation:
         spot_intens = self.intensities[mask_for_sides]
         pattern = np.zeros([size, size])
         pattern[spot_coords[:, 0], spot_coords[:, 1]] = spot_intens
-        pattern = ndi.gaussian_filter(pattern, sigma)
+        pattern = ndi.gaussian_filter(pattern.T, sigma)
 
         return np.divide(pattern, np.max(pattern))
 
