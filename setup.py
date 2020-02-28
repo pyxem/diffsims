@@ -51,7 +51,9 @@ setup(
         'matplotlib>=3.1.1',
         'tqdm>=0.4.9',
         'transforms3d',
-        'diffpy.structure>=3.0.0'  # First Python 3 support
+        'diffpy.structure>=3.0.0',  # First Python 3 support
+        'numba',
+        'psutil',
     ],
     python_requires='>=3.6',
     package_data={
