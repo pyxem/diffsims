@@ -28,7 +28,8 @@ from .generators.library_generator import VectorLibraryGenerator
 
 from .sims.diffraction_simulation import DiffractionSimulation
 
-from .utils.atomic_diffraction_generator_support.probe_utils import ProbeFunction, BesselProbe
+from .probe.probe_functions import ProbeFunction, BesselProbe
+
 from .utils.atomic_diffraction_generator_support.fourier_transform import to_recip, from_recip, get_recip_points, get_DFT
 from .utils.atomic_diffraction_generator_support.discretise_utils import get_discretisation
 
