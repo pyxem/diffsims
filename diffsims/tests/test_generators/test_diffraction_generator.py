@@ -21,16 +21,23 @@ import pytest
 
 from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.sims.diffraction_simulation import ProfileSimulation
-from diffsims.generators.diffraction_generator import DiffractionGenerator, AtomicDiffractionGenerator
+from diffsims.generators.diffraction_generator import (
+    DiffractionGenerator,
+    AtomicDiffractionGenerator,
+)
 import diffpy.structure
 
 
-@pytest.fixture(params=[(300, 0.02, None), ])
-def diffraction_calculator(request): return DiffractionGenerator(*request.param)
+@pytest.fixture(
+    params=[(300, 0.02, None),]
+)
+def diffraction_calculator(request):
+    return DiffractionGenerator(*request.param)
 
 
 @pytest.fixture(params=[(300, [np.linspace(-1, 1, 10)] * 2)])
-def diffraction_calculator_atomic(request): return AtomicDiffractionGenerator(*request.param)
+def diffraction_calculator_atomic(request):
+    return AtomicDiffractionGenerator(*request.param)
 
 
 @pytest.fixture(params=[(1, 3), (1,), (False,)])
@@ -53,17 +60,13 @@ def make_structure(lattice_parameter=None):
     for coords in [[0, 0, 0], [0.5, 0, 0.5], [0, 0.5, 0.5], [0.5, 0.5, 0]]:
         x, y, z = coords[0], coords[1], coords[2]
         atom_list.append(
-            diffpy.structure.atom.Atom(
-                atype='Si', xyz=[
-                    x, y, z], lattice=latt))  # Motif part A
+            diffpy.structure.atom.Atom(atype="Si", xyz=[x, y, z], lattice=latt)
+        )  # Motif part A
         atom_list.append(
             diffpy.structure.atom.Atom(
-                atype='Si',
-                xyz=[
-                    x + 0.25,
-                    y + 0.25,
-                    z + 0.25],
-                lattice=latt))  # Motif part B
+                atype="Si", xyz=[x + 0.25, y + 0.25, z + 0.25], lattice=latt
+            )
+        )  # Motif part B
     return diffpy.structure.Structure(atoms=atom_list, lattice=latt)
 
 
@@ -73,7 +76,7 @@ def local_structure():
 
 
 def probe(x, out=None, scale=None):
-    if hasattr(x, 'shape'):
+    if hasattr(x, "shape"):
         return (abs(x[..., 0]) < 6) * (abs(x[..., 1]) < 6)
     else:
         v = abs(x[0].reshape(-1, 1, 1)) < 6
@@ -82,13 +85,13 @@ def probe(x, out=None, scale=None):
 
 
 class TestDiffractionCalculator:
-
     def test_init(self, diffraction_calculator: DiffractionGenerator):
         assert diffraction_calculator.debye_waller_factors == {}
 
     def test_matching_results(self, diffraction_calculator, local_structure):
         diffraction = diffraction_calculator.calculate_ed_data(
-            local_structure, reciprocal_radius=5.)
+            local_structure, reciprocal_radius=5.0
+        )
         assert len(diffraction.indices) == len(diffraction.coordinates)
         assert len(diffraction.coordinates) == len(diffraction.intensities)
 
@@ -97,9 +100,11 @@ class TestDiffractionCalculator:
         silicon = make_structure(5)
         big_silicon = make_structure(10)
         diffraction = diffraction_calculator.calculate_ed_data(
-            structure=silicon, reciprocal_radius=5.)
+            structure=silicon, reciprocal_radius=5.0
+        )
         big_diffraction = diffraction_calculator.calculate_ed_data(
-            structure=big_silicon, reciprocal_radius=5.)
+            structure=big_silicon, reciprocal_radius=5.0
+        )
         indices = [tuple(i) for i in diffraction.indices]
         big_indices = [tuple(i) for i in big_diffraction.indices]
         assert (2, 2, 0) in indices
@@ -111,28 +116,32 @@ class TestDiffractionCalculator:
     def test_appropriate_intensities(self, diffraction_calculator, local_structure):
         """Tests the central beam is strongest."""
         diffraction = diffraction_calculator.calculate_ed_data(
-            local_structure, reciprocal_radius=5.)
+            local_structure, reciprocal_radius=5.0
+        )
         indices = [tuple(i) for i in diffraction.indices]
         central_beam = indices.index((0, 0, 0))
-        smaller = np.greater_equal(diffraction.intensities[central_beam], diffraction.intensities)
+        smaller = np.greater_equal(
+            diffraction.intensities[central_beam], diffraction.intensities
+        )
         assert np.all(smaller)
 
     def test_calculate_profile_class(self, local_structure, diffraction_calculator):
         # tests the non-hexagonal (cubic) case
-        profile = diffraction_calculator.calculate_profile_data(local_structure,
-                                                                reciprocal_radius=1.)
+        profile = diffraction_calculator.calculate_profile_data(
+            local_structure, reciprocal_radius=1.0
+        )
         assert isinstance(profile, ProfileSimulation)
 
         latt = diffpy.structure.lattice.Lattice(3, 3, 5, 90, 90, 120)
-        atom = diffpy.structure.atom.Atom(atype='Ni', xyz=[0, 0, 0], lattice=latt)
+        atom = diffpy.structure.atom.Atom(atype="Ni", xyz=[0, 0, 0], lattice=latt)
         hexagonal_structure = diffpy.structure.Structure(atoms=[atom], lattice=latt)
-        hexagonal_profile = diffraction_calculator.calculate_profile_data(structure=hexagonal_structure,
-                                                                          reciprocal_radius=1.)
+        hexagonal_profile = diffraction_calculator.calculate_profile_data(
+            structure=hexagonal_structure, reciprocal_radius=1.0
+        )
         assert isinstance(hexagonal_profile, ProfileSimulation)
 
 
 class TestDiffractionCalculatorAtomic:
-
     def test_init(self, diffraction_calculator_atomic: AtomicDiffractionGenerator):
         assert diffraction_calculator_atomic.debye_waller_factors == {}
         assert len(diffraction_calculator_atomic.detector) == 2
@@ -140,39 +149,41 @@ class TestDiffractionCalculatorAtomic:
     def test_shapes(self, diffraction_calculator_atomic, local_structure, precessed):
         dca = diffraction_calculator_atomic
         diffraction = dca.calculate_ed_data(
-            local_structure, probe, 1, precessed=precessed)
+            local_structure, probe, 1, precessed=precessed
+        )
         assert diffraction.shape == tuple(X.size for X in dca.detector)
 
     def test_defaults(self, diffraction_calculator_atomic, local_structure):
         dca = diffraction_calculator_atomic
         diffraction1 = dca.calculate_ed_data(local_structure, probe, 1)
-        diffraction2 = dca.calculate_ed_data(local_structure, probe, 1, [0, 0], 200, False)
+        diffraction2 = dca.calculate_ed_data(
+            local_structure, probe, 1, [0, 0], 200, False
+        )
 
         np.testing.assert_allclose(diffraction1, diffraction2, 1e-6, 1e-6)
 
     @pytest.mark.xfail(raises=NotImplementedError)
     def test_mode(self, diffraction_calculator_atomic, local_structure):
         diffraction = diffraction_calculator_atomic.calculate_ed_data(
-            local_structure, probe, 1, mode='other')
+            local_structure, probe, 1, mode="other"
+        )
 
 
-scattering_params = ['lobato', 'xtables']
+scattering_params = ["lobato", "xtables"]
 
 
-@pytest.mark.parametrize('scattering_param', scattering_params)
+@pytest.mark.parametrize("scattering_param", scattering_params)
 def test_param_check(scattering_param):
-    generator = DiffractionGenerator(300, 0.2, None,
-                                     scattering_params=scattering_param)
+    generator = DiffractionGenerator(300, 0.2, None, scattering_params=scattering_param)
 
 
 @pytest.mark.xfail(raises=NotImplementedError)
 def test_invalid_scattering_params():
-    scattering_param = '_empty'
-    generator = DiffractionGenerator(300, 0.2, None,
-                                     scattering_params=scattering_param)
+    scattering_param = "_empty"
+    generator = DiffractionGenerator(300, 0.2, None, scattering_params=scattering_param)
 
 
-@pytest.mark.parametrize('shape', [(10, 20), (20, 10)])
+@pytest.mark.parametrize("shape", [(10, 20), (20, 10)])
 def test_param_check_atomic(shape):
     detector = [np.linspace(-1, 1, s) for s in shape]
     generator = AtomicDiffractionGenerator(300, detector, True)
@@ -181,5 +192,4 @@ def test_param_check_atomic(shape):
 @pytest.mark.xfail(raises=NotImplementedError)
 def test_invalid_scattering_params_atomic():
     detector = [np.linspace(-1, 1, 10)] * 2
-    generator = AtomicDiffractionGenerator(300, detector,
-                                           debye_waller_factors=True)
+    generator = AtomicDiffractionGenerator(300, detector, debye_waller_factors=True)

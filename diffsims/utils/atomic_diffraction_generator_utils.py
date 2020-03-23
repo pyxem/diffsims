@@ -20,11 +20,18 @@
 Back end for computing diffraction patterns with a kinematic model.
 """
 
-from diffsims.utils.atomic_diffraction_generator_support.discretise_utils import get_discretisation
+from diffsims.utils.atomic_diffraction_generator_support.discretise_utils import (
+    get_discretisation,
+)
 from numpy import array, pi, sin, cos, empty, maximum, sqrt
 from scipy.interpolate import interpn
-from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import get_DFT, to_recip, fftshift_phase,\
-    plan_fft, fast_abs
+from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import (
+    get_DFT,
+    to_recip,
+    fftshift_phase,
+    plan_fft,
+    fast_abs,
+)
 from diffsims.utils.atomic_diffraction_generator_support.generic_utils import to_mesh
 
 
@@ -32,8 +39,17 @@ def normalise(arr):
     return arr / arr.max()
 
 
-def get_diffraction_image(coordinates, species, probe, x, wavelength,
-                          precession, GPU=True, pointwise=False, **kwargs):
+def get_diffraction_image(
+    coordinates,
+    species,
+    probe,
+    x,
+    wavelength,
+    precession,
+    GPU=True,
+    pointwise=False,
+    **kwargs
+):
     """
     Return kinematically simulated diffraction pattern
 
@@ -69,9 +85,9 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
         The two-dimensional diffraction pattern evaluated on the reciprocal grid
         corresponding to the first two vectors of `x`.
     """
-    FTYPE = kwargs['dtype'][0]
-    kwargs['GPU'] = GPU
-    kwargs['pointwise'] = pointwise
+    FTYPE = kwargs["dtype"][0]
+    kwargs["GPU"] = GPU
+    kwargs["pointwise"] = pointwise
 
     x = [X.astype(FTYPE, copy=False) for X in x]
     y = to_recip(x)
@@ -92,13 +108,20 @@ def get_diffraction_image(coordinates, species, probe, x, wavelength,
         else:
             return normalise(grid2sphere(arr, y, None, 2 * pi / wavelength))
 
-    R = [precess_mat(precession[0], i * 360 / precession[1]) for i in range(precession[1])]
+    R = [
+        precess_mat(precession[0], i * 360 / precession[1])
+        for i in range(precession[1])
+    ]
 
     if wavelength == 0:
-        return normalise(sum(get_diffraction_image(coordinates.dot(r),
-                                                   species, probe, x, wavelength,
-                                                   (0, 1), **kwargs)
-                             for r in R))
+        return normalise(
+            sum(
+                get_diffraction_image(
+                    coordinates.dot(r), species, probe, x, wavelength, (0, 1), **kwargs
+                )
+                for r in R
+            )
+        )
 
     fftshift_phase(vol)  # removes need for fftshift after fft
     buf = empty(vol.shape, dtype=FTYPE)
@@ -141,11 +164,9 @@ def precess_mat(alpha, theta):
     if alpha == 0:
         return array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
     alpha, theta = alpha * pi / 180, theta * pi / 180
-    R_a = array([[1, 0, 0], [0, cos(alpha), -sin(alpha)],
-                 [0, sin(alpha), cos(alpha)]])
-    R_t = array([[cos(theta), -sin(theta), 0],
-                 [sin(theta), cos(theta), 0], [0, 0, 1]])
-    R = (R_t.T.dot(R_a.dot(R_t)))
+    R_a = array([[1, 0, 0], [0, cos(alpha), -sin(alpha)], [0, sin(alpha), cos(alpha)]])
+    R_t = array([[cos(theta), -sin(theta), 0], [sin(theta), cos(theta), 0], [0, 0, 1]])
+    R = R_t.T.dot(R_a.dot(R_t))
 
     return R
 
@@ -190,6 +211,6 @@ def grid2sphere(arr, x, dx, C):
         else:
             y += C * (1 - w)[:, None] * dx[2]
 
-    out = interpn(x, arr, y, method='linear', bounds_error=False, fill_value=0)
+    out = interpn(x, arr, y, method="linear", bounds_error=False, fill_value=0)
 
     return out.reshape(x[0].size, x[1].size)

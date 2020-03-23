@@ -16,19 +16,20 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
+"""
 Created on 31 Oct 2019
 
 Generic tools for all areas of code.
 
 @author: Rob Tovey
-'''
+"""
 from numpy import isscalar, zeros, array
 import numba
 
 # Coverage: Cuda code is not tested by travis
 try:  # pragma: no cover
     from numba import cuda
+
     __CUDA = cuda.is_available()
 except Exception:  # pragma: no cover
     cuda = None
@@ -36,20 +37,25 @@ except Exception:  # pragma: no cover
 
 
 class GLOBAL_BOOL:
-    '''
+    """
     An object which behaves like a bool but can be changed in-place by `set`
     or by calling as a function.
-    '''
+    """
 
-    def __init__(self, val): self.val = bool(val)
+    def __init__(self, val):
+        self.val = bool(val)
 
-    def __call__(self, val): self.set(val)
+    def __call__(self, val):
+        self.set(val)
 
-    def set(self, val): self.val = bool(val)
+    def set(self, val):
+        self.val = bool(val)
 
-    def __bool__(self): return self.val
+    def __bool__(self):
+        return self.val
 
-    def __str__(self): return str(self.val)
+    def __str__(self):
+        return str(self.val)
 
 
 _CUDA = GLOBAL_BOOL(__CUDA)
@@ -138,7 +144,11 @@ def to_mesh(x, dx=None, dtype=None):
         __toMesh2d(*x, *dx, X)
         return X
     elif dim == 3:
-        dx = [array([1, 0, 0]), array([0, 1, 0]), array([0, 0, 1])] if dx is None else list(dx)
+        dx = (
+            [array([1, 0, 0]), array([0, 1, 0]), array([0, 0, 1])]
+            if dx is None
+            else list(dx)
+        )
         __toMesh3d(*x, *dx, X)
         return X
 

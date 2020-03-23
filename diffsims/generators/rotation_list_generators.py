@@ -27,10 +27,17 @@ from itertools import product
 from transforms3d.euler import euler2axangle, axangle2euler
 
 from diffsims.utils.rotation_conversion_utils import Euler
-from diffsims.utils.fundamental_zone_utils import get_proper_point_group_string, reduce_to_fundamental_zone
-from diffsims.utils.gridding_utils import create_linearly_spaced_array_in_rzxz, rotate_axangle, \
-    _create_advanced_linearly_spaced_array_in_rzxz, \
-    get_beam_directions, beam_directions_to_euler_angles
+from diffsims.utils.fundamental_zone_utils import (
+    get_proper_point_group_string,
+    reduce_to_fundamental_zone,
+)
+from diffsims.utils.gridding_utils import (
+    create_linearly_spaced_array_in_rzxz,
+    rotate_axangle,
+    _create_advanced_linearly_spaced_array_in_rzxz,
+    get_beam_directions,
+    beam_directions_to_euler_angles,
+)
 
 
 def _returnable_eulers_from_axangle(grid, axis_convention, round_to):
@@ -58,13 +65,15 @@ def get_fundamental_zone_grid(space_group_number, resolution):
     rotation_list : list of tuples
     """
     zone_string = get_proper_point_group_string(space_group_number)
-    raw_grid = create_linearly_spaced_array_in_rzxz(resolution)  # see discussion in diffsims/#50
+    raw_grid = create_linearly_spaced_array_in_rzxz(
+        resolution
+    )  # see discussion in diffsims/#50
     raw_grid_axangle = raw_grid.to_AxAngle()
     fz_grid_axangle = reduce_to_fundamental_zone(raw_grid_axangle, zone_string)
-    return _returnable_eulers_from_axangle(fz_grid_axangle, 'rzxz', round_to=2)
+    return _returnable_eulers_from_axangle(fz_grid_axangle, "rzxz", round_to=2)
 
 
-def get_grid_stereographic(crystal_system, resolution, equal='angle'):
+def get_grid_stereographic(crystal_system, resolution, equal="angle"):
     """
     Creates a rotation list by determining the beam directions within the symmetry reduced
     region of the inverse pole figure, corresponding to the specified crystal system, and
@@ -88,8 +97,12 @@ def get_grid_stereographic(crystal_system, resolution, equal='angle'):
     rotation_list : list of tuples
         List of rotations
     """
-    beam_directions_rzxz = beam_directions_to_euler_angles(get_beam_directions(crystal_system, resolution, equal=equal))
-    beam_directions_szxz = beam_directions_rzxz.to_AxAngle().to_Euler(axis_convention='szxz')  # convert to high speed convention
+    beam_directions_rzxz = beam_directions_to_euler_angles(
+        get_beam_directions(crystal_system, resolution, equal=equal)
+    )
+    beam_directions_szxz = beam_directions_rzxz.to_AxAngle().to_Euler(
+        axis_convention="szxz"
+    )  # convert to high speed convention
 
     # drop in all the inplane rotations to form z
     alpha = beam_directions_szxz.data[:, 0]
@@ -100,8 +113,10 @@ def get_grid_stereographic(crystal_system, resolution, equal='angle'):
     ipbeta = np.asarray(list(product(beta, np.asarray(in_plane))))
     z = np.hstack((ipalpha[:, 0].reshape((-1, 1)), ipbeta))
 
-    raw_grid = Euler(z, axis_convention='szxz')
-    grid_rzxz = raw_grid.to_AxAngle().to_Euler(axis_convention='rzxz')  # convert back Bunge convention to return
+    raw_grid = Euler(z, axis_convention="szxz")
+    grid_rzxz = raw_grid.to_AxAngle().to_Euler(
+        axis_convention="rzxz"
+    )  # convert back Bunge convention to return
     rotation_list = grid_rzxz.to_rotation_list(round_to=2)
     return rotation_list
 
@@ -126,13 +141,15 @@ def get_local_grid(center, max_rotation, resolution):
     -------
     rotation_list : list of tuples
     """
-    raw_grid = _create_advanced_linearly_spaced_array_in_rzxz(resolution, 360, max_rotation + 10, 360)
+    raw_grid = _create_advanced_linearly_spaced_array_in_rzxz(
+        resolution, 360, max_rotation + 10, 360
+    )
     raw_grid_axangle = raw_grid.to_AxAngle()
     raw_grid_axangle.remove_large_rotations(np.deg2rad(max_rotation))
     if not np.all(np.asarray(center) == 0):
         raw_grid_axangle = rotate_axangle(raw_grid_axangle, center)
 
-    return _returnable_eulers_from_axangle(raw_grid_axangle, 'rzxz', round_to=2)
+    return _returnable_eulers_from_axangle(raw_grid_axangle, "rzxz", round_to=2)
 
 
 def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 360)):
@@ -162,17 +179,23 @@ def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 
     """
 
     beam_rotation = np.deg2rad(beam_rotation)
-    axangle = euler2axangle(beam_rotation[0], beam_rotation[1], beam_rotation[2], 'rzxz')
-    euler_szxz = axangle2euler(axangle[0], axangle[1], 'szxz')  # convert to szxz
+    axangle = euler2axangle(
+        beam_rotation[0], beam_rotation[1], beam_rotation[2], "rzxz"
+    )
+    euler_szxz = axangle2euler(axangle[0], axangle[1], "szxz")  # convert to szxz
     rotation_alpha, rotation_beta = np.rad2deg(euler_szxz[0]), np.rad2deg(euler_szxz[1])
 
     # see _create_advanced_linearly_spaced_array_in_rzxz for details
     steps_gamma = int(np.ceil((angular_range[1] - angular_range[0]) / resolution))
     alpha = np.asarray([rotation_alpha])
     beta = np.asarray([rotation_beta])
-    gamma = np.linspace(angular_range[0], angular_range[1], num=steps_gamma, endpoint=False)
+    gamma = np.linspace(
+        angular_range[0], angular_range[1], num=steps_gamma, endpoint=False
+    )
     z = np.asarray(list(product(alpha, beta, gamma)))
-    raw_grid = Euler(z, axis_convention='szxz')  # we make use of an uncommon euler angle set here for speed
-    grid_rzxz = raw_grid.to_AxAngle().to_Euler(axis_convention='rzxz')
+    raw_grid = Euler(
+        z, axis_convention="szxz"
+    )  # we make use of an uncommon euler angle set here for speed
+    grid_rzxz = raw_grid.to_AxAngle().to_Euler(axis_convention="rzxz")
     rotation_list = grid_rzxz.to_rotation_list(round_to=2)
     return rotation_list
