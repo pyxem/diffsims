@@ -50,11 +50,12 @@ def get_electron_wavelength(accelerating_voltage):
         The relativistic electron wavelength in Angstroms.
 
     """
-    if accelerating_voltage in (np.inf, 'inf'):
+    if accelerating_voltage in (np.inf, "inf"):
         return 0
     E = accelerating_voltage * 1e3
-    wavelength = h / math.sqrt(2 * m_e * e * E *
-                               (1 + (e / (2 * m_e * c * c)) * E)) * 1e10
+    wavelength = (
+        h / math.sqrt(2 * m_e * e * E * (1 + (e / (2 * m_e * c * c)) * E)) * 1e10
+    )
     return wavelength
 
 
@@ -75,7 +76,7 @@ def get_interaction_constant(accelerating_voltage):
     """
     E = accelerating_voltage
     wavelength = get_electron_wavelength(accelerating_voltage)
-    sigma = (2 * pi * (m_e + e * E))
+    sigma = 2 * pi * (m_e + e * E)
 
     return sigma
 
@@ -131,20 +132,22 @@ def get_scattering_params_dict(scattering_params):
     scattering_params_dict : dict
         Dictionary of scattering parameters mapping from element name.
     """
-    if scattering_params == 'lobato':
+    if scattering_params == "lobato":
         scattering_params_dict = ATOMIC_SCATTERING_PARAMS_LOBATO
-    elif scattering_params == 'xtables':
+    elif scattering_params == "xtables":
         scattering_params_dict = ATOMIC_SCATTERING_PARAMS
     else:
-        raise NotImplementedError("The scattering parameters `{}` are not implemented. "
-                                  "See documentation for available "
-                                  "implementations.".format(scattering_params))
+        raise NotImplementedError(
+            "The scattering parameters `{}` are not implemented. "
+            "See documentation for available "
+            "implementations.".format(scattering_params)
+        )
     return scattering_params_dict
 
 
-def get_vectorized_list_for_atomic_scattering_factors(structure,
-                                                      debye_waller_factors,
-                                                      scattering_params):
+def get_vectorized_list_for_atomic_scattering_factors(
+    structure, debye_waller_factors, scattering_params
+):
     """ Create a flattened array of coeffs, fcoords and occus for vectorized
     computation of atomic scattering factors.
 
@@ -206,21 +209,25 @@ def get_atomic_scattering_factors(g_hkl_sq, coeffs, scattering_params):
     scattering_factors : ndarray
         The calculated atomic scattering parameters.
     """
-    g_sq_coeff_1 = np.outer(g_hkl_sq, coeffs[:, :, 1]).reshape(g_hkl_sq.shape + coeffs[:, :, 1].shape)
-    if scattering_params == 'lobato':
+    g_sq_coeff_1 = np.outer(g_hkl_sq, coeffs[:, :, 1]).reshape(
+        g_hkl_sq.shape + coeffs[:, :, 1].shape
+    )
+    if scattering_params == "lobato":
         f = (2 + g_sq_coeff_1) * (1 / np.square(1 + g_sq_coeff_1))
-    elif scattering_params == 'xtables':
+    elif scattering_params == "xtables":
         f = np.exp(-0.25 * g_sq_coeff_1)
     return np.sum(coeffs[:, :, 0] * f, axis=-1)
 
 
-def get_kinematical_intensities(structure,
-                                g_indices,
-                                g_hkls,
-                                excitation_error,
-                                maximum_excitation_error,
-                                debye_waller_factors,
-                                scattering_params='lobato'):
+def get_kinematical_intensities(
+    structure,
+    g_indices,
+    g_hkls,
+    excitation_error,
+    maximum_excitation_error,
+    debye_waller_factors,
+    scattering_params="lobato",
+):
     """Calculates peak intensities.
 
     The peak intensity is a combination of the structure factor for a given
@@ -243,9 +250,16 @@ def get_kinematical_intensities(structure,
         The intensities of the peaks.
 
     """
-    coeffs, fcoords, occus, dwfactors = get_vectorized_list_for_atomic_scattering_factors(
-        structure=structure, debye_waller_factors=debye_waller_factors,
-        scattering_params=scattering_params)
+    (
+        coeffs,
+        fcoords,
+        occus,
+        dwfactors,
+    ) = get_vectorized_list_for_atomic_scattering_factors(
+        structure=structure,
+        debye_waller_factors=debye_waller_factors,
+        scattering_params=scattering_params,
+    )
 
     # Store array of g_hkls^2 values since used multiple times.
     g_hkls_sq = g_hkls ** 2
@@ -254,14 +268,21 @@ def get_kinematical_intensities(structure,
     fs = get_atomic_scattering_factors(g_hkls_sq, coeffs, scattering_params)
 
     # Change the coordinate system of fcoords to align with that of g_indices
-    fcoords = np.dot(fcoords, np.linalg.inv(np.dot(structure.lattice.stdbase,
-                                                   structure.lattice.recbase)))
+    fcoords = np.dot(
+        fcoords,
+        np.linalg.inv(np.dot(structure.lattice.stdbase, structure.lattice.recbase)),
+    )
 
     # Calculate structure factors for all excited g-vectors.
-    f_hkls = np.sum(fs * occus * np.exp(
-        2j * np.pi * np.dot(g_indices, fcoords.T) -
-        0.25 * np.outer(g_hkls_sq, dwfactors)),
-        axis=-1)
+    f_hkls = np.sum(
+        fs
+        * occus
+        * np.exp(
+            2j * np.pi * np.dot(g_indices, fcoords.T)
+            - 0.25 * np.outer(g_hkls_sq, dwfactors)
+        ),
+        axis=-1,
+    )
 
     # Define an intensity scaling that is linear with distance from Ewald sphere
     # along the beam direction.
@@ -273,14 +294,16 @@ def get_kinematical_intensities(structure,
     return peak_intensities
 
 
-def simulate_kinematic_scattering(atomic_coordinates,
-                                  element,
-                                  accelerating_voltage,
-                                  simulation_size=256,
-                                  max_k=1.5,
-                                  illumination='plane_wave',
-                                  sigma=20,
-                                  scattering_params='lobato'):
+def simulate_kinematic_scattering(
+    atomic_coordinates,
+    element,
+    accelerating_voltage,
+    simulation_size=256,
+    max_k=1.5,
+    illumination="plane_wave",
+    sigma=20,
+    scattering_params="lobato",
+):
     """Simulate electron scattering from arrangement of atoms comprising one
     elemental species.
 
@@ -330,16 +353,19 @@ def simulate_kinematic_scattering(atomic_coordinates,
 
     # Evaluate scattering from all atoms
     scattering = np.zeros_like(gs_sq)
-    if illumination == 'plane_wave':
+    if illumination == "plane_wave":
         for r in atomic_coordinates:
             scattering = scattering + (fs * np.exp(np.dot(k.T, r) * np.pi * 2j))
-    elif illumination == 'gaussian_probe':
+    elif illumination == "gaussian_probe":
         for r in atomic_coordinates:
-            probe = (1 / (np.sqrt(2 * np.pi) * sigma)) * \
-                np.exp((-np.abs(((r[0] ** 2) - (r[1] ** 2)))) / (4 * sigma ** 2))
+            probe = (1 / (np.sqrt(2 * np.pi) * sigma)) * np.exp(
+                (-np.abs(((r[0] ** 2) - (r[1] ** 2)))) / (4 * sigma ** 2)
+            )
             scattering = scattering + (probe * fs * np.exp(np.dot(k.T, r) * np.pi * 2j))
     else:
-        raise ValueError("User specified illumination '{}' not defined.".format(illumination))
+        raise ValueError(
+            "User specified illumination '{}' not defined.".format(illumination)
+        )
 
     # Calculate intensity
     intensity = (scattering * scattering.conjugate()).real
@@ -373,11 +399,14 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     k_max = np.floor(reciprocal_radius / b)
     l_max = np.floor(reciprocal_radius / c)
     from itertools import product
+
     h_list = np.arange(-h_max, h_max + 1)  # arange has a non-inclusive endpoint
     k_list = np.arange(-k_max, k_max + 1)
     l_list = np.arange(-l_max, l_max + 1)
     potential_points = np.asarray(list(product(h_list, k_list, l_list)))
-    in_sphere = np.abs(reciprocal_lattice.dist(potential_points, [0, 0, 0])) < reciprocal_radius
+    in_sphere = (
+        np.abs(reciprocal_lattice.dist(potential_points, [0, 0, 0])) < reciprocal_radius
+    )
     spot_indices = potential_points[in_sphere]
     spot_coords = reciprocal_lattice.cartesian(spot_indices)
     spot_distances = reciprocal_lattice.dist(spot_indices, [0, 0, 0])

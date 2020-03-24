@@ -23,18 +23,25 @@ from diffsims.utils.vector_utils import get_angle_cartesian
 from diffsims.utils.vector_utils import get_angle_cartesian_vec
 
 
-@pytest.mark.parametrize('vec_a, vec_b, expected_angle', [
-    ([0, 0, 1], [0, 1, 0], np.deg2rad(90)),
-    ([0, 0, 0], [0, 0, 1], 0)
-])
+@pytest.mark.parametrize(
+    "vec_a, vec_b, expected_angle",
+    [([0, 0, 1], [0, 1, 0], np.deg2rad(90)), ([0, 0, 0], [0, 0, 1], 0)],
+)
 def test_get_angle_cartesian(vec_a, vec_b, expected_angle):
     angle = get_angle_cartesian(vec_a, vec_b)
     np.testing.assert_allclose(angle, expected_angle)
 
 
-@pytest.mark.parametrize('a, b, expected_angles', [
-    (np.array([[0, 0, 1], [0, 0, 0]]), np.array([[0, 1, 0], [0, 0, 1]]), [np.deg2rad(90), 0])
-])
+@pytest.mark.parametrize(
+    "a, b, expected_angles",
+    [
+        (
+            np.array([[0, 0, 1], [0, 0, 0]]),
+            np.array([[0, 1, 0], [0, 0, 1]]),
+            [np.deg2rad(90), 0],
+        )
+    ],
+)
 def test_get_angle_cartesian_vec(a, b, expected_angles):
     angles = get_angle_cartesian_vec(a, b)
     np.testing.assert_allclose(angles, expected_angles)

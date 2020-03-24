@@ -1,4 +1,4 @@
-|Travis|_ |AppVeyor|_ |Coveralls|_ |pypi_version|_  |doi|_
+|Travis|_ |AppVeyor|_ |Coveralls|_ |pypi_version|_ |black|_ |doi|_
 
 .. |Travis| image:: https://travis-ci.org/pyxem/diffsims.svg?branch=master
 .. _Travis: https://travis-ci.org/pyxem/diffsims
@@ -15,6 +15,8 @@
 .. |doi| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3337900.svg
 .. _doi: https://doi.org/10.5281/zenodo.3337900
 
+.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+.. _black: https://github.com/psf/black
 
 diffsims is an open-source python library for simulating diffraction.
 

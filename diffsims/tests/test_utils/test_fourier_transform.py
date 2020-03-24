@@ -1,39 +1,96 @@
-'''
+"""
 Created on 2 Nov 2019
 
 @author: Rob Tovey
-'''
+"""
 
 import pytest
 import numpy as np
-from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import (plan_fft, plan_ifft, fftn, ifftn,
-                                                                                   ifftshift, fftshift, fftshift_phase,
-                                                                                   fast_abs, to_recip, from_recip,
-                                                                                   get_recip_points, get_DFT, convolve)
-from diffsims.utils.atomic_diffraction_generator_support.discretise_utils import get_atoms
+from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import (
+    plan_fft,
+    plan_ifft,
+    fftn,
+    ifftn,
+    ifftshift,
+    fftshift,
+    fftshift_phase,
+    fast_abs,
+    to_recip,
+    from_recip,
+    get_recip_points,
+    get_DFT,
+    convolve,
+)
+from diffsims.utils.atomic_diffraction_generator_support.discretise_utils import (
+    get_atoms,
+)
 
 
 def _toMesh(x):
-    y = np.meshgrid(*x, indexing='ij')
+    y = np.meshgrid(*x, indexing="ij")
     return np.concatenate([z[..., None] for z in y], axis=-1)
 
 
 def _random_array(shape, n=0):
-    x = np.zeros(np.prod(shape), dtype='float64')
-    primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61,
-              67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
-              139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199]
+    x = np.zeros(np.prod(shape), dtype="float64")
+    primes = [
+        2,
+        3,
+        5,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29,
+        31,
+        37,
+        41,
+        43,
+        47,
+        53,
+        59,
+        61,
+        67,
+        71,
+        73,
+        79,
+        83,
+        89,
+        97,
+        101,
+        103,
+        107,
+        109,
+        113,
+        127,
+        131,
+        137,
+        139,
+        149,
+        151,
+        157,
+        163,
+        167,
+        173,
+        179,
+        181,
+        191,
+        193,
+        197,
+        199,
+    ]
     primes = np.array(primes, dtype=int)[::3]
     for i, j in enumerate(primes[n:]):
         x[::j] += i * (-1) ** j
     return x.reshape(shape)
 
 
-standard_test = ([(20,), 1], [(38,), 2],
-                 [(10, 12), 3])
+standard_test = ([(20,), 1], [(38,), 2], [(10, 12), 3])
 
 
-@pytest.mark.parametrize('shape, n', standard_test)
+@pytest.mark.parametrize("shape, n", standard_test)
 def test_plan(shape, n):
     x = _random_array(shape, n)
     f1, x1 = plan_fft(x)
@@ -44,7 +101,7 @@ def test_plan(shape, n):
     np.testing.assert_allclose(f2(), ifftn(x), 1e-5)
 
 
-@pytest.mark.parametrize('shape, n', standard_test)
+@pytest.mark.parametrize("shape, n", standard_test)
 def test_fftshift(shape, n):
     x = _random_array(shape, n) + 1
     y = fftshift(fftn(x))
@@ -57,7 +114,7 @@ def test_fftshift(shape, n):
     np.testing.assert_allclose(y, Y, 1e-5, 1e-5)
 
 
-@pytest.mark.parametrize('shape, n', standard_test)
+@pytest.mark.parametrize("shape, n", standard_test)
 def test_fast_abs(shape, n):
     x = _random_array(shape, n)
     y = np.empty(shape, dtype=x.dtype)
@@ -68,13 +125,16 @@ def test_fast_abs(shape, n):
     assert y is z
 
 
-@pytest.mark.parametrize('shape, dX, rX, dY, rY', [
-    ([200], (.1,), (1,), (.01,), (2,)),
-    ([200], (.1,), (1,), (6,), (60,)),
-    ([None], (.1,), (1,), (.01,), (2,)),
-    ([5, 20], (.1,) * 2, (1,) * 2, (.01,) * 2, (2,) * 2),
-    ([10] * 3, (.1, .1, .2), (1, 2, 1), (.01,) * 3, (2,) * 3),
-])
+@pytest.mark.parametrize(
+    "shape, dX, rX, dY, rY",
+    [
+        ([200], (0.1,), (1,), (0.01,), (2,)),
+        ([200], (0.1,), (1,), (6,), (60,)),
+        ([None], (0.1,), (1,), (0.01,), (2,)),
+        ([5, 20], (0.1,) * 2, (1,) * 2, (0.01,) * 2, (2,) * 2),
+        ([10] * 3, (0.1, 0.1, 0.2), (1, 2, 1), (0.01,) * 3, (2,) * 3),
+    ],
+)
 def test_freq(shape, dX, rX, dY, rY):
     x, y = get_recip_points(len(shape), shape, dX, rX, dY, rY)
     X, Y = from_recip(y), to_recip(x)
@@ -100,7 +160,7 @@ def test_freq(shape, dX, rX, dY, rY):
         np.testing.assert_allclose(y[i], Y[i], 1e-5)
 
 
-@pytest.mark.parametrize('shape', [[200], [1, 10], [10, 1]])
+@pytest.mark.parametrize("shape", [[200], [1, 10], [10, 1]])
 def test_freq2(shape):
     x = [np.linspace(0, 1, s) if s > 1 else np.array([0]) for s in shape]
     y = to_recip(from_recip(x))
@@ -111,14 +171,10 @@ def test_freq2(shape):
         assert abs(x[i] - z[i] + z[i].min()).max() < 1e-6
 
 
-@pytest.mark.parametrize('rX, rY', [
-    ([1], 1000),
-    ([1] * 2, 1000),
-    ([1] * 3, 1000),
-])
+@pytest.mark.parametrize("rX, rY", [([1], 1000), ([1] * 2, 1000), ([1] * 3, 1000),])
 def test_DFT(rX, rY):
     x, y = get_recip_points(len(rX), rX=rX, rY=rY)
-    axes = (0 if len(x) == 1 else None)
+    axes = 0 if len(x) == 1 else None
 
     f, g = get_atoms(0, returnFunc=True)
     f, g = f(_toMesh(x)), g(_toMesh(y))
@@ -134,16 +190,20 @@ def test_DFT(rX, rY):
 
 
 @pytest.mark.xfail(raises=ValueError)
-def test_fail_DFT(): get_DFT()
+def test_fail_DFT():
+    get_DFT()
 
 
-@pytest.mark.parametrize('shape1, shape2, n1, n2, dx', [
-    ([10], [10], 1, 5, None),
-    ([10, 1], [10, 10], 2, 6, 1),
-    ([10, 10], [10, 1], 3, 7, (1, 1)),
-    ([10, 11], [10, 11], 4, 8, None),
-    ([10], [10, 11], 5, 9, 1),
-])
+@pytest.mark.parametrize(
+    "shape1, shape2, n1, n2, dx",
+    [
+        ([10], [10], 1, 5, None),
+        ([10, 1], [10, 10], 2, 6, 1),
+        ([10, 10], [10, 1], 3, 7, (1, 1)),
+        ([10, 11], [10, 11], 4, 8, None),
+        ([10], [10, 11], 5, 9, 1),
+    ],
+)
 def test_convolve(shape1, shape2, n1, n2, dx):
     x = _random_array(shape1, n1)
     y = _random_array(shape2, n2)

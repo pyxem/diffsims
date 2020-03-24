@@ -41,31 +41,38 @@ def get_proper_point_group_string(space_group_number):
     representations given in that table.
     """
     if space_group_number in [1, 2]:
-        return '1'  # triclinic
+        return "1"  # triclinic
     if 2 < space_group_number < 16:
-        return '2'  # monoclinic
+        return "2"  # monoclinic
     if 15 < space_group_number < 75:
-        return '222'  # orthorhomic
+        return "222"  # orthorhomic
     if 74 < space_group_number < 143:  # tetragonal
         if (74 < space_group_number < 89) or (99 < space_group_number < 110):
-            return '4'  # cyclic
+            return "4"  # cyclic
         else:
-            return '422'  # dihedral
+            return "422"  # dihedral
     if 142 < space_group_number < 168:  # trigonal
         if 142 < space_group_number < 148 or 156 < space_group_number < 161:
-            return '3'  # cyclic
+            return "3"  # cyclic
         else:
-            return '32'  # dihedral
+            return "32"  # dihedral
     if 167 < space_group_number < 194:  # hexagonal
         if 167 < space_group_number < 176 or space_group_number in [183, 184, 185, 186]:
-            return '6'  # cyclic
+            return "6"  # cyclic
         else:
-            return '622'  # dihedral
+            return "622"  # dihedral
     if 193 < space_group_number < 231:  # cubic
-        if 193 < space_group_number < 207 or space_group_number in [215, 216, 217, 218, 219, 220]:
-            return '432'  # oct
+        if 193 < space_group_number < 207 or space_group_number in [
+            215,
+            216,
+            217,
+            218,
+            219,
+            220,
+        ]:
+            return "432"  # oct
         else:
-            return '23'  # tet
+            return "23"  # tet
 
 
 def axangle2rodrigues_frank(z):
@@ -133,8 +140,12 @@ def cyclic_group(data, order):
     This makes use of the convention that puts the cyclic axis along z
     """
     # As pi rotations are present in the input and output we avoid a call to numpy_bounding_plane
-    z_distance = np.multiply(data[:, 2], data[:, 3])  # gets the z component of the distance, can be nan
-    z_distance = np.abs(np.nan_to_num(z_distance))  # case pi rotation, 0 z component of vector
+    z_distance = np.multiply(
+        data[:, 2], data[:, 3]
+    )  # gets the z component of the distance, can be nan
+    z_distance = np.abs(
+        np.nan_to_num(z_distance)
+    )  # case pi rotation, 0 z component of vector
     mask = z_distance < np.tan(np.pi / (2 * order))
     return mask
 
@@ -230,11 +241,11 @@ def octahedral_group(data):
 
 def remove_out_of_domain_rotations(Axangles, point_group_str):
     """ see Figure 5 of "On 3 dimensional misorientation spaces" """
-    if point_group_str == '432':
+    if point_group_str == "432":
         Axangles.remove_large_rotations(np.deg2rad(66))
-    elif point_group_str == '222':
+    elif point_group_str == "222":
         Axangles.remove_large_rotations(np.deg2rad(121))
-    elif point_group_str in ['23', '622', '32', '422']:
+    elif point_group_str in ["23", "622", "32", "422"]:
         Axangles.remove_large_rotations(np.deg2rad(106))
 
     return Axangles
@@ -242,13 +253,13 @@ def remove_out_of_domain_rotations(Axangles, point_group_str):
 
 def generate_mask_from_rodrigues_frank(Axangles, point_group_str):
     rf_data = axangle2rodrigues_frank(Axangles.data)
-    if point_group_str in ['1', '2', '3', '4', '6']:
+    if point_group_str in ["1", "2", "3", "4", "6"]:
         mask = cyclic_group(rf_data, order=int(point_group_str))
-    elif point_group_str in ['222', '32', '422', '622']:
+    elif point_group_str in ["222", "32", "422", "622"]:
         mask = dihedral_group(rf_data, order=int(point_group_str[0]))
-    elif point_group_str == '23':
+    elif point_group_str == "23":
         mask = tetragonal_group(rf_data)
-    elif point_group_str == '432':
+    elif point_group_str == "432":
         mask = octahedral_group(rf_data)
 
     return mask

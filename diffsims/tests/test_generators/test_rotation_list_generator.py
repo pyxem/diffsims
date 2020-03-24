@@ -18,7 +18,12 @@
 
 import pytest
 import numpy as np
-from diffsims.generators.rotation_list_generators import get_local_grid, get_grid_around_beam_direction, get_fundamental_zone_grid, get_grid_stereographic
+from diffsims.generators.rotation_list_generators import (
+    get_local_grid,
+    get_grid_around_beam_direction,
+    get_fundamental_zone_grid,
+    get_grid_stereographic,
+)
 from diffsims.utils.rotation_conversion_utils import Euler
 
 
@@ -43,14 +48,14 @@ def test_get_grid_around_beam_direction():
 def test_get_fundamental_zone_grid(space_group_number):
     grid_narrow = get_fundamental_zone_grid(space_group_number, resolution=4)
     grid_wide = get_fundamental_zone_grid(space_group_number, resolution=8)
-    assert (len(grid_narrow) / len(grid_wide)) > (2**3) - 1  # lower bounds
-    assert (len(grid_narrow) / len(grid_wide)) < (2**3) + 1  # upper bounds
+    assert (len(grid_narrow) / len(grid_wide)) > (2 ** 3) - 1  # lower bounds
+    assert (len(grid_narrow) / len(grid_wide)) < (2 ** 3) + 1  # upper bounds
 
 
 def test_get_grid_stereographic():
-    grid = get_grid_stereographic('tetragonal', 1, equal='angle')
+    grid = get_grid_stereographic("tetragonal", 1, equal="angle")
     assert (0, 0, 0) in grid
-    grid_four_times_as_many = get_grid_stereographic('orthorhombic', 1, equal='angle')
+    grid_four_times_as_many = get_grid_stereographic("orthorhombic", 1, equal="angle")
 
     # for equal angle you wouldn't expect perfect ratios
     assert len(grid_four_times_as_many) / len(grid) > 1.9
@@ -69,7 +74,9 @@ def test_small_angle_shortcut():  # pragma: no cover
 
     max_rotation = 20
     lsa = create_linearly_spaced_array_in_rzxz(2)
-    alsa = _create_advanced_linearly_spaced_array_in_rzxz(2, 360, max_rotation + 10, 360)
+    alsa = _create_advanced_linearly_spaced_array_in_rzxz(
+        2, 360, max_rotation + 10, 360
+    )
 
     long_true_way = process_angles(lsa, max_rotation)
     quick_way = process_angles(alsa, max_rotation)
