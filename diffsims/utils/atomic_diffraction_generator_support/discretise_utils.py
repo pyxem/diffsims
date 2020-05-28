@@ -1027,7 +1027,7 @@ ATOMIC_SCATTERING_PARAMS_PENG = dict(
             ),
         ),
         (
-            "A1",
+            "Al",
             (
                 (0.1165, 0.1295),
                 (0.5504, 1.2619),
@@ -1067,7 +1067,7 @@ ATOMIC_SCATTERING_PARAMS_PENG = dict(
             ),
         ),
         (
-            "CI",
+            "Cl",
             (
                 (0.0799, 0.0694),
                 (0.3891, 0.6443),
@@ -1707,7 +1707,7 @@ ATOMIC_SCATTERING_PARAMS_PENG = dict(
             ),
         ),
         (
-            "T1",
+            "Tl",
             (
                 (0.3511, 0.0672),
                 (1.5489, 0.6522),
