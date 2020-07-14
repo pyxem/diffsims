@@ -52,7 +52,7 @@ install:
       . activate testenv;
     fi
   - conda activate testenv;
-  - conda install -y $TEST_DEPS;
+  - conda install -y $DEPS $TEST_DEPS;
   - pip install .
 
 script:
