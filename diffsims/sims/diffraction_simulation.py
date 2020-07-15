@@ -148,17 +148,20 @@ class DiffractionSimulation:
         the order of 0.5nm and a the default size and sigma are used.
         """
         side_length = np.min(np.multiply((size / 2), self.calibration))
-        mask_for_sides = np.any(
-            (np.abs(self.coordinates[:, 0:2]) < side_length), axis=1
-        )
+        mask_for_sides = np.all((np.abs(self.coordinates[:, 0:2]) < side_length), axis=1)
+
 
         spot_coords = np.add(
             self.calibrated_coordinates[mask_for_sides], size / 2
         ).astype(int)
         spot_intens = self.intensities[mask_for_sides]
         pattern = np.zeros([size, size])
-        pattern[spot_coords[:, 0], spot_coords[:, 1]] = spot_intens
-        pattern = ndi.gaussian_filter(pattern, sigma)
+        #checks that we have some spots
+        if spot_intens.shape[0]==0:
+            return pattern
+        else:
+            pattern[spot_coords[:, 0], spot_coords[:, 1]] = spot_intens
+            pattern = ndi.gaussian_filter(pattern.T, sigma)
 
         return np.divide(pattern, np.max(pattern))
 
