@@ -20,12 +20,18 @@ import pytest
 import numpy as np
 
 from transforms3d.euler import euler2quat, quat2axangle, axangle2euler
-from diffsims.utils.rotation_conversion_utils import vectorised_euler2quat, vectorised_quat2axangle, vectorised_axangle2euler,\
-    vectorised_axangle_to_correct_range, convert_axangle_to_correct_range, \
-    Euler, AxAngle
+from diffsims.utils.rotation_conversion_utils import (
+    vectorised_euler2quat,
+    vectorised_quat2axangle,
+    vectorised_axangle2euler,
+    vectorised_axangle_to_correct_range,
+    convert_axangle_to_correct_range,
+    Euler,
+    AxAngle,
+)
 
 
-@pytest.mark.parametrize("axis_convention", ['rzxz', 'szxz'])
+@pytest.mark.parametrize("axis_convention", ["rzxz", "szxz"])
 def test_vectorised_euler2quat(random_eulers, axis_convention):
     fast = vectorised_euler2quat(random_eulers, axis_convention)
 
@@ -52,7 +58,7 @@ def test_vectorised_quat2axangle(random_quats):
     assert np.allclose(fast, stored_axangles)
 
 
-@pytest.mark.parametrize("axis_convention", ['rzxz', 'szxz'])
+@pytest.mark.parametrize("axis_convention", ["rzxz", "szxz"])
 def test_vectorised_axangle2euler(random_axangles, axis_convention):
     fast = vectorised_axangle2euler(random_axangles, axis_convention)
 
@@ -88,10 +94,12 @@ def test_interconversion_euler_axangle(random_axangles):
     go back and forth correctly
     """
     z = random_axangles.copy()
-    z[:, :3] = np.divide(random_axangles[:, :3], np.linalg.norm(
-        random_axangles[:, :3], axis=1).reshape(z.shape[0], 1))  # normalise
+    z[:, :3] = np.divide(
+        random_axangles[:, :3],
+        np.linalg.norm(random_axangles[:, :3], axis=1).reshape(z.shape[0], 1),
+    )  # normalise
     axangle = AxAngle(z)
-    e = axangle.to_Euler(axis_convention='rzxz')
+    e = axangle.to_Euler(axis_convention="rzxz")
     transform_back = e.to_AxAngle()
     assert isinstance(transform_back, AxAngle)
     assert np.allclose(transform_back.data, axangle.data)
@@ -101,7 +109,7 @@ def test_slow_to_euler_case(random_eulers):
     """
     This function checks that to_Axangle runs with rarer conventions on the eulers
     """
-    e = Euler(random_eulers, 'sxyz')
+    e = Euler(random_eulers, "sxyz")
     axangle = e.to_AxAngle()
     assert isinstance(axangle, AxAngle)
 
@@ -109,11 +117,11 @@ def test_slow_to_euler_case(random_eulers):
 @pytest.mark.xfail(strict=True, raises=ValueError)
 class TestsThatFail:
     def test_odd_convention_euler2quat(self, random_eulers):
-        vectorised_euler2quat(random_eulers, axes='sxyz')
+        vectorised_euler2quat(random_eulers, axes="sxyz")
 
     def test_odd_convention_mat2euler(self):
         ax = AxAngle(np.asarray([[1, 0, 0, 0.2]]))
-        ax.to_Euler(axis_convention='sxyz')
+        ax.to_Euler(axis_convention="sxyz")
 
     def test_inf_quat(self):
         qdata = np.asarray([[0, np.inf, 1, 1]])
@@ -127,8 +135,7 @@ class TestsThatFail:
 class TestAxAngle:
     @pytest.fixture()
     def good_array(self):
-        return np.asarray([[1, 0, 0, 1],
-                           [0, 1, 0, 1.1]])
+        return np.asarray([[1, 0, 0, 1], [0, 1, 0, 1.1]])
 
     def test_good_array__init__(self, good_array):
         assert isinstance(AxAngle(good_array), AxAngle)
@@ -160,8 +167,7 @@ class TestAxAngle:
 class TestEuler:
     @pytest.fixture()
     def good_array(self):
-        return np.asarray([[32, 80, 21],
-                           [40, 10, 11]])
+        return np.asarray([[32, 80, 21], [40, 10, 11]])
 
     def test_good_array__init__(self, good_array):
         assert isinstance(Euler(good_array), Euler)
@@ -171,7 +177,7 @@ class TestEuler:
         assert isinstance(l, list)
         assert isinstance(l[0], tuple)
 
-    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_warning_code(self, good_array):
         euler = Euler(good_array)
         euler.data[:, :] = 1e-5

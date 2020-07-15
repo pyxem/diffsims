@@ -40,7 +40,7 @@ import numpy as np
 import warnings
 
 
-def vectorised_euler2quat(eulers, axes='rzxz'):
+def vectorised_euler2quat(eulers, axes="rzxz"):
     """ Applies the transformation that takes eulers to quaternions
 
     Parameters
@@ -67,11 +67,11 @@ def vectorised_euler2quat(eulers, axes='rzxz'):
 
     _NEXT_AXIS = [1, 2, 0, 1]
 
-    if axes != 'rzxz' and axes != 'szxz':
+    if axes != "rzxz" and axes != "szxz":
         raise ValueError()
-    elif axes == 'rzxz':
+    elif axes == "rzxz":
         firstaxis, parity, repetition, frame = 2, 0, 1, 1
-    elif axes == 'szxz':
+    elif axes == "szxz":
         firstaxis, parity, repetition, frame = 2, 0, 1, 0
 
     i = firstaxis + 1
@@ -146,7 +146,9 @@ def vectorised_quat2axangle(q):
     if not np.all(np.isfinite(Nq)):
         raise ValueError("You have infinte elements, please check your entry")
     if np.any(Nq < 1e-6):
-        raise ValueError("Very small numbers are at risk when we normalise, try normalising your quaternions")
+        raise ValueError(
+            "Very small numbers are at risk when we normalise, try normalising your quaternions"
+        )
 
     if np.any(Nq != 1):  # normalize
         s = np.sqrt(Nq)
@@ -159,7 +161,9 @@ def vectorised_quat2axangle(q):
     z = np.where(len_img == 0, 0, z)
     w = np.where(len_img == 0, 1, w)
 
-    len_img = np.sqrt((x * x) + (y * y) + (z * z))  # recalculated so we avoid a divide by zero
+    len_img = np.sqrt(
+        (x * x) + (y * y) + (z * z)
+    )  # recalculated so we avoid a divide by zero
     xr, yr, zr = np.divide(x, len_img), np.divide(y, len_img), np.divide(z, len_img)
 
     w[w > 1] = 1
@@ -169,7 +173,7 @@ def vectorised_quat2axangle(q):
     return axangles
 
 
-def vectorised_euler2axangle(eulers, axes='rzxz'):
+def vectorised_euler2axangle(eulers, axes="rzxz"):
     """ Applies the transformation that takes eulers to axis-angles
 
     Parameters
@@ -234,15 +238,18 @@ def vectorised_axangle2mat(axangles):
     xyC = x * yC
     yzC = y * zC
     zxC = z * xC
-    M = np.array([
-        [x * xC + c, xyC - zs, zxC + ys],
-        [xyC + zs, y * yC + c, yzC - xs],
-        [zxC - ys, yzC + xs, z * zC + c]])
+    M = np.array(
+        [
+            [x * xC + c, xyC - zs, zxC + ys],
+            [xyC + zs, y * yC + c, yzC - xs],
+            [zxC - ys, yzC + xs, z * zC + c],
+        ]
+    )
 
     return M
 
 
-def vectorised_mat2euler(M, axes='rzxz'):
+def vectorised_mat2euler(M, axes="rzxz"):
     """
     Applies the transformation to take rotation matricies to euler angles
 
@@ -264,11 +271,11 @@ def vectorised_mat2euler(M, axes='rzxz'):
     """
     _NEXT_AXIS = [1, 2, 0, 1]
 
-    if axes != 'rzxz' and axes != 'szxz':
+    if axes != "rzxz" and axes != "szxz":
         raise ValueError()
-    elif axes == 'rzxz':
+    elif axes == "rzxz":
         firstaxis, parity, repetition, frame = 2, 0, 1, 1
-    elif axes == 'szxz':
+    elif axes == "szxz":
         firstaxis, parity, repetition, frame = 2, 0, 1, 0
 
     i = firstaxis
@@ -278,7 +285,11 @@ def vectorised_mat2euler(M, axes='rzxz'):
     if repetition:
         sy = np.sqrt(M[i, j, :] * M[i, j, :] + M[i, k, :] * M[i, k, :])
 
-        ax = np.where(sy > 0, np.arctan2(M[i, j, :], M[i, k, :]), np.arctan2(-M[j, k, :], M[j, j, :]))
+        ax = np.where(
+            sy > 0,
+            np.arctan2(M[i, j, :], M[i, k, :]),
+            np.arctan2(-M[j, k, :], M[j, j, :]),
+        )
         ay = np.arctan2(sy, M[i, i, :])
         az = np.where(sy > 0, np.arctan2(M[j, i, :], -M[k, i, :]), 0.0)
 
@@ -291,7 +302,7 @@ def vectorised_mat2euler(M, axes='rzxz'):
     return euler
 
 
-def vectorised_axangle2euler(axangles, axes='rzxz'):
+def vectorised_axangle2euler(axangles, axes="rzxz"):
     """ Applies the transformation that takes eulers to axis-angles
 
     Parameters
@@ -342,7 +353,7 @@ def convert_axangle_to_correct_range(vector, angle):
     elif (angle >= -np.pi) and (angle < 0):
         vector = np.multiply(vector, -1)
         angle = angle * -1
-    elif (angle >= np.pi):
+    elif angle >= np.pi:
         vector = np.multiply(vector, -1)
         angle = 2 * np.pi - angle
 
@@ -381,7 +392,9 @@ def vectorised_axangle_to_correct_range(data):
     third_case_truth = np.logical_and(z[:, 3] >= np.pi, z[:, 3] <= 2 * np.pi)
     for i in [0, 1, 2]:  # third clause part 1
         z[:, i] = np.where(third_case_truth, -z[:, i], z[:, i])
-    z[:, 3] = np.where(third_case_truth, 2 * np.pi - z[:, 3], z[:, 3])  # third clause part 2
+    z[:, 3] = np.where(
+        third_case_truth, 2 * np.pi - z[:, 3], z[:, 3]
+    )  # third clause part 2
 
     return z
 
@@ -394,7 +407,7 @@ def convert_identity_rotations(data):
     return data
 
 
-class AxAngle():
+class AxAngle:
     """
     Class storing rotations in the axis-angle convention. Each row reads
     as [vx,vy,vz,theta], where [vx,vy,vz] is the rotation axis (normalised)
@@ -402,7 +415,7 @@ class AxAngle():
     """
 
     def __init__(self, data):
-        self.data = data.astype('float')
+        self.data = data.astype("float")
         self.data = vectorised_axangle_to_correct_range(self.data)
         self.data = convert_identity_rotations(self.data)
         self._check_data()
@@ -415,7 +428,9 @@ class AxAngle():
             raise ValueError("Your data is not in the correct shape")
         if np.any(self.data[:, 3] < 0) or np.any(self.data[:, 3] > np.pi):
             raise ValueError("Some of your angles lie outside of the range (0,pi)")
-        if not np.allclose(np.linalg.norm(self.data[:, :3][self.data[:, 3] > 0], axis=1), 1):
+        if not np.allclose(
+            np.linalg.norm(self.data[:, :3][self.data[:, 3] > 0], axis=1), 1
+        ):
             raise ValueError("You no longer have normalised direction vectors")
         return None
 
@@ -488,7 +503,7 @@ class AxAngle():
         return AxAngle(axangles)
 
 
-class Euler():
+class Euler:
     """
     Class storing rotations as euler angles.
     Each row reads as [alpha,beta,gamma], where alpha, beta and gamma are rotations
@@ -496,8 +511,8 @@ class Euler():
     as defined in transforms3d. Please always remember that Euler angles are difficult.
     """
 
-    def __init__(self, data, axis_convention='rzxz'):
-        self.data = data.astype('float')
+    def __init__(self, data, axis_convention="rzxz"):
+        self.data = data.astype("float")
         self.axis_convention = axis_convention
         self._check_data()
         return None
@@ -510,7 +525,9 @@ class Euler():
         if np.any(self.data[:] > 360):
             raise ValueError("Some of your angles are greater 360")
         if np.all(np.abs(self.data[:]) < 2 * np.pi):
-            warnings.warn("Your angles all seem quite small, are you sure you're not in radians?")
+            warnings.warn(
+                "Your angles all seem quite small, are you sure you're not in radians?"
+            )
 
         return None
 
@@ -524,17 +541,24 @@ class Euler():
         self._check_data()
         self.data = np.deg2rad(self.data)  # for the transform operation
 
-        if self.axis_convention == 'rzxz' or self.axis_convention == 'szxz':
-            stored_axangle = vectorised_euler2axangle(self.data, axes=self.axis_convention)
+        if self.axis_convention == "rzxz" or self.axis_convention == "szxz":
+            stored_axangle = vectorised_euler2axangle(
+                self.data, axes=self.axis_convention
+            )
             stored_axangle = vectorised_axangle_to_correct_range(stored_axangle)
 
         else:
             # This is very slow
             from transforms3d.euler import euler2axangle
+
             stored_axangle = np.ones((self.data.shape[0], 4))
             for i, row in enumerate(self.data):
-                temp_vect, temp_angle = euler2axangle(row[0], row[1], row[2], self.axis_convention)
-                temp_vect, temp_angle = convert_axangle_to_correct_range(temp_vect, temp_angle)
+                temp_vect, temp_angle = euler2axangle(
+                    row[0], row[1], row[2], self.axis_convention
+                )
+                temp_vect, temp_angle = convert_axangle_to_correct_range(
+                    temp_vect, temp_angle
+                )
                 for j in [0, 1, 2]:
                     stored_axangle[i, j] = temp_vect[j]
                     stored_axangle[i, 3] = temp_angle  # in radians!

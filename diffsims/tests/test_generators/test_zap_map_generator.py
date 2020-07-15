@@ -20,7 +20,10 @@ import pytest
 
 import diffpy.structure
 import numpy as np
-from diffsims.generators.zap_map_generator import get_rotation_from_z_to_direction, generate_zap_map
+from diffsims.generators.zap_map_generator import (
+    get_rotation_from_z_to_direction,
+    generate_zap_map,
+)
 
 
 def test_zero_rotation_cases(default_structure):
@@ -31,13 +34,12 @@ def test_zero_rotation_cases(default_structure):
 
 
 class TestOrthonormals:
-
     @pytest.fixture(params=[(3, 3, 3), (3, 3, 4), (3, 4, 5)])
     def sample_system(self, request):
         """Orthonormal structures"""
         a, b, c = request.param[0], request.param[1], request.param[2]
         latt = diffpy.structure.lattice.Lattice(a, b, c, 90, 90, 90)
-        atom = diffpy.structure.atom.Atom(atype='Ni', xyz=[0, 0, 0], lattice=latt)
+        atom = diffpy.structure.atom.Atom(atype="Ni", xyz=[0, 0, 0], lattice=latt)
         return diffpy.structure.Structure(atoms=[atom], lattice=latt)
 
     def test_rotation_to__static_x_axis(self, sample_system):
@@ -56,28 +58,38 @@ class TestOrthonormals:
         assert np.allclose(tan_angle, tan_lattice, atol=1e-5)
 
 
-@pytest.mark.parametrize('system', ['cubic', 'hexagonal', 'trigonal', 'orthorhombic', 'tetragonal', 'monoclinic'])
+@pytest.mark.parametrize(
+    "system",
+    ["cubic", "hexagonal", "trigonal", "orthorhombic", "tetragonal", "monoclinic"],
+)
 def test_zap_map_all_systems(default_structure, default_simulator, system):
     z_dict = generate_zap_map(default_structure, default_simulator, system=system)
     assert (0, 0, 1) in z_dict.keys()
     assert (0, 0, 0) not in z_dict.keys()
 
 
-@pytest.mark.parametrize('density', ['3', '7'])
+@pytest.mark.parametrize("density", ["3", "7"])
 def test_zap_map_density_changes(default_structure, default_simulator, density):
     """ Checks density arguments are passed correctly """
     z_dict = generate_zap_map(default_structure, default_simulator, density=density)
-    if density == '3':
-        assert str(len(z_dict.keys())) == '3'
-    elif density == '7':
+    if density == "3":
+        assert str(len(z_dict.keys())) == "3"
+    elif density == "7":
         assert len(z_dict.keys()) > 5  # monoclinic case gives 6 rather than 7
 
 
 def test_zap_map_kwargs(default_structure, default_simulator):
-    z_dict_no_beam = generate_zap_map(default_structure, default_simulator, with_direct_beam=False)
-    z_dict_yes_beam = generate_zap_map(default_structure, default_simulator, with_direct_beam=True)
+    z_dict_no_beam = generate_zap_map(
+        default_structure, default_simulator, with_direct_beam=False
+    )
+    z_dict_yes_beam = generate_zap_map(
+        default_structure, default_simulator, with_direct_beam=True
+    )
     for k in z_dict_no_beam.keys():
         # both dictionary's have the same keys
         assert k in z_dict_yes_beam.keys()
         # no beam has one fewer spots than yes beam
-        assert z_dict_no_beam[k].intensities.shape[0] == z_dict_yes_beam[k].intensities.shape[0] - 1
+        assert (
+            z_dict_no_beam[k].intensities.shape[0]
+            == z_dict_yes_beam[k].intensities.shape[0] - 1
+        )

@@ -41,11 +41,13 @@ def load_DiffractionLibrary(filename, safety=False):
 
     """
     if safety:
-        with open(filename, 'rb') as handle:
+        with open(filename, "rb") as handle:
             return pickle.load(handle)
     else:
-        raise RuntimeError('Unpickling is risky, turn safety to True if \
-        trust the author of this content')
+        raise RuntimeError(
+            "Unpickling is risky, turn safety to True if \
+        trust the author of this content"
+        )
 
 
 def _get_library_entry_from_angles(library, phase, angles):
@@ -73,12 +75,14 @@ def _get_library_entry_from_angles(library, phase, angles):
     """
 
     phase_entry = library[phase]
-    for orientation_index, orientation in enumerate(phase_entry['orientations']):
+    for orientation_index, orientation in enumerate(phase_entry["orientations"]):
         if np.sum(np.abs(np.subtract(orientation, angles))) < 1e-5:
             return orientation_index
 
     # We haven't found a suitable key
-    raise ValueError("It appears that no library entry lies with 1e-5 of the target angle")
+    raise ValueError(
+        "It appears that no library entry lies with 1e-5 of the target angle"
+    )
 
 
 class DiffractionLibrary(dict):
@@ -131,7 +135,7 @@ class DiffractionLibrary(dict):
         if phase is not None:
             phase_entry = self[phase]
             if angle is not None:
-                orientations = phase_entry['orientations']
+                orientations = phase_entry["orientations"]
                 if isinstance(orientations, np.ndarray):
                     orientations = orientations.tolist()
                 orientation_index = _get_library_entry_from_angles(self, phase, angle)
@@ -139,15 +143,19 @@ class DiffractionLibrary(dict):
                 orientation_index = 0
         else:
             if angle is not None:
-                raise ValueError("To select a certain angle you must first specify a phase")
+                raise ValueError(
+                    "To select a certain angle you must first specify a phase"
+                )
             phase_entry = next(iter(self.values()))
             orientation_index = 0
 
         return {
-            'Sim': phase_entry['simulations'][orientation_index],
-            'intensities': phase_entry['intensities'][orientation_index],
-            'pixel_coords': phase_entry['pixel_coords'][orientation_index],
-            'pattern_norm': np.linalg.norm(phase_entry['intensities'][orientation_index])
+            "Sim": phase_entry["simulations"][orientation_index],
+            "intensities": phase_entry["intensities"][orientation_index],
+            "pixel_coords": phase_entry["pixel_coords"][orientation_index],
+            "pattern_norm": np.linalg.norm(
+                phase_entry["intensities"][orientation_index]
+            ),
         }
 
     def pickle_library(self, filename):
@@ -163,5 +171,5 @@ class DiffractionLibrary(dict):
         load_DiffractionLibrary()
 
         """
-        with open(filename, 'wb') as handle:
+        with open(filename, "wb") as handle:
             pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)

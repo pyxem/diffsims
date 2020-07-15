@@ -40,8 +40,15 @@ class DiffractionSimulation:
         zero in each direction.
     """
 
-    def __init__(self, coordinates=None, indices=None, intensities=None,
-                 calibration=1., offset=(0., 0.), with_direct_beam=False):
+    def __init__(
+        self,
+        coordinates=None,
+        indices=None,
+        intensities=None,
+        calibration=1.0,
+        offset=(0.0, 0.0),
+        with_direct_beam=False,
+    ):
         """Initializes the DiffractionSimulation object with data values for
         the coordinates, indices, intensities, calibration and offset.
         """
@@ -50,7 +57,7 @@ class DiffractionSimulation:
         self.indices = indices
         self._intensities = None
         self.intensities = intensities
-        self._calibration = (1., 1.)
+        self._calibration = (1.0, 1.0)
         self.calibration = calibration
         self.offset = offset
         self.with_direct_beam = with_direct_beam
@@ -80,8 +87,9 @@ class DiffractionSimulation:
         elif len(calibration) == 2:
             self._calibration = calibration
         else:
-            raise ValueError("`calibration` must be a float or length-2"
-                             "tuple of floats.")
+            raise ValueError(
+                "`calibration` must be a float or length-2" "tuple of floats."
+            )
 
     @property
     def direct_beam_mask(self):
@@ -142,7 +150,10 @@ class DiffractionSimulation:
         side_length = np.min(np.multiply((size / 2), self.calibration))
         mask_for_sides = np.all((np.abs(self.coordinates[:, 0:2]) < side_length), axis=1)
 
-        spot_coords = np.add(self.calibrated_coordinates[mask_for_sides], size / 2).astype(int)
+
+        spot_coords = np.add(
+            self.calibrated_coordinates[mask_for_sides], size / 2
+        ).astype(int)
         spot_intens = self.intensities[mask_for_sides]
         pattern = np.zeros([size, size])
         #checks that we have some spots
@@ -176,8 +187,7 @@ class ProfileSimulation:
         self.intensities = intensities
         self.hkls = hkls
 
-    def get_plot(self, g_max, annotate_peaks=True,
-                 with_labels=True, fontsize=12):
+    def get_plot(self, g_max, annotate_peaks=True, with_labels=True, fontsize=12):
         """Plots the diffraction profile simulation.
         Parameters
         ----------
@@ -194,11 +204,9 @@ class ProfileSimulation:
         for g, i, hkls in zip(self.magnitudes, self.intensities, self.hkls):
             if g <= g_max:
                 label = ", ".join([str(hkl) for hkl in hkls.keys()])
-                ax.plot([g, g], [0, i], color='k',
-                        linewidth=3, label=label)
+                ax.plot([g, g], [0, i], color="k", linewidth=3, label=label)
                 if annotate_peaks:
-                    ax.annotate(label, xy=[g, i],
-                                xytext=[g, i], fontsize=fontsize)
+                    ax.annotate(label, xy=[g, i], xytext=[g, i], fontsize=fontsize)
 
             if with_labels:
                 ax.set_xlabel("A ($^{-1}$)")

@@ -20,7 +20,7 @@ import diffsims as ds
 from diffsims.generators.rotation_list_generators import get_grid_stereographic
 
 
-class StructureLibrary():
+class StructureLibrary:
     """
     A dictionary containing all the structures and their associated rotations
     in the .struct_lib attribute.
@@ -37,16 +37,19 @@ class StructureLibrary():
         convention and in degrees.
     """
 
-    def __init__(self,
-                 identifiers,
-                 structures,
-                 orientations):
+    def __init__(self, identifiers, structures, orientations):
         if len(identifiers) != len(structures):
-            raise ValueError('Number of identifiers ({}) and structures ({}) must be the same.'.format(
-                len(identifiers), len(structures)))
+            raise ValueError(
+                "Number of identifiers ({}) and structures ({}) must be the same.".format(
+                    len(identifiers), len(structures)
+                )
+            )
         if len(identifiers) != len(orientations):
-            raise ValueError('Number of identifiers ({}) and orientations ({}) must be the same.'.format(
-                len(identifiers), len(orientations)))
+            raise ValueError(
+                "Number of identifiers ({}) and orientations ({}) must be the same.".format(
+                    len(identifiers), len(orientations)
+                )
+            )
 
         self.identifiers = identifiers
         self.structures = structures
@@ -56,7 +59,6 @@ class StructureLibrary():
         for ident, struct, ori in zip(identifiers, structures, orientations):
             self.struct_lib[ident] = (struct, ori)
 
-   
     @classmethod
     def from_orientation_lists(cls, identifiers, structures, orientations):
         """
@@ -79,7 +81,9 @@ class StructureLibrary():
         return cls(identifiers, structures, orientations)
 
     @classmethod
-    def from_crystal_systems(cls, identifiers, structures, systems, resolution, equal='angle'):
+    def from_crystal_systems(
+        cls, identifiers, structures, systems, resolution, equal="angle"
+    ):
         """
         Creates a structure library from crystal system derived orientation lists
 
@@ -104,8 +108,8 @@ class StructureLibrary():
         for system in systems:
             orientations.append(get_grid_stereographic(system, resolution, equal))
         return cls(identifiers, structures, orientations)
-    
-    def get_library_size(self, to_print = False):
+
+    def get_library_size(self, to_print=False):
         """
         Returns the the total number of orientations in the
         current StructureLibrary object. Will also print the number of orientations
@@ -121,14 +125,18 @@ class StructureLibrary():
             Total number of entries in the current StructureLibrary object.
         """
         size_library = 0
-        for i in range (len(self.orientations)):
+        for i in range(len(self.orientations)):
             if len(self.orientations[i]) == 1:
                 size_library += 1
             else:
                 size_library += len(self.orientations[i])
             if to_print == True:
-                print(self.identifiers[i], "has", \
-                len(self.orientations[i]), "number of entries.")
+                print(
+                    self.identifiers[i],
+                    "has",
+                    len(self.orientations[i]),
+                    "number of entries.",
+                )
         if to_print == True:
             print("\nIn total:", size_library, "number of entries")
         return size_library

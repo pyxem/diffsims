@@ -38,13 +38,20 @@ def get_angle_cartesian_vec(a, b):
         List of angles between `a` and `b` in radians.
     """
     if a.shape != b.shape:
-        raise ValueError('The shape of a {} and b {} must be the same.'.format(a.shape, b.shape))
+        raise ValueError(
+            "The shape of a {} and b {} must be the same.".format(a.shape, b.shape)
+        )
 
     denom = np.linalg.norm(a, axis=-1) * np.linalg.norm(b, axis=-1)
     denom_nonzero = denom != 0.0
     angles = np.zeros(a.shape[0])
-    angles[denom_nonzero] = np.arccos(np.clip(
-        np.sum(a[denom_nonzero] * b[denom_nonzero], axis=-1) / denom[denom_nonzero], -1.0, 1.0)).ravel()
+    angles[denom_nonzero] = np.arccos(
+        np.clip(
+            np.sum(a[denom_nonzero] * b[denom_nonzero], axis=-1) / denom[denom_nonzero],
+            -1.0,
+            1.0,
+        )
+    ).ravel()
     return angles
 
 

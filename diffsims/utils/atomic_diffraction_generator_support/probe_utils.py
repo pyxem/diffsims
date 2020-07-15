@@ -16,12 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
+"""
 Created on 5 Nov 2019
 
 @author: Rob Tovey
-'''
-from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import get_DFT, from_recip
+"""
+from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import (
+    get_DFT,
+    from_recip,
+)
 from diffsims.utils.atomic_diffraction_generator_support.generic_utils import to_mesh
 import numba
 from math import sqrt as c_sqrt
@@ -30,7 +33,7 @@ from scipy.special import jv
 
 
 class ProbeFunction:
-    '''
+    """
     Object representing a probe function.
 
     Parameters
@@ -54,13 +57,13 @@ class ProbeFunction:
         it is converted into a mesh first. If this function is not overridden
         then an approximation is made using `func` and the `fft`.
 
-    '''
+    """
 
     def __init__(self, func=None):
         self._func = func
 
     def __call__(self, x, out=None, scale=None):
-        '''
+        """
         Parameters
         ----------
         x : `numpy.ndarray`, (nx, ny, nz, 3) or list of arrays of shape [(nx,), (ny,), (nz,)]
@@ -76,11 +79,11 @@ class ProbeFunction:
         out : `numpy.ndarray`, (nx, ny, nz)
             An array equal to `probe(x)*scale`
 
-        '''
+        """
         if self._func is None:
             raise NotImplementedError
 
-        if not(hasattr(x, 'shape')):
+        if not (hasattr(x, "shape")):
             x = to_mesh(x)
 
         if out is None:
@@ -93,7 +96,7 @@ class ProbeFunction:
         return out
 
     def FT(self, y, out=None):
-        '''
+        """
         Parameters
         ----------
         y : `numpy.ndarray`, (nx, ny, nz, 3) or list of arrays of shape [(nx,), (ny,), (nz,)]
@@ -106,12 +109,14 @@ class ProbeFunction:
         out : `numpy.ndarray`, (nx, ny, nz)
             An array equal to `FourierTransform(probe)(y)`
 
-        '''
-        if hasattr(y, 'shape'):
+        """
+        if hasattr(y, "shape"):
             y_start = y[(0,) * (y.ndim - 1)]
             y_end = y[(-1,) * (y.ndim - 1)]
-            y = [linspace(y_start[i], y_end[i], y.shape[i], endpoint=True)
-                  for i in range(3)]
+            y = [
+                linspace(y_start[i], y_end[i], y.shape[i], endpoint=True)
+                for i in range(3)
+            ]
         x = from_recip(y)
         ft = get_DFT(x, y)[0]
         tmp = ft(self(x, out=out))
@@ -123,7 +128,7 @@ class ProbeFunction:
 
 
 class BesselProbe(ProbeFunction):
-    '''
+    """
     Probe function given by a radially scaled Bessel function of the first kind.
 
     Parameters
@@ -145,7 +150,7 @@ class BesselProbe(ProbeFunction):
         function on the disc `Y < 1, y[2]==0`. Again, if `out` is provided then
         computation is inplace. If `y` is a list of arrays then it is converted
         into a mesh first.
-    '''
+    """
 
     def __init__(self, r):
         ProbeFunction.__init__(self)
@@ -153,7 +158,7 @@ class BesselProbe(ProbeFunction):
         self._r = r / 3.83170597020751
 
     def __call__(self, x, out=None, scale=None):
-        '''
+        """
         Parameters
         ----------
         x : `numpy.ndarray`, (nx, ny, nz, 3) or list of arrays of shape [(nx,), (ny,), (nz,)]
@@ -173,8 +178,8 @@ class BesselProbe(ProbeFunction):
             An array equal to `probe(x)*scale`. If `ny=0` or `nz=0` then array is of
             smaller dimension.
 
-        '''
-        if not hasattr(x, 'shape'):
+        """
+        if not hasattr(x, "shape"):
             x = to_mesh(x)
         scale = ones(1, dtype=x.dtype) if scale is None else scale
         if out is None:
@@ -188,16 +193,23 @@ class BesselProbe(ProbeFunction):
         else:
             d = abs(x[1, 1, 0, :2] - x[0, 0, 0, :2])
             h = d.min() / 10
-            s = ((d[0] * x.shape[0]) ** 2 + (d[1] * x.shape[1]) ** 2) ** .5
+            s = ((d[0] * x.shape[0]) ** 2 + (d[1] * x.shape[1]) ** 2) ** 0.5
 
             fine_grid = arange(h / 2, s / self._r + h, h)
             j = jv(1, fine_grid) / fine_grid
 
-            _bess(x.reshape(-1, 3), 1 / self._r, 1 / h, j, scale.reshape(-1), out.reshape(-1))
+            _bess(
+                x.reshape(-1, 3),
+                1 / self._r,
+                1 / h,
+                j,
+                scale.reshape(-1),
+                out.reshape(-1),
+            )
         return out
 
     def FT(self, y, out=None):
-        '''
+        """
         Parameters
         ----------
         y : `numpy.ndarray`, (nx, ny, nz, 3) or list of arrays of shape [(nx,), (ny,), (nz,)]
@@ -214,8 +226,8 @@ class BesselProbe(ProbeFunction):
             An array equal to `FourierTransform(probe)(y)`. If `ny=0` or `nz=0` then
             array is of smaller dimension.
 
-        '''
-        if not hasattr(y, 'shape'):
+        """
+        if not hasattr(y, "shape"):
             y = to_mesh(y)
         r = self._r
         if y.shape[-1] == 1 or y.ndim == 1:
@@ -230,13 +242,16 @@ class BesselProbe(ProbeFunction):
                 dy2 = []
                 for i in range(y.ndim - 1):
                     tmp = tuple(0 if j != i else 1 for j in range(y.ndim - 1)) + (2,)
-                    dy2.append(abs(y[tmp] - y[..., 2].item(0)) if y.shape[-1] == 3 else 1)
-                eps = max(1e-16, max(dy2) * .5)
+                    dy2.append(
+                        abs(y[tmp] - y[..., 2].item(0)) if y.shape[-1] == 3 else 1
+                    )
+                eps = max(1e-16, max(dy2) * 0.5)
                 if out is None:
                     out = empty(y.shape[:3], dtype=y.dtype)
 
                 _bessFT(
-                    y.reshape(-1, 3), 1 / r ** 2, 2 * pi * r ** 2, eps, out.reshape(-1))
+                    y.reshape(-1, 3), 1 / r ** 2, 2 * pi * r ** 2, eps, out.reshape(-1)
+                )
 
             else:
                 if out is None:

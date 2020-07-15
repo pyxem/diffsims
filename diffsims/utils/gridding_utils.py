@@ -29,13 +29,15 @@ from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesian
 
 # Defines the maximum rotation angles [theta_max,psi_max,psi_min] associated with the
 # corners of the symmetry reduced region of the inverse pole figure for each crystal system.
-crystal_system_dictionary = {'cubic': [45, 54.7, 0],
-                             'hexagonal': [45, 90, 26.565],
-                             'trigonal': [45, 90, -116.5],
-                             'tetragonal': [45, 90, 0],
-                             'orthorhombic': [90, 90, 0],
-                             'monoclinic': [90, 0, -90],
-                             'triclinic': [180, 360, 0]}
+crystal_system_dictionary = {
+    "cubic": [45, 54.7, 0],
+    "hexagonal": [45, 90, 26.565],
+    "trigonal": [45, 90, -116.5],
+    "tetragonal": [45, 90, 0],
+    "orthorhombic": [90, 90, 0],
+    "monoclinic": [90, 0, -90],
+    "triclinic": [180, 360, 0],
+}
 
 
 def vectorised_qmult(q1, qdata):
@@ -67,9 +69,13 @@ def rotation_matrix_from_euler_angles(euler_angles):
     --------
     generators.get_local_grid
     """
-    M_initial = euler2mat(0, 0, 0, 'rzxz')
-    ai, aj, ak = np.deg2rad(euler_angles[0]), np.deg2rad(euler_angles[1]), np.deg2rad(euler_angles[2])
-    M_target = euler2mat(ai, aj, ak, 'rzxz')
+    M_initial = euler2mat(0, 0, 0, "rzxz")
+    ai, aj, ak = (
+        np.deg2rad(euler_angles[0]),
+        np.deg2rad(euler_angles[1]),
+        np.deg2rad(euler_angles[2]),
+    )
+    M_target = euler2mat(ai, aj, ak, "rzxz")
     rotation_matrix = M_target @ np.linalg.inv(M_initial)
     return rotation_matrix
 
@@ -123,10 +129,14 @@ def create_linearly_spaced_array_in_rzxz(resolution):
     [1]  D Rowenhorst et al 2015 Modelling Simul. Mater. Sci. Eng.23 083501
          https://iopscience.iop.org/article/10.1088/0965-0393/23/8/083501/meta
     """
-    return _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha=360, max_beta=180, max_gamma=360)
+    return _create_advanced_linearly_spaced_array_in_rzxz(
+        resolution, max_alpha=360, max_beta=180, max_gamma=360
+    )
 
 
-def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_beta, max_gamma):
+def _create_advanced_linearly_spaced_array_in_rzxz(
+    resolution, max_alpha, max_beta, max_gamma
+):
     """
     Creates an array of euler angles that covers a specified range of euler angles.
 
@@ -153,7 +163,9 @@ def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_be
     steps_gamma = int(np.ceil((max_gamma - 0) / resolution))
 
     alpha = np.linspace(0, max_alpha, num=steps_alpha, endpoint=False)
-    beta = np.linspace(resolution, max_beta, num=steps_beta, endpoint=False) #this avoid gimbal lock roations
+    beta = np.linspace(
+        resolution, max_beta, num=steps_beta, endpoint=False
+    )  # this avoid gimbal lock roations
     gamma = np.linspace(0, max_gamma, num=steps_gamma, endpoint=False)
     z = np.asarray(list(product(alpha, beta, gamma)))
 
@@ -162,14 +174,24 @@ def _create_advanced_linearly_spaced_array_in_rzxz(resolution, max_alpha, max_be
     if max_gimbal_rotation > 360:
         max_gimbal_rotation = 360
 
-    gamma_final = np.linspace(0,max_gimbal_rotation,num=int(np.ceil(max_gimbal_rotation/resolution)),endpoint=False)
-    z_gimbals = np.hstack((np.zeros((gamma_final.shape[0],2)),gamma_final.reshape(gamma_final.shape[0],-1)))
+    gamma_final = np.linspace(
+        0,
+        max_gimbal_rotation,
+        num=int(np.ceil(max_gimbal_rotation / resolution)),
+        endpoint=False,
+    )
+    z_gimbals = np.hstack(
+        (
+            np.zeros((gamma_final.shape[0], 2)),
+            gamma_final.reshape(gamma_final.shape[0], -1),
+        )
+    )
 
-    z = np.vstack((z,z_gimbals))
-    return Euler(z, axis_convention='rzxz')
+    z = np.vstack((z, z_gimbals))
+    return Euler(z, axis_convention="rzxz")
 
 
-def get_beam_directions(crystal_system, resolution, equal='angle'):
+def get_beam_directions(crystal_system, resolution, equal="angle"):
     """
     Produces an array of beam directions, evenly (see equal argument) spaced that lie within the streographic
     triangle of the relevant crystal system.
@@ -206,14 +228,16 @@ def get_beam_directions(crystal_system, resolution, equal='angle'):
     # see docstrings for np.arange, np.linspace has better endpoint handling
     steps_theta = int(np.ceil((theta_max - 0) / resolution))
     steps_psi = int(np.ceil((psi_max - psi_min) / resolution))
-    theta = np.linspace(0, np.deg2rad(theta_max), num=steps_theta)  # radians as we're about to make spherical polar cordinates
-    if equal == 'area':
+    theta = np.linspace(
+        0, np.deg2rad(theta_max), num=steps_theta
+    )  # radians as we're about to make spherical polar cordinates
+    if equal == "area":
         # http://mathworld.wolfram.com/SpherePointPicking.html
         v_1 = (1 + np.cos(np.deg2rad(psi_max))) / 2
         v_2 = (1 + np.cos(np.deg2rad(psi_min))) / 2
         v_array = np.linspace(min(v_1, v_2), max(v_1, v_2), num=steps_psi)
         psi = np.arccos(2 * v_array - 1)  # in radians
-    elif equal == 'angle':
+    elif equal == "angle":
         # now in radians as we're about to make spherical polar cordinates
         psi = np.linspace(np.deg2rad(psi_min), np.deg2rad(psi_max), num=steps_psi)
 
@@ -222,11 +246,16 @@ def get_beam_directions(crystal_system, resolution, equal='angle'):
     points_in_spherical_polars = np.hstack((r, psi_theta))
 
     # keep only theta ==0 psi ==0, do this with np.abs(theta) > 0 or psi == 0 - more generally use the smallest psi value
-    points_in_spherical_polars = points_in_spherical_polars[np.logical_or(
-        np.abs(psi_theta[:, 1]) > 0, psi_theta[:, 0] == np.min(psi_theta[:, 0]))]
-    points_in_cartesians = vectorised_spherical_polars_to_cartesians(points_in_spherical_polars)
+    points_in_spherical_polars = points_in_spherical_polars[
+        np.logical_or(
+            np.abs(psi_theta[:, 1]) > 0, psi_theta[:, 0] == np.min(psi_theta[:, 0])
+        )
+    ]
+    points_in_cartesians = vectorised_spherical_polars_to_cartesians(
+        points_in_spherical_polars
+    )
 
-    if crystal_system == 'cubic':
+    if crystal_system == "cubic":
         # add in the geodesic that runs [1,1,1] to [1,0,1]
         v1 = np.divide([1, 1, 1], np.sqrt(3))
         v2 = np.divide([1, 0, 1], np.sqrt(2))
@@ -236,16 +265,22 @@ def get_beam_directions(crystal_system, resolution, equal='angle'):
             w = v2 - np.multiply(np.dot(v1, v2), v1)
             w = np.divide(w, np.linalg.norm(w))
             # return in cartesians with t_end = np.arccos(np.dot(v1,v2))
-            return np.add(np.multiply(np.cos(t.reshape(-1, 1)), v1), np.multiply(np.sin(t.reshape(-1, 1)), w))
+            return np.add(
+                np.multiply(np.cos(t.reshape(-1, 1)), v1),
+                np.multiply(np.sin(t.reshape(-1, 1)), w),
+            )
 
         t_list = np.linspace(0, np.arccos(np.dot(v1, v2)), num=steps_theta)
         geodesic = cubic_corner_geodesic(t_list)
         points_in_cartesians = np.vstack((points_in_cartesians, geodesic))
         # the great circle (from [1,1,1] to [1,0,1]) forms a plane (with the
         # origin), points on the same side as (0,0,1) are safe, the others are not
-        plane_normal = np.cross(v2, v1)  # dotting this with (0,0,1) gives a positive number
-        points_in_cartesians = points_in_cartesians[np.dot(
-            points_in_cartesians, plane_normal) >= 0]  # 0 is the points on the geodesic
+        plane_normal = np.cross(
+            v2, v1
+        )  # dotting this with (0,0,1) gives a positive number
+        points_in_cartesians = points_in_cartesians[
+            np.dot(points_in_cartesians, plane_normal) >= 0
+        ]  # 0 is the points on the geodesic
 
     return points_in_cartesians
 
@@ -262,7 +297,9 @@ def beam_directions_to_euler_angles(points_in_cartesians):
     diffsims.Euler :
          The appropriate euler angles
     """
-    axes = np.cross([0, 0, 1], points_in_cartesians)  # in unit cartesians so this is fine, [0,0,1] returns [0,0,0]
+    axes = np.cross(
+        [0, 0, 1], points_in_cartesians
+    )  # in unit cartesians so this is fine, [0,0,1] returns [0,0,0]
     norms = np.linalg.norm(axes, axis=1).reshape(-1, 1)
     angle = np.arcsin(norms)
 
@@ -270,5 +307,5 @@ def beam_directions_to_euler_angles(points_in_cartesians):
     np.divide(axes, norms, out=normalised_axes, where=norms != 0)
 
     np_axangles = np.hstack((normalised_axes, angle.reshape((-1, 1))))
-    eulers = AxAngle(np_axangles).to_Euler(axis_convention='rzxz')
+    eulers = AxAngle(np_axangles).to_Euler(axis_convention="rzxz")
     return eulers

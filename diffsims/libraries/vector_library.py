@@ -40,11 +40,13 @@ def load_VectorLibrary(filename, safety=False):
     VectorLibrary.pickle_library()
     """
     if safety:
-        with open(filename, 'rb') as handle:
+        with open(filename, "rb") as handle:
             return pickle.load(handle)
     else:
-        raise RuntimeError('Unpickling is risky, turn safety to True if \
-        trust the author of this content')
+        raise RuntimeError(
+            "Unpickling is risky, turn safety to True if \
+        trust the author of this content"
+        )
 
 
 class DiffractionVectorLibrary(dict):
@@ -88,5 +90,5 @@ class DiffractionVectorLibrary(dict):
             load_VectorLibrary()
 
         """
-        with open(filename, 'wb') as handle:
+        with open(filename, "wb") as handle:
             pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
