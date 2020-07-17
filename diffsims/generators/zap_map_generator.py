@@ -166,9 +166,8 @@ def generate_zap_map(
     >>> for k in zap_map.keys():
     >>>     pattern = zap_map[k]
     >>>     pattern.calibration = 4e-3
-    >>>     plt.imshow(pattern.get_diffraction_pattern(),vmax=0.02)
     >>>     plt.figure()
-
+    >>>     plt.imshow(pattern.get_diffraction_pattern(),vmax=0.02)
     """
 
     corners_dict = {
