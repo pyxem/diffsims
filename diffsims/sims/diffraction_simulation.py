@@ -114,8 +114,8 @@ class DiffractionSimulation:
     @intensities.setter
     def intensities(self, intensities):
         self._intensities = intensities
-    
-    def get_diffraction_pattern(self,size=512,sigma=10):
+
+    def get_diffraction_pattern(self, size=512, sigma=10):
         """Returns the diffraction data as a numpy array with
         two-dimensional Gaussians representing each diffracted peak. Should only
         be used for qualitative work.
@@ -139,16 +139,17 @@ class DiffractionSimulation:
         produces reasonably good patterns when the lattice parameters are on
         the order of 0.5nm and a the default size and sigma are used.
         """
-        side_length = np.min(np.multiply((size/2),self.calibration))
-        mask_for_sides = np.any((np.abs(self.coordinates[:, 0:2]) < side_length),axis=1)
+        side_length = np.min(np.multiply((size / 2), self.calibration))
+        mask_for_sides = np.any((np.abs(self.coordinates[:, 0:2]) < side_length), axis=1)
 
-        spot_coords = np.add(self.calibrated_coordinates[mask_for_sides],size/2).astype(int)
+        spot_coords = np.add(self.calibrated_coordinates[mask_for_sides], size / 2).astype(int)
         spot_intens = self.intensities[mask_for_sides]
         pattern = np.zeros([size, size])
-        pattern[spot_coords[:,0],spot_coords[:,1]] = spot_intens
-        pattern = ndi.gaussian_filter(pattern,sigma)
+        pattern[spot_coords[:, 0], spot_coords[:, 1]] = spot_intens
+        pattern = ndi.gaussian_filter(pattern, sigma)
 
-        return np.divide(pattern,np.max(pattern))
+        return np.divide(pattern, np.max(pattern))
+
 
 class ProfileSimulation:
     """Holds the result of a given kinematic simulation of a diffraction profile

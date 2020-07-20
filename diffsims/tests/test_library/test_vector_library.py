@@ -21,7 +21,7 @@ import os
 import numpy as np
 import diffpy.structure
 
-from diffsims.generators.library_generator import VectorLibraryGenerator
+from diffsims.generators.library_generator import VectorLibraryGenerator, _generate_lookup_table
 
 from diffsims.libraries.vector_library import load_VectorLibrary
 from diffsims.libraries.structure_library import StructureLibrary
@@ -48,3 +48,9 @@ def test_library_io(get_library):
 def test_unsafe_loading(get_library):
     get_library.pickle_library('file_01.pickle')
     loaded_library = load_VectorLibrary('file_01.pickle')
+
+
+def test_generate_lookup_table(default_structure):
+    lattice = default_structure.lattice.reciprocal()
+    table = _generate_lookup_table(lattice, 0.5, unique=True)
+    table = _generate_lookup_table(lattice, 0.5, unique=False)

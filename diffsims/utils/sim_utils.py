@@ -30,7 +30,7 @@ from transforms3d.euler import euler2mat
 from .atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from .lobato_scattering_params import ATOMIC_SCATTERING_PARAMS_LOBATO
 
-#from diffsims.sims.diffraction_simulation import DiffractionSimulation
+# from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.utils.vector_utils import get_angle_cartesian
 
 
@@ -40,8 +40,9 @@ def get_electron_wavelength(accelerating_voltage):
 
     Parameters
     ----------
-    accelerating_voltage : float
-        The accelerating voltage in kV.
+    accelerating_voltage : float or 'inf'
+        The accelerating voltage in kV. Values `numpy.inf` and 'inf' are
+        also accepted.
 
     Returns
     -------
@@ -49,6 +50,8 @@ def get_electron_wavelength(accelerating_voltage):
         The relativistic electron wavelength in Angstroms.
 
     """
+    if accelerating_voltage in (np.inf, 'inf'):
+        return 0
     E = accelerating_voltage * 1e3
     wavelength = h / math.sqrt(2 * m_e * e * E *
                                (1 + (e / (2 * m_e * c * c)) * E)) * 1e10
@@ -91,6 +94,7 @@ def get_unique_families(hkls):
     pretty_unique : dictionary
         A dict with unique hkl and multiplicity {hkl: multiplicity}.
     """
+
     def is_perm(hkl1, hkl2):
         h1 = np.abs(hkl1)
         h2 = np.abs(hkl2)
@@ -244,7 +248,7 @@ def get_kinematical_intensities(structure,
         scattering_params=scattering_params)
 
     # Store array of g_hkls^2 values since used multiple times.
-    g_hkls_sq = g_hkls**2
+    g_hkls_sq = g_hkls ** 2
 
     # Create array containing atomic scattering factors.
     fs = get_atomic_scattering_factors(g_hkls_sq, coeffs, scattering_params)
@@ -319,7 +323,7 @@ def simulate_kinematic_scattering(atomic_coordinates,
     k = np.array((kx, ky, (wavelength / 2) * (kx ** 2 + ky ** 2)))
 
     # Calculate scattering vector squared for each k-vector.
-    gs_sq = np.linalg.norm(k, axis=0)**2
+    gs_sq = np.linalg.norm(k, axis=0) ** 2
 
     # Get the scattering factors for this element.
     fs = get_atomic_scattering_factors(gs_sq, coeffs[np.newaxis, :], scattering_params)
@@ -332,7 +336,7 @@ def simulate_kinematic_scattering(atomic_coordinates,
     elif illumination == 'gaussian_probe':
         for r in atomic_coordinates:
             probe = (1 / (np.sqrt(2 * np.pi) * sigma)) * \
-                np.exp((-np.abs(((r[0]**2) - (r[1]**2)))) / (4 * sigma**2))
+                np.exp((-np.abs(((r[0] ** 2) - (r[1] ** 2)))) / (4 * sigma ** 2))
             scattering = scattering + (probe * fs * np.exp(np.dot(k.T, r) * np.pi * 2j))
     else:
         raise ValueError("User specified illumination '{}' not defined.".format(illumination))
@@ -384,8 +388,7 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     Parameters
     ----------
     reciprocal_lattice : diffpy.Structure.Lattice
-        The crystal lattice for the structure of interest.
-        TODO: Mention that it is the reciprocal lattice. Just take the structure and calculate from there?
+        The reciprocal crystal lattice for the structure of interest.
     reciprocal_radius  : float
         The radius of the sphere in reciprocal space (units of reciprocal
         Angstroms) within which reciprocal lattice points are returned.
@@ -400,11 +403,11 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
         Distance of reciprocal lattice points in sphere from the origin.
     """
     a, b, c = reciprocal_lattice.a, reciprocal_lattice.b, reciprocal_lattice.c
-    h_max = np.ceil(reciprocal_radius / a)
-    k_max = np.ceil(reciprocal_radius / b)
-    l_max = np.ceil(reciprocal_radius / c)
+    h_max = np.floor(reciprocal_radius / a)
+    k_max = np.floor(reciprocal_radius / b)
+    l_max = np.floor(reciprocal_radius / c)
     from itertools import product
-    h_list = np.arange(-h_max, h_max + 1)
+    h_list = np.arange(-h_max, h_max + 1) #arange has a non-inclusive endpoint
     k_list = np.arange(-k_max, k_max + 1)
     l_list = np.arange(-l_max, l_max + 1)
     potential_points = np.asarray(list(product(h_list, k_list, l_list)))

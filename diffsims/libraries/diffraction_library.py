@@ -134,10 +134,7 @@ class DiffractionLibrary(dict):
                 orientations = phase_entry['orientations']
                 if isinstance(orientations, np.ndarray):
                     orientations = orientations.tolist()
-                if angle in orientations:
-                    orientation_index = orientations.index(angle)
-                else:
-                    orientation_index = _get_library_entry_from_angles(self, phase, angle)
+                orientation_index = _get_library_entry_from_angles(self, phase, angle)
             else:
                 orientation_index = 0
         else:

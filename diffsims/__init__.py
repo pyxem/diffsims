@@ -22,10 +22,25 @@ import warnings
 
 import numpy as np
 
-from .generators.diffraction_generator import DiffractionGenerator
+from .generators.diffraction_generator import DiffractionGenerator, AtomicDiffractionGenerator
 from .generators.library_generator import DiffractionLibraryGenerator
 from .generators.library_generator import VectorLibraryGenerator
 
 from .sims.diffraction_simulation import DiffractionSimulation
+
+from .utils.probe_utils import ProbeFunction, BesselProbe
+from .utils.fourier_transform import to_recip, from_recip, get_recip_points, get_DFT
+from .utils.discretise_utils import get_discretisation
+
+from . import release_info
+
+__version__ = release_info.version
+__author__ = release_info.author
+__copyright__ = release_info.copyright
+__credits__ = release_info.credits
+__license__ = release_info.license
+__maintainer__ = release_info.maintainer
+__email__ = release_info.email
+__status__ = release_info.status
 
 _logger = logging.getLogger(__name__)
