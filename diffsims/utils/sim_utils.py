@@ -448,3 +448,297 @@ def uvtw_to_uvw(uvtw):
     u, v, w = 2 * u + v, 2 * v + u, w
     common_factor = math.gcd(math.gcd(u, v), w)
     return tuple((int(x / common_factor)) for x in (u, v, w))
+
+def _get_holz_angle(electron_wavelength, lattice_parameter):
+    """
+    Parameters
+    ----------
+    electron_wavelength : scalar
+        In nanometers
+    lattice_parameter : scalar
+        In nanometers
+
+    Returns
+    -------
+    scattering_angle : scalar
+        Scattering angle in radians
+
+    Examples
+    --------
+    >>> import pyxem.utils.radial_utils as ra
+    >>> lattice_size = 0.3905 # STO-(001) in nm
+    >>> wavelength = 2.51/1000 # Electron wavelength for 200 kV
+    >>> angle = ra._get_holz_angle(wavelength, lattice_size)
+
+    """
+    k0 = 1.0 / electron_wavelength
+    kz = 1.0 / lattice_parameter
+    in_root = kz * ((2 * k0) - kz)
+    sin_angle = (in_root ** 0.5) / k0
+    angle = math.asin(sin_angle)
+    return angle
+
+
+def _scattering_angle_to_lattice_parameter(electron_wavelength, angle):
+    """Convert scattering angle data to lattice parameter sizes.
+
+    Parameters
+    ----------
+    electron_wavelength : float
+        Wavelength of the electrons in the electron beam. In nm.
+        For 200 kV electrons: 0.00251 (nm)
+    angle : NumPy array
+        Scattering angle, in radians.
+
+    Returns
+    -------
+    lattice_parameter : NumPy array
+        Lattice parameter, in nanometers
+
+    Examples
+    --------
+    >>> import pyxem.utils.radial_utils as ra
+    >>> angle_list = [0.1, 0.1, 0.1, 0.1] # in radians
+    >>> wavelength = 2.51/1000 # Electron wavelength for 200 kV
+    >>> lattice_size = ra._scattering_angle_to_lattice_parameter(
+    ...     wavelength, angle_list)
+
+    """
+
+    k0 = 1.0 / electron_wavelength
+    kz = k0 - (k0 * ((1 - (np.sin(angle) ** 2)) ** 0.5))
+    return 1 / kz
+
+def bst_to_beta(bst, acceleration_voltage):
+    """Calculate beam deflection (beta) values from Bs * t.
+
+    Parameters
+    ----------
+    bst : NumPy array
+        Saturation induction Bs times thickness t of the sample. In Tesla*meter
+    acceleration_voltage : float
+        In Volts
+
+    Returns
+    -------
+    beta : NumPy array
+        Beam deflection in radians
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pyxem.utils.dpc_utils as dpct
+    >>> data = np.random.random((100, 100))  # In Tesla*meter
+    >>> acceleration_voltage = 200000  # 200 kV (in Volt)
+    >>> beta = dpct.bst_to_beta(data, acceleration_voltage)
+
+    """
+    av = acceleration_voltage
+    wavelength = dt.acceleration_voltage_to_wavelength(av)
+    e = sc.elementary_charge
+    h = sc.Planck
+    beta = e * wavelength * bst / h
+    return beta
+
+
+def beta_to_bst(beam_deflection, acceleration_voltage):
+    """Calculate Bs * t values from beam deflection (beta).
+
+    Parameters
+    ----------
+    beam_deflection : NumPy array
+        In radians
+    acceleration_voltage : float
+        In Volts
+
+    Returns
+    -------
+    Bst : NumPy array
+        In Tesla * meter
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pyxem.utils.dpc_utils as dpct
+    >>> data = np.random.random((100, 100))  # In radians
+    >>> acceleration_voltage = 200000  # 200 kV (in Volt)
+    >>> bst = dpct.beta_to_bst(data, 200000)
+
+    """
+    wavelength = dt.acceleration_voltage_to_wavelength(acceleration_voltage)
+    beta = beam_deflection
+    e = sc.elementary_charge
+    h = sc.Planck
+    Bst = beta * h / (wavelength * e)
+    return Bst
+
+
+def tesla_to_am(data):
+    """Convert data from Tesla to A/m
+
+    Parameters
+    ----------
+    data : NumPy array
+        Data in Tesla
+
+    Returns
+    -------
+    output_data : NumPy array
+        In A/m
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pyxem.utils.dpc_utils as dpct
+    >>> data_T = np.random.random((100, 100))  # In tesla
+    >>> data_am = dpct.tesla_to_am(data_T)
+
+    """
+    return data / sc.mu_0
+
+
+def acceleration_voltage_to_velocity(acceleration_voltage):
+    """Get relativistic velocity of electron from acceleration voltage.
+
+    Parameters
+    ----------
+    acceleration_voltage : float
+        In Volt
+
+    Returns
+    -------
+    v : float
+        In m/s
+
+    Example
+    -------
+    >>> import pyxem.utils.dpc_utils as dpct
+    >>> v = dpct.acceleration_voltage_to_velocity(200000) # 200 kV
+    >>> round(v)
+    208450035
+
+    """
+    c = sc.speed_of_light
+    av = acceleration_voltage
+    e = sc.elementary_charge
+    me = sc.electron_mass
+    part1 = (1 + (av * e) / (me * c ** 2)) ** 2
+    v = c * (1 - (1 / part1)) ** 0.5
+    return v
+
+
+def acceleration_voltage_to_relativistic_mass(acceleration_voltage):
+    """Get relativistic mass of electron as function of acceleration voltage.
+
+    Parameters
+    ----------
+    acceleration_voltage : float
+        In Volt
+
+    Returns
+    -------
+    mr : float
+        Relativistic electron mass
+
+    Example
+    -------
+    >>> import pyxem.utils.dpc_utils as dpct
+    >>> mr = dpct.acceleration_voltage_to_relativistic_mass(200000) # 200 kV
+
+    """
+    av = acceleration_voltage
+    c = sc.speed_of_light
+    v = acceleration_voltage_to_velocity(av)
+    me = sc.electron_mass
+    part1 = 1 - (v ** 2) / (c ** 2)
+    mr = me / (part1) ** 0.5
+    return mr
+
+
+def et_to_beta(et, acceleration_voltage):
+    """Calculate beam deflection (beta) values from E * t.
+
+    Parameters
+    ----------
+    et : NumPy array
+        Electric field times thickness t of the sample.
+    acceleration_voltage : float
+        In Volts
+
+    Returns
+    -------
+    beta: NumPy array
+        Beam deflection in radians
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pyxem.utils.dpc_utils as dpct
+    >>> data = np.random.random((100, 100))
+    >>> acceleration_voltage = 200000  # 200 kV (in Volt)
+    >>> beta = dpct.et_to_beta(data, acceleration_voltage)
+
+    """
+    av = acceleration_voltage
+    e = sc.elementary_charge
+    wavelength = dt.acceleration_voltage_to_wavelength(av)
+    m = acceleration_voltage_to_relativistic_mass(av)
+    h = sc.Planck
+
+    wavelength2 = wavelength ** 2
+    h2 = h ** 2
+
+    beta = e * wavelength2 * m * et / h2
+    return beta
+
+def acceleration_voltage_to_wavelength(acceleration_voltage):
+    """Get electron wavelength from the acceleration voltage.
+
+    Parameters
+    ----------
+    acceleration_voltage : float or array-like
+        In Volt
+
+    Returns
+    -------
+    wavelength : float or array-like
+        In meters
+
+    """
+    E = acceleration_voltage*e
+    wavelength = h/(2*m_e*E*(1 + (E/(2*m_e*c**2))))**0.5
+    return wavelength
+
+def diffraction_scattering_angle(
+        acceleration_voltage, lattice_size, miller_index):
+    """Get electron scattering angle from a crystal lattice.
+
+    Returns the total scattering angle, as measured from the middle of the
+    direct beam (0, 0, 0) to the given Miller index.
+
+    Miller index: h, k, l = miller_index
+    Interplanar distance: d = a / (h**2 + k**2 + l**2)**0.5
+    Bragg's law: theta = arcsin(electron_wavelength / (2 * d))
+    Total scattering angle (phi):  phi = 2 * theta
+
+    Parameters
+    ----------
+    acceleration_voltage : float
+        In Volt
+    lattice_size : float or array-like
+        In meter
+    miller_index : tuple
+        (h, k, l)
+
+    Returns
+    -------
+    angle : float
+        Scattering angle in radians.
+
+    """
+    wavelength = acceleration_voltage_to_wavelength(acceleration_voltage)
+    H, K, L = miller_index
+    a = lattice_size
+    d = a/(H**2 + K**2 + L**2)**0.5
+    scattering_angle = 2 * np.arcsin(wavelength / (2 * d))
+    return scattering_angle
