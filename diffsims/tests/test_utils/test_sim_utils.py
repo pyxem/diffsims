@@ -20,9 +20,7 @@ import pytest
 import numpy as np
 import diffpy
 from pytest import approx
-import pyxem.utils.dpc_utils as dpct
 import scipy.constants as sc
-import pyxem.utils.diffraction_tools as dt
 
 
 from diffsims.utils.sim_utils import (
@@ -35,6 +33,16 @@ from diffsims.utils.sim_utils import (
     simulate_kinematic_scattering,
     is_lattice_hexagonal,
     uvtw_to_uvw,
+    get_holz_angle
+    scattering_angle_to_lattice_parameter
+    bst_to_beta
+    beta_to_bst
+    tesla_to_am
+    acceleration_voltage_to_velocity
+    acceleration_voltage_to_relativistic_mass
+    et_to_beta
+    acceleration_voltage_to_wavelength
+    diffraction_scattering_angle
 )
 
 
@@ -142,106 +150,106 @@ class TestHolzCalibration:
     def test_get_holz_angle(self):
         wavelength = 2.51 / 1000
         lattice_parameter = 0.3905 * 2 ** 0.5
-        angle = ra._get_holz_angle(wavelength, lattice_parameter)
+        angle = get_holz_angle(wavelength, lattice_parameter)
         assert approx(95.37805 / 1000) == angle
 
     def test_scattering_angle_to_lattice_parameter(self):
         wavelength = 2.51 / 1000
         angle = 95.37805 / 1000
-        lattice_size = ra._scattering_angle_to_lattice_parameter(wavelength, angle)
+        lattice_size = scattering_angle_to_lattice_parameter(wavelength, angle)
         assert approx(0.55225047) == lattice_size
 
 class TestBetaToBst:
     def test_zero(self):
         data = np.zeros((100, 100))
-        bst = dpct.beta_to_bst(data, 200000)
+        bst = beta_to_bst(data, 200000)
         assert data.shape == bst.shape
         assert (data == 0.0).all()
 
     def test_ones(self):
         data = np.ones((100, 100)) * 10
-        bst = dpct.beta_to_bst(data, 200000)
+        bst = beta_to_bst(data, 200000)
         assert data.shape == bst.shape
         assert (data != 0.0).all()
 
     def test_beta_to_bst_to_beta(self):
         beta = 2e-6
-        output = dpct.bst_to_beta(dpct.beta_to_bst(beta, 200000), 200000)
+        output = bst_to_beta(beta_to_bst(beta, 200000), 200000)
         assert beta == output
 
     def test_known_value(self):
         # From https://dx.doi.org/10.1016/j.ultramic.2016.03.006
         bst = 10e-9 * 1  # 10 nm, 1 Tesla
         av = 200000  # 200 kV
-        beta = dpct.bst_to_beta(bst, av)
+        beta = bst_to_beta(bst, av)
         assert approx(beta, rel=1e-4) == 6.064e-6
 
 
 class TestBstToBeta:
     def test_zero(self):
         data = np.zeros((100, 100))
-        beta = dpct.bst_to_beta(data, 200000)
+        beta = bst_to_beta(data, 200000)
         assert data.shape == beta.shape
         assert (data == 0.0).all()
 
     def test_ones(self):
         data = np.ones((100, 100)) * 10
-        beta = dpct.bst_to_beta(data, 200000)
+        beta = bst_to_beta(data, 200000)
         assert data.shape == beta.shape
         assert (data != 0.0).all()
 
     def test_bst_to_beta_to_bst(self):
         bst = 10e-6
-        output = dpct.beta_to_bst(dpct.bst_to_beta(bst, 200000), 200000)
+        output = beta_to_bst(bst_to_beta(bst, 200000), 200000)
         assert bst == output
 
 
 class TestEtToBeta:
     def test_zero(self):
         data = np.zeros((100, 100))
-        beta = dpct.et_to_beta(data, 200000)
+        beta = et_to_beta(data, 200000)
         assert data.shape == beta.shape
         assert (data == 0.0).all()
 
     def test_ones(self):
         data = np.ones((100, 100)) * 10
-        beta = dpct.bst_to_beta(data, 200000)
+        beta = bst_to_beta(data, 200000)
         assert data.shape == beta.shape
         assert (data != 0.0).all()
 
 
 class TestAccelerationVoltageToVelocity:
     def test_zero(self):
-        assert dpct.acceleration_voltage_to_velocity(0) == 0.0
+        assert acceleration_voltage_to_velocity(0) == 0.0
 
     @pytest.mark.parametrize(
         "av,vel", [(100000, 1.6434e8), (200000, 2.0844e8), (300000, 2.3279e8)]
     )  # V, m/s
     def test_values(self, av, vel):
-        v = dpct.acceleration_voltage_to_velocity(av)
+        v = acceleration_voltage_to_velocity(av)
         assert approx(v, rel=0.001) == vel
 
 
 class TestAccelerationVoltageToRelativisticMass:
     def test_zero(self):
-        mr = dpct.acceleration_voltage_to_relativistic_mass(0.0)
+        mr = acceleration_voltage_to_relativistic_mass(0.0)
         assert approx(mr) == sc.electron_mass
 
     def test_200kv(self):
-        mr = dpct.acceleration_voltage_to_relativistic_mass(200000)
+        mr = acceleration_voltage_to_relativistic_mass(200000)
         assert approx(mr) == 1.268e-30
 
 @pytest.mark.parametrize(
     "av,wl", [(100000, 3.701e-12), (200000, 2.507e-12), (300000, 1.968e-12)]
 )  # V, pm
 def test_acceleration_voltage_to_wavelength(av, wl):
-    wavelength = dt.acceleration_voltage_to_wavelength(av)
+    wavelength = acceleration_voltage_to_wavelength(av)
     assert approx(wavelength, rel=0.001, abs=0.0) == wl
 
 
 def test_acceleration_voltage_to_wavelength_array():
     av = np.array([100000, 200000, 300000])  # In Volt
-    wavelength = dt.acceleration_voltage_to_wavelength(av)
+    wavelength = acceleration_voltage_to_wavelength(av)
     wl = np.array([3.701e-12, 2.507e-12, 1.968e-12])  # In pm
     assert len(wl) == 3
     assert approx(wavelength, rel=0.001, abs=0.0) == wl
@@ -253,7 +261,7 @@ class TestDiffractionScatteringAngle:
         acceleration_voltage = 300000
         lattice_size = 2e-10  # 2 Ångstrøm (in meters)
         miller_index = (1, 0, 0)
-        scattering_angle = dt.diffraction_scattering_angle(
+        scattering_angle = diffraction_scattering_angle(
             acceleration_voltage, lattice_size, miller_index
         )
         assert approx(scattering_angle, rel=0.001) == 9.84e-3
@@ -272,7 +280,7 @@ class TestDiffractionScatteringAngle:
     def test_miller_index(self, mi, sa):
         acceleration_voltage = 300000
         lattice_size = 2e-10  # 2 Ångstrøm (in meters)
-        scattering_angle = dt.diffraction_scattering_angle(
+        scattering_angle = diffraction_scattering_angle(
             acceleration_voltage, lattice_size, mi
         )
         assert approx(scattering_angle, rel=0.001) == sa
@@ -282,9 +290,9 @@ class TestDiffractionScatteringAngle:
         acceleration_voltage = 300000
         lattice_size = np.array([2e-10, 2e-10])
         miller_index = (1, 0, 0)
-        scattering_angle = dt.diffraction_scattering_angle(
+        scattering_angle = diffraction_scattering_angle(
             acceleration_voltage, lattice_size, miller_index
         )
         assert len(scattering_angle) == 2
         sa_known = np.array([9.84e-3, 9.84e-3])
-        assert approx(scattering_angle, rel=0.001) == sa_known        
+        assert approx(scattering_angle, rel=0.001) == sa_known
