@@ -534,7 +534,6 @@ def bst_to_beta(bst, acceleration_voltage):
 
     """
     av = acceleration_voltage
-    ##removed dt.
     wavelength = acceleration_voltage_to_wavelength(av)
     ##removed defenitions of constants as defined at the top
     beta = e * wavelength * bst / h
@@ -565,7 +564,7 @@ def beta_to_bst(beam_deflection, acceleration_voltage):
     >>> bst = dpct.beta_to_bst(data, 200000)
 
     """
-    wavelength = dt.acceleration_voltage_to_wavelength(acceleration_voltage)
+    wavelength = acceleration_voltage_to_wavelength(acceleration_voltage)
     beta = beam_deflection
 
     Bst = beta * h / (wavelength * e)
@@ -676,7 +675,6 @@ def et_to_beta(et, acceleration_voltage):
 
     """
     av = acceleration_voltage
-    ##removed dt.
     wavelength = acceleration_voltage_to_wavelength(av)
     m = acceleration_voltage_to_relativistic_mass(av)
     ##removed defenitions of constants as defined at the top
