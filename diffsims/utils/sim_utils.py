@@ -534,9 +534,9 @@ def bst_to_beta(bst, acceleration_voltage):
 
     """
     av = acceleration_voltage
-    wavelength = dt.acceleration_voltage_to_wavelength(av)
-    e = sc.elementary_charge
-    h = sc.Planck
+    ##removed dt.
+    wavelength = acceleration_voltage_to_wavelength(av)
+    ##removed defenitions of constants as defined at the top
     beta = e * wavelength * bst / h
     return beta
 
@@ -567,8 +567,7 @@ def beta_to_bst(beam_deflection, acceleration_voltage):
     """
     wavelength = dt.acceleration_voltage_to_wavelength(acceleration_voltage)
     beta = beam_deflection
-    e = sc.elementary_charge
-    h = sc.Planck
+
     Bst = beta * h / (wavelength * e)
     return Bst
 
@@ -618,11 +617,9 @@ def acceleration_voltage_to_velocity(acceleration_voltage):
     208450035
 
     """
-    c = sc.speed_of_light
     av = acceleration_voltage
-    e = sc.elementary_charge
-    me = sc.electron_mass
-    part1 = (1 + (av * e) / (me * c ** 2)) ** 2
+    ##removed defenitions of constants as defined at the top
+    part1 = (1 + (av * e) / (m_e * c ** 2)) ** 2
     v = c * (1 - (1 / part1)) ** 0.5
     return v
 
@@ -647,11 +644,10 @@ def acceleration_voltage_to_relativistic_mass(acceleration_voltage):
 
     """
     av = acceleration_voltage
-    c = sc.speed_of_light
+    ##removed defenitions of constants as defined at the top
     v = acceleration_voltage_to_velocity(av)
-    me = sc.electron_mass
     part1 = 1 - (v ** 2) / (c ** 2)
-    mr = me / (part1) ** 0.5
+    mr = m_e / (part1) ** 0.5
     return mr
 
 
@@ -680,10 +676,10 @@ def et_to_beta(et, acceleration_voltage):
 
     """
     av = acceleration_voltage
-    e = sc.elementary_charge
-    wavelength = dt.acceleration_voltage_to_wavelength(av)
+    ##removed dt.
+    wavelength = acceleration_voltage_to_wavelength(av)
     m = acceleration_voltage_to_relativistic_mass(av)
-    h = sc.Planck
+    ##removed defenitions of constants as defined at the top
 
     wavelength2 = wavelength ** 2
     h2 = h ** 2
