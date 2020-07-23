@@ -449,7 +449,7 @@ def uvtw_to_uvw(uvtw):
     common_factor = math.gcd(math.gcd(u, v), w)
     return tuple((int(x / common_factor)) for x in (u, v, w))
 
-def _get_holz_angle(electron_wavelength, lattice_parameter):
+def get_holz_angle(electron_wavelength, lattice_parameter):
     """
     Parameters
     ----------
@@ -479,7 +479,7 @@ def _get_holz_angle(electron_wavelength, lattice_parameter):
     return angle
 
 
-def _scattering_angle_to_lattice_parameter(electron_wavelength, angle):
+def scattering_angle_to_lattice_parameter(electron_wavelength, angle):
     """Convert scattering angle data to lattice parameter sizes.
 
     Parameters
