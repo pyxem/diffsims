@@ -449,6 +449,7 @@ def uvtw_to_uvw(uvtw):
     common_factor = math.gcd(math.gcd(u, v), w)
     return tuple((int(x / common_factor)) for x in (u, v, w))
 
+
 def get_holz_angle(electron_wavelength, lattice_parameter):
     """
     Parameters
@@ -465,10 +466,10 @@ def get_holz_angle(electron_wavelength, lattice_parameter):
 
     Examples
     --------
-    >>> import pyxem.utils.radial_utils as ra
+    >>> import diffsims.utils.sim_utils as sim_utils
     >>> lattice_size = 0.3905 # STO-(001) in nm
     >>> wavelength = 2.51/1000 # Electron wavelength for 200 kV
-    >>> angle = ra._get_holz_angle(wavelength, lattice_size)
+    >>> angle = sim_utils.get_holz_angle(wavelength, lattice_size)
 
     """
     k0 = 1.0 / electron_wavelength
@@ -497,10 +498,10 @@ def scattering_angle_to_lattice_parameter(electron_wavelength, angle):
 
     Examples
     --------
-    >>> import pyxem.utils.radial_utils as ra
+    >>> import diffsims.utils.sim_utils as sim_utils
     >>> angle_list = [0.1, 0.1, 0.1, 0.1] # in radians
     >>> wavelength = 2.51/1000 # Electron wavelength for 200 kV
-    >>> lattice_size = ra._scattering_angle_to_lattice_parameter(
+    >>> lattice_size = sim_utils.scattering_angle_to_lattice_parameter(
     ...     wavelength, angle_list)
 
     """
@@ -508,6 +509,7 @@ def scattering_angle_to_lattice_parameter(electron_wavelength, angle):
     k0 = 1.0 / electron_wavelength
     kz = k0 - (k0 * ((1 - (np.sin(angle) ** 2)) ** 0.5))
     return 1 / kz
+
 
 def bst_to_beta(bst, acceleration_voltage):
     """Calculate beam deflection (beta) values from Bs * t.
@@ -527,10 +529,10 @@ def bst_to_beta(bst, acceleration_voltage):
     Examples
     --------
     >>> import numpy as np
-    >>> import pyxem.utils.dpc_utils as dpct
+    >>> import diffsims.utils.sim_utils as sim_utils
     >>> data = np.random.random((100, 100))  # In Tesla*meter
     >>> acceleration_voltage = 200000  # 200 kV (in Volt)
-    >>> beta = dpct.bst_to_beta(data, acceleration_voltage)
+    >>> beta = sim_utils.bst_to_beta(data, acceleration_voltage)
 
     """
     av = acceleration_voltage
@@ -558,10 +560,10 @@ def beta_to_bst(beam_deflection, acceleration_voltage):
     Examples
     --------
     >>> import numpy as np
-    >>> import pyxem.utils.dpc_utils as dpct
+    >>> import diffsims.utils.sim_utils as sim_utils
     >>> data = np.random.random((100, 100))  # In radians
     >>> acceleration_voltage = 200000  # 200 kV (in Volt)
-    >>> bst = dpct.beta_to_bst(data, 200000)
+    >>> bst = sim_utils.beta_to_bst(data, 200000)
 
     """
     wavelength = acceleration_voltage_to_wavelength(acceleration_voltage)
@@ -587,9 +589,9 @@ def tesla_to_am(data):
     Examples
     --------
     >>> import numpy as np
-    >>> import pyxem.utils.dpc_utils as dpct
+    >>> import diffsims.utils.sim_utils as sim_utils
     >>> data_T = np.random.random((100, 100))  # In tesla
-    >>> data_am = dpct.tesla_to_am(data_T)
+    >>> data_am = sim_utils.tesla_to_am(data_T)
 
     """
     return data / sc.mu_0
@@ -610,8 +612,8 @@ def acceleration_voltage_to_velocity(acceleration_voltage):
 
     Example
     -------
-    >>> import pyxem.utils.dpc_utils as dpct
-    >>> v = dpct.acceleration_voltage_to_velocity(200000) # 200 kV
+    >>> import diffsims.utils.sim_utils as sim_utils
+    >>> v = sim_utils.acceleration_voltage_to_velocity(200000) # 200 kV
     >>> round(v)
     208450035
 
@@ -638,8 +640,8 @@ def acceleration_voltage_to_relativistic_mass(acceleration_voltage):
 
     Example
     -------
-    >>> import pyxem.utils.dpc_utils as dpct
-    >>> mr = dpct.acceleration_voltage_to_relativistic_mass(200000) # 200 kV
+    >>> import diffsims.utils.sim_utils as sim_utils
+    >>> mr = sim_utils.acceleration_voltage_to_relativistic_mass(200000) # 200 kV
 
     """
     av = acceleration_voltage
@@ -668,10 +670,10 @@ def et_to_beta(et, acceleration_voltage):
     Examples
     --------
     >>> import numpy as np
-    >>> import pyxem.utils.dpc_utils as dpct
+    >>> import diffsims.utils.sim_utils as sim_utils
     >>> data = np.random.random((100, 100))
     >>> acceleration_voltage = 200000  # 200 kV (in Volt)
-    >>> beta = dpct.et_to_beta(data, acceleration_voltage)
+    >>> beta = sim_utils.et_to_beta(data, acceleration_voltage)
 
     """
     av = acceleration_voltage
@@ -684,6 +686,7 @@ def et_to_beta(et, acceleration_voltage):
 
     beta = e * wavelength2 * m * et / h2
     return beta
+
 
 def acceleration_voltage_to_wavelength(acceleration_voltage):
     """Get electron wavelength from the acceleration voltage.
@@ -699,12 +702,12 @@ def acceleration_voltage_to_wavelength(acceleration_voltage):
         In meters
 
     """
-    E = acceleration_voltage*e
-    wavelength = h/(2*m_e*E*(1 + (E/(2*m_e*c**2))))**0.5
+    E = acceleration_voltage * e
+    wavelength = h / (2 * m_e * E * (1 + (E / (2 * m_e * c ** 2)))) ** 0.5
     return wavelength
 
-def diffraction_scattering_angle(
-        acceleration_voltage, lattice_size, miller_index):
+
+def diffraction_scattering_angle(acceleration_voltage, lattice_size, miller_index):
     """Get electron scattering angle from a crystal lattice.
 
     Returns the total scattering angle, as measured from the middle of the
@@ -733,6 +736,6 @@ def diffraction_scattering_angle(
     wavelength = acceleration_voltage_to_wavelength(acceleration_voltage)
     H, K, L = miller_index
     a = lattice_size
-    d = a/(H**2 + K**2 + L**2)**0.5
+    d = a / (H ** 2 + K ** 2 + L ** 2) ** 0.5
     scattering_angle = 2 * np.arcsin(wavelength / (2 * d))
     return scattering_angle

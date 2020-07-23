@@ -146,6 +146,7 @@ def test_uvtw_to_uvw(uvtw, uvw):
     val = uvtw_to_uvw(uvtw)
     np.testing.assert_almost_equal(val, uvw)
 
+
 class TestHolzCalibration:
     def test_get_holz_angle(self):
         wavelength = 2.51 / 1000
@@ -158,6 +159,7 @@ class TestHolzCalibration:
         angle = 95.37805 / 1000
         lattice_size = scattering_angle_to_lattice_parameter(wavelength, angle)
         assert approx(0.55225047) == lattice_size
+
 
 class TestBetaToBst:
     def test_zero(self):
@@ -217,6 +219,7 @@ class TestEtToBeta:
         assert data.shape == beta.shape
         assert (data != 0.0).all()
 
+
 class TeslaToAm:
     def test_zero(self):
         data = np.zeros((100, 100))
@@ -256,6 +259,7 @@ class TestAccelerationVoltageToRelativisticMass:
     def test_200kv(self):
         mr = acceleration_voltage_to_relativistic_mass(200000)
         assert approx(mr) == 1.268e-30
+
 
 @pytest.mark.parametrize(
     "av,wl", [(100000, 3.701e-12), (200000, 2.507e-12), (300000, 1.968e-12)]
