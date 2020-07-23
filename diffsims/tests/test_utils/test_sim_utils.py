@@ -217,6 +217,24 @@ class TestEtToBeta:
         assert data.shape == beta.shape
         assert (data != 0.0).all()
 
+class TeslaToAm:
+    def test_zero(self):
+        data = np.zeros((100, 100))
+        am = tesla_to_am(data)
+        assert data.shape == am.shape
+        assert (data == 0.00).all()
+
+    def test_ones(self):
+        data = np.ones((100, 100)) * 10
+        am = tesla_to_am(data)
+        assert data.shape == am.shape
+        assert (data != 0.0).all()
+
+    def test_known_value(self):
+        tesla = 1
+        am = tesla_to_am(tesla)
+        assert approx(tesla, rel=1e-4) == 795775
+
 
 class TestAccelerationVoltageToVelocity:
     def test_zero(self):
