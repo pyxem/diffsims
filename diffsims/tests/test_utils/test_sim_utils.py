@@ -220,7 +220,7 @@ class TestEtToBeta:
         assert (data != 0.0).all()
 
 
-class TeslaToAm:
+class TestTeslaToAm:
     def test_zero(self):
         data = np.zeros((100, 100))
         am = tesla_to_am(data)
