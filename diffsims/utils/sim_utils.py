@@ -19,7 +19,7 @@
 import math
 
 import numpy as np
-from scipy.constants import h, m_e, e, c, pi
+from scipy.constants import h, m_e, e, c, pi, mu_0
 import collections
 import diffpy.structure
 
@@ -451,7 +451,7 @@ def uvtw_to_uvw(uvtw):
 
 
 def get_holz_angle(electron_wavelength, lattice_parameter):
-    """
+    """ Converts electron wavelength and lattice paramater to holz angle
     Parameters
     ----------
     electron_wavelength : scalar
@@ -476,7 +476,7 @@ def get_holz_angle(electron_wavelength, lattice_parameter):
     kz = 1.0 / lattice_parameter
     in_root = kz * ((2 * k0) - kz)
     sin_angle = (in_root ** 0.5) / k0
-    angle = math.asin(sin_angle)
+    angle = np.arcsin(sin_angle)
     return angle
 
 
@@ -554,7 +554,7 @@ def beta_to_bst(beam_deflection, acceleration_voltage):
 
     Returns
     -------
-    Bst : NumPy array
+    bst : NumPy array
         In Tesla * meter
 
     Examples
@@ -569,8 +569,8 @@ def beta_to_bst(beam_deflection, acceleration_voltage):
     wavelength = acceleration_voltage_to_wavelength(acceleration_voltage)
     beta = beam_deflection
 
-    Bst = beta * h / (wavelength * e)
-    return Bst
+    bst = beta * h / (wavelength * e)
+    return bst
 
 
 def tesla_to_am(data):
@@ -594,7 +594,7 @@ def tesla_to_am(data):
     >>> data_am = sim_utils.tesla_to_am(data_T)
 
     """
-    return data / sc.mu_0
+    return data / mu_0
 
 
 def acceleration_voltage_to_velocity(acceleration_voltage):
@@ -676,15 +676,10 @@ def et_to_beta(et, acceleration_voltage):
     >>> beta = sim_utils.et_to_beta(data, acceleration_voltage)
 
     """
-    av = acceleration_voltage
-    wavelength = acceleration_voltage_to_wavelength(av)
-    m = acceleration_voltage_to_relativistic_mass(av)
-    ##removed defenitions of constants as defined at the top
+    wavelength = acceleration_voltage_to_wavelength(acceleration_voltage)
+    m = acceleration_voltage_to_relativistic_mass(acceleration_voltage)
 
-    wavelength2 = wavelength ** 2
-    h2 = h ** 2
-
-    beta = e * wavelength2 * m * et / h2
+    beta = e * (wavelength ** 2) * m * et / (h ** 2)
     return beta
 
 
@@ -702,8 +697,8 @@ def acceleration_voltage_to_wavelength(acceleration_voltage):
         In meters
 
     """
-    E = acceleration_voltage * e
-    wavelength = h / (2 * m_e * E * (1 + (E / (2 * m_e * c ** 2)))) ** 0.5
+    energy = acceleration_voltage * e
+    wavelength = h / (2 * m_e * energy * (1 + (energy / (2 * m_e * c ** 2)))) ** 0.5
     return wavelength
 
 
@@ -734,8 +729,8 @@ def diffraction_scattering_angle(acceleration_voltage, lattice_size, miller_inde
 
     """
     wavelength = acceleration_voltage_to_wavelength(acceleration_voltage)
-    H, K, L = miller_index
+    h, k, l = miller_index
     a = lattice_size
-    d = a / (H ** 2 + K ** 2 + L ** 2) ** 0.5
+    d = a / (h ** 2 + k ** 2 + l ** 2) ** 0.5
     scattering_angle = 2 * np.arcsin(wavelength / (2 * d))
     return scattering_angle

@@ -19,7 +19,6 @@
 import pytest
 import numpy as np
 import diffpy
-from pytest import approx
 import scipy.constants as sc
 
 
@@ -152,13 +151,22 @@ class TestHolzCalibration:
         wavelength = 2.51 / 1000
         lattice_parameter = 0.3905 * 2 ** 0.5
         angle = get_holz_angle(wavelength, lattice_parameter)
-        assert approx(95.37805 / 1000) == angle
+        assert np.isclose(angle, 0.095378, rtol=1e-4)
 
     def test_scattering_angle_to_lattice_parameter(self):
         wavelength = 2.51 / 1000
         angle = 95.37805 / 1000
         lattice_size = scattering_angle_to_lattice_parameter(wavelength, angle)
-        assert approx(0.55225047) == lattice_size
+        assert np.isclose(lattice_size, 0.55225047)
+
+    @pytest.mark.parametrize(
+        "wavelength, lattice_parameter",
+        [(2e-12, 3e-10), (3e-12, 3e-10), (10e-12, 3e-10)],
+    )
+    def test_lattice_paramter_invariance(self, wavelength, lattice_parameter):
+        h_a = get_holz_angle(wavelength, lattice_parameter)
+        l_p = scattering_angle_to_lattice_parameter(wavelength, h_a)
+        assert np.isclose(l_p, lattice_parameter, rtol=1e-4)
 
 
 class TestBetaToBst:
@@ -184,7 +192,7 @@ class TestBetaToBst:
         bst = 10e-9 * 1  # 10 nm, 1 Tesla
         av = 200000  # 200 kV
         beta = bst_to_beta(bst, av)
-        assert approx(beta, rel=1e-4) == 6.064e-6
+        assert np.isclose(beta, 6.064e-6, rtol=1e-4)
 
 
 class TestBstToBeta:
@@ -236,29 +244,22 @@ class TestTeslaToAm:
     def test_known_value(self):
         tesla = 1
         am = tesla_to_am(tesla)
-        assert approx(tesla, rel=1e-4) == 795775
+        assert np.isclose(am, 795774.7155, rtol=1e-4)
 
 
 class TestAccelerationVoltageToVelocity:
-    def test_zero(self):
-        assert acceleration_voltage_to_velocity(0) == 0.0
-
     @pytest.mark.parametrize(
         "av,vel", [(100000, 1.6434e8), (200000, 2.0844e8), (300000, 2.3279e8)]
     )  # V, m/s
     def test_values(self, av, vel):
         v = acceleration_voltage_to_velocity(av)
-        assert approx(v, rel=0.001) == vel
+        assert np.allclose(v, vel, rtol=0.001)
 
 
 class TestAccelerationVoltageToRelativisticMass:
-    def test_zero(self):
-        mr = acceleration_voltage_to_relativistic_mass(0.0)
-        assert approx(mr) == sc.electron_mass
-
     def test_200kv(self):
         mr = acceleration_voltage_to_relativistic_mass(200000)
-        assert approx(mr) == 1.268e-30
+        assert np.isclose(1.268e-30, mr)
 
 
 @pytest.mark.parametrize(
@@ -266,28 +267,17 @@ class TestAccelerationVoltageToRelativisticMass:
 )  # V, pm
 def test_acceleration_voltage_to_wavelength(av, wl):
     wavelength = acceleration_voltage_to_wavelength(av)
-    assert approx(wavelength, rel=0.001, abs=0.0) == wl
+    assert np.allclose(wl, wavelength, rtol=0.001, atol=0.0)
 
 
 def test_acceleration_voltage_to_wavelength_array():
     av = np.array([100000, 200000, 300000])  # In Volt
     wavelength = acceleration_voltage_to_wavelength(av)
     wl = np.array([3.701e-12, 2.507e-12, 1.968e-12])  # In pm
-    assert len(wl) == 3
-    assert approx(wavelength, rel=0.001, abs=0.0) == wl
+    assert np.allclose(wl, wavelength, rtol=0.001, atol=0.0)
 
 
 class TestDiffractionScatteringAngle:
-    def test_simple(self):
-        # This should give ~9.84e-3 radians
-        acceleration_voltage = 300000
-        lattice_size = 2e-10  # 2 Ångstrøm (in meters)
-        miller_index = (1, 0, 0)
-        scattering_angle = diffraction_scattering_angle(
-            acceleration_voltage, lattice_size, miller_index
-        )
-        assert approx(scattering_angle, rel=0.001) == 9.84e-3
-
     @pytest.mark.parametrize(
         "mi,sa",
         [
@@ -305,16 +295,16 @@ class TestDiffractionScatteringAngle:
         scattering_angle = diffraction_scattering_angle(
             acceleration_voltage, lattice_size, mi
         )
-        assert approx(scattering_angle, rel=0.001) == sa
+        assert np.allclose(sa, scattering_angle, rtol=0.001)
 
     def test_array_like(self):
         # This should give ~9.84e-3 radians
         acceleration_voltage = 300000
-        lattice_size = np.array([2e-10, 2e-10])
+        lattice_size = np.array([2e-10, 3e-10])
         miller_index = (1, 0, 0)
         scattering_angle = diffraction_scattering_angle(
             acceleration_voltage, lattice_size, miller_index
         )
         assert len(scattering_angle) == 2
-        sa_known = np.array([9.84e-3, 9.84e-3])
-        assert approx(scattering_angle, rel=0.001) == sa_known
+        sa_known = np.array([9.84e-3, 6.56e-3])
+        assert np.allclose(sa_known, scattering_angle, rtol=0.001)
