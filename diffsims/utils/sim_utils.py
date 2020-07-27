@@ -74,9 +74,8 @@ def get_interaction_constant(accelerating_voltage):
         The relativistic electron wavelength in m.
 
     """
-    E = accelerating_voltage
     wavelength = get_electron_wavelength(accelerating_voltage)
-    sigma = 2 * pi * (m_e + e * E)
+    sigma = 2 * pi * (m_e + e * accelerating_voltage)
 
     return sigma
 
@@ -535,8 +534,7 @@ def bst_to_beta(bst, acceleration_voltage):
     >>> beta = sim_utils.bst_to_beta(data, acceleration_voltage)
 
     """
-    av = acceleration_voltage
-    wavelength = acceleration_voltage_to_wavelength(av)
+    wavelength = acceleration_voltage_to_wavelength(acceleration_voltage)
     ##removed defenitions of constants as defined at the top
     beta = e * wavelength * bst / h
     return beta
@@ -569,8 +567,8 @@ def beta_to_bst(beam_deflection, acceleration_voltage):
     wavelength = acceleration_voltage_to_wavelength(acceleration_voltage)
     beta = beam_deflection
 
-    bst = beta * h / (wavelength * e)
-    return bst
+    mag_field = beta * h / (wavelength * e)
+    return mag_field
 
 
 def tesla_to_am(data):
@@ -618,9 +616,8 @@ def acceleration_voltage_to_velocity(acceleration_voltage):
     208450035
 
     """
-    av = acceleration_voltage
-    ##removed defenitions of constants as defined at the top
-    part1 = (1 + (av * e) / (m_e * c ** 2)) ** 2
+
+    part1 = (1 + (acceleration_voltage * e) / (m_e * c ** 2)) ** 2
     v = c * (1 - (1 / part1)) ** 0.5
     return v
 
@@ -644,9 +641,8 @@ def acceleration_voltage_to_relativistic_mass(acceleration_voltage):
     >>> mr = sim_utils.acceleration_voltage_to_relativistic_mass(200000) # 200 kV
 
     """
-    av = acceleration_voltage
     ##removed defenitions of constants as defined at the top
-    v = acceleration_voltage_to_velocity(av)
+    v = acceleration_voltage_to_velocity(acceleration_voltage)
     part1 = 1 - (v ** 2) / (c ** 2)
     mr = m_e / (part1) ** 0.5
     return mr
