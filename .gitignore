@@ -112,5 +112,5 @@ src/
 /.project
 /.pydevproject
 
-#DS_store files
-.DS_Store
+#Ds store stuff
+.DS_store
