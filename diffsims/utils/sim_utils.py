@@ -535,7 +535,6 @@ def bst_to_beta(bst, acceleration_voltage):
 
     """
     wavelength = acceleration_voltage_to_wavelength(acceleration_voltage)
-    ##removed defenitions of constants as defined at the top
     beta = e * wavelength * bst / h
     return beta
 
@@ -641,7 +640,6 @@ def acceleration_voltage_to_relativistic_mass(acceleration_voltage):
     >>> mr = sim_utils.acceleration_voltage_to_relativistic_mass(200000) # 200 kV
 
     """
-    ##removed defenitions of constants as defined at the top
     v = acceleration_voltage_to_velocity(acceleration_voltage)
     part1 = 1 - (v ** 2) / (c ** 2)
     mr = m_e / (part1) ** 0.5
