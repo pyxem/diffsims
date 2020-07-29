@@ -204,7 +204,7 @@ class ProfileSimulation:
             Fontsize for peak labels.
         """
 
-        label_hkl = get_unique_families(hkls.keys())
+        label_hkl = get_unique_families(self.hkls.keys())
 
         ax = plt.gca()
         for g, i, hkls in zip(self.magnitudes, self.intensities, self.hkls):
