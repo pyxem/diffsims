@@ -111,3 +111,6 @@ src/
 .vscode/
 /.project
 /.pydevproject
+
+#DS_store files
+.DS_Store
