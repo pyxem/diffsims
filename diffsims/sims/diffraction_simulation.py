@@ -20,6 +20,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import ndimage as ndi
 
+from diffsims.utils.sim_utils import get_unique_families
+
 
 class DiffractionSimulation:
     """Holds the result of a kinematic diffraction pattern simulation.
@@ -148,16 +150,17 @@ class DiffractionSimulation:
         the order of 0.5nm and a the default size and sigma are used.
         """
         side_length = np.min(np.multiply((size / 2), self.calibration))
-        mask_for_sides = np.all((np.abs(self.coordinates[:, 0:2]) < side_length), axis=1)
-
+        mask_for_sides = np.all(
+            (np.abs(self.coordinates[:, 0:2]) < side_length), axis=1
+        )
 
         spot_coords = np.add(
             self.calibrated_coordinates[mask_for_sides], size / 2
         ).astype(int)
         spot_intens = self.intensities[mask_for_sides]
         pattern = np.zeros([size, size])
-        #checks that we have some spots
-        if spot_intens.shape[0]==0:
+        # checks that we have some spots
+        if spot_intens.shape[0] == 0:
             return pattern
         else:
             pattern[spot_coords[:, 0], spot_coords[:, 1]] = spot_intens
@@ -200,10 +203,13 @@ class ProfileSimulation:
         fontsize : integer
             Fontsize for peak labels.
         """
+
+        label_hkl = get_unique_families(hkls.keys())
+
         ax = plt.gca()
         for g, i, hkls in zip(self.magnitudes, self.intensities, self.hkls):
             if g <= g_max:
-                label = ", ".join([str(hkl) for hkl in hkls.keys()])
+                label = ", ".join([str(hkl) for hkl in label_hkl.keys()])
                 ax.plot([g, g], [0, i], color="k", linewidth=3, label=label)
                 if annotate_peaks:
                     ax.annotate(label, xy=[g, i], xytext=[g, i], fontsize=fontsize)
