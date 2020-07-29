@@ -270,9 +270,7 @@ class DiffractionGenerator(object):
                 # Use Miller-Bravais indices for hexagonal lattices.
                 hkl = (hkl[0], hkl[1], -hkl[0] - hkl[1], hkl[2])
 
-
-            ##swapped tuple(hkl) and g_hkl such that planes from same family dont overwrite
-            peaks[tuple(hkl)] = [i_hkl, g_hkl, d_hkl]
+            peaks[g_hkl] = [i_hkl, [tuple(hkl)], d_hkl]
 
         # Scale intensities so that the max intensity is 100.
         max_intensity = max([v[0] for v in peaks.values()])
@@ -282,11 +280,9 @@ class DiffractionGenerator(object):
         d_hkls = []
         for k in sorted(peaks.keys()):
             v = peaks[k]
-            fam = get_unique_families([k])
-            ##swapped v[1] for [k] ie put in tuple(hkl)
+            fam = get_unique_families(v[1])
             if v[0] / max_intensity * 100 > minimum_intensity:
-                x.append(v[1])
-                ##swapped k for v[1] ie add g_hkl to x list
+                x.append(k)
                 y.append(v[0])
                 hkls.append(fam)
                 d_hkls.append(v[2])
