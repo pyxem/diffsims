@@ -27,14 +27,8 @@ from itertools import product
 from transforms3d.euler import euler2axangle, axangle2euler
 
 from diffsims.utils.rotation_conversion_utils import Euler
-from diffsims.utils.fundamental_zone_utils import (
-    get_proper_point_group_string,
-    reduce_to_fundamental_zone,
-)
 from diffsims.utils.gridding_utils import (
-    create_linearly_spaced_array_in_rzxz,
     rotate_axangle,
-    _create_advanced_linearly_spaced_array_in_rzxz,
     get_beam_directions,
     beam_directions_to_euler_angles,
 )
