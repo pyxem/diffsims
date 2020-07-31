@@ -80,6 +80,7 @@ class StructureLibrary:
         """
         return cls(identifiers, structures, orientations)
 
+    # TODO: this should be from space groups
     @classmethod
     def from_crystal_systems(
         cls, identifiers, structures, systems, resolution, equal="angle"
@@ -114,7 +115,7 @@ class StructureLibrary:
         Returns the the total number of orientations in the
         current StructureLibrary object. Will also print the number of orientations
         for each identifier in the library if the to_print==True
-        
+
         Parameters
         ----------
         to_print : bool

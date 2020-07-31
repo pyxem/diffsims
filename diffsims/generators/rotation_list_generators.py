@@ -28,7 +28,6 @@ from transforms3d.euler import euler2axangle, axangle2euler
 from transforms3d.euler import axangle2euler, euler2axangle, euler2mat
 from transforms3d.quaternions import quat2axangle, axangle2quat, mat2quat, qmult
 
-from diffsims.utils.gridding_utils import rotate_axangle
 from diffsims.utils.rotation_conversion_utils import *
 from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
 
@@ -154,6 +153,13 @@ def get_local_grid(center, max_rotation, resolution):
     #convert_to_rotation_list()
     return None
 
+
+def get_grid_stereographic(crystal_system, resolution, equal="angle"):
+    """
+    This functionality is deprecated. The following outline is only given to
+    aid dev work
+    """
+    return get_fundamental_zone_grid(1,resolution)
 
 def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 360)):
     """
