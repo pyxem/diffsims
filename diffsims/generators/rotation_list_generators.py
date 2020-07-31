@@ -63,15 +63,14 @@ def get_fundamental_zone_grid(space_group_number, resolution):
     Returns
     -------
     rotation_list : list of tuples
-    """
-    zone_string = get_proper_point_group_string(space_group_number)
-    raw_grid = create_linearly_spaced_array_in_rzxz(
-        resolution
-    )  # see discussion in diffsims/#50
-    raw_grid_axangle = raw_grid.to_AxAngle()
-    fz_grid_axangle = reduce_to_fundamental_zone(raw_grid_axangle, zone_string)
-    return _returnable_eulers_from_axangle(fz_grid_axangle, "rzxz", round_to=2)
 
+    Notes
+    -----
+    """
+    #raise Deprecation warning
+    #g get grid from orix
+    #convert_to_rotation_list()
+    return None
 
 def get_grid_stereographic(crystal_system, resolution, equal="angle"):
     """
@@ -141,15 +140,10 @@ def get_local_grid(center, max_rotation, resolution):
     -------
     rotation_list : list of tuples
     """
-    raw_grid = _create_advanced_linearly_spaced_array_in_rzxz(
-        resolution, 360, max_rotation + 10, 360
-    )
-    raw_grid_axangle = raw_grid.to_AxAngle()
-    raw_grid_axangle.remove_large_rotations(np.deg2rad(max_rotation))
-    if not np.all(np.asarray(center) == 0):
-        raw_grid_axangle = rotate_axangle(raw_grid_axangle, center)
-
-    return _returnable_eulers_from_axangle(raw_grid_axangle, "rzxz", round_to=2)
+    #raise Deprecation warning
+    #g get grid from orix
+    #convert_to_rotation_list()
+    return None
 
 
 def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 360)):

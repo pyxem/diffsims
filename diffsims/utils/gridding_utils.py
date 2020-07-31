@@ -147,7 +147,8 @@ def _create_advanced_linearly_spaced_array_in_rzxz(
     max_alpha :
         End point of the range of alpha, not included (in degrees)
     max_beta :
-        End point of the range of beta, not included (in degrees)
+        End point of the range of beta, not included (in degrees), should be
+        less than 180.
     max_gamma :
         End point of the range of gamma, not included (in degrees)
 
@@ -163,11 +164,13 @@ def _create_advanced_linearly_spaced_array_in_rzxz(
     steps_gamma = int(np.ceil((max_gamma - 0) / resolution))
 
     alpha = np.linspace(0, max_alpha, num=steps_alpha, endpoint=False)
-    beta = np.linspace(
-        resolution, max_beta, num=steps_beta, endpoint=False
-    )  # this avoid gimbal lock roations
     gamma = np.linspace(0, max_gamma, num=steps_gamma, endpoint=False)
-    z = np.asarray(list(product(alpha, beta, gamma)))
+    # evenly spaced in cos(), with the zero angle avoided
+    beta = np.linspace(
+        np.cos(np.deg2rad(resolution)), np.cos(np.deg2rad(max_beta)), num=steps_beta, endpoint=False
+    )
+
+    z = np.asarray(list(product(alpha, np.rad2deg(np.arccos(beta)), gamma)))
 
     # We now add the rotations for which the middle angle is zero, we use the form (0,0,gamma)
     max_gimbal_rotation = max_alpha + max_gamma
