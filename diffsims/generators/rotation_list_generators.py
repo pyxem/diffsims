@@ -233,15 +233,6 @@ def get_beam_directions(crystal_system, resolution, equal="angle"):
     -------
     points_in_cartesians : np.array (N,3)
         Rows are x,y,z where z is the 001 pole direction.
-    Notes
-    -----
-    For all cases: The input 'resolution' may differ slightly from the expected value. This is so that each of the corners
-    of the streographic triangle are included. Actual 'resolution' will always be equal to or higher than the input resolution. As
-    an example, if resolution is set to 4 to cover a range [0,90] we can't include both endpoints. The code makes 23 steps
-    of 3.91 degrees instead.
-
-    For the cubic case: Each edge of the streographic triangle will behave as expected. The region above the (1,0,1), (1,1,1) edge
-    will (for implementation reasons) be slightly more densly packed than the wider region.
     """
     theta_max, psi_max, psi_min = crystal_system_dictionary[crystal_system]
 
