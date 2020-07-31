@@ -72,54 +72,6 @@ def get_fundamental_zone_grid(space_group_number, resolution):
     #convert_to_rotation_list()
     return None
 
-def get_grid_stereographic(crystal_system, resolution, equal="angle"):
-    """
-    Creates a rotation list by determining the beam directions within the symmetry reduced
-    region of the inverse pole figure, corresponding to the specified crystal system, and
-    combining this with rotations about the beam direction at a given resolution.
-
-    Parameters
-    ----------
-    crytal_system : str
-        'cubic', 'hexagonal', 'trigonal', 'tetragonal', 'orthorhombic', 'monoclinic' and 'triclinic'
-
-    resolution : float
-        The maximum misorientation between rotations in the list, as defined according to
-        the parameter 'equal'. Specified as an angle in degrees.
-    equal : str
-        'angle' or 'area'. If 'angle', the misorientation is calculated between each beam direction
-        and its nearest neighbour(s). If 'area', the density of points is as in the equal angle case
-        but each point covers an equal area.
-
-    Returns
-    -------
-    rotation_list : list of tuples
-        List of rotations
-    """
-    beam_directions_rzxz = beam_directions_to_euler_angles(
-        get_beam_directions(crystal_system, resolution, equal=equal)
-    )
-    beam_directions_szxz = beam_directions_rzxz.to_AxAngle().to_Euler(
-        axis_convention="szxz"
-    )  # convert to high speed convention
-
-    # drop in all the inplane rotations to form z
-    alpha = beam_directions_szxz.data[:, 0]
-    beta = beam_directions_szxz.data[:, 1]
-    in_plane = np.arange(0, 360, resolution)
-
-    ipalpha = np.asarray(list(product(alpha, np.asarray(in_plane))))
-    ipbeta = np.asarray(list(product(beta, np.asarray(in_plane))))
-    z = np.hstack((ipalpha[:, 0].reshape((-1, 1)), ipbeta))
-
-    raw_grid = Euler(z, axis_convention="szxz")
-    grid_rzxz = raw_grid.to_AxAngle().to_Euler(
-        axis_convention="rzxz"
-    )  # convert back Bunge convention to return
-    rotation_list = grid_rzxz.to_rotation_list(round_to=2)
-    return rotation_list
-
-
 def get_local_grid(center, max_rotation, resolution):
     """
     Creates a rotation list for the rotations within max_rotation of center at a given rotation.
