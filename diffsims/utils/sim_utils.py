@@ -223,6 +223,7 @@ def get_kinematical_intensities(
     structure,
     g_indices,
     g_hkls,
+    multiplicities,
     excitation_error,
     maximum_excitation_error,
     debye_waller_factors,
@@ -290,7 +291,7 @@ def get_kinematical_intensities(
 
     # Calculate the peak intensities from the structure factor and excitation
     # error.
-    peak_intensities = (f_hkls * f_hkls.conjugate()).real * shape_factor
+    peak_intensities = multiplicities * (f_hkls * f_hkls.conjugate()).real * shape_factor
     return peak_intensities
 
 

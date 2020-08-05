@@ -127,7 +127,7 @@ class DiffractionGenerator(object):
         # Obtain crystallographic reciprocal lattice points within `max_r` and
         # g-vector magnitudes for intensity calculations.
         recip_latt = latt.reciprocal()
-        spot_indices, cartesian_coordinates, spot_distances = get_points_in_sphere(
+        spot_indices, spot_coords, spot_distances = get_points_in_sphere(
             recip_latt, reciprocal_radius
         )
 
@@ -137,27 +137,29 @@ class DiffractionGenerator(object):
             np.deg2rad(rotation[2]),
         )
         R = euler2mat(ai, aj, ak, axes="rzxz")
-        cartesian_coordinates = np.matmul(R, cartesian_coordinates.T).T
+        spot_coords = np.matmul(R, spot_coords.T).T
 
         # Identify points intersecting the Ewald sphere within maximum
         # excitation error and store the magnitude of their excitation error.
         r_sphere = 1 / wavelength
-        r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
+        r_spot = np.sqrt(np.sum(np.square(spot_coords[:, :2]), axis=1))
         z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
-        proximity = np.absolute(z_sphere - cartesian_coordinates[:, 2])
-        intersection = proximity < max_excitation_error
+        excitation_error = np.absolute(z_sphere - spot_coords[:, 2])
+        intersection = excitation_error < max_excitation_error
         # Mask parameters corresponding to excited reflections.
-        intersection_coordinates = cartesian_coordinates[intersection]
-        intersection_indices = spot_indices[intersection]
-        proximity = proximity[intersection]
+        intersection_coordinates = spot_coords[intersection]
+        g_indices = spot_indices[intersection]
+        excitation_error = excitation_error[intersection]
         g_hkls = spot_distances[intersection]
+        multiplicities = np.ones_like(g_hkls)
 
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(
             structure,
-            intersection_indices,
+            g_indices,
             g_hkls,
-            proximity,
+            multiplicities,
+            excitation_error,
             max_excitation_error,
             debye_waller_factors,
             scattering_params,
@@ -167,11 +169,11 @@ class DiffractionGenerator(object):
         peak_mask = intensities > 1e-20
         intensities = intensities[peak_mask]
         intersection_coordinates = intersection_coordinates[peak_mask]
-        intersection_indices = intersection_indices[peak_mask]
+        g_indices = g_indices[peak_mask]
 
         return DiffractionSimulation(
             coordinates=intersection_coordinates,
-            indices=intersection_indices,
+            indices=g_indices,
             intensities=intensities,
             with_direct_beam=with_direct_beam,
         )
@@ -213,66 +215,47 @@ class DiffractionGenerator(object):
         latt = structure.lattice
         is_hex = is_lattice_hexagonal(latt)
 
-        (
-            coeffs,
-            fcoords,
-            occus,
-            dwfactors,
-        ) = get_vectorized_list_for_atomic_scattering_factors(
-            structure, {}, scattering_params=scattering_params
-        )
-
         # Obtain crystallographic reciprocal lattice points within range
         recip_latt = latt.reciprocal()
         spot_indices, _, spot_distances = get_points_in_sphere(
             recip_latt, reciprocal_radius
         )
 
-        peaks = {}
-        mask = np.logical_not((np.any(spot_indices, axis=1) == 0))
+        ##spot_indicies is a numpy.array of the hkls allowd in the recip radius
 
-        for hkl, g_hkl in zip(spot_indices[mask], spot_distances[mask]):
-            # Force miller indices to be integers.
-            hkl = [int(round(i)) for i in hkl]
+        list_hkls = spot_indices.tolist()
+        ##unique_hkls_dict is a dict with {hkl: multiplicity}
+        unique_hkls_dict = get_unique_families(list_hkls)
 
-            d_hkl = 1 / g_hkl
+        unique_hkls = np.array(unique_hkls_dict.keys)
 
-            # Bragg condition
-            # theta = asin(wavelength * g_hkl / 2)
+        ##need to convert the unique hkls to an array and m's to an array so
+        ##that they can be used in get_kinematical_intensities
+        ##need to create arrays of g_hkl, excitation_error, g_indices for only
+        ##the unique hkls ie remove some from the existing arrays..
 
-            # s = sin(theta) / wavelength = 1 / 2d = |ghkl| / 2 (d =
-            # 1/|ghkl|)
-            s = g_hkl / 2
+        i_hkl = get_kinematical_intensities(
+            structure,
+            g_indices,
+            g_hkls,
+            multiplicities,
+            excitation_error,
+            max_excitation_error,
+            debye_waller_factors,
+            scattering_params,
+            )
 
-            # Store s^2 since we are using it a few times.
-            s2 = s ** 2
+        if is_hex:
+            # Use Miller-Bravais indices for hexagonal lattices.
+            hkl = (hkl[0], hkl[1], -hkl[0] - hkl[1], hkl[2])
 
-            # Vectorized computation of g.r for all fractional coords and
-            # hkl.
-            g_dot_r = np.dot(fcoords, np.transpose([hkl])).T[0]
-
-            # Highly vectorized computation of atomic scattering factors.
-            fs = np.sum(coeffs[:, :, 0] * np.exp(-coeffs[:, :, 1] * s2), axis=1)
-
-            dw_correction = np.exp(-dwfactors * s2)
-
-            # Structure factor = sum of atomic scattering factors (with
-            # position factor exp(2j * pi * g.r and occupancies).
-            # Vectorized computation.
-            f_hkl = np.sum(fs * occus * np.exp(2j * np.pi * g_dot_r) * dw_correction)
-
-            # Intensity for hkl is modulus square of structure factor.
-            i_hkl = (f_hkl * f_hkl.conjugate()).real
-
-            # two_theta = degrees(2 * theta)
-
-            if is_hex:
-                # Use Miller-Bravais indices for hexagonal lattices.
-                hkl = (hkl[0], hkl[1], -hkl[0] - hkl[1], hkl[2])
-
-            peaks[tuple(hkl)] = [i_hkl, g_hkl, d_hkl]
+        peaks[tuple(hkl)] = [i_hkl, g_hkl, d_hkl]
 
         # Scale intensities so that the max intensity is 100.
+
+
+        ## nb d_hkls = 1/ g_hkls (deleted when get_kinematical_intensities used)
+        ##this will need changing since get_unique_families no longer needed here
         max_intensity = max([v[0] for v in peaks.values()])
         x = []
         y = []
