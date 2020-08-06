@@ -228,6 +228,7 @@ def get_kinematical_intensities(
     maximum_excitation_error,
     debye_waller_factors,
     scattering_params="lobato",
+    shape_factor_use
 ):
     """Calculates peak intensities.
 
@@ -244,7 +245,8 @@ def get_kinematical_intensities(
         structure factor.
     proximities : array-like
         The distances between the Ewald sphere and the peak centers.
-
+    shape_factor_use : bool
+        True if the shape factor correction needs to be used
     Returns
     -------
     peak_intensities : array-like
@@ -287,7 +289,13 @@ def get_kinematical_intensities(
 
     # Define an intensity scaling that is linear with distance from Ewald sphere
     # along the beam direction.
-    shape_factor = 1 - (excitation_error / maximum_excitation_error)
+
+    ##since get_kinematical_intensities is now used for both calculate_profile_data
+    ##and calculate_ed_data need an if else for shape_factor
+    if shape_factor_use = True
+        shape_factor = 1 - (excitation_error / maximum_excitation_error)
+        else shape_factor = 1
+
 
     # Calculate the peak intensities from the structure factor and excitation
     # error.
