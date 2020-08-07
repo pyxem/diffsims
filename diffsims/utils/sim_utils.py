@@ -110,11 +110,11 @@ def get_unique_families(hkls):
                 unique[hkl2].append(hkl1)
                 break
         if not found:
-            unique[hkl1].append(hkl1)
+            unique[tuple(hkl1)].append(hkl1)
 
     pretty_unique = {}
     for k, v in unique.items():
-        pretty_unique[sorted(v)[-1]] = len(v)
+        pretty_unique[tuple(sorted(v)[-1])] = len(v)
 
     return pretty_unique
 
@@ -224,11 +224,10 @@ def get_kinematical_intensities(
     g_indices,
     g_hkls,
     multiplicities,
-    excitation_error,
-    maximum_excitation_error,
+    excitation_error=None,
+    maximum_excitation_error=None,
     debye_waller_factors,
     scattering_params="lobato",
-    shape_factor_use
 ):
     """Calculates peak intensities.
 
@@ -292,9 +291,10 @@ def get_kinematical_intensities(
 
     ##since get_kinematical_intensities is now used for both calculate_profile_data
     ##and calculate_ed_data need an if else for shape_factor
-    if shape_factor_use = True
+    if excitation_error :
         shape_factor = 1 - (excitation_error / maximum_excitation_error)
-        else shape_factor = 1
+
+    else : shape_factor = 1
 
 
     # Calculate the peak intensities from the structure factor and excitation
