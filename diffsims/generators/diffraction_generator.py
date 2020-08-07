@@ -163,6 +163,7 @@ class DiffractionGenerator(object):
             max_excitation_error,
             debye_waller_factors,
             scattering_params,
+            shape_factor_use = True
         )
 
         # Threshold peaks included in simulation based on minimum intensity.
@@ -243,6 +244,7 @@ class DiffractionGenerator(object):
             max_excitation_error,
             debye_waller_factors,
             scattering_params,
+            shape_factor_use = False
             )
 
         if is_hex:
