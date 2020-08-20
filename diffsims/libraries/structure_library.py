@@ -80,7 +80,6 @@ class StructureLibrary:
         """
         return cls(identifiers, structures, orientations)
 
-    # TODO: this should be from space groups
     @classmethod
     def from_crystal_systems(
         cls, identifiers, structures, systems, resolution, equal="angle"
@@ -101,14 +100,13 @@ class StructureLibrary:
             resolution in degrees
         equal : str
             Default is 'angle'
-        Returns
-        -------
-        StructureLibrary
+
+        Raises
+        ------
+        NotImplementedError:
+            "This function has been removed in version 0.3.0, in favour of creation from orientation lists"
         """
-        orientations = []
-        for system in systems:
-            orientations.append(get_grid_stereographic(system, resolution, equal))
-        return cls(identifiers, structures, orientations)
+        raise NotImplementedError("This function has been removed in version 0.3.0, in favour of creation from orientation lists")
 
     def get_library_size(self, to_print=False):
         """
