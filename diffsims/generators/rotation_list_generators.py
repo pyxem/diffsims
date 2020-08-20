@@ -31,7 +31,6 @@ from transforms3d.euler import euler2axangle, axangle2euler
 from transforms3d.euler import axangle2euler, euler2axangle, euler2mat
 from transforms3d.quaternions import quat2axangle, axangle2quat, mat2quat, qmult
 
-from diffsims.utils.rotation_conversion_utils import *
 from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
 
 # Defines the maximum rotation angles [theta_max,psi_max,psi_min] associated with the
