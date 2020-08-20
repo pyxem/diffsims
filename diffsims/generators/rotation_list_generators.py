@@ -97,13 +97,29 @@ def _beam_directions_to_euler_angles(points_in_cartesians):
     return eulers
 
 
-def get_list_from_orix(grid):
-    pass
+def get_list_from_orix(grid,rounding=2):
+    """
+    Converts an orix sample to a rotation list
+
+    Parameters
+    ----------
+    grid :
+
+    rounding : int, optional
+        The number of decimal places to retain, default = 2
+
+    Returns
+    -------
+    """
+    z = grid.to_euler(convention="bunge")
+    out_list = []
+    for row in z:
+        out_list.append(tuple(np.round(row,decimals=rounding)))
+
+    return out_list
 
 def get_fundamental_zone_grid(resolution=2, point_group=None,space_group=None):
     """
-    def get_sample_fundamental(resolution=2, point_group=None, space_group=None):
-
     Generates an equispaced grid of rotations within a fundamental zone.
 
     Parameters
@@ -122,8 +138,8 @@ def get_fundamental_zone_grid(resolution=2, point_group=None,space_group=None):
     """
 
     g = get_sample_fundamental(resolution,space_group=space_group)
-    #convert_to_rotation_list()
-    return None
+    l = get_list_from_orix(g,rounding=2)
+    return l
 
 def get_local_grid(resolution=2, center=None, grid_width=10):
     """
@@ -146,8 +162,8 @@ def get_local_grid(resolution=2, center=None, grid_width=10):
     rotation_list : list of tuples
     """
     g =  get_sample_local(resolution=2, center=None, grid_width=10)
-    #convert_to_rotation_list()
-    return None
+    l = get_list_from_orix(g,rounding=2)
+    return l
 
 def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 360)):
     """
@@ -267,28 +283,3 @@ def get_beam_directions_grid(crystal_system, resolution, equal="angle"):
         ]  # 0 is the points on the geodesic
 
     return points_in_cartesians
-
-def get_beam_directions_grid(crystal_system, resolution, equal="angle"):
-    """
-    Produces an array of beam directions, evenly (see equal argument) spaced that lie within the streographic
-    triangle of the relevant crystal system.
-
-    Parameters
-    ----------
-    crystal_system : str
-        Allowed are: 'cubic','hexagonal','trigonal','tetragonal','orthorhombic','monoclinic','triclinic'
-
-    resolution : float
-        An angle in degrees. If the 'equal' option is set to 'angle' this is the misorientation between a
-        beam direction and its nearest neighbour(s). For 'equal'=='area' the density of points is as in
-        the equal angle case but each point covers an equal area
-
-    equal : str
-        'angle' (default) or 'area'
-
-    Returns
-    -------
-    points_in_cartesians : np.array (N,3)
-        Rows are x,y,z where z is the 001 pole direction.
-    """
-    raise ValueError("This function has been renamed to get_beam_directions_grid")
