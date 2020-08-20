@@ -44,59 +44,6 @@ crystal_system_dictionary = {
     "triclinic": [180, 360, 0],
 }
 
-def _rotate_axangle(Axangles, new_center):
-    """
-    Rotates a series of orientation described by axangle to a new center
-
-    Parameters
-    ----------
-    Axangles : diffsims.Axangles
-        Pre-rotation
-    new_center : (alpha,beta,gamma)
-        The location of the (0,0,0) rotation as an rzxz euler angle
-
-    Returns
-    -------
-    AxAngles : diffsims.Axangles
-        Rotated
-    See Also
-    --------
-    generators.get_local_grid
-    """
-
-    quats = Axangles.to_Quat()
-    q = mat2quat(rotation_matrix_from_euler_angles((new_center)))
-    stored_quats = vectorised_qmult(q, quats)
-
-    return AxAngle.from_Quat(stored_quats)
-
-
-def _beam_directions_to_euler_angles(points_in_cartesians):
-    """
-    Converts an array of cartesians (x,y,z unit basis vectors) to the euler angles that would take [0,0,1] to [x,y,z]
-    Parameters
-    ----------
-    points_in_cartesians :
-         Generally output from get_beam_directions()
-    Returns
-    -------
-    diffsims.Euler :
-         The appropriate euler angles
-    """
-    axes = np.cross(
-        [0, 0, 1], points_in_cartesians
-    )  # in unit cartesians so this is fine, [0,0,1] returns [0,0,0]
-    norms = np.linalg.norm(axes, axis=1).reshape(-1, 1)
-    angle = np.arcsin(norms)
-
-    normalised_axes = np.ones_like(axes)
-    np.divide(axes, norms, out=normalised_axes, where=norms != 0)
-
-    np_axangles = np.hstack((normalised_axes, angle.reshape((-1, 1))))
-    eulers = AxAngle(np_axangles).to_Euler(axis_convention="rzxz")
-    return eulers
-
-
 def get_list_from_orix(grid,rounding=2):
     """
     Converts an orix sample to a rotation list
