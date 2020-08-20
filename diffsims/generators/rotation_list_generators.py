@@ -99,13 +99,8 @@ def _beam_directions_to_euler_angles(points_in_cartesians):
     return eulers
 
 
-def _returnable_eulers_from_axangle(grid, axis_convention, round_to):
-    """ Converts a grid of orientations in axis-angle space to Euler
-    angles following a user specified convention and rounding."""
-    eulers = grid.to_Euler(axis_convention=axis_convention)
-    rotation_list = eulers.to_rotation_list(round_to=round_to)
-    return rotation_list
-
+def get_list_from_orix(grid):
+    pass
 
 def get_fundamental_zone_grid(space_group_number, resolution):
     """
