@@ -151,14 +151,6 @@ def get_local_grid(center, max_rotation, resolution):
     #convert_to_rotation_list()
     return None
 
-
-def get_grid_stereographic(crystal_system, resolution, equal="angle"):
-    """
-    This functionality is deprecated. The following outline is only given to
-    aid dev work
-    """
-    return get_fundamental_zone_grid(1,resolution)
-
 def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 360)):
     """
     Creates a rotation list of rotations for which the rotation is about given beam direction

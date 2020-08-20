@@ -17,7 +17,6 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import diffsims as ds
-from diffsims.generators.rotation_list_generators import get_grid_stereographic
 
 
 class StructureLibrary:
