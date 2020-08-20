@@ -24,10 +24,10 @@ from diffsims.generators.rotation_list_generators import (
     get_fundamental_zone_grid
     )
 
-@pytest.mark.skip(reason="Not implemented")
 def test_calls_to_orix():
     _ = get_local_grid((0,0,0),31,15)
-    _ = get_fundamental_zone_grid(space_group_number, resolution=20)
+    _ = get_fundamental_zone_grid(space_group=20, resolution=20)
+
 
 def test_get_grid_around_beam_direction():
     grid_simple = get_grid_around_beam_direction([1, 1, 1], 1, (0, 360))

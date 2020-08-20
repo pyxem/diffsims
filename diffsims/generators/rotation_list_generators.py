@@ -24,8 +24,7 @@ import numpy as np
 import warnings
 from itertools import product
 
-from orix.gridding.grid_generators import get_local_grid as oglg
-from orix.gridding.grid_generators import get_fundamental_zone_grid as ogfz
+from orix.sampling.sample_generators import get_sample_fundamental, get_sample_local
 
 from transforms3d.euler import euler2axangle, axangle2euler
 from transforms3d.euler import axangle2euler, euler2axangle, euler2mat
@@ -101,52 +100,52 @@ def _beam_directions_to_euler_angles(points_in_cartesians):
 def get_list_from_orix(grid):
     pass
 
-def get_fundamental_zone_grid(space_group_number, resolution):
+def get_fundamental_zone_grid(resolution=2, point_group=None,space_group=None):
     """
-    Creates a rotation list for the rotations within the fundamental zone of a given space group.
+    def get_sample_fundamental(resolution=2, point_group=None, space_group=None):
+
+    Generates an equispaced grid of rotations within a fundamental zone.
 
     Parameters
     ----------
-    space_group_number : int
-        Between 1 and 230
-
-    resolution : float
-        The 'resolution' of the grid (degrees)
+    resolution : float, optional
+        The characteristic distance between a rotation and its neighbour (degrees)
+    point_group : orix.quaternion.symmetry.Symmetry, optional
+        One of the 11 proper point groups, defaults to None
+    space_group: int, optional
+        Between 1 and 231, defaults to None
 
     Returns
     -------
     rotation_list : list of tuples
-
-    Notes
-    -----
+        Grid of rotations lying within the specified fundamental zone
     """
-    #raise Deprecation warning
-    z = ogfz(resolution,space_group_number=space_group_number)
+
+    g = get_sample_fundamental(resolution,space_group=space_group)
     #convert_to_rotation_list()
     return None
 
-def get_local_grid(center, max_rotation, resolution):
+def get_local_grid(resolution=2, center=None, grid_width=10):
     """
-    Creates a rotation list for the rotations within max_rotation of center at a given rotation.
+    Generates a grid of rotations about a given rotation
 
     Parameters
     ----------
-    center : tuple
-        The orientation that acts as the center of the grid, as euler angles specified in the
-        'rzxz' convention (degrees)
+    resolution : float, optional
+        The characteristic distance between a rotation and its neighbour (degrees)
+    center : orix.quaternion.rotation.Rotation, optional
+        The rotation at which the grid is centered. If None (default) uses the identity
+    grid_width : float, optional
+        The largest angle of rotation away from center that is acceptable (degrees)
 
-    max_rotation : float
-        The largest rotation away from 'center' that should be included in the grid (degrees)
-
-    resolution : float
-        The 'resolution' of the grid (degrees)
+    See Also
+    --------
 
     Returns
     -------
     rotation_list : list of tuples
     """
-    #raise Deprecation warning
-    #g get grid from orix
+    g =  get_sample_local(resolution=2, center=None, grid_width=10)
     #convert_to_rotation_list()
     return None
 
