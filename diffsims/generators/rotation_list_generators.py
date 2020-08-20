@@ -24,6 +24,9 @@ import numpy as np
 import warnings
 from itertools import product
 
+from orix.gridding.grid_generators import get_local_grid as oglg
+from orix.gridding.grid_generators import get_fundamental_zone_grid as ogfz
+
 from transforms3d.euler import euler2axangle, axangle2euler
 from transforms3d.euler import axangle2euler, euler2axangle, euler2mat
 from transforms3d.quaternions import quat2axangle, axangle2quat, mat2quat, qmult
@@ -124,7 +127,7 @@ def get_fundamental_zone_grid(space_group_number, resolution):
     -----
     """
     #raise Deprecation warning
-    #g get grid from orix
+    z = ogfz(resolution,space_group_number=space_group_number)
     #convert_to_rotation_list()
     return None
 
@@ -191,27 +194,12 @@ def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 
     axangle = euler2axangle(
         beam_rotation[0], beam_rotation[1], beam_rotation[2], "rzxz"
     )
-    euler_szxz = axangle2euler(axangle[0], axangle[1], "szxz")  # convert to szxz
-    rotation_alpha, rotation_beta = np.rad2deg(euler_szxz[0]), np.rad2deg(euler_szxz[1])
-
-    # see _create_advanced_linearly_spaced_array_in_rzxz for details
-    steps_gamma = int(np.ceil((angular_range[1] - angular_range[0]) / resolution))
-    alpha = np.asarray([rotation_alpha])
-    beta = np.asarray([rotation_beta])
-    gamma = np.linspace(
-        angular_range[0], angular_range[1], num=steps_gamma, endpoint=False
-    )
-    z = np.asarray(list(product(alpha, beta, gamma)))
-    raw_grid = Euler(
-        z, axis_convention="szxz"
-    )  # we make use of an uncommon euler angle set here for speed
-    grid_rzxz = raw_grid.to_AxAngle().to_Euler(axis_convention="rzxz")
-    rotation_list = grid_rzxz.to_rotation_list(round_to=2)
+    rotation_list = None
+    raise NotImplementedError("This functionality will be (re)added in future")
     return rotation_list
 
 
-#rename this to, get_beam_direction_grid()
-def get_beam_directions(crystal_system, resolution, equal="angle"):
+def get_beam_directions_grid(crystal_system, resolution, equal="angle"):
     """
     Produces an array of beam directions, evenly (see equal argument) spaced that lie within the streographic
     triangle of the relevant crystal system.
@@ -294,3 +282,28 @@ def get_beam_directions(crystal_system, resolution, equal="angle"):
         ]  # 0 is the points on the geodesic
 
     return points_in_cartesians
+
+def get_beam_directions_grid(crystal_system, resolution, equal="angle"):
+    """
+    Produces an array of beam directions, evenly (see equal argument) spaced that lie within the streographic
+    triangle of the relevant crystal system.
+
+    Parameters
+    ----------
+    crystal_system : str
+        Allowed are: 'cubic','hexagonal','trigonal','tetragonal','orthorhombic','monoclinic','triclinic'
+
+    resolution : float
+        An angle in degrees. If the 'equal' option is set to 'angle' this is the misorientation between a
+        beam direction and its nearest neighbour(s). For 'equal'=='area' the density of points is as in
+        the equal angle case but each point covers an equal area
+
+    equal : str
+        'angle' (default) or 'area'
+
+    Returns
+    -------
+    points_in_cartesians : np.array (N,3)
+        Rows are x,y,z where z is the 001 pole direction.
+    """
+    raise ValueError("This function has been renamed to get_beam_directions_grid")
