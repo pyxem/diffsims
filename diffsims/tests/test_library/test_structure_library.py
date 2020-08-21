@@ -48,7 +48,7 @@ def test_from_systems_methods():
     identifiers = ["a", "b"]
     structures = [1, 2]
     systems = ["cubic", "hexagonal"]
-    library = StructureLibrary.from_crystal_systems(identifiers, structures, systems)
+    library = StructureLibrary.from_crystal_systems(identifiers, structures, systems, resolution=2)
 
 
 @pytest.mark.parametrize(
