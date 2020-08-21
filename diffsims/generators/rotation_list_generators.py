@@ -50,20 +50,24 @@ def get_list_from_orix(grid,rounding=2):
 
     Parameters
     ----------
-    grid :
-
+    grid : orix.quaternion.rotation.Rotation
+        A grid of rotations
     rounding : int, optional
-        The number of decimal places to retain, default = 2
+        The number of decimal places to retain, defaults to 2
 
     Returns
     -------
+    rotation_list : list of tuples
+        A rotation list
     """
     z = grid.to_euler(convention="bunge")
-    out_list = []
-    for row in z:
-        out_list.append(tuple(np.round(row,decimals=rounding)))
+    rotation_list = z.data.tolist()
+    i = 0
+    while i < len(rotation_list):
+        rotation_list[i] = tuple(np.round(rotation_list[i],decimals=rounding))
+        i += 1
 
-    return out_list
+    return rotation_list
 
 def get_fundamental_zone_grid(resolution=2, point_group=None,space_group=None):
     """
@@ -84,9 +88,9 @@ def get_fundamental_zone_grid(resolution=2, point_group=None,space_group=None):
         Grid of rotations lying within the specified fundamental zone
     """
 
-    g = get_sample_fundamental(resolution,space_group=space_group)
-    l = get_list_from_orix(g,rounding=2)
-    return l
+    orix_grid = get_sample_fundamental(resolution=resolution,space_group=space_group)
+    rotation_list = get_list_from_orix(orix_grid,rounding=2)
+    return rotation_list
 
 def get_local_grid(resolution=2, center=None, grid_width=10):
     """
@@ -108,9 +112,9 @@ def get_local_grid(resolution=2, center=None, grid_width=10):
     -------
     rotation_list : list of tuples
     """
-    g =  get_sample_local(resolution=2, center=None, grid_width=10)
-    l = get_list_from_orix(g,rounding=2)
-    return l
+    orix_grid =  get_sample_local(resolution=resolution, center=center, grid_width=grid_width)
+    rotation_list = get_list_from_orix(orix_grid,rounding=2)
+    return rotation_list
 
 def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 360)):
     """
