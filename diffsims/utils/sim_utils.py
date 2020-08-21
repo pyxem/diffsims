@@ -33,6 +33,12 @@ from .lobato_scattering_params import ATOMIC_SCATTERING_PARAMS_LOBATO
 # from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.utils.vector_utils import get_angle_cartesian
 
+def linear_decay(excitation_error,maximum_excitation_error):
+    shape_factor = 1 - excitation_error/maximum_excitation_error
+    # deal with the negative case
+    if excitation_error > maximum_excitation_error:
+        shape_factor = 0
+    return shape_factor
 
 def get_electron_wavelength(accelerating_voltage):
     """Calculates the (relativistic) electron wavelength in Angstroms for a
@@ -223,10 +229,12 @@ def get_kinematical_intensities(
     structure,
     g_indices,
     g_hkls,
-    excitation_error,
-    maximum_excitation_error,
-    debye_waller_factors,
+    excitation_error=None,
+    maximum_excitation_error=None,
+    structure_function=linear_decay,
+    debye_waller_factors=None,
     scattering_params="lobato",
+    **kwargs
 ):
     """Calculates peak intensities.
 
@@ -286,8 +294,10 @@ def get_kinematical_intensities(
 
     # Define an intensity scaling that is linear with distance from Ewald sphere
     # along the beam direction.
-    shape_factor = 1 - (excitation_error / maximum_excitation_error)
-
+    if excitation_error is not None:
+        shape_factor = shape_function(excitation_error,maximum_excitation_error,**kwargs)
+    else:
+        shape_factor = 1
     # Calculate the peak intensities from the structure factor and excitation
     # error.
     peak_intensities = (f_hkls * f_hkls.conjugate()).real * shape_factor
