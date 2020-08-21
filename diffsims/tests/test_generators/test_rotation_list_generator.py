@@ -25,11 +25,13 @@ from diffsims.generators.rotation_list_generators import (
     get_beam_directions_grid
     )
 
-def test_get_grid_local():
-    _ = get_local_grid(resolution=30,center=(0,0,0),grid_width=35)
+@pytest.mark.parametrize("grid",[pytest.param(get_local_grid(resolution=30,center=None,grid_width=35),marks=pytest.mark.xfail(reason="Downstream bug")),
+                                 get_fundamental_zone_grid(space_group=20, resolution=20)])
+def test_get_grid(grid):
+    assert isinstance(grid, list)
+    assert len(grid) > 0
+    assert isinstance(grid[0], tuple)
 
-def test_get_grid_fundamental():
-    _ = get_fundamental_zone_grid(space_group=20, resolution=20)
 
 @pytest.mark.xfail(reason="Functionality removed")
 def test_get_grid_around_beam_direction():
