@@ -222,28 +222,25 @@ class DiffractionGenerator(object):
         )
 
         ##spot_indicies is a numpy.array of the hkls allowd in the recip radius
-
-        list_hkls = spot_indices.tolist()
-        ##unique_hkls_dict is a dict with {hkl: multiplicity}
-        unique_hkls_dict = get_unique_families(list_hkls)
-
-        unique_hkls = np.array(unique_hkls_dict.keys)
-
-        ##need to convert the unique hkls to an array and m's to an array so
-        ##that they can be used in get_kinematical_intensities
-        ##need to create arrays of g_hkl, excitation_error, g_indices for only
-        ##the unique hkls ie remove some from the existing arrays..
+        unique_hkls, multiplicites, g_hkls = get_intesnities_params(
+            recip_latt, reciprocal_radius
+        )
+        g_indices = unique_hkls
+        debye_waller_factors = self.debye_waller_factors
+        excitation_error = None
+        max_excitation_error = None
+        g_hkls_array = np.asarray(g_hkls)
 
         i_hkl = get_kinematical_intensities(
             structure,
             g_indices,
-            g_hkls,
-            multiplicities,
+            g_hkls_array,
+            debye_waller_factors,
+            multiplicites,
+            scattering_params,
             excitation_error,
             max_excitation_error,
-            debye_waller_factors,
-            scattering_params,
-            )
+        )
 
         if is_hex:
             # Use Miller-Bravais indices for hexagonal lattices.
@@ -253,9 +250,7 @@ class DiffractionGenerator(object):
 
         # Scale intensities so that the max intensity is 100.
 
-
-        ## nb d_hkls = 1/ g_hkls (deleted when get_kinematical_intensities used)
-        ##this will need changing since get_unique_families no longer needed here
+        ##this section needs editing now to get correct plot
         max_intensity = max([v[0] for v in peaks.values()])
         x = []
         y = []
