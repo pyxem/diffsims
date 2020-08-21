@@ -17,7 +17,6 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import diffsims as ds
-from diffsims.generators.rotation_list_generators import get_grid_stereographic
 
 
 class StructureLibrary:
@@ -100,21 +99,20 @@ class StructureLibrary:
             resolution in degrees
         equal : str
             Default is 'angle'
-        Returns
-        -------
-        StructureLibrary
+
+        Raises
+        ------
+        NotImplementedError:
+            "This function has been removed in version 0.3.0, in favour of creation from orientation lists"
         """
-        orientations = []
-        for system in systems:
-            orientations.append(get_grid_stereographic(system, resolution, equal))
-        return cls(identifiers, structures, orientations)
+        raise NotImplementedError("This function has been removed in version 0.3.0, in favour of creation from orientation lists")
 
     def get_library_size(self, to_print=False):
         """
         Returns the the total number of orientations in the
         current StructureLibrary object. Will also print the number of orientations
         for each identifier in the library if the to_print==True
-        
+
         Parameters
         ----------
         to_print : bool
