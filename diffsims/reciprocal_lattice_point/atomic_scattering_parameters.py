@@ -201,8 +201,6 @@ def get_element_id_from_string(element_str):
     ]
     # fmt: on
     n_elements = len(elements)
-    element2periodic = dict(
-        zip(elements[:n_elements], np.arange(1, n_elements))
-    )
+    element2periodic = dict(zip(elements[:n_elements], np.arange(1, n_elements)))
     element_id = element2periodic[element_str.lower()]
     return element_id

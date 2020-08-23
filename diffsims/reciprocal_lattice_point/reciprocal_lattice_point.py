@@ -23,8 +23,12 @@ import numpy as np
 from orix.vector import Vector3d
 
 from diffsims.reciprocal_lattice_point.structure_factor import (
-    get_xray_structure_factor
+    get_kinematical_structure_factor,
+    get_doyleturner_structure_factor,
 )
+
+
+_FLOAT_EPS = np.finfo(np.float).eps  # Used to round values below 1e-16 to zero
 
 
 class ReciprocalLatticePoint:
@@ -150,25 +154,45 @@ class ReciprocalLatticePoint:
     def from_nfamilies(cls, phase, nfamilies=5):
         raise NotImplementedError
 
-    def calculate_structure_factor(self, method=None):
+    def calculate_structure_factor(self, method=None, voltage=None):
         """Populate `self.structure_factor` with the structure factor F
         for each point.
 
         Parameters
         ----------
-        method
-            Either "xray" for the X-ray structure factor or
-            "doyleturner" for the structure factor using Doyle-Turner
-            atomic scattering factors.
+        method : str, optional
+            Either "kinematical" for kinematical X-ray structure factors
+            or "doyleturner" for structure factors using Doyle-Turner
+            atomic scattering factors. If None (default), kinematical
+            structure factors are calculated.
+        voltage : float, optional
+            Beam energy voltage used when `method=doyleturner`.
         """
+        if method is None:
+            method = "kinematical"
+        methods = ["kinematical", "doyleturner"]
+        if method not in methods:
+            raise ValueError(f"method={method} must be among {methods}")
+        elif method == "doyleturner" and voltage is None:
+            raise ValueError("'voltage' parameter must set when method='doyleturner'")
+
         structure_factors = np.zeros(self.size)
         hkls = self._hkldata
         scattering_parameters = self.scattering_parameter
+        phase = self.phase
+        # TODO: Find a better way to call different methods in the loop
         for i, (hkl, s) in enumerate(zip(hkls, scattering_parameters)):
-            structure_factors[i] = get_xray_structure_factor(
-                phase=self.phase, hkl=hkl, scattering_parameter=s
-            )
-        self._structure_factor = structure_factors
+            if method == "kinematical":
+                structure_factors[i] = get_kinematical_structure_factor(
+                    phase=phase, hkl=hkl, scattering_parameter=s,
+                )
+            else:
+                structure_factors[i] = get_doyleturner_structure_factor(
+                    phase=phase, hkl=hkl, scattering_parameter=s, voltage=voltage,
+                )
+        self._structure_factor = np.where(
+            structure_factors < _FLOAT_EPS, 0, structure_factors
+        )
 
     def unique(self, use_symmetry=True):
         """Return reciprocal lattice points with unique Miller indices.
@@ -304,9 +328,7 @@ def get_hkl(highest_hkl):
     return np.asarray(list(product(*index_ranges)))
 
 
-def get_equivalent_hkl(
-    hkl, operations, unique=False, return_multiplicity=False
-):
+def get_equivalent_hkl(hkl, operations, unique=False, return_multiplicity=False):
     """Return symmetrically equivalent Miller indices.
 
     Parameters

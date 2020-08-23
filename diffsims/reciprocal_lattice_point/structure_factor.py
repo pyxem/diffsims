@@ -16,50 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-from diffpy.structure.symmetryutilities import (
-    expandPosition,
-    SymmetryConstraints,
-)
+from diffpy.structure.symmetryutilities import expandPosition, SymmetryConstraints
 import numpy as np
+from scipy.constants import c, e, h, physical_constants
 
-from diffsims.reciprocal_lattice_point.atomic_scattering_parameters import (
-    get_atomic_scattering_parameters,
-    get_element_id_from_string,
+from diffsims.reciprocal_lattice_point.atomic_scattering_factor import (
+    get_kinematical_atomic_scattering_factor,
+    get_doyleturner_atomic_scattering_factor,
 )
 
 
-def get_atomic_scattering_factor(atom, scattering_parameter):
-    """Return the atomic scattering factor f for a certain atom and
-    scattering parameter.
-
-    Parameters
-    ----------
-    atom : diffpy.structure.Atom
-        Atom with element type, Debye-Waller factor and occupancy number.
-    scattering_parameter : float
-        The scattering parameter s for these Miller indices describing
-        the crystal plane in which the atom lies.
-
-    Returns
-    -------
-    f : float
-        Scattering factor for this atom on this plane.
-    """
-    # Get the atomic scattering parameters
-    element_id = get_element_id_from_string(atom.element)
-    a, b = get_atomic_scattering_parameters(element_id)
-
-    # Get the scattering parameter squared
-    s2 = scattering_parameter ** 2
-
-    # Get the atomic scattering factor
-    f = element_id - (41.78214 * s2 * np.sum(a * np.exp(-b * s2)))
-
-    # Correct for occupancy and the Debye-Waller factor
-    dw_factor = np.exp(-atom.Bisoequiv * s2)
-    f *= atom.occupancy * dw_factor
-
-    return f
+rest_mass = physical_constants["atomic unit of mass"][0]
 
 
 def find_asymmetric_positions(positions, space_group):
@@ -85,9 +52,12 @@ def find_asymmetric_positions(positions, space_group):
     ][0]
 
 
-def get_xray_structure_factor(phase, hkl, scattering_parameter):
-    """Assumes structure's lattice parameters and Debye-Waller factors
-    are expressed in Angstroms.
+def get_kinematical_structure_factor(phase, hkl, scattering_parameter):
+    """Return the kinematical (X-ray) structure factor for a given family
+    of Miller indices.
+
+    Assumes structure's lattice parameters and Debye-Waller factors are
+    expressed in Ångströms.
 
     Parameters
     ----------
@@ -117,7 +87,7 @@ def get_xray_structure_factor(phase, hkl, scattering_parameter):
             continue
 
         # Get atomic scattering factor for this atom
-        f = get_atomic_scattering_factor(atom, scattering_parameter)
+        f = get_kinematical_atomic_scattering_factor(atom, scattering_parameter)
 
         # Loop over all atoms in the orbit
         equiv_pos = expandPosition(spacegroup=space_group, xyz=atom.xyz)[0]
@@ -126,3 +96,65 @@ def get_xray_structure_factor(phase, hkl, scattering_parameter):
             structure_factor += f * (np.cos(arg) - (np.sin(arg) * 1j))
 
     return structure_factor.real
+
+
+def get_doyleturner_structure_factor(phase, hkl, scattering_parameter, voltage):
+    """Return the structure factor for a given family of Miller indices
+    using Doyle-Turner atomic scattering parameters [Doyle1968]_.
+
+    Assumes structure's lattice parameters and Debye-Waller factors are
+    expressed in Ångströms.
+
+    Parameters
+    ----------
+    phase : orix.crystal_map.phase_list.Phase
+        A phase container with a crystal structure and a space and point
+        group describing the allowed symmetry operations.
+    hkl : np.ndarray
+        Miller indices.
+    scattering_parameter : float
+        Scattering parameter for these Miller indices.
+    voltage : float
+        Beam energy in V.
+
+    Returns
+    -------
+    structure_factor : float
+        Structure factor F.
+    """
+    structure = phase.structure
+    space_group = phase.space_group
+
+    # Initialize real and imaginary parts of the structure factor
+    structure_factor = 0 + 0j
+
+    # Get unit cell volume for the atomic scattering factor calculation
+    unit_cell_volume = structure.lattice.volume
+
+    # Loop over all atoms in the asymmetric unit
+    asymmetric_positions = find_asymmetric_positions(structure.xyz, space_group)
+    for is_asymmetric, atom in zip(asymmetric_positions, structure):
+        if not is_asymmetric:
+            continue
+
+        # Get atomic scattering factor for this atom
+        f = get_doyleturner_atomic_scattering_factor(
+            atom, scattering_parameter, unit_cell_volume
+        )
+
+        # Loop over all atoms in the orbit
+        equiv_pos = expandPosition(spacegroup=space_group, xyz=atom.xyz)[0]
+        for xyz in equiv_pos:
+            arg = 2 * np.pi * np.sum(hkl * xyz)
+            structure_factor += f * np.exp(-arg * 1j)
+
+    # Derived factors
+    # TODO: Comment these factors with stuff from Structure of Materials by De Graef
+    #  and McHenry
+    gamma_relcor = 1 + (2 * e * 0.5 * voltage / rest_mass / (c ** 2))
+    v_mod = abs(structure_factor) * gamma_relcor
+    v_phase = np.arctan2(structure_factor.imag, structure_factor.real)
+    v_g = v_mod * np.exp(v_phase * 1j)
+    pre = 2 * (rest_mass * e / h ** 2) * 1e-18
+
+    return (pre * v_g).real

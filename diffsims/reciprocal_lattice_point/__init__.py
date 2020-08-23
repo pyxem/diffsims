@@ -30,8 +30,12 @@ from diffsims.reciprocal_lattice_point.reciprocal_lattice_point import (
 )
 from diffsims.reciprocal_lattice_point.structure_factor import (
     find_asymmetric_positions,
-    get_atomic_scattering_factor,
-    get_xray_structure_factor,
+    get_kinematical_structure_factor,
+    get_doyleturner_structure_factor,
+)
+from diffsims.reciprocal_lattice_point.atomic_scattering_factor import (
+    get_kinematical_atomic_scattering_factor,
+    get_doyleturner_atomic_scattering_factor,
 )
 
 __all__ = [
@@ -42,6 +46,8 @@ __all__ = [
     "get_highest_hkl",
     "get_hkl",
     "find_asymmetric_positions",
-    "get_atomic_scattering_factor",
-    "get_xray_structure_factor",
+    "get_kinematical_atomic_scattering_factor",
+    "get_doyleturner_atomic_scattering_factor",
+    "get_kinematical_structure_factor",
+    "get_doyleturner_structure_factor",
 ]
