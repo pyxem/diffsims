@@ -76,6 +76,21 @@ class ReciprocalLatticePoint:
         return np.squeeze(self.hkl.data)
 
     @property
+    def h(self):
+        """Return :class:`np.ndarray` of Miller index h."""
+        return self._hkldata[..., 0]
+
+    @property
+    def k(self):
+        """Return :class:`np.ndarray` of Miller index k."""
+        return self._hkldata[..., 1]
+
+    @property
+    def l(self):
+        """Return :class:`np.ndarray` of Miller index l."""
+        return self._hkldata[..., 2]
+
+    @property
     def size(self):
         """Return `int`."""
         return self.hkl.size
@@ -113,6 +128,37 @@ class ReciprocalLatticePoint:
     def structure_factor(self):
         """Return :class:`np.ndarray` of structure factors F or None."""
         return self._structure_factor
+
+    @property
+    def allowed(self):
+        """Return whether reciprocal lattice points diffract according to
+        diffraction selection rules assuming kinematical scattering
+        theory.
+        """
+        # Translational symmetry
+        centering = self.phase.space_group.short_name[0]
+
+        if centering == "P":  # Primitive
+            if self.phase.space_group.crystal_system == "HEXAGONAL":
+                # TODO: See rules in e.g.
+                #  https://mcl1.ncifcrf.gov/dauter_pubs/284.pdf, Table 4
+                #  http://xrayweb.chem.ou.edu/notes/symmetry.html, Systematic Absences
+                raise NotImplementedError
+            else:  # Any hkl
+                return np.ones(self.size, dtype=bool)
+        elif centering == "F":  # Face-centred, hkl all odd/even
+            selection = np.sum(np.mod(self._hkldata, 2), axis=1)
+            return np.array([i not in [1, 2] for i in selection], dtype=bool)
+        elif centering == "I":  # Body-centred, h + k + l = 2n (even)
+            return np.mod(np.sum(self._hkldata, axis=1), 2) == 0
+        elif centering == "A":  # Centred on A faces only
+            return np.mod(self.k + self.l, 2) == 0
+        elif centering == "B":  # Centred on B faces only
+            return np.mod(self.h + self.l, 2) == 0
+        elif centering == "C":  # Centred on C faces only
+            return np.mod(self.h + self.k, 2) == 0
+        elif centering == "R":  # Rhombohedral
+            return np.mod(-self.h + self.k + self.l, 3) == 0
 
     @classmethod
     def from_min_dspacing(cls, phase, min_dspacing=0.5):
