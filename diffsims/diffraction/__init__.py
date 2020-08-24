@@ -16,38 +16,30 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Generation of HKL reflectors for a crystal structure."""
+"""Calculation of scattering factors and structure factors."""
 
-from diffsims.reciprocal_lattice_point.atomic_scattering_parameters import (
+from diffsims.diffraction.atomic_scattering_factor import (
+    get_doyleturner_atomic_scattering_factor,
+    get_kinematical_atomic_scattering_factor,
+)
+from diffsims.diffraction.atomic_scattering_parameters import (
     get_atomic_scattering_parameters,
     get_element_id_from_string,
 )
-from diffsims.reciprocal_lattice_point.reciprocal_lattice_point import (
-    ReciprocalLatticePoint,
-    get_equivalent_hkl,
-    get_highest_hkl,
-    get_hkl,
-)
-from diffsims.reciprocal_lattice_point.structure_factor import (
+from diffsims.diffraction.structure_factor import (
     find_asymmetric_positions,
-    get_kinematical_structure_factor,
     get_doyleturner_structure_factor,
-)
-from diffsims.reciprocal_lattice_point.atomic_scattering_factor import (
-    get_kinematical_atomic_scattering_factor,
-    get_doyleturner_atomic_scattering_factor,
+    get_kinematical_structure_factor,
+    get_refraction_corrected_wavelength,
 )
 
 __all__ = [
+    "get_doyleturner_atomic_scattering_factor",
+    "get_kinematical_atomic_scattering_factor",
     "get_atomic_scattering_parameters",
     "get_element_id_from_string",
-    "ReciprocalLatticePoint",
-    "get_equivalent_hkl",
-    "get_highest_hkl",
-    "get_hkl",
     "find_asymmetric_positions",
-    "get_kinematical_atomic_scattering_factor",
-    "get_doyleturner_atomic_scattering_factor",
-    "get_kinematical_structure_factor",
     "get_doyleturner_structure_factor",
+    "get_kinematical_structure_factor",
+    "get_refraction_corrected_wavelength",
 ]

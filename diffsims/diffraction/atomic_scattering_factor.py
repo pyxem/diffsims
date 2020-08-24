@@ -18,7 +18,7 @@
 
 import numpy as np
 
-from diffsims.reciprocal_lattice_point.atomic_scattering_parameters import (
+from diffsims.diffraction.atomic_scattering_parameters import (
     get_atomic_scattering_parameters,
     get_element_id_from_string,
 )

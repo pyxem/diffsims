@@ -22,24 +22,26 @@ from itertools import product
 import numpy as np
 from orix.vector import Vector3d
 
-from diffsims.reciprocal_lattice_point.structure_factor import (
+from diffsims.diffraction.structure_factor import (
     get_kinematical_structure_factor,
     get_doyleturner_structure_factor,
+    get_refraction_corrected_wavelength,
 )
 
 
 _FLOAT_EPS = np.finfo(np.float).eps  # Used to round values below 1e-16 to zero
 
 
-class ReciprocalLatticePoint:
-    """Reciprocal lattice points (reflectors) g with Miller indices,
-    length of the reciprocal lattice vectors and other relevant
-    diffraction parameters.
+class CrystalPlane:
+    """Crystal plane (or reciprocal lattice point, reflectors, g, etc.)
+    with Miller indices, length of the reciprocal lattice vectors and
+    other relevant diffraction parameters.
     """
 
     def __init__(self, phase, hkl):
         """A container for Miller indices, structure factors and related
-        parameters for reciprocal lattice points (reflectors) g.
+        parameters for crystal planes (reciprocal lattice points,
+        reflectors, g, etc.).
 
         Parameters
         ----------
@@ -52,6 +54,7 @@ class ReciprocalLatticePoint:
         self._hkl = Vector3d(hkl)
         self.phase = phase
         self._structure_factor = [None] * self.size
+        self._theta = [None] * self.size
 
     def __repr__(self):
         return (
@@ -61,9 +64,9 @@ class ReciprocalLatticePoint:
         )
 
     def __getitem__(self, key):
-        new_rlp = self.__class__(self.phase, self.hkl[key])
-        new_rlp._structure_factor = self.structure_factor[key]
-        return new_rlp
+        new_cp = self.__class__(self.phase, self.hkl[key])
+        new_cp._structure_factor = self.structure_factor[key]
+        return new_cp
 
     @property
     def hkl(self):
@@ -131,9 +134,8 @@ class ReciprocalLatticePoint:
 
     @property
     def allowed(self):
-        """Return whether reciprocal lattice points diffract according to
-        diffraction selection rules assuming kinematical scattering
-        theory.
+        """Return whether planes diffract according to diffraction
+        selection rules assuming kinematical scattering theory.
         """
         # Translational symmetry
         centering = self.phase.space_group.short_name[0]
@@ -160,11 +162,16 @@ class ReciprocalLatticePoint:
         elif centering == "R":  # Rhombohedral
             return np.mod(-self.h + self.k + self.l, 3) == 0
 
+    @property
+    def theta(self):
+        """Return :class:`np.ndarray` of twice the Bragg angle."""
+        return self._theta
+
     @classmethod
     def from_min_dspacing(cls, phase, min_dspacing=0.5):
-        """Create a ReciprocalLatticePoint object populated by unique
-        Miller indices with a direct space interplanar spacing greater
-        than a lower threshold.
+        """Create a CrystalPlane object populated by unique Miller indices
+        with a direct space interplanar spacing greater than a lower
+        threshold.
 
         Parameters
         ----------
@@ -182,8 +189,8 @@ class ReciprocalLatticePoint:
 
     @classmethod
     def from_highest_hkl(cls, phase, highest_hkl):
-        """Create a ReciprocalLatticePoint object populated by unique
-        Miller indices below, but including, a set of higher indices.
+        """Create a CrystalPlane object populated by unique Miller indices
+        below, but including, a set of higher indices.
 
         Parameters
         ----------
@@ -200,58 +207,18 @@ class ReciprocalLatticePoint:
     def from_nfamilies(cls, phase, nfamilies=5):
         raise NotImplementedError
 
-    def calculate_structure_factor(self, method=None, voltage=None):
-        """Populate `self.structure_factor` with the structure factor F
-        for each point.
-
-        Parameters
-        ----------
-        method : str, optional
-            Either "kinematical" for kinematical X-ray structure factors
-            or "doyleturner" for structure factors using Doyle-Turner
-            atomic scattering factors. If None (default), kinematical
-            structure factors are calculated.
-        voltage : float, optional
-            Beam energy voltage used when `method=doyleturner`.
-        """
-        if method is None:
-            method = "kinematical"
-        methods = ["kinematical", "doyleturner"]
-        if method not in methods:
-            raise ValueError(f"method={method} must be among {methods}")
-        elif method == "doyleturner" and voltage is None:
-            raise ValueError("'voltage' parameter must set when method='doyleturner'")
-
-        structure_factors = np.zeros(self.size)
-        hkls = self._hkldata
-        scattering_parameters = self.scattering_parameter
-        phase = self.phase
-        # TODO: Find a better way to call different methods in the loop
-        for i, (hkl, s) in enumerate(zip(hkls, scattering_parameters)):
-            if method == "kinematical":
-                structure_factors[i] = get_kinematical_structure_factor(
-                    phase=phase, hkl=hkl, scattering_parameter=s,
-                )
-            else:
-                structure_factors[i] = get_doyleturner_structure_factor(
-                    phase=phase, hkl=hkl, scattering_parameter=s, voltage=voltage,
-                )
-        self._structure_factor = np.where(
-            structure_factors < _FLOAT_EPS, 0, structure_factors
-        )
-
     def unique(self, use_symmetry=True):
-        """Return reciprocal lattice points with unique Miller indices.
+        """Return planes with unique Miller indices.
 
         Parameters
         ----------
         use_symmetry : bool, optional
-            Whether to use symmetry to remove the indices symmetrically
-            equivalent to another set of indices.
+            Whether to use symmetry to remove the planes with indices
+            symmetrically equivalent to another set of indices.
 
         Returns
         -------
-        ReciprocalLatticePoint
+        CrystalPlane
         """
         if use_symmetry:
             all_hkl = self._hkldata
@@ -276,8 +243,7 @@ class ReciprocalLatticePoint:
     def symmetrise(
         self, antipodal=True, unique=True, return_multiplicity=False,
     ):
-        """Return reciprocal lattice points with symmetrically equivalent
-        Miller indices.
+        """Return planes with symmetrically equivalent Miller indices.
 
         Parameters
         ----------
@@ -289,15 +255,14 @@ class ReciprocalLatticePoint:
             If true, zero entries which are assumed to be degenerate are
             removed.
         return_multiplicity : bool, optional
-            Whether to return the multiplicity of the indices. This
-            option is only available if `unique` is True. Default is
-            False.
+            Whether to return the multiplicity of indices. This option is
+            only available if `unique` is True. Default is False.
 
         Returns
         -------
-        ReciprocalLatticePoint
-            Reciprocal lattice points with Miller indices symmetrically
-            equivalent to the original lattice points.
+        CrystalPlane
+            Planes with Miller indices symmetrically equivalent to the
+            original planes.
         multiplicity : np.ndarray
             Multiplicity of the original Miller indices. Only returned if
             `return_multiplicity` is True.
@@ -327,16 +292,68 @@ class ReciprocalLatticePoint:
         else:
             return self.__class__(phase=self.phase, hkl=out)
 
+    def calculate_structure_factor(self, method=None, voltage=None):
+        """Populate `self.structure_factor` with the structure factor F
+        for each plane.
+
+        Parameters
+        ----------
+        method : str, optional
+            Either "kinematical" for kinematical X-ray structure factors
+            or "doyleturner" for structure factors using Doyle-Turner
+            atomic scattering factors. If None (default), kinematical
+            structure factors are calculated.
+        voltage : float, optional
+            Beam energy in V used when `method=doyleturner`.
+        """
+        if method is None:
+            method = "kinematical"
+        methods = ["kinematical", "doyleturner"]
+        if method not in methods:
+            raise ValueError(f"method={method} must be among {methods}")
+        elif method == "doyleturner" and voltage is None:
+            raise ValueError("'voltage' parameter must set when method='doyleturner'")
+
+        structure_factors = np.zeros(self.size)
+        hkls = self._hkldata
+        scattering_parameters = self.scattering_parameter
+        phase = self.phase
+        # TODO: Find a better way to call different methods in the loop
+        for i, (hkl, s) in enumerate(zip(hkls, scattering_parameters)):
+            if method == "kinematical":
+                structure_factors[i] = get_kinematical_structure_factor(
+                    phase=phase, hkl=hkl, scattering_parameter=s,
+                )
+            else:
+                structure_factors[i] = get_doyleturner_structure_factor(
+                    phase=phase, hkl=hkl, scattering_parameter=s, voltage=voltage,
+                )
+        self._structure_factor = np.where(
+            structure_factors < _FLOAT_EPS, 0, structure_factors
+        )
+
+    def calculate_theta(self, voltage):
+        """Populate `self.theta` with the Bragg angle :math:`theta_B` for
+        each plane.
+
+        Parameters
+        ----------
+        voltage : float
+            Beam energy in V.
+        """
+        wavelength = get_refraction_corrected_wavelength(self.phase, voltage)
+        self._theta = np.arcsin(0.5 * wavelength * self.gspacing)
+
 
 def get_highest_hkl(lattice, min_dspacing=0.5):
-    """Return the highest Miller indices hkl of the reciprocal
-    lattice point with a direct space interplanar spacing greater
-    than but closest to a lower threshold.
+    """Return the highest Miller indices hkl of the plane with a direct
+    space interplanar spacing greater than but closest to a lower
+    threshold.
 
     Parameters
     ----------
     lattice : diffpy.structure.Lattice
-        Crystal structure lattice.
+        Crystal lattice.
     min_dspacing : float, optional
         Smallest interplanar spacing to consider. Default is 0.5 Å.
 
@@ -357,8 +374,7 @@ def get_highest_hkl(lattice, min_dspacing=0.5):
 
 
 def get_hkl(highest_hkl):
-    """Return a list of reciprocal lattice points from a set of highest
-    Miller indices.
+    """Return a list of planes from a set of highest Miller indices.
 
     Parameters
     ----------
@@ -367,8 +383,8 @@ def get_hkl(highest_hkl):
 
     Returns
     -------
-    hkl
-        An array of reciprocal lattice points.
+    hkl : np.ndarray
+        An array of Miller indices.
     """
     index_ranges = [np.arange(-i, i + 1) for i in highest_hkl]
     return np.asarray(list(product(*index_ranges)))
@@ -386,8 +402,8 @@ def get_equivalent_hkl(hkl, operations, unique=False, return_multiplicity=False)
     unique : bool, optional
         Whether to return only unique Miller indices. Default is False.
     return_multiplicity : bool, optional
-        Whether to return the multiplicity of the input hkl. Default is
-        False.
+        Whether to return the multiplicity of the input indices. Default
+        is False.
 
     Returns
     -------
