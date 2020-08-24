@@ -177,6 +177,8 @@ class ProfileSimulation:
         Magnitudes of scattering vectors.
     intensities : array-like, shape [n_peaks, 1]
         The kinematic intensity of the diffraction peaks.
+
+    ##change this to list qq
     hkls: [{(h, k, l): mult}] {(h, k, l): mult} is a dict of Miller
         indices for all diffracted lattice facets contributing to each
         intensity.
@@ -204,7 +206,7 @@ class ProfileSimulation:
             Fontsize for peak labels.
         """
 
-        label_hkl = get_unique_families(self.hkls.keys())
+        label_hkl = get_unique_families(self.hkls)
 
         ax = plt.gca()
         for g, i, hkls in zip(self.magnitudes, self.intensities, self.hkls):
@@ -213,6 +215,36 @@ class ProfileSimulation:
                 ax.plot([g, g], [0, i], color="k", linewidth=3, label=label)
                 if annotate_peaks:
                     ax.annotate(label, xy=[g, i], xytext=[g, i], fontsize=fontsize)
+
+            if with_labels:
+                ax.set_xlabel("A ($^{-1}$)")
+                ax.set_ylabel("Intensities (scaled)")
+
+        return plt
+
+    def get_plot_x(self, g_max, annotate_peaks=True, with_labels=True, fontsize=12):
+
+        """Plots the diffraction profile simulation for the
+           calculate_profile_data method in DiffractionGenerator.
+
+        Parameters
+        ----------
+        g_max : float
+            Maximum g-vector magnitude to plot.
+        annotate_peaks : boolean
+            If True, peaks are annotaed with hkl information.
+        with_labels : boolean
+            If True, xlabels and ylabels are added to the plot.
+        fontsize : integer
+            Fontsize for peak labels.
+        """
+
+        ax = plt.gca()
+        for g, i, hkls in zip(self.magnitudes, self.intensities, self.hkls):
+            label = hkls
+            ax.plot([g, g], [0, i], color="k", linewidth=3, label=label)
+            if annotate_peaks:
+                ax.annotate(label, xy=[g, i], xytext=[g, i], fontsize=fontsize)
 
             if with_labels:
                 ax.set_xlabel("A ($^{-1}$)")

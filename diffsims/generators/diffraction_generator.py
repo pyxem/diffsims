@@ -187,6 +187,7 @@ class DiffractionGenerator(object):
     ):
         """
         Calculates a one dimensional diffraction profile for a structure.
+        For use with the get_plot_x in DiffractionSimulation.
 
         Parameters
         ----------
@@ -246,24 +247,24 @@ class DiffractionGenerator(object):
             # Use Miller-Bravais indices for hexagonal lattices.
             hkl = (hkl[0], hkl[1], -hkl[0] - hkl[1], hkl[2])
 
-        peaks[tuple(hkl)] = [i_hkl, g_hkl, d_hkl]
+        hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in unique_hkls]
+
+        peaks = {}
+        for l, i, g in zip(hkls_labels, i_hkl, g_hkls):
+            peaks[l] = [i, g]
 
         # Scale intensities so that the max intensity is 100.
 
-        ##this section needs editing now to get correct plot
         max_intensity = max([v[0] for v in peaks.values()])
         x = []
         y = []
         hkls = []
-        d_hkls = []
-        for k in sorted(peaks.keys()):
+        for k in peaks.keys():
             v = peaks[k]
-            fam = get_unique_families([k])
-            if v[0] / max_intensity * 100 > minimum_intensity:
+            if v[0] / max_intensity * 100 > minimum_intensity and (k != "000"):
                 x.append(v[1])
                 y.append(v[0])
-                hkls.append(fam)
-                d_hkls.append(v[2])
+                hkls.append(k)
 
         y = y / max(y) * 100
 
