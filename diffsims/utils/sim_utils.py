@@ -485,7 +485,7 @@ def get_intesnities_params(reciprocal_lattice, reciprocal_radius):
 
     """
 
-    spot_indices, _, spot_coords = get_points_in_sphere(
+    spot_indices, _, spot_distances = get_points_in_sphere(
         reciprocal_lattice, reciprocal_radius
     )
 
