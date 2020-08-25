@@ -19,6 +19,8 @@
 import pytest
 import numpy as np
 import diffpy
+from transforms3d.euler import euler2mat
+
 
 from diffsims.utils.sim_utils import (
     get_electron_wavelength,
@@ -30,6 +32,10 @@ from diffsims.utils.sim_utils import (
     simulate_kinematic_scattering,
     is_lattice_hexagonal,
     uvtw_to_uvw,
+    get_intesnities_params,
+)
+from diffsims.tests.test_generators.test_diffraction_generator import (
+    make_structure
 )
 
 
@@ -132,3 +138,15 @@ def test_kinematic_simulator_invalid_illumination():
 def test_uvtw_to_uvw(uvtw, uvw):
     val = uvtw_to_uvw(uvtw)
     np.testing.assert_almost_equal(val, uvw)
+
+
+def test_get_intesnities_params():
+    struct = make_structure()
+    latt = struct.lattice
+    reciprocal_lattice = latt.reciprocal()
+    reciprocal_radius = 0.2
+    unique_hkls, multiplicites, g_hkls = get_intesnities_params(reciprocal_lattice, reciprocal_radius)
+    np.testing.assert_equal(multiplicites, [6, 1])
+    np.testing.assert_equal(g_hkls, [0.18412815319462345, 0.0])
+    print(unique_hkls)
+    np.testing.assert_array_equal(unique_hkls, [[1., 0., 0.], [0., 0., 0.]])
