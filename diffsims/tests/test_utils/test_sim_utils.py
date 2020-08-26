@@ -150,3 +150,22 @@ def test_get_intesnities_params():
     np.testing.assert_equal(g_hkls, [0.18412815319462345, 0.0])
     print(unique_hkls)
     np.testing.assert_array_equal(unique_hkls, [[1., 0., 0.], [0., 0., 0.]])
+
+def test_get_kinematical_intensities():
+    struct = make_structure()
+    latt = struct.lattice
+    reciprocal_lattice = latt.reciprocal()
+    reciprocal_radius = 0.2
+    unique_hkls, multiplicites, g_hkls = get_intesnities_params(reciprocal_lattice, reciprocal_radius)
+    g_hkls_array = np.asarray(g_hkls)
+    i_hkls = get_kinematical_intensities(
+                    struct,
+                    g_indices=unique_hkls,
+                    g_hkls_array=g_hkls_array,
+                    debye_waller_factors={1:1},
+                    multiplicites=multiplicites,
+                    scattering_params="lobato",
+                    excitation_error=None,
+                    max_excitation_error=None,
+                    )
+    np.testing.assert_array_almost_equal(i_hkls, ([9.84498410e-28, 2.17976934e+03]), decimal=4)
