@@ -43,17 +43,12 @@ def test_from_orientations_method():
     np.testing.assert_equal(library.struct_lib["a"], (1, 3))
     np.testing.assert_equal(library.struct_lib["b"], (2, 4))
 
-
+@pytest.mark.xfail(reason="Functionality removed")
 def test_from_systems_methods():
     identifiers = ["a", "b"]
     structures = [1, 2]
     systems = ["cubic", "hexagonal"]
-    library = StructureLibrary.from_crystal_systems(
-        identifiers, structures, systems, resolution=2, equal="angle"
-    )
-    assert len(library.struct_lib["a"][1]) < len(
-        library.struct_lib["b"][1]
-    )  # cubic is less area the hexagonal
+    library = StructureLibrary.from_crystal_systems(identifiers, structures, systems, resolution=2)
 
 
 @pytest.mark.parametrize(

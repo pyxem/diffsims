@@ -18,18 +18,18 @@
 
 from setuptools import setup, find_packages
 
-exec(open('diffsims/release_info.py').read())  # grab version info
+exec(open("diffsims/release_info.py").read())  # grab version info
 
 
 setup(
     name=name,
     version=version,
-    description='Diffraction Simulations in Python.',
+    description="Diffraction Simulations in Python.",
     author=author,
     author_email=email,
     license=license,
     url="https://github.com/pyxem/diffsims",
-    long_description=open('README.rst').read(),
+    long_description=open("README.rst").read(),
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
@@ -42,22 +42,19 @@ setup(
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Physics",
     ],
-
     packages=find_packages(),
     # adjust the tabbing
     install_requires=[
-        'scipy>=0.15',
-        'numpy>=1.10',
-        'matplotlib>=3.1.1',
-        'tqdm>=0.4.9',
-        'transforms3d',
-        'diffpy.structure>=3.0.0',  # First Python 3 support
-        'numba',
-        'psutil',
+        "scipy>=0.15",
+        "numpy>=1.10",
+        "matplotlib>=3.1.1",
+        "tqdm>=0.4.9",
+        "transforms3d",
+        "diffpy.structure>=3.0.0",  # First Python 3 support
+        "orix>=0.4.0",
+        "numba",
+        "psutil",
     ],
-    python_requires='>=3.6',
-    package_data={
-        "": ["LICENSE", "readme.rst", ],
-        "diffsims": ["*.py"],
-    },
+    python_requires=">=3.6",
+    package_data={"": ["LICENSE", "readme.rst",], "diffsims": ["*.py"],},
 )

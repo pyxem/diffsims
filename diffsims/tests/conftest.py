@@ -39,27 +39,3 @@ def default_simulator():
     accelerating_voltage = 300
     max_excitation_error = 1e-2
     return DiffractionGenerator(accelerating_voltage, max_excitation_error)
-
-
-@pytest.fixture()
-def random_eulers():
-    """ Using [0,360] [0,180] and [0,360] as ranges """
-    alpha = np.random.rand(100) * 360
-    beta = np.random.rand(100) * 180
-    gamma = np.random.rand(100) * 360
-    eulers = np.asarray((alpha, beta, gamma)).T
-    return eulers
-
-
-@pytest.fixture()
-def random_quats():
-    """ Unnormalised"""
-    q_rand = np.random.random(size=(1000, 4)) * 7
-    return q_rand
-
-
-@pytest.fixture()
-def random_axangles():
-    """ Unnormalised axes, & rotation between -pi and 2 pi """
-    axangle_rand = (np.random.random(size=(1000, 4)) * 3 * np.pi) - np.pi
-    return axangle_rand
