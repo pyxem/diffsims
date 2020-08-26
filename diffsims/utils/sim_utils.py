@@ -459,7 +459,7 @@ def uvtw_to_uvw(uvtw):
     return tuple((int(x / common_factor)) for x in (u, v, w))
 
 
-def get_intesnities_params(reciprocal_lattice, reciprocal_radius):
+def get_intensities_params(reciprocal_lattice, reciprocal_radius):
 
     """Calculates the variables needed for get_kinematical_intensities
 

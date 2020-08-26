@@ -32,7 +32,7 @@ from diffsims.utils.sim_utils import (
     simulate_kinematic_scattering,
     is_lattice_hexagonal,
     uvtw_to_uvw,
-    get_intesnities_params,
+    get_intensities_params,
 )
 from diffsims.tests.test_generators.test_diffraction_generator import (
     make_structure
@@ -140,12 +140,12 @@ def test_uvtw_to_uvw(uvtw, uvw):
     np.testing.assert_almost_equal(val, uvw)
 
 
-def test_get_intesnities_params():
+def test_get_intensities_params():
     struct = make_structure()
     latt = struct.lattice
     reciprocal_lattice = latt.reciprocal()
     reciprocal_radius = 0.2
-    unique_hkls, multiplicites, g_hkls = get_intesnities_params(reciprocal_lattice, reciprocal_radius)
+    unique_hkls, multiplicites, g_hkls = get_intensities_params(reciprocal_lattice, reciprocal_radius)
     np.testing.assert_equal(multiplicites, [6, 1])
     np.testing.assert_equal(g_hkls, [0.18412815319462345, 0.0])
     print(unique_hkls)
@@ -156,7 +156,7 @@ def test_get_kinematical_intensities():
     latt = struct.lattice
     reciprocal_lattice = latt.reciprocal()
     reciprocal_radius = 0.2
-    unique_hkls, multiplicites, g_hkls = get_intesnities_params(reciprocal_lattice, reciprocal_radius)
+    unique_hkls, multiplicites, g_hkls = get_intensities_params(reciprocal_lattice, reciprocal_radius)
     g_hkls_array = np.asarray(g_hkls)
     i_hkls = get_kinematical_intensities(
                     struct,
