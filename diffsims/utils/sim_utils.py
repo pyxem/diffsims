@@ -278,12 +278,12 @@ def get_kinematical_intensities(
     )
 
     # Calculate structure factors for all excited g-vectors.
-    # dosnet like doing the dot on g_indicies since is a dict keys not just array--qq usingunique_hkls here test!
+    # dosnet like doing the dot on g_indices since is a dict keys not just array--qq usingunique_hkls here test!
     f_hkls = np.sum(
         fs
         * occus
         * np.exp(
-            2j * np.pi * np.dot(unique_hkls, fcoords.T)
+            2j * np.pi * np.dot(g_indices, fcoords.T)
             - 0.25 * np.outer(g_hkls_sq, dwfactors)
         ),
         axis=-1,

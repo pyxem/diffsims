@@ -151,18 +151,18 @@ class DiffractionGenerator(object):
         g_indices = spot_indices[intersection]
         excitation_error = excitation_error[intersection]
         g_hkls = spot_distances[intersection]
-        multiplicities = np.ones_like(g_hkls)
+        multiplicites = np.ones_like(g_hkls)
 
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(
             structure,
             g_indices,
             g_hkls,
-            multiplicities,
+            debye_waller_factors,
+            multiplicites,
+            scattering_params,
             excitation_error,
             max_excitation_error,
-            debye_waller_factors,
-            scattering_params,
         )
 
         # Threshold peaks included in simulation based on minimum intensity.
