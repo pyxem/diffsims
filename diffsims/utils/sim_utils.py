@@ -50,11 +50,7 @@ def get_electron_wavelength(accelerating_voltage):
         The relativistic electron wavelength in Angstroms.
 
     """
-<<<<<<< HEAD
     if accelerating_voltage in (np.inf, "inf"):
-=======
-    if accelerating_voltage in (np.inf, 'inf'):
->>>>>>> 240204350ad4261d80b52bd267ca0eaf9d4703fc
         return 0
     E = accelerating_voltage * 1e3
     wavelength = (
@@ -361,14 +357,9 @@ def simulate_kinematic_scattering(
             scattering = scattering + (fs * np.exp(np.dot(k.T, r) * np.pi * 2j))
     elif illumination == "gaussian_probe":
         for r in atomic_coordinates:
-<<<<<<< HEAD
             probe = (1 / (np.sqrt(2 * np.pi) * sigma)) * np.exp(
                 (-np.abs(((r[0] ** 2) - (r[1] ** 2)))) / (4 * sigma ** 2)
             )
-=======
-            probe = (1 / (np.sqrt(2 * np.pi) * sigma)) * \
-                np.exp((-np.abs(((r[0] ** 2) - (r[1] ** 2)))) / (4 * sigma ** 2))
->>>>>>> 240204350ad4261d80b52bd267ca0eaf9d4703fc
             scattering = scattering + (probe * fs * np.exp(np.dot(k.T, r) * np.pi * 2j))
     else:
         raise ValueError(
@@ -407,12 +398,8 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     k_max = np.floor(reciprocal_radius / b)
     l_max = np.floor(reciprocal_radius / c)
     from itertools import product
-<<<<<<< HEAD
 
     h_list = np.arange(-h_max, h_max + 1)  # arange has a non-inclusive endpoint
-=======
-    h_list = np.arange(-h_max, h_max + 1) #arange has a non-inclusive endpoint
->>>>>>> 240204350ad4261d80b52bd267ca0eaf9d4703fc
     k_list = np.arange(-k_max, k_max + 1)
     l_list = np.arange(-l_max, l_max + 1)
     potential_points = np.asarray(list(product(h_list, k_list, l_list)))
