@@ -94,7 +94,6 @@ def get_diffraction_image(
     y = to_recip(x)
     if wavelength == 0:
         p = probe(x).mean(-1)
-        #         vol = get_discretisation(coordinates, species, x, **kwargs).mean(-1)
         vol = get_discretisation(coordinates, species, x[:2], **kwargs)[..., 0]
         ft = get_DFT(x[:-1], y[:-1])[0]
     else:
@@ -204,12 +203,6 @@ def grid2sphere(arr, x, dx, C):
             return arr[:, :, 0]
 
     y = to_mesh((x[0], x[1], array([0])), dx).reshape(-1, 3)
-    #     if C is not None:  # project straight up
-    #         w = C - sqrt(maximum(0, C ** 2 - (y ** 2).sum(-1)))
-    #         if dx is None:
-    #             y[:, 2] = w.reshape(-1)
-    #         else:
-    #             y += w.reshape(y.shape[0], 1) * dx[2].reshape(1, 3)
 
     if C is not None:  # project on line to centre
         w = 1 / (1 + (y ** 2).sum(-1) / C ** 2)

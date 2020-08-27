@@ -430,7 +430,7 @@ class AtomicDiffractionGenerator:
         ]
 
         if mode == "kinematic":
-            from diffsims.sims import kinematic_simulation as simlib
+            from diffsims.utils import kinematic_simulation_utils as simlib
         else:
             raise NotImplementedError(
                 "<mode> = %s is not currently supported" % repr(mode)
