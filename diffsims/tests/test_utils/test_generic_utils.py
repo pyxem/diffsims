@@ -5,7 +5,7 @@ Created on 3 Dec 2019
 """
 
 import pytest
-from diffsims.utils.atomic_diffraction_generator_support.generic_utils import (
+from diffsims.utils.generic_utils import (
     GLOBAL_BOOL,
     get_grid,
     to_mesh,

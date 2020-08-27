@@ -6,7 +6,7 @@ Created on 2 Nov 2019
 
 import pytest
 import numpy as np
-from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import (
+from diffsims.utils.fourier_transform import (
     plan_fft,
     plan_ifft,
     fftn,

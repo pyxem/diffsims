@@ -6,7 +6,7 @@ Created on 1 Nov 2019
 
 import pytest
 import numpy as np
-from diffsims.utils.atomic_diffraction_generator_support.discretise_utils import (
+from diffsims.utils.discretise_utils import (
     get_atoms,
     get_discretisation,
     _CUDA,
