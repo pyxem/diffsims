@@ -145,7 +145,7 @@ def test_get_intensities_params(default_structure):
     reciprocal_lattice = latt.reciprocal()
     reciprocal_radius = 0.2
     unique_hkls, multiplicites, g_hkls = get_intensities_params(reciprocal_lattice, reciprocal_radius)
-    np.testing.assert_equal(multiplicites, [6, 1])
+    np.testing.assert_equal(multiplicites, ([1.]))
     np.testing.assert_equal(g_hkls, [0.18412815319462345, 0.0])
     print(unique_hkls)
     np.testing.assert_array_equal(unique_hkls, [[1., 0., 0.], [0., 0., 0.]])
@@ -166,4 +166,4 @@ def test_get_kinematical_intensities(default_structure):
                     excitation_error=None,
                     max_excitation_error=None,
                     )
-    np.testing.assert_array_almost_equal(i_hkls, ([9.84498410e-28, 2.17976934e+03]), decimal=4)
+    np.testing.assert_array_almost_equal(i_hkls, ([43.0979]), decimal=4)
