@@ -291,7 +291,7 @@ class DiffractionGenerator(object):
 
 
 class AtomicDiffractionGenerator:
-    '''
+    """
     Computes electron diffraction patterns for an atomic lattice.
 
     Parameters
@@ -304,22 +304,37 @@ class AtomicDiffractionGenerator:
         If True then `detector` is assumed to be a reciprocal grid, else
         (default) it is assumed to be a real grid.
 
-    '''
+    """
 
-    def __init__(self, accelerating_voltage, detector,
-                 reciprocal_mesh=False, debye_waller_factors=None):
+    def __init__(
+        self,
+        accelerating_voltage,
+        detector,
+        reciprocal_mesh=False,
+        debye_waller_factors=None,
+    ):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         # Always store a 'real' mesh
         self.detector = detector if not reciprocal_mesh else from_recip(detector)
 
         if debye_waller_factors:
-            raise NotImplementedError('Not implemented for this simulator')
+            raise NotImplementedError("Not implemented for this simulator")
         self.debye_waller_factors = debye_waller_factors or {}
 
-    def calculate_ed_data(self, structure, probe, slice_thickness,
-                          probe_centre=None, z_range=200, precessed=False, dtype='float64',
-                          ZERO=1e-14, mode='kinematic', **kwargs):
-        '''
+    def calculate_ed_data(
+        self,
+        structure,
+        probe,
+        slice_thickness,
+        probe_centre=None,
+        z_range=200,
+        precessed=False,
+        dtype="float64",
+        ZERO=1e-14,
+        mode="kinematic",
+        **kwargs
+    ):
+        """
         Calculates single electron diffraction image for particular atomic
         structure and probe.
 
@@ -368,7 +383,7 @@ class AtomicDiffractionGenerator:
             Diffraction data to be interpreted as a discretisation on the original
             detector mesh.
 
-        '''
+        """
 
         species = structure.element
         coordinates = structure.xyz_cartn.reshape(species.size, -1)
@@ -388,8 +403,8 @@ class AtomicDiffractionGenerator:
             precessed = (float(precessed), 30)
 
         dtype = np.dtype(dtype)
-        dtype = round(dtype.itemsize / (1 if dtype.kind == 'f' else 2))
-        dtype = 'f' + str(dtype), 'c' + str(2 * dtype)
+        dtype = round(dtype.itemsize / (1 if dtype.kind == "f" else 2))
+        dtype = "f" + str(dtype), "c" + str(2 * dtype)
 
         assert ZERO > 0
 
@@ -401,16 +416,28 @@ class AtomicDiffractionGenerator:
             coordinates, species = coordinates[ind, :], species[ind]
 
         # Add z-coordinate
-        z_range = max(z_range, coordinates[:, -1].ptp())  # enforce minimal resolution in reciprocal space
-        x = [self.detector[0], self.detector[1],
-             np.arange(coordinates[:, -1].min() - 20, coordinates[:, -1].min() + z_range + 20, slice_thickness)]
+        z_range = max(
+            z_range, coordinates[:, -1].ptp()
+        )  # enforce minimal resolution in reciprocal space
+        x = [
+            self.detector[0],
+            self.detector[1],
+            np.arange(
+                coordinates[:, -1].min() - 20,
+                coordinates[:, -1].min() + z_range + 20,
+                slice_thickness,
+            ),
+        ]
 
-        if mode == 'kinematic':
+        if mode == "kinematic":
             from diffsims.sims import kinematic_simulation as simlib
         else:
-            raise NotImplementedError('<mode> = %s is not currently supported' % repr(mode))
+            raise NotImplementedError(
+                "<mode> = %s is not currently supported" % repr(mode)
+            )
 
-        kwargs['dtype'] = dtype
-        kwargs['ZERO'] = ZERO
-        return simlib.get_diffraction_image(coordinates, species, probe, x,
-                                            self.wavelength, precessed, **kwargs)
+        kwargs["dtype"] = dtype
+        kwargs["ZERO"] = ZERO
+        return simlib.get_diffraction_image(
+            coordinates, species, probe, x, self.wavelength, precessed, **kwargs
+        )

@@ -131,9 +131,9 @@ def test_kinematic_simulator_invalid_scattering_params():
 @pytest.mark.xfail(raises=ValueError)
 def test_kinematic_simulator_invalid_illumination():
     atomic_coordinates = np.asarray([[0, 0, 0]])  # structure.cart_coords
-    sim = simulate_kinematic_scattering(atomic_coordinates, "Si", 300.,
-                                        simulation_size=32,
-                                        illumination='gaussian')
+    sim = simulate_kinematic_scattering(
+        atomic_coordinates, "Si", 300.0, simulation_size=32, illumination="gaussian"
+    )
     # assert isinstance(sim, ElectronDiffraction)
 
 

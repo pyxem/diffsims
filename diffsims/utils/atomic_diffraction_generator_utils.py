@@ -20,9 +20,7 @@
 Back end for computing diffraction patterns with a kinematic model.
 """
 
-from diffsims.utils.discretise_utils import (
-    get_discretisation,
-)
+from diffsims.utils.discretise_utils import get_discretisation
 from numpy import array, pi, sin, cos, empty, maximum, sqrt
 from scipy.interpolate import interpn
 from diffsims.utils.fourier_transform import (

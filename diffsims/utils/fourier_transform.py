@@ -24,7 +24,7 @@ Module provides optimised fft and Fourier transform approximation.
 @author: Rob Tovey
 """
 
-from numpy import (array, pi, inf, ceil, exp, isscalar, prod, require, empty)
+from numpy import array, pi, inf, ceil, exp, isscalar, prod, require, empty
 from numpy.fft import fftfreq
 import numba
 
@@ -35,15 +35,26 @@ import numba
 # Coverage: pyfftw is not tested by travis
 try:  # pragma: no cover
     import pyfftw
+
     next_fast_len = pyfftw.next_fast_len
     from pyfftw.interfaces.numpy_fft import fftn, ifftn, ifftshift, fftshift
-    pyfftw.config.NUM_THREADS = getattr(numba.config, 'NUMBA_DEFAULT_NUM_THREADS')
-    pyfftw.interfaces.cache.enable()  # This can increase memory hugely sometimes
-#     pyfftw.interfaces.cache.set_keepalive_time(10)
 
-    def plan_fft(A, n=None, axis=None, overwrite=False, planner=1, threads=None,
-            auto_align_input=True, auto_contiguous=True,
-            avoid_copy=False, norm=None):
+    pyfftw.config.NUM_THREADS = getattr(numba.config, "NUMBA_DEFAULT_NUM_THREADS")
+    pyfftw.interfaces.cache.enable()  # This can increase memory hugely sometimes
+    #     pyfftw.interfaces.cache.set_keepalive_time(10)
+
+    def plan_fft(
+        A,
+        n=None,
+        axis=None,
+        overwrite=False,
+        planner=1,
+        threads=None,
+        auto_align_input=True,
+        auto_contiguous=True,
+        avoid_copy=False,
+        norm=None,
+    ):
         """
         Plans an fft for repeated use. Parameters are the same as for `pyfftw`'s `fftn`
         which are, where possible, the same as the `numpy` equivalents.
@@ -97,19 +108,38 @@ try:  # pragma: no cover
         """
 
         if threads is None:
-            threads = getattr(numba.config, 'NUMBA_DEFAULT_NUM_THREADS')
-        planner_effort = 'FFTW_' + ['ESTIMATE', 'MEASURE', 'PATIENT', 'EXHAUSTIVE'][planner]
+            threads = getattr(numba.config, "NUMBA_DEFAULT_NUM_THREADS")
+        planner_effort = (
+            "FFTW_" + ["ESTIMATE", "MEASURE", "PATIENT", "EXHAUSTIVE"][planner]
+        )
 
-        plan = pyfftw.builders.fftn(A, n, axis, overwrite,
-                                   planner_effort, threads,
-                                   auto_align_input, auto_contiguous,
-                                   avoid_copy, norm)
+        plan = pyfftw.builders.fftn(
+            A,
+            n,
+            axis,
+            overwrite,
+            planner_effort,
+            threads,
+            auto_align_input,
+            auto_contiguous,
+            avoid_copy,
+            norm,
+        )
 
         return plan, plan.input_array
 
-    def plan_ifft(A, n=None, axis=None, overwrite=False, planner=1, threads=None,
-            auto_align_input=True, auto_contiguous=True,
-            avoid_copy=False, norm=None):
+    def plan_ifft(
+        A,
+        n=None,
+        axis=None,
+        overwrite=False,
+        planner=1,
+        threads=None,
+        auto_align_input=True,
+        auto_contiguous=True,
+        avoid_copy=False,
+        norm=None,
+    ):
         """
         Plans an ifft for repeated use. Parameters are the same as for `pyfftw`'s `ifftn`
         which are, where possible, the same as the `numpy` equivalents.
@@ -150,14 +180,25 @@ try:  # pragma: no cover
         """
 
         if threads is None:
-            threads = getattr(numba.config, 'NUMBA_DEFAULT_NUM_THREADS')
-        planner_effort = 'FFTW_' + ['ESTIMATE', 'MEASURE', 'PATIENT', 'EXHAUSTIVE'][planner]
+            threads = getattr(numba.config, "NUMBA_DEFAULT_NUM_THREADS")
+        planner_effort = (
+            "FFTW_" + ["ESTIMATE", "MEASURE", "PATIENT", "EXHAUSTIVE"][planner]
+        )
 
-        plan = pyfftw.builders.ifftn(A, n, axis, overwrite,
-                                   planner_effort, threads,
-                                   auto_align_input, auto_contiguous,
-                                   avoid_copy, norm)
+        plan = pyfftw.builders.ifftn(
+            A,
+            n,
+            axis,
+            overwrite,
+            planner_effort,
+            threads,
+            auto_align_input,
+            auto_contiguous,
+            avoid_copy,
+            norm,
+        )
         return plan, plan.input_array
+
 
 except ImportError:
     # Only scipy has a next_fast_len, usually numpy is a little faster
@@ -219,7 +260,7 @@ except ImportError:
         numpy.fft.fftn(B) != plan()
 
         """
-        return lambda : fftn(A, n, axis, norm), A
+        return lambda: fftn(A, n, axis, norm), A
 
     def plan_ifft(A, n=None, axis=None, norm=None, **_):
         """
@@ -260,11 +301,13 @@ except ImportError:
             Array which should be modified inplace for ifft to be computed. If
             possible, `B is A`.
         """
-        return lambda : ifftn(A, n, axis, norm), A
+        return lambda: ifftn(A, n, axis, norm), A
 
-    def fftn(a, s=None, axes=None, norm=None, **_): return _fftn(a, s, axes, norm)
+    def fftn(a, s=None, axes=None, norm=None, **_):
+        return _fftn(a, s, axes, norm)
 
-    def ifftn(a, s=None, axes=None, norm=None, **_): return _ifftn(a, s, axes, norm)
+    def ifftn(a, s=None, axes=None, norm=None, **_):
+        return _ifftn(a, s, axes, norm)
 
 
 def fast_fft_len(n):
@@ -454,7 +497,7 @@ def get_recip_points(ndim, n=None, dX=inf, rX=0, dY=inf, rY=1e-16):
         Fourier mesh of points, centred at 0 with at least `n` pixels, resolution
         higher than `dY`, and range greater than `rY`.
     """
-    pad = lambda t: list(t) if hasattr(t, '__len__') else [t] * ndim
+    pad = lambda t: list(t) if hasattr(t, "__len__") else [t] * ndim
     n, dX, rX, dY, rY = (pad(t) for t in (n, dX, rX, dY, rY))
 
     X, Y = [], []
@@ -507,7 +550,7 @@ def get_DFT(X=None, Y=None):
 
     """
     if X is None and Y is None:
-        raise ValueError('Either X or Y must be provided')
+        raise ValueError("Either X or Y must be provided")
     elif X is None:
         X = from_recip(Y)
     elif Y is None:
@@ -546,7 +589,7 @@ def get_DFT(X=None, Y=None):
         NDIM = fx.ndim
         if axes is None:
             axes = [NDIM + i for i in range(-ndim, 0)]
-        elif not hasattr(axes, '__iter__'):
+        elif not hasattr(axes, "__iter__"):
             axes = (axes,)
         axes = array(axes)
         axes.sort()
@@ -558,9 +601,14 @@ def get_DFT(X=None, Y=None):
             for i in axes:
                 sz = [1] * NDIM
                 sz[axes[i]] = -1
-                FT *= exp(-xmin[i] * Y[i].reshape(sz) * 1j) * (dx[i] if dx[i] != 0 else 1)
+                FT *= exp(-xmin[i] * Y[i].reshape(sz) * 1j) * (
+                    dx[i] if dx[i] != 0 else 1
+                )
         else:
-            F = [exp(-xmin[i] * Y[i] * 1j) * (dx[i] if dx[i] != 0 else 1) for i in range(NDIM)]
+            F = [
+                exp(-xmin[i] * Y[i] * 1j) * (dx[i] if dx[i] != 0 else 1)
+                for i in range(NDIM)
+            ]
             apply_phase_3D(FT, *F)
 
         return FT
@@ -584,26 +632,31 @@ def get_DFT(X=None, Y=None):
         NDIM = fy.ndim
         if axes is None:
             axes = [NDIM + i for i in range(-ndim, 0)]
-        elif not hasattr(axes, '__iter__'):
+        elif not hasattr(axes, "__iter__"):
             axes = (axes,)
         axes = array(axes)
         axes.sort()
 
         FT = fy.astype(
-            'complex' + ('128' if fy.real.dtype.itemsize == 8 else '64'),
-            copy=True)
+            "complex" + ("128" if fy.real.dtype.itemsize == 8 else "64"), copy=True
+        )
 
         if NDIM != 3:
             # This is not typically a bottle-neck in <3D
             for i in axes:
                 sz = [1] * NDIM
                 sz[axes[i]] = -1
-                FT *= exp(+xmin[i] * Y[i].reshape(sz) * 1j) / (dx[i] if dx[i] != 0 else 1)
+                FT *= exp(+xmin[i] * Y[i].reshape(sz) * 1j) / (
+                    dx[i] if dx[i] != 0 else 1
+                )
         else:
-            F = [exp(+xmin[i] * Y[i] * 1j) / (dx[i] if dx[i] != 0 else 1) for i in range(FT.ndim)]
+            F = [
+                exp(+xmin[i] * Y[i] * 1j) / (dx[i] if dx[i] != 0 else 1)
+                for i in range(FT.ndim)
+            ]
             apply_phase_3D(FT, *F)
 
-#       Equivalently: FT = ifftshift(FT, axes=axes)
+        #       Equivalently: FT = ifftshift(FT, axes=axes)
         FT = ifftn(FT, axes=axes, overwrite_input=True)
         fftshift_phase(FT)  # removes need for ifftshift
 
@@ -644,4 +697,4 @@ def convolve(arr1, arr2, dx=None, axes=None):
     arr1 = fftn(arr1, axes=axes)
     arr2 = fftn(ifftshift(arr2), axes=axes)
     out = ifftn(arr1 * arr2, axes=axes) * dx
-    return require(out, requirements='CA')
+    return require(out, requirements="CA")

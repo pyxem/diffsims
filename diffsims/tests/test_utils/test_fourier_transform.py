@@ -21,9 +21,7 @@ from diffsims.utils.fourier_transform import (
     get_DFT,
     convolve,
 )
-from diffsims.utils.discretise_utils import (
-    get_atoms,
-)
+from diffsims.utils.discretise_utils import get_atoms
 
 
 def _toMesh(x):
