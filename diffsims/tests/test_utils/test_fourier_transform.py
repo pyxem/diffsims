@@ -21,7 +21,7 @@ from diffsims.utils.fourier_transform import (
     get_DFT,
     convolve,
 )
-from diffsims.utils.atomic_diffraction_generator_support.discretise_utils import (
+from diffsims.utils.discretise_utils import (
     get_atoms,
 )
 
