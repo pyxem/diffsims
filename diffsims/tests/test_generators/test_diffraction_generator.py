@@ -179,11 +179,12 @@ def test_param_check(scattering_param):
 
 @pytest.mark.xfail(raises=NotImplementedError)
 def test_invalid_scattering_params():
-    scattering_param = "_empty"
-    generator = DiffractionGenerator(300, 0.2, None, scattering_params=scattering_param)
+    scattering_param = '_empty'
+    generator = DiffractionGenerator(300, 0.2, None,
+                                     scattering_params=scattering_param)
 
 
-@pytest.mark.parametrize("shape", [(10, 20), (20, 10)])
+@pytest.mark.parametrize('shape', [(10, 20), (20, 10)])
 def test_param_check_atomic(shape):
     detector = [np.linspace(-1, 1, s) for s in shape]
     generator = AtomicDiffractionGenerator(300, detector, True)
@@ -192,4 +193,5 @@ def test_param_check_atomic(shape):
 @pytest.mark.xfail(raises=NotImplementedError)
 def test_invalid_scattering_params_atomic():
     detector = [np.linspace(-1, 1, 10)] * 2
-    generator = AtomicDiffractionGenerator(300, detector, debye_waller_factors=True)
+    generator = AtomicDiffractionGenerator(300, detector,
+                                           debye_waller_factors=True)

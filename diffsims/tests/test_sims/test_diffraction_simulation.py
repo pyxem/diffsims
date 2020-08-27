@@ -167,7 +167,7 @@ class TestDiffractionSimulation:
         )
 
         z = short_sim.get_diffraction_pattern()
-        
+
         empty_sim = DiffractionSimulation(
             coordinates=np.asarray([[0.3, 1000, 0]]),
             intensities=np.ones(1),

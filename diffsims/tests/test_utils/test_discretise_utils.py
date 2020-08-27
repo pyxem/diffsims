@@ -24,8 +24,8 @@ def _toMesh(x):
 
 def create_atoms(n, shape):
     coords = np.concatenate(
-        [np.linspace(0, s, len(n)).reshape(-1, 1) for s in shape], axis=1
-    )
+        [np.linspace(0, s, len(n)).reshape(-1, 1) for s in shape],
+        axis=1)
     species = np.array(n)
     return coords, species
 

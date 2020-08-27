@@ -18,13 +18,21 @@
 
 from setuptools import setup, find_packages
 
+<<<<<<< HEAD
 exec(open("diffsims/release_info.py").read())  # grab version info
+=======
+exec(open('diffsims/release_info.py').read())  # grab version info
+>>>>>>> 240204350ad4261d80b52bd267ca0eaf9d4703fc
 
 
 setup(
     name=name,
     version=version,
+<<<<<<< HEAD
     description="Diffraction Simulations in Python.",
+=======
+    description='Diffraction Simulations in Python.',
+>>>>>>> 240204350ad4261d80b52bd267ca0eaf9d4703fc
     author=author,
     author_email=email,
     license=license,

@@ -136,6 +136,74 @@ class DiffractionLibraryGenerator:
 
         return diffraction_library
 
+
+def _generate_lookup_table(recip_latt,
+                           reciprocal_radius: float,
+                           unique: bool = True):
+    """Generate a look-up table with all combinations of indices,
+    including their reciprocal distances and the angle between
+    them.
+
+    Parameters
+    ----------
+    recip_latt : :class:`diffpy.structure.lattice.Lattice`
+        Reciprocal lattice
+    reciprocal_radius : float
+        The maximum g-vector magnitude to be included in the library.
+    unique : bool
+        Return a unique list of phase measurements
+
+    Returns
+    -------
+    indices : np.array
+        Nx2x3 numpy array containing the miller indices for
+        reflection1, reflection2
+    measurements : np.array
+        Nx3 numpy array containing len1, len2, angle
+
+    """
+    miller_indices, coordinates, distances = get_points_in_sphere(
+        recip_latt,
+        reciprocal_radius)
+
+    # Create pair_indices for selecting all point pair combinations
+    num_indices = len(miller_indices)
+    pair_a_indices, pair_b_indices = np.mgrid[:num_indices, :num_indices]
+
+    # Only select one of the permutations and don't pair an index with
+    # itself (select above diagonal)
+    upper_indices = np.triu_indices(num_indices, 1)
+    pair_a_indices = pair_a_indices[upper_indices].ravel()
+    pair_b_indices = pair_b_indices[upper_indices].ravel()
+
+    # Mask off origin (0, 0, 0)
+    origin_index = num_indices // 2
+    pair_a_indices = pair_a_indices[pair_a_indices != origin_index]
+    pair_b_indices = pair_b_indices[pair_b_indices != origin_index]
+
+    pair_indices = np.vstack([pair_a_indices, pair_b_indices])
+
+    # Create library entries
+    angles = get_angle_cartesian_vec(coordinates[pair_a_indices], coordinates[pair_b_indices])
+    pair_distances = distances[pair_indices.T]
+    # Ensure longest vector is first
+    len_sort = np.fliplr(pair_distances.argsort(axis=1))
+    # phase_index_pairs is a list of [hkl1, hkl2]
+    phase_index_pairs = np.take_along_axis(miller_indices[pair_indices.T], len_sort[:, :, np.newaxis], axis=1)
+    # phase_measurements is a list of [len1, len2, angle]
+    phase_measurements = np.column_stack((np.take_along_axis(pair_distances, len_sort, axis=1), angles))
+
+    if unique:
+        # Only keep unique triplets
+        measurements, measurement_indices = np.unique(phase_measurements, axis=0, return_index=True)
+        indices = phase_index_pairs[measurement_indices]
+    else:
+        measurements = phase_measurements
+        indices = phase_index_pairs
+
+    return measurements, indices
+
+
 class VectorLibraryGenerator:
     """Computes a library of diffraction vectors and pairwise inter-vector
     angles for a specified StructureLibrary.
@@ -177,13 +245,13 @@ class VectorLibraryGenerator:
             # Get reciprocal lattice points within reciprocal_radius
             recip_latt = structure.lattice.reciprocal()
 
-            measurements, indices = _generate_lookup_table(
-                recip_latt=recip_latt, reciprocal_radius=reciprocal_radius, unique=True
-            )
+            measurements, indices = _generate_lookup_table(recip_latt=recip_latt,
+                                                           reciprocal_radius=reciprocal_radius,
+                                                           unique=True)
 
             vector_library[phase_name] = {
-                "indices": indices,
-                "measurements": measurements,
+                'indices': indices,
+                'measurements': measurements
             }
 
         # Pass attributes to diffraction library from structure library.

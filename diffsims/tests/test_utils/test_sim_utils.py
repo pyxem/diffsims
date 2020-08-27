@@ -19,6 +19,7 @@
 import pytest
 import numpy as np
 import diffpy
+<<<<<<< HEAD
 import scipy.constants as sc
 
 
@@ -49,6 +50,52 @@ from diffsims.utils.sim_utils import (
     "accelerating_voltage, wavelength",
     [(100, 0.0370143659), (200, 0.0250793403), (300, 0.0196874888), ("inf", 0),],
 )
+=======
+
+from diffsims.utils.sim_utils import get_electron_wavelength, \
+    get_interaction_constant, get_unique_families, get_kinematical_intensities, \
+    get_vectorized_list_for_atomic_scattering_factors, get_points_in_sphere, \
+    simulate_kinematic_scattering, is_lattice_hexagonal, uvtw_to_uvw, \
+    rotation_list_stereographic
+
+
+def create_lattice_structure(a, b, c, alpha, beta, gamma):
+    lattice = diffpy.structure.lattice.Lattice(a, b, c, alpha, beta, gamma)
+    atom = diffpy.structure.atom.Atom(atype='Si', xyz=[0, 0, 0], lattice=lattice)
+    return diffpy.structure.Structure(atoms=[atom], lattice=lattice)
+
+
+def create_structure_cubic():
+    return create_lattice_structure(1, 1, 1, 90, 90, 90)
+
+
+def create_structure_hexagonal():
+    return create_lattice_structure(1, 1, 1, 90, 90, 120)
+
+
+def create_structure_orthorombic():
+    return create_lattice_structure(1, 2, 3, 90, 90, 90)
+
+
+def create_structure_tetragonal():
+    return create_lattice_structure(1, 1, 2, 90, 90, 90)
+
+
+def create_structure_trigonal():
+    return create_lattice_structure(1, 1, 1, 100, 100, 100)
+
+
+def create_structure_monoclinic():
+    return create_lattice_structure(1, 2, 3, 90, 100, 90)
+
+
+@pytest.mark.parametrize('accelerating_voltage, wavelength', [
+    (100, 0.0370143659),
+    (200, 0.0250793403),
+    (300, 0.0196874888),
+    ('inf', 0),
+])
+>>>>>>> 240204350ad4261d80b52bd267ca0eaf9d4703fc
 def test_get_electron_wavelength(accelerating_voltage, wavelength):
     val = get_electron_wavelength(accelerating_voltage=accelerating_voltage)
     np.testing.assert_almost_equal(val, wavelength)
@@ -83,14 +130,20 @@ def test_get_points_in_sphere():
 
 def test_kinematic_simulator_plane_wave():
     atomic_coordinates = np.asarray([[0, 0, 0]])  # structure.cart_coords
+<<<<<<< HEAD
     sim = simulate_kinematic_scattering(
         atomic_coordinates, "Si", 300.0, simulation_size=32
     )
+=======
+    sim = simulate_kinematic_scattering(atomic_coordinates, "Si", 300.,
+                                        simulation_size=32)
+>>>>>>> 240204350ad4261d80b52bd267ca0eaf9d4703fc
     # assert isinstance(sim, ElectronDiffraction)
 
 
 def test_kinematic_simulator_gaussian_probe():
     atomic_coordinates = np.asarray([[0, 0, 0]])  # structure.cart_coords
+<<<<<<< HEAD
     sim = simulate_kinematic_scattering(
         atomic_coordinates,
         "Si",
@@ -98,11 +151,17 @@ def test_kinematic_simulator_gaussian_probe():
         simulation_size=32,
         illumination="gaussian_probe",
     )
+=======
+    sim = simulate_kinematic_scattering(atomic_coordinates, "Si", 300.,
+                                        simulation_size=32,
+                                        illumination='gaussian_probe')
+>>>>>>> 240204350ad4261d80b52bd267ca0eaf9d4703fc
     # assert isinstance(sim, ElectronDiffraction)
 
 
 def test_kinematic_simulator_xtables_scattering_params():
     atomic_coordinates = np.asarray([[0, 0, 0]])  # structure.cart_coords
+<<<<<<< HEAD
     sim = simulate_kinematic_scattering(
         atomic_coordinates,
         "Si",
@@ -111,12 +170,19 @@ def test_kinematic_simulator_xtables_scattering_params():
         illumination="gaussian_probe",
         scattering_params="xtables",
     )
+=======
+    sim = simulate_kinematic_scattering(atomic_coordinates, "Si", 300.,
+                                        simulation_size=32,
+                                        illumination='gaussian_probe',
+                                        scattering_params='xtables')
+>>>>>>> 240204350ad4261d80b52bd267ca0eaf9d4703fc
     # assert isinstance(sim, ElectronDiffraction)
 
 
 @pytest.mark.xfail(raises=NotImplementedError)
 def test_kinematic_simulator_invalid_scattering_params():
     atomic_coordinates = np.asarray([[0, 0, 0]])  # structure.cart_coords
+<<<<<<< HEAD
     sim = simulate_kinematic_scattering(
         atomic_coordinates,
         "Si",
@@ -125,15 +191,27 @@ def test_kinematic_simulator_invalid_scattering_params():
         illumination="gaussian_probe",
         scattering_params="_empty",
     )
+=======
+    sim = simulate_kinematic_scattering(atomic_coordinates, "Si", 300.,
+                                        simulation_size=32,
+                                        illumination='gaussian_probe',
+                                        scattering_params='_empty')
+>>>>>>> 240204350ad4261d80b52bd267ca0eaf9d4703fc
     # assert isinstance(sim, ElectronDiffraction)
 
 
 @pytest.mark.xfail(raises=ValueError)
 def test_kinematic_simulator_invalid_illumination():
     atomic_coordinates = np.asarray([[0, 0, 0]])  # structure.cart_coords
+<<<<<<< HEAD
     sim = simulate_kinematic_scattering(
         atomic_coordinates, "Si", 300.0, simulation_size=32, illumination="gaussian"
     )
+=======
+    sim = simulate_kinematic_scattering(atomic_coordinates, "Si", 300.,
+                                        simulation_size=32,
+                                        illumination='gaussian')
+>>>>>>> 240204350ad4261d80b52bd267ca0eaf9d4703fc
     # assert isinstance(sim, ElectronDiffraction)
 
 
