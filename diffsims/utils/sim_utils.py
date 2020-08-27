@@ -292,11 +292,11 @@ def get_kinematical_intensities(
     # Define an intensity scaling that is linear with distance from Ewald sphere
     # along the beam direction.
 
-    if (all(excitation_error)!=None):
-        shape_factor = 1 - (excitation_error / max_excitation_error)
+    if excitation_error is None:
+        shape_factor = 1
 
     else:
-        shape_factor = 1
+        shape_factor = 1 - (excitation_error / max_excitation_error)
 
     # Calculate the peak intensities from the structure factor and excitation
     peak_intensities = multiplicites * (f_hkls * f_hkls.conjugate()).real * shape_factor

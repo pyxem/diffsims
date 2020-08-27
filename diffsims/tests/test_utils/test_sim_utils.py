@@ -140,9 +140,8 @@ def test_uvtw_to_uvw(uvtw, uvw):
     np.testing.assert_almost_equal(val, uvw)
 
 
-def test_get_intensities_params():
-    struct = make_structure()
-    latt = struct.lattice
+def test_get_intensities_params(default_structure):
+    latt = default_structure.lattice
     reciprocal_lattice = latt.reciprocal()
     reciprocal_radius = 0.2
     unique_hkls, multiplicites, g_hkls = get_intensities_params(reciprocal_lattice, reciprocal_radius)
@@ -151,9 +150,8 @@ def test_get_intensities_params():
     print(unique_hkls)
     np.testing.assert_array_equal(unique_hkls, [[1., 0., 0.], [0., 0., 0.]])
 
-def test_get_kinematical_intensities():
-    struct = make_structure()
-    latt = struct.lattice
+def test_get_kinematical_intensities(default_structure):
+    latt = default_structure.lattice
     reciprocal_lattice = latt.reciprocal()
     reciprocal_radius = 0.2
     unique_hkls, multiplicites, g_hkls = get_intensities_params(reciprocal_lattice, reciprocal_radius)
