@@ -36,6 +36,7 @@ from diffsims.utils.sim_utils import (
     get_vectorized_list_for_atomic_scattering_factors,
     is_lattice_hexagonal,
 )
+from diffsims.utils.fourier_transform import from_recip
 
 
 class DiffractionGenerator(object):
