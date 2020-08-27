@@ -36,9 +36,7 @@ from diffsims.utils.sim_utils import (
     get_vectorized_list_for_atomic_scattering_factors,
     is_lattice_hexagonal,
 )
-from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import (
-    from_recip,
-)
+from diffsims.utils.fourier_transform import from_recip
 
 
 class DiffractionGenerator(object):
@@ -432,7 +430,7 @@ class AtomicDiffractionGenerator:
         ]
 
         if mode == "kinematic":
-            from diffsims.utils import atomic_diffraction_generator_utils as simlib
+            from diffsims.utils import kinematic_simulation_utils as simlib
         else:
             raise NotImplementedError(
                 "<mode> = %s is not currently supported" % repr(mode)

@@ -17,9 +17,12 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Back end for computing diffraction patterns with a kinematic model.
-"""
+Created on 1 Nov 2019
 
+Back end for computing diffraction patterns with a kinematic model.
+
+@author: Rob Tovey
+"""
 from diffsims.utils.discretise_utils import get_discretisation
 from numpy import array, pi, sin, cos, empty, maximum, sqrt
 from scipy.interpolate import interpn

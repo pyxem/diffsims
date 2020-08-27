@@ -18,7 +18,7 @@
 
 import pytest
 import numpy as np
-from diffsims.utils.atomic_diffraction_generator_utils import (
+from diffsims.utils.kinematic_simulation_utils import (
     get_diffraction_image,
     precess_mat,
     grid2sphere,
