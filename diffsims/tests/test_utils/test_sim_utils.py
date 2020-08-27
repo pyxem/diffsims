@@ -157,7 +157,7 @@ def test_get_kinematical_intensities(default_structure):
     unique_hkls, multiplicites, g_hkls = get_intensities_params(reciprocal_lattice, reciprocal_radius)
     g_hkls_array = np.asarray(g_hkls)
     i_hkls = get_kinematical_intensities(
-                    struct,
+                    default_structure,
                     g_indices=unique_hkls,
                     g_hkls_array=g_hkls_array,
                     debye_waller_factors={1:1},
