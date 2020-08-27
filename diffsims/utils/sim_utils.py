@@ -292,7 +292,7 @@ def get_kinematical_intensities(
     # Define an intensity scaling that is linear with distance from Ewald sphere
     # along the beam direction.
 
-    if (excitation_error!=None):
+    if (all(excitation_error)!=None):
         shape_factor = 1 - (excitation_error / max_excitation_error)
 
     else:
