@@ -186,10 +186,6 @@ def __atom_av_cpu(x0, x1, x2, pc, h):  # pragma: no cover
     x0, x1, x2 = x0 - i0, x1 - i1, x2 - i2
     s = 0
     for i in range(pc.shape[0]):
-        #         v = __linear_interp(x0, i0, pc[i, 0])
-        #         v *= __linear_interp(x1, i1, pc[i, 1])
-        #         v *= __linear_interp(x2, i2, pc[i, 2])
-
         v = __quadratic_interp(x0, i0, pc[i, 0])
         v *= __quadratic_interp(x1, i1, pc[i, 1])
         v *= __quadratic_interp(x2, i2, pc[i, 2])
@@ -237,10 +233,6 @@ if _CUDA:  # pragma: no cover
         x0, x1, x2 = x0 - i0, x1 - i1, x2 - i2
         s = 0
         for i in range(pc.shape[0]):
-            #             v = __linear_interp(x0, i0, pc[i, 0])
-            #             v *= __linear_interp(x1, i1, pc[i, 1])
-            #             v *= __linear_interp(x2, i2, pc[i, 2])
-
             v = __quadratic_interp(x0, i0, pc[i, 0])
             v *= __quadratic_interp(x1, i1, pc[i, 1])
             v *= __quadratic_interp(x2, i2, pc[i, 2])
