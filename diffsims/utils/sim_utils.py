@@ -398,7 +398,7 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     -------
     spot_indices : numpy.array
         Miller indices of reciprocal lattice points in sphere.
-    spot_coords : numpy.array
+    cartesian_coordinates : numpy.array
         Cartesian coordinates of reciprocal lattice points in sphere.
     spot_distances : numpy.array
         Distance of reciprocal lattice points in sphere from the origin.
@@ -417,10 +417,10 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
         np.abs(reciprocal_lattice.dist(potential_points, [0, 0, 0])) < reciprocal_radius
     )
     spot_indices = potential_points[in_sphere]
-    spot_coords = reciprocal_lattice.cartesian(spot_indices)
+    cartesian_coordinates = reciprocal_lattice.cartesian(spot_indices)
     spot_distances = reciprocal_lattice.dist(spot_indices, [0, 0, 0])
 
-    return spot_indices, spot_coords, spot_distances
+    return spot_indices, cartesian_coordinates, spot_distances
 
 
 def is_lattice_hexagonal(latt):

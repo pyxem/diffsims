@@ -128,7 +128,7 @@ class DiffractionGenerator(object):
         # Obtain crystallographic reciprocal lattice points within `max_r` and
         # g-vector magnitudes for intensity calculations.
         recip_latt = latt.reciprocal()
-        spot_indices, spot_coords, spot_distances = get_points_in_sphere(
+        spot_indices, cartesian_coordinates, spot_distances = get_points_in_sphere(
             recip_latt, reciprocal_radius
         )
 
@@ -138,17 +138,17 @@ class DiffractionGenerator(object):
             np.deg2rad(rotation[2]),
         )
         R = euler2mat(ai, aj, ak, axes="rzxz")
-        spot_coords = np.matmul(R, spot_coords.T).T
+        cartesian_coordinates = np.matmul(R, cartesian_coordinates.T).T
 
         # Identify points intersecting the Ewald sphere within maximum
         # excitation error and store the magnitude of their excitation error.
         r_sphere = 1 / wavelength
-        r_spot = np.sqrt(np.sum(np.square(spot_coords[:, :2]), axis=1))
+        r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
         z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
-        excitation_error = np.absolute(z_sphere - spot_coords[:, 2])
+        excitation_error = np.absolute(z_sphere - cartesian_coordinates[:, 2])
         intersection = excitation_error < max_excitation_error
         # Mask parameters corresponding to excited reflections.
-        intersection_coordinates = spot_coords[intersection]
+        intersection_coordinates = cartesian_coordinates[intersection]
         g_indices = spot_indices[intersection]
         excitation_error = excitation_error[intersection]
         g_hkls = spot_distances[intersection]

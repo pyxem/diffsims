@@ -178,7 +178,8 @@ class ProfileSimulation:
     intensities : array-like, shape [n_peaks, 1]
         The kinematic intensity of the diffraction peaks.
 
-    ##change this to list qq
+    Returns
+    -------
     hkls: [{(h, k, l): mult}] {(h, k, l): mult} is a dict of Miller
         indices for all diffracted lattice facets contributing to each
         intensity.
