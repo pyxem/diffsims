@@ -31,7 +31,7 @@ from diffsims.utils.sim_utils import (
     get_points_in_sphere,
     simulate_kinematic_scattering,
     is_lattice_hexagonal,
-    uvtw_to_uvw,  uvtw_to_uvw,
+    uvtw_to_uvw,
     get_holz_angle,
     scattering_angle_to_lattice_parameter,
     bst_to_beta,
