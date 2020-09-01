@@ -35,6 +35,7 @@ from diffsims.utils.sim_utils import (
     get_points_in_sphere,
     get_vectorized_list_for_atomic_scattering_factors,
     is_lattice_hexagonal,
+    get_intensities_params,
 )
 from diffsims.utils.fourier_transform import from_recip
 
@@ -142,34 +143,37 @@ class DiffractionGenerator(object):
         r_sphere = 1 / wavelength
         r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
         z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
-        proximity = np.absolute(z_sphere - cartesian_coordinates[:, 2])
-        intersection = proximity < max_excitation_error
+        excitation_error = np.absolute(z_sphere - cartesian_coordinates[:, 2])
+        intersection = excitation_error < max_excitation_error
         # Mask parameters corresponding to excited reflections.
         intersection_coordinates = cartesian_coordinates[intersection]
-        intersection_indices = spot_indices[intersection]
-        proximity = proximity[intersection]
+        g_indices = spot_indices[intersection]
+        excitation_error = excitation_error[intersection]
         g_hkls = spot_distances[intersection]
+        multiplicites = np.ones_like(g_hkls)
+
+        shape_factor = 1 - (excitation_error / max_excitation_error)
 
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(
             structure,
-            intersection_indices,
+            g_indices,
             g_hkls,
-            proximity,
-            max_excitation_error,
             debye_waller_factors,
+            multiplicites,
             scattering_params,
+            shape_factor,
         )
 
         # Threshold peaks included in simulation based on minimum intensity.
         peak_mask = intensities > 1e-20
         intensities = intensities[peak_mask]
         intersection_coordinates = intersection_coordinates[peak_mask]
-        intersection_indices = intersection_indices[peak_mask]
+        g_indices = g_indices[peak_mask]
 
         return DiffractionSimulation(
             coordinates=intersection_coordinates,
-            indices=intersection_indices,
+            indices=g_indices,
             intensities=intensities,
             with_direct_beam=with_direct_beam,
         )
@@ -211,79 +215,54 @@ class DiffractionGenerator(object):
         latt = structure.lattice
         is_hex = is_lattice_hexagonal(latt)
 
-        (
-            coeffs,
-            fcoords,
-            occus,
-            dwfactors,
-        ) = get_vectorized_list_for_atomic_scattering_factors(
-            structure, {}, scattering_params=scattering_params
-        )
-
         # Obtain crystallographic reciprocal lattice points within range
         recip_latt = latt.reciprocal()
         spot_indices, _, spot_distances = get_points_in_sphere(
             recip_latt, reciprocal_radius
         )
 
+        ##spot_indicies is a numpy.array of the hkls allowd in the recip radius
+        unique_hkls, multiplicites, g_hkls = get_intensities_params(
+            recip_latt, reciprocal_radius
+        )
+        g_indices = unique_hkls
+        debye_waller_factors = self.debye_waller_factors
+        excitation_error = None
+        max_excitation_error = None
+        g_hkls_array = np.asarray(g_hkls)
+
+        i_hkl = get_kinematical_intensities(
+            structure,
+            g_indices,
+            g_hkls_array,
+            debye_waller_factors,
+            multiplicites,
+            scattering_params,
+            shape_factor=1,
+        )
+
+        if is_hex:
+            # Use Miller-Bravais indices for hexagonal lattices.
+            g_indices = (g_indices[0], g_indices[1], -g_indices[0] - g_indices[1], g_indices[2])
+
+        hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in unique_hkls]
+
         peaks = {}
-        mask = np.logical_not((np.any(spot_indices, axis=1) == 0))
-
-        for hkl, g_hkl in zip(spot_indices[mask], spot_distances[mask]):
-            # Force miller indices to be integers.
-            hkl = [int(round(i)) for i in hkl]
-
-            d_hkl = 1 / g_hkl
-
-            # Bragg condition
-            # theta = asin(wavelength * g_hkl / 2)
-
-            # s = sin(theta) / wavelength = 1 / 2d = |ghkl| / 2 (d =
-            # 1/|ghkl|)
-            s = g_hkl / 2
-
-            # Store s^2 since we are using it a few times.
-            s2 = s ** 2
-
-            # Vectorized computation of g.r for all fractional coords and
-            # hkl.
-            g_dot_r = np.dot(fcoords, np.transpose([hkl])).T[0]
-
-            # Highly vectorized computation of atomic scattering factors.
-            fs = np.sum(coeffs[:, :, 0] * np.exp(-coeffs[:, :, 1] * s2), axis=1)
-
-            dw_correction = np.exp(-dwfactors * s2)
-
-            # Structure factor = sum of atomic scattering factors (with
-            # position factor exp(2j * pi * g.r and occupancies).
-            # Vectorized computation.
-            f_hkl = np.sum(fs * occus * np.exp(2j * np.pi * g_dot_r) * dw_correction)
-
-            # Intensity for hkl is modulus square of structure factor.
-            i_hkl = (f_hkl * f_hkl.conjugate()).real
-
-            # two_theta = degrees(2 * theta)
-
-            if is_hex:
-                # Use Miller-Bravais indices for hexagonal lattices.
-                hkl = (hkl[0], hkl[1], -hkl[0] - hkl[1], hkl[2])
-
-            peaks[g_hkl] = [i_hkl, [tuple(hkl)], d_hkl]
+        for l, i, g in zip(hkls_labels, i_hkl, g_hkls):
+            peaks[l] = [i, g]
 
         # Scale intensities so that the max intensity is 100.
+
         max_intensity = max([v[0] for v in peaks.values()])
         x = []
         y = []
         hkls = []
-        d_hkls = []
-        for k in sorted(peaks.keys()):
+        for k in peaks.keys():
             v = peaks[k]
-            fam = get_unique_families(v[1])
-            if v[0] / max_intensity * 100 > minimum_intensity:
-                x.append(k)
+            if v[0] / max_intensity * 100 > minimum_intensity and (k != "000"):
+                x.append(v[1])
                 y.append(v[0])
-                hkls.append(fam)
-                d_hkls.append(v[2])
+                hkls.append(k)
 
         y = y / max(y) * 100
 

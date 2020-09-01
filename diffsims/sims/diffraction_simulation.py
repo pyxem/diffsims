@@ -20,6 +20,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import ndimage as ndi
 
+from diffsims.utils.sim_utils import get_unique_families
+
 
 class DiffractionSimulation:
     """Holds the result of a kinematic diffraction pattern simulation.
@@ -175,6 +177,9 @@ class ProfileSimulation:
         Magnitudes of scattering vectors.
     intensities : array-like, shape [n_peaks, 1]
         The kinematic intensity of the diffraction peaks.
+
+    Returns
+    -------
     hkls: [{(h, k, l): mult}] {(h, k, l): mult} is a dict of Miller
         indices for all diffracted lattice facets contributing to each
         intensity.
@@ -188,8 +193,12 @@ class ProfileSimulation:
         self.intensities = intensities
         self.hkls = hkls
 
+
     def get_plot(self, g_max, annotate_peaks=True, with_labels=True, fontsize=12):
-        """Plots the diffraction profile simulation.
+
+        """Plots the diffraction profile simulation for the
+           calculate_profile_data method in DiffractionGenerator.
+
         Parameters
         ----------
         g_max : float
@@ -201,13 +210,13 @@ class ProfileSimulation:
         fontsize : integer
             Fontsize for peak labels.
         """
+
         ax = plt.gca()
         for g, i, hkls in zip(self.magnitudes, self.intensities, self.hkls):
-            if g <= g_max:
-                label = ", ".join([str(hkl) for hkl in hkls.keys()])
-                ax.plot([g, g], [0, i], color="k", linewidth=3, label=label)
-                if annotate_peaks:
-                    ax.annotate(label, xy=[g, i], xytext=[g, i], fontsize=fontsize)
+            label = hkls
+            ax.plot([g, g], [0, i], color="k", linewidth=3, label=label)
+            if annotate_peaks:
+                ax.annotate(label, xy=[g, i], xytext=[g, i], fontsize=fontsize)
 
             if with_labels:
                 ax.set_xlabel("A ($^{-1}$)")

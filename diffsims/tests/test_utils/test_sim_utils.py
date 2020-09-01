@@ -19,7 +19,7 @@
 import pytest
 import numpy as np
 import diffpy
-import scipy.constants as sc
+from transforms3d.euler import euler2mat
 
 
 from diffsims.utils.sim_utils import (
@@ -42,6 +42,10 @@ from diffsims.utils.sim_utils import (
     et_to_beta,
     acceleration_voltage_to_wavelength,
     diffraction_scattering_angle,
+    get_intensities_params,
+)
+from diffsims.tests.test_generators.test_diffraction_generator import (
+    make_structure
 )
 
 
@@ -145,7 +149,7 @@ def test_uvtw_to_uvw(uvtw, uvw):
     val = uvtw_to_uvw(uvtw)
     np.testing.assert_almost_equal(val, uvw)
 
-
+    
 class TestHolzCalibration:
     def test_get_holz_angle(self):
         wavelength = 2.51 / 1000
@@ -308,3 +312,29 @@ class TestDiffractionScatteringAngle:
         assert len(scattering_angle) == 2
         sa_known = np.array([9.84e-3, 6.56e-3])
         assert np.allclose(sa_known, scattering_angle, rtol=0.001)
+
+def test_get_intensities_params(default_structure):
+    latt = default_structure.lattice
+    reciprocal_lattice = latt.reciprocal()
+    reciprocal_radius = 0.2
+    unique_hkls, multiplicites, g_hkls = get_intensities_params(reciprocal_lattice, reciprocal_radius)
+    np.testing.assert_equal(multiplicites, ([1.]))
+    np.testing.assert_equal(g_hkls, [0.0])
+    np.testing.assert_array_equal(unique_hkls, [[-0., -0.,  0.]])
+
+def test_get_kinematical_intensities(default_structure):
+    latt = default_structure.lattice
+    reciprocal_lattice = latt.reciprocal()
+    reciprocal_radius = 0.2
+    unique_hkls, multiplicites, g_hkls = get_intensities_params(reciprocal_lattice, reciprocal_radius)
+    g_hkls_array = np.asarray(g_hkls)
+    i_hkls = get_kinematical_intensities(
+                    default_structure,
+                    g_indices=unique_hkls,
+                    g_hkls_array=g_hkls_array,
+                    debye_waller_factors={1:1},
+                    multiplicites=multiplicites,
+                    scattering_params="lobato",
+                    shape_factor=1,
+                    )
+    np.testing.assert_array_almost_equal(i_hkls, ([43.0979]), decimal=4)

@@ -109,11 +109,11 @@ def get_unique_families(hkls):
                 unique[hkl2].append(hkl1)
                 break
         if not found:
-            unique[hkl1].append(hkl1)
+            unique[tuple(hkl1)].append(hkl1)
 
     pretty_unique = {}
     for k, v in unique.items():
-        pretty_unique[sorted(v)[-1]] = len(v)
+        pretty_unique[tuple(sorted(v)[-1])] = len(v)
 
     return pretty_unique
 
@@ -221,12 +221,13 @@ def get_atomic_scattering_factors(g_hkl_sq, coeffs, scattering_params):
 def get_kinematical_intensities(
     structure,
     g_indices,
-    g_hkls,
-    excitation_error,
-    maximum_excitation_error,
+    g_hkls_array,
     debye_waller_factors,
-    scattering_params="lobato",
+    multiplicites,
+    scattering_params,
+    shape_factor,
 ):
+
     """Calculates peak intensities.
 
     The peak intensity is a combination of the structure factor for a given
@@ -242,7 +243,8 @@ def get_kinematical_intensities(
         structure factor.
     proximities : array-like
         The distances between the Ewald sphere and the peak centers.
-
+    shape_factor_use : bool
+        True if the shape factor correction needs to be used
     Returns
     -------
     peak_intensities : array-like
@@ -261,7 +263,9 @@ def get_kinematical_intensities(
     )
 
     # Store array of g_hkls^2 values since used multiple times.
-    g_hkls_sq = g_hkls ** 2
+
+    ##length of the unique hkls
+    g_hkls_sq = g_hkls_array ** 2
 
     # Create array containing atomic scattering factors.
     fs = get_atomic_scattering_factors(g_hkls_sq, coeffs, scattering_params)
@@ -285,13 +289,12 @@ def get_kinematical_intensities(
 
     # Define an intensity scaling that is linear with distance from Ewald sphere
     # along the beam direction.
-    shape_factor = 1 - (excitation_error / maximum_excitation_error)
+
+    prefactor = shape_factor * multiplicites
 
     # Calculate the peak intensities from the structure factor and excitation
-    # error.
-    peak_intensities = (f_hkls * f_hkls.conjugate()).real * shape_factor
+    peak_intensities = prefactor * (f_hkls * f_hkls.conjugate()).real
     return peak_intensities
-
 
 def simulate_kinematic_scattering(
     atomic_coordinates,
@@ -388,7 +391,7 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
     -------
     spot_indices : numpy.array
         Miller indices of reciprocal lattice points in sphere.
-    spot_coords : numpy.array
+    cartesian_coordinates : numpy.array
         Cartesian coordinates of reciprocal lattice points in sphere.
     spot_distances : numpy.array
         Distance of reciprocal lattice points in sphere from the origin.
@@ -407,10 +410,10 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
         np.abs(reciprocal_lattice.dist(potential_points, [0, 0, 0])) < reciprocal_radius
     )
     spot_indices = potential_points[in_sphere]
-    spot_coords = reciprocal_lattice.cartesian(spot_indices)
+    cartesian_coordinates = reciprocal_lattice.cartesian(spot_indices)
     spot_distances = reciprocal_lattice.dist(spot_indices, [0, 0, 0])
 
-    return spot_indices, spot_coords, spot_distances
+    return spot_indices, cartesian_coordinates, spot_distances
 
 
 def is_lattice_hexagonal(latt):
@@ -448,6 +451,52 @@ def uvtw_to_uvw(uvtw):
     common_factor = math.gcd(math.gcd(u, v), w)
     return tuple((int(x / common_factor)) for x in (u, v, w))
 
+
+def get_intensities_params(reciprocal_lattice, reciprocal_radius):
+
+    """Calculates the variables needed for get_kinematical_intensities
+
+    Parameters
+    ----------
+    reciprocal_lattice : diffpy.Structure.Lattice
+        The reciprocal crystal lattice for the structure of interest.
+    reciprocal_radius  : float
+        The radius of the sphere in reciprocal space (units of reciprocal
+        Angstroms) within which reciprocal lattice points are returned.
+
+    Returns
+    -------
+    unique_hkls : array-like
+        The unique plane families which lie in the given reciprocal sphere.
+
+    multiplicites : array-like
+        The multiplicites of the given unqiue planes in the sphere.
+
+    g_hkls : list
+        The g vector length of the given hkl in the sphere.
+
+    """
+
+    spot_indices, _, spot_distances = get_points_in_sphere(
+        reciprocal_lattice, reciprocal_radius
+    )
+
+    dict_i_to_d = {}
+    for i, d in zip(spot_indices, spot_distances):
+        dict_i_to_d[tuple(i)] = d
+
+    list_hkls = spot_indices.tolist()
+
+    unique_hkls_dict = get_unique_families(list_hkls)
+
+    multiplicites = np.fromiter(unique_hkls_dict.values(), dtype=float)
+    unique_hkls = np.array(list(unique_hkls_dict))
+
+    g_hkls = []
+    for unique_hkl in unique_hkls:
+        g_hkls.append(dict_i_to_d[tuple(unique_hkl)])
+
+    return unique_hkls, multiplicites, g_hkls
 
 def get_holz_angle(electron_wavelength, lattice_parameter):
     """ Converts electron wavelength and lattice paramater to holz angle
