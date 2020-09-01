@@ -22,11 +22,20 @@ from diffsims.generators.rotation_list_generators import (
     get_local_grid,
     get_grid_around_beam_direction,
     get_fundamental_zone_grid,
-    get_beam_directions_grid
-    )
+    get_beam_directions_grid,
+)
 
-@pytest.mark.parametrize("grid",[pytest.param(get_local_grid(resolution=30,center=None,grid_width=35),marks=pytest.mark.xfail(reason="Downstream bug")),
-                                 get_fundamental_zone_grid(space_group=20, resolution=20)])
+
+@pytest.mark.parametrize(
+    "grid",
+    [
+        pytest.param(
+            get_local_grid(resolution=30, center=None, grid_width=35),
+            marks=pytest.mark.xfail(reason="Downstream bug"),
+        ),
+        get_fundamental_zone_grid(space_group=20, resolution=20),
+    ],
+)
 def test_get_grid(grid):
     assert isinstance(grid, list)
     assert len(grid) > 0
@@ -40,7 +49,19 @@ def test_get_grid_around_beam_direction():
     assert isinstance(grid_simple[0], tuple)
     assert len(grid_simple) == 360
 
-@pytest.mark.parametrize("crystal_system",['cubic','hexagonal','trigonal','tetragonal','orthorhombic','monoclinic','triclinic'])
+
+@pytest.mark.parametrize(
+    "crystal_system",
+    [
+        "cubic",
+        "hexagonal",
+        "trigonal",
+        "tetragonal",
+        "orthorhombic",
+        "monoclinic",
+        "triclinic",
+    ],
+)
 def test_get_beam_directions_grid(crystal_system):
-    for equal in ["angle","area"]:
-        _  = get_beam_directions_grid(crystal_system, 5, equal=equal)
+    for equal in ["angle", "area"]:
+        _ = get_beam_directions_grid(crystal_system, 5, equal=equal)
