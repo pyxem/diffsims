@@ -193,37 +193,8 @@ class ProfileSimulation:
         self.intensities = intensities
         self.hkls = hkls
 
+
     def get_plot(self, g_max, annotate_peaks=True, with_labels=True, fontsize=12):
-        """Plots the diffraction profile simulation.
-        Parameters
-        ----------
-        g_max : float
-            Maximum g-vector magnitude to plot.
-        annotate_peaks : boolean
-            If True, peaks are annotaed with hkl information.
-        with_labels : boolean
-            If True, xlabels and ylabels are added to the plot.
-        fontsize : integer
-            Fontsize for peak labels.
-        """
-
-        label_hkl = get_unique_families(self.hkls)
-
-        ax = plt.gca()
-        for g, i, hkls in zip(self.magnitudes, self.intensities, self.hkls):
-            if g <= g_max:
-                label = ", ".join([str(hkl) for hkl in label_hkl.keys()])
-                ax.plot([g, g], [0, i], color="k", linewidth=3, label=label)
-                if annotate_peaks:
-                    ax.annotate(label, xy=[g, i], xytext=[g, i], fontsize=fontsize)
-
-            if with_labels:
-                ax.set_xlabel("A ($^{-1}$)")
-                ax.set_ylabel("Intensities (scaled)")
-
-        return plt
-
-    def get_plot_x(self, g_max, annotate_peaks=True, with_labels=True, fontsize=12):
 
         """Plots the diffraction profile simulation for the
            calculate_profile_data method in DiffractionGenerator.

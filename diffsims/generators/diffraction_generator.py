@@ -154,6 +154,8 @@ class DiffractionGenerator(object):
         g_hkls = spot_distances[intersection]
         multiplicites = np.ones_like(g_hkls)
 
+        shape_factor = 1 - (excitation_error / max_excitation_error)
+
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(
             structure,
@@ -162,8 +164,7 @@ class DiffractionGenerator(object):
             debye_waller_factors,
             multiplicites,
             scattering_params,
-            excitation_error,
-            max_excitation_error,
+            shape_factor,
         )
 
         # Threshold peaks included in simulation based on minimum intensity.
@@ -188,7 +189,6 @@ class DiffractionGenerator(object):
     ):
         """
         Calculates a one dimensional diffraction profile for a structure.
-        For use with the get_plot_x in DiffractionSimulation.
 
         Parameters
         ----------
@@ -240,8 +240,7 @@ class DiffractionGenerator(object):
             debye_waller_factors,
             multiplicites,
             scattering_params,
-            excitation_error=None,
-            max_excitation_error=None,
+            shape_factor=1,
         )
 
         if is_hex:

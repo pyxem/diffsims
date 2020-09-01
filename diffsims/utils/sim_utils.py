@@ -225,8 +225,7 @@ def get_kinematical_intensities(
     debye_waller_factors,
     multiplicites,
     scattering_params,
-    excitation_error,
-    max_excitation_error,
+    shape_factor,
 ):
 
     """Calculates peak intensities.
@@ -292,16 +291,11 @@ def get_kinematical_intensities(
     # Define an intensity scaling that is linear with distance from Ewald sphere
     # along the beam direction.
 
-    if excitation_error is None:
-        shape_factor = 1
-
-    else:
-        shape_factor = 1 - (excitation_error / max_excitation_error)
+    prefactor = shape_factor * multiplicites
 
     # Calculate the peak intensities from the structure factor and excitation
-    peak_intensities = multiplicites * (f_hkls * f_hkls.conjugate()).real * shape_factor
+    peak_intensities = prefactor * (f_hkls * f_hkls.conjugate()).real
     return peak_intensities
-
 
 def simulate_kinematic_scattering(
     atomic_coordinates,

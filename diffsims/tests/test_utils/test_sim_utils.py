@@ -162,7 +162,6 @@ def test_get_kinematical_intensities(default_structure):
                     debye_waller_factors={1:1},
                     multiplicites=multiplicites,
                     scattering_params="lobato",
-                    excitation_error=None,
-                    max_excitation_error=None,
+                    shape_factor=1,
                     )
     np.testing.assert_array_almost_equal(i_hkls, ([43.0979]), decimal=4)
