@@ -31,7 +31,17 @@ from diffsims.utils.sim_utils import (
     get_points_in_sphere,
     simulate_kinematic_scattering,
     is_lattice_hexagonal,
-    uvtw_to_uvw,
+    uvtw_to_uvw,  uvtw_to_uvw,
+    get_holz_angle,
+    scattering_angle_to_lattice_parameter,
+    bst_to_beta,
+    beta_to_bst,
+    tesla_to_am,
+    acceleration_voltage_to_velocity,
+    acceleration_voltage_to_relativistic_mass,
+    et_to_beta,
+    acceleration_voltage_to_wavelength,
+    diffraction_scattering_angle,
     get_intensities_params,
 )
 from diffsims.tests.test_generators.test_diffraction_generator import (
@@ -139,6 +149,169 @@ def test_uvtw_to_uvw(uvtw, uvw):
     val = uvtw_to_uvw(uvtw)
     np.testing.assert_almost_equal(val, uvw)
 
+    
+class TestHolzCalibration:
+    def test_get_holz_angle(self):
+        wavelength = 2.51 / 1000
+        lattice_parameter = 0.3905 * 2 ** 0.5
+        angle = get_holz_angle(wavelength, lattice_parameter)
+        assert np.isclose(angle, 0.095378, rtol=1e-4)
+
+    def test_scattering_angle_to_lattice_parameter(self):
+        wavelength = 2.51 / 1000
+        angle = 95.37805 / 1000
+        lattice_size = scattering_angle_to_lattice_parameter(wavelength, angle)
+        assert np.isclose(lattice_size, 0.55225047)
+
+    @pytest.mark.parametrize(
+        "wavelength, lattice_parameter",
+        [(2e-12, 3e-10), (3e-12, 3e-10), (10e-12, 3e-10)],
+    )
+    def test_lattice_paramter_invariance(self, wavelength, lattice_parameter):
+        h_a = get_holz_angle(wavelength, lattice_parameter)
+        l_p = scattering_angle_to_lattice_parameter(wavelength, h_a)
+        assert np.isclose(l_p, lattice_parameter, rtol=1e-4)
+
+
+class TestBetaToBst:
+    def test_zero(self):
+        data = np.zeros((100, 100))
+        bst = beta_to_bst(data, 200000)
+        assert data.shape == bst.shape
+        assert (data == 0.0).all()
+
+    def test_ones(self):
+        data = np.ones((100, 100)) * 10
+        bst = beta_to_bst(data, 200000)
+        assert data.shape == bst.shape
+        assert (data != 0.0).all()
+
+    def test_beta_to_bst_to_beta(self):
+        beta = 2e-6
+        output = bst_to_beta(beta_to_bst(beta, 200000), 200000)
+        assert beta == output
+
+    def test_known_value(self):
+        # From https://dx.doi.org/10.1016/j.ultramic.2016.03.006
+        bst = 10e-9 * 1  # 10 nm, 1 Tesla
+        av = 200000  # 200 kV
+        beta = bst_to_beta(bst, av)
+        assert np.isclose(beta, 6.064e-6, rtol=1e-4)
+
+
+class TestBstToBeta:
+    def test_zero(self):
+        data = np.zeros((100, 100))
+        beta = bst_to_beta(data, 200000)
+        assert data.shape == beta.shape
+        assert (data == 0.0).all()
+
+    def test_ones(self):
+        data = np.ones((100, 100)) * 10
+        beta = bst_to_beta(data, 200000)
+        assert data.shape == beta.shape
+        assert (data != 0.0).all()
+
+    def test_bst_to_beta_to_bst(self):
+        bst = 10e-6
+        output = beta_to_bst(bst_to_beta(bst, 200000), 200000)
+        assert bst == output
+
+
+class TestEtToBeta:
+    def test_zero(self):
+        data = np.zeros((100, 100))
+        beta = et_to_beta(data, 200000)
+        assert data.shape == beta.shape
+        assert (data == 0.0).all()
+
+    def test_ones(self):
+        data = np.ones((100, 100)) * 10
+        beta = bst_to_beta(data, 200000)
+        assert data.shape == beta.shape
+        assert (data != 0.0).all()
+
+
+class TestTeslaToAm:
+    def test_zero(self):
+        data = np.zeros((100, 100))
+        am = tesla_to_am(data)
+        assert data.shape == am.shape
+        assert (data == 0.00).all()
+
+    def test_ones(self):
+        data = np.ones((100, 100)) * 10
+        am = tesla_to_am(data)
+        assert data.shape == am.shape
+        assert (data != 0.0).all()
+
+    def test_known_value(self):
+        tesla = 1
+        am = tesla_to_am(tesla)
+        assert np.isclose(am, 795774.7155, rtol=1e-4)
+
+
+class TestAccelerationVoltageToVelocity:
+    @pytest.mark.parametrize(
+        "av,vel", [(100000, 1.6434e8), (200000, 2.0844e8), (300000, 2.3279e8)]
+    )  # V, m/s
+    def test_values(self, av, vel):
+        v = acceleration_voltage_to_velocity(av)
+        assert np.allclose(v, vel, rtol=0.001)
+
+
+class TestAccelerationVoltageToRelativisticMass:
+    def test_200kv(self):
+        mr = acceleration_voltage_to_relativistic_mass(200000)
+        assert np.isclose(1.268e-30, mr)
+
+
+@pytest.mark.parametrize(
+    "av,wl", [(100000, 3.701e-12), (200000, 2.507e-12), (300000, 1.968e-12)]
+)  # V, pm
+def test_acceleration_voltage_to_wavelength(av, wl):
+    wavelength = acceleration_voltage_to_wavelength(av)
+    assert np.allclose(wl, wavelength, rtol=0.001, atol=0.0)
+
+
+def test_acceleration_voltage_to_wavelength_array():
+    av = np.array([100000, 200000, 300000])  # In Volt
+    wavelength = acceleration_voltage_to_wavelength(av)
+    wl = np.array([3.701e-12, 2.507e-12, 1.968e-12])  # In pm
+    assert np.allclose(wl, wavelength, rtol=0.001, atol=0.0)
+
+
+class TestDiffractionScatteringAngle:
+    @pytest.mark.parametrize(
+        "mi,sa",
+        [
+            ((1, 0, 0), 9.84e-3),
+            ((0, 1, 0), 9.84e-3),
+            ((0, 0, 1), 9.84e-3),
+            ((2, 0, 0), 19.68e-3),
+            ((0, 2, 0), 19.68e-3),
+            ((0, 0, 2), 19.68e-3),
+        ],
+    )
+    def test_miller_index(self, mi, sa):
+        acceleration_voltage = 300000
+        lattice_size = 2e-10  # 2 Ångstrøm (in meters)
+        scattering_angle = diffraction_scattering_angle(
+            acceleration_voltage, lattice_size, mi
+        )
+        assert np.allclose(sa, scattering_angle, rtol=0.001)
+
+    def test_array_like(self):
+        # This should give ~9.84e-3 radians
+        acceleration_voltage = 300000
+        lattice_size = np.array([2e-10, 3e-10])
+        miller_index = (1, 0, 0)
+        scattering_angle = diffraction_scattering_angle(
+            acceleration_voltage, lattice_size, miller_index
+        )
+        assert len(scattering_angle) == 2
+        sa_known = np.array([9.84e-3, 6.56e-3])
+        assert np.allclose(sa_known, scattering_angle, rtol=0.001)
 
 def test_get_intensities_params(default_structure):
     latt = default_structure.lattice
