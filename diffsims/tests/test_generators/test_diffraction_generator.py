@@ -85,6 +85,7 @@ def probe(x, out=None, scale=None):
 class TestDiffractionCalculator:
     def test_init(self, diffraction_calculator: DiffractionGenerator):
         assert diffraction_calculator.debye_waller_factors == {}
+        _ = DiffractionGenerator(300,2)
 
     def test_matching_results(self, diffraction_calculator, local_structure):
         diffraction = diffraction_calculator.calculate_ed_data(
