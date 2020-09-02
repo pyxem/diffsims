@@ -222,10 +222,9 @@ def get_kinematical_intensities(
     structure,
     g_indices,
     g_hkls_array,
-    debye_waller_factors,
-    multiplicites,
-    scattering_params,
-    shape_factor,
+    debye_waller_factors={},
+    scattering_params="lobato",
+    prefactor=1
 ):
 
     """Calculates peak intensities.
@@ -238,13 +237,16 @@ def get_kinematical_intensities(
     ----------
     structure : Structure
         The structure for which to derive the structure factors.
-    indices : array-like
-        The fractional coordinates of the peaks for which to calculate the
-        structure factor.
-    proximities : array-like
-        The distances between the Ewald sphere and the peak centers.
-    shape_factor_use : bool
-        True if the shape factor correction needs to be used
+    g_indices : array-like
+
+    g_hkls_array : array-like
+
+    debye_waller_factors : bool
+
+    scattering_params :
+
+    prefactor :
+
     Returns
     -------
     peak_intensities : array-like
@@ -287,12 +289,7 @@ def get_kinematical_intensities(
         axis=-1,
     )
 
-    # Define an intensity scaling that is linear with distance from Ewald sphere
-    # along the beam direction.
-
-    prefactor = shape_factor * multiplicites
-
-    # Calculate the peak intensities from the structure factor and excitation
+    # Calculate the peak intensities from the structure factor and prefactor
     peak_intensities = prefactor * (f_hkls * f_hkls.conjugate()).real
     return peak_intensities
 
