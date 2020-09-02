@@ -67,11 +67,11 @@ class DiffractionGenerator(object):
     def __init__(
         self,
         accelerating_voltage,
-        debye_waller_factors=None,
+        debye_waller_factors={},
         scattering_params="lobato",
     ):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
-        self.debye_waller_factors = debye_waller_factors or {}
+        self.debye_waller_factors = debye_waller_factors
 
         scattering_params_dict = {"lobato": "lobato", "xtables": "xtables"}
         if scattering_params in scattering_params_dict:
@@ -84,7 +84,7 @@ class DiffractionGenerator(object):
             )
 
     def calculate_ed_data(
-        self, structure, reciprocal_radius, rotation=(0, 0, 0), excitation_function=linear, max_excitation_error=1e-2, with_direct_beam=True
+        self, structure, reciprocal_radius, rotation=(0, 0, 0), excitation_function=linear, max_excitation_error=1e-2, with_direct_beam=True,
     **kwargs):
         """Calculates the Electron Diffraction data for a structure.
 
@@ -107,6 +107,8 @@ class DiffractionGenerator(object):
         with_direct_beam : bool
             If True, the direct beam is included in the simulated diffraction
             pattern. If False, it is not.
+        **kwargs :
+            passed to excitation_function
 
         Returns
         -------
@@ -116,11 +118,9 @@ class DiffractionGenerator(object):
         """
         # Specify variables used in calculation
         wavelength = self.wavelength
-        debye_waller_factors = self.debye_waller_factors
         latt = structure.lattice
-        scattering_params = self.scattering_params
 
-        # Obtain crystallographic reciprocal lattice points within `max_r` and
+        # Obtain crystallographic reciprocal lattice points within `reciprocal_radius` and
         # g-vector magnitudes for intensity calculations.
         recip_latt = latt.reciprocal()
         spot_indices, cartesian_coordinates, spot_distances = get_points_in_sphere(
@@ -147,7 +147,6 @@ class DiffractionGenerator(object):
         g_indices = spot_indices[intersection]
         excitation_error = excitation_error[intersection]
         g_hkls = spot_distances[intersection]
-        multiplicites = np.ones_like(g_hkls)
 
         if excitation_function == "linear":
             shape_factor = 1 - (excitation_error / max_excitation_error)
@@ -160,6 +159,8 @@ class DiffractionGenerator(object):
             g_indices,
             g_hkls,
             prefactor=shape_factor,
+            scattering_params=self.scattering_params ,
+            debye_waller_factors=self.debye_waller_factors,
             **kwargs)
 
         # Threshold peaks included in simulation based on minimum intensity.
@@ -205,13 +206,8 @@ class DiffractionGenerator(object):
             The diffraction profile corresponding to this structure and
             experimental conditions.
         """
-        max_r = reciprocal_radius
         wavelength = self.wavelength
-        scattering_params = self.scattering_params
-        debye_waller_factors = self.debye_waller_factors
-
         latt = structure.lattice
-        is_hex = is_lattice_hexagonal(latt)
 
         # Obtain crystallographic reciprocal lattice points within range
         recip_latt = latt.reciprocal()
@@ -228,12 +224,12 @@ class DiffractionGenerator(object):
             structure,
             g_indices,
             np.asarray(g_hkls),
-            prefactor=multiplicities
-            debye_waller_factors,
-            scattering_params,
+            prefactor=multiplicities,
+            scattering_params=self.scattering_params ,
+            debye_waller_factors=self.debye_waller_factors,
         )
 
-        if is_hex:
+        if is_lattice_hexagonal(latt):
             # Use Miller-Bravais indices for hexagonal lattices.
             g_indices = (g_indices[0], g_indices[1], -g_indices[0] - g_indices[1], g_indices[2])
 
