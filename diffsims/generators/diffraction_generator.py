@@ -58,12 +58,10 @@ class DiffractionGenerator(object):
     ----------
     accelerating_voltage : float
         The accelerating voltage of the microscope in kV.
-    max_excitation_error : float
-        The maximum extent of the relrods in reciprocal angstroms. Typically
-        equal to 1/{specimen thickness}.
-    debye_waller_factors : dict of str : float
+    debye_waller_factors : dict of str or float
         Maps element names to their temperature-dependent Debye-Waller factors.
-
+    scattering_params : str
+        "lobato" or "xtables"
     """
 
     def __init__(
