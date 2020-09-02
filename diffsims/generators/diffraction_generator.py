@@ -233,7 +233,7 @@ class DiffractionGenerator(object):
             # Use Miller-Bravais indices for hexagonal lattices.
             g_indices = (g_indices[0], g_indices[1], -g_indices[0] - g_indices[1], g_indices[2])
 
-        hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in unique_hkls]
+        hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in g_indices]
 
         peaks = {}
         for l, i, g in zip(hkls_labels, i_hkl, g_hkls):
