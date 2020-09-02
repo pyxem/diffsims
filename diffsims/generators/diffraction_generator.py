@@ -216,7 +216,7 @@ class DiffractionGenerator(object):
         )
 
         ##spot_indicies is a numpy.array of the hkls allowd in the recip radius
-        g_indices, multiplicites, g_hkls = get_intensities_params(
+        g_indices, multiplicities, g_hkls = get_intensities_params(
             recip_latt, reciprocal_radius
         )
 
