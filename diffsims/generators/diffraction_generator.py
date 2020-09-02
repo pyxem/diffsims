@@ -68,10 +68,13 @@ class DiffractionGenerator(object):
         self,
         accelerating_voltage,
         debye_waller_factors={},
-        scattering_params="lobato", *args
+        scattering_params="lobato",
+        *args
     ):
         if args:
-            print("This class changed in v0.3 and no longer takes a maximum_excitation_error")
+            print(
+                "This class changed in v0.3 and no longer takes a maximum_excitation_error"
+            )
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         self.debye_waller_factors = debye_waller_factors
 
@@ -86,8 +89,15 @@ class DiffractionGenerator(object):
             )
 
     def calculate_ed_data(
-        self, structure, reciprocal_radius, rotation=(0, 0, 0), excitation_function="linear", max_excitation_error=1e-2, with_direct_beam=True,
-    **kwargs):
+        self,
+        structure,
+        reciprocal_radius,
+        rotation=(0, 0, 0),
+        excitation_function="linear",
+        max_excitation_error=1e-2,
+        with_direct_beam=True,
+        **kwargs
+    ):
         """Calculates the Electron Diffraction data for a structure.
 
         Parameters
@@ -156,7 +166,9 @@ class DiffractionGenerator(object):
         elif excitation_function == "binary":
             shape_factor = 1
         else:
-            shape_factor = excitation_function(excitation_error,max_excitation_error,**kwargs)
+            shape_factor = excitation_function(
+                excitation_error, max_excitation_error, **kwargs
+            )
 
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(
@@ -164,9 +176,10 @@ class DiffractionGenerator(object):
             g_indices,
             g_hkls,
             prefactor=shape_factor,
-            scattering_params=self.scattering_params ,
+            scattering_params=self.scattering_params,
             debye_waller_factors=self.debye_waller_factors,
-            **kwargs)
+            **kwargs
+        )
 
         # Threshold peaks included in simulation based on minimum intensity.
         peak_mask = intensities > 1e-20
@@ -230,13 +243,18 @@ class DiffractionGenerator(object):
             g_indices,
             np.asarray(g_hkls),
             prefactor=multiplicities,
-            scattering_params=self.scattering_params ,
+            scattering_params=self.scattering_params,
             debye_waller_factors=self.debye_waller_factors,
         )
 
         if is_lattice_hexagonal(latt):
             # Use Miller-Bravais indices for hexagonal lattices.
-            g_indices = (g_indices[0], g_indices[1], -g_indices[0] - g_indices[1], g_indices[2])
+            g_indices = (
+                g_indices[0],
+                g_indices[1],
+                -g_indices[0] - g_indices[1],
+                g_indices[2],
+            )
 
         hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in g_indices]
 
@@ -278,12 +296,7 @@ class AtomicDiffractionGenerator:
 
     """
 
-    def __init__(
-        self,
-        accelerating_voltage,
-        detector,
-        reciprocal_mesh=False
-    ):
+    def __init__(self, accelerating_voltage, detector, reciprocal_mesh=False):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         # Always store a 'real' mesh
         self.detector = detector if not reciprocal_mesh else from_recip(detector)
@@ -352,14 +365,14 @@ class AtomicDiffractionGenerator:
 
         species = structure.element
         coordinates = structure.xyz_cartn.reshape(species.size, -1)
-        dim = coordinates.shape[1] #guarenteed to be 3
+        dim = coordinates.shape[1]  # guarenteed to be 3
 
         if not ZERO > 0:
             raise ValueError("The value of the ZERO argument must be greater than 0")
 
         if probe_centre is None:
             probe_centre = np.zeros(dim)
-        elif len(probe_centre) == (dim-1):
+        elif len(probe_centre) == (dim - 1):
             probe_centre = np.array(list(probe_centre) + [0])
 
         coordinates = coordinates - probe_centre[None]

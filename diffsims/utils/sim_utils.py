@@ -224,7 +224,7 @@ def get_kinematical_intensities(
     g_hkls_array,
     debye_waller_factors={},
     scattering_params="lobato",
-    prefactor=1
+    prefactor=1,
 ):
 
     """Calculates peak intensities.
@@ -292,6 +292,7 @@ def get_kinematical_intensities(
     # Calculate the peak intensities from the structure factor and prefactor
     peak_intensities = prefactor * (f_hkls * f_hkls.conjugate()).real
     return peak_intensities
+
 
 def simulate_kinematic_scattering(
     atomic_coordinates,
@@ -494,6 +495,7 @@ def get_intensities_params(reciprocal_lattice, reciprocal_radius):
         g_hkls.append(dict_i_to_d[tuple(unique_hkl)])
 
     return unique_hkls, multiplicites, g_hkls
+
 
 def get_holz_angle(electron_wavelength, lattice_parameter):
     """ Converts electron wavelength and lattice paramater to holz angle
