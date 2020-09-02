@@ -100,10 +100,11 @@ class DiffractionGenerator(object):
         rotation : tuple
             Euler angles, in degrees, in the rzxz convention. Default is (0,0,0)
             which aligns 'z' with the electron beam
-        excitation_function : function
-
+        excitation_function : function or str
+            a function that takes excitation_error and max_excitation_error (and potentially **kwargs) and returns an intensity
+            scaling factor. The code provides "linear" and "binary" options accessed with by parsing the associated strings
         max_excitation_error : float
-
+            the exctinction distance for reflections, in reciprocal Angstroms
         with_direct_beam : bool
             If True, the direct beam is included in the simulated diffraction
             pattern. If False, it is not.
@@ -150,6 +151,8 @@ class DiffractionGenerator(object):
 
         if excitation_function == "linear":
             shape_factor = 1 - (excitation_error / max_excitation_error)
+        elif excitation_function = "binary":
+            shape_factor = 1
         else:
             shape_factor = excitation_function(excitation_error,max_excitation_error,**kwargs)
 
