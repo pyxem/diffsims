@@ -85,7 +85,7 @@ def probe(x, out=None, scale=None):
 class TestDiffractionCalculator:
     def test_init(self, diffraction_calculator: DiffractionGenerator):
         assert diffraction_calculator.debye_waller_factors == {}
-        _ = DiffractionGenerator(300,2)
+        _ = DiffractionGenerator(300, 2)
 
     def test_matching_results(self, diffraction_calculator, local_structure):
         diffraction = diffraction_calculator.calculate_ed_data(
@@ -123,6 +123,20 @@ class TestDiffractionCalculator:
             diffraction.intensities[central_beam], diffraction.intensities
         )
         assert np.all(smaller)
+
+    @pytest.mark.parametrize("string", ["linear", "binary"])
+    def test_shape_factor_strings(
+        self, diffraction_calculator, local_structure, string
+    ):
+        _ = diffraction_calculator.calculate_ed_data(
+            local_structure, 2, excitation_function=string
+        )
+
+    def test_shape_factor_custom(self, diffraction_calculator, local_structure):
+        def local_excite(excitation_error, maximum_excitation_error, t):
+            return (np.sin(t) * excitation_error) / maxium_excitation_error
+
+        _ = diffraction_calculator.calculate_ed_data(local_structure, 2, t=0.2)
 
     def test_calculate_profile_class(self, local_structure, diffraction_calculator):
         # tests the non-hexagonal (cubic) case
