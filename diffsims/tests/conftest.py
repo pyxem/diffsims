@@ -37,5 +37,4 @@ def default_structure():
 @pytest.fixture
 def default_simulator():
     accelerating_voltage = 300
-    max_excitation_error = 1e-2
-    return DiffractionGenerator(accelerating_voltage, max_excitation_error)
+    return DiffractionGenerator(accelerating_voltage)
