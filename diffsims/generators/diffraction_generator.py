@@ -277,16 +277,11 @@ class AtomicDiffractionGenerator:
         self,
         accelerating_voltage,
         detector,
-        reciprocal_mesh=False,
-        debye_waller_factors=None,
+        reciprocal_mesh=False
     ):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         # Always store a 'real' mesh
         self.detector = detector if not reciprocal_mesh else from_recip(detector)
-
-        if debye_waller_factors:
-            raise NotImplementedError("Not implemented for this simulator")
-        self.debye_waller_factors = debye_waller_factors or {}
 
     def calculate_ed_data(
         self,
@@ -307,10 +302,8 @@ class AtomicDiffractionGenerator:
 
         Parameters
         ----------
-        coordinates : ndarray of floats, shape [n_atoms, 3]
-            List of atomic coordinates, i.e. atom i is centred at <coordinates>[i]
-        species : ndarray of integers, shape [n_atoms]
-            List of atomic numbers, i.e. atom i has atomic number <species>[i]
+        structure : Structure
+            The structure for upon which to perform the calculation
         probe : instance of probeFunction
             Function representing 3D shape of beam
         slice_thickness : float
@@ -351,17 +344,20 @@ class AtomicDiffractionGenerator:
             detector mesh.
 
         """
+        if not ZERO > 0:
+            raise ValueError("The value of the ZERO argument must be greater than 0")
+        if not dim == 3:
+            raise ValueError("This code currently only supports structure represented in 3D")
 
         species = structure.element
         coordinates = structure.xyz_cartn.reshape(species.size, -1)
         dim = coordinates.shape[1]
-        assert dim == 3
 
         if probe_centre is None:
             probe_centre = np.zeros(dim)
-        elif len(probe_centre) < dim:
+        elif len(probe_centre) == (dim-1):
             probe_centre = np.array(list(probe_centre) + [0])
-        probe_centre = np.array(probe_centre)
+
         coordinates = coordinates - probe_centre[None]
 
         if not precessed:
@@ -372,8 +368,6 @@ class AtomicDiffractionGenerator:
         dtype = np.dtype(dtype)
         dtype = round(dtype.itemsize / (1 if dtype.kind == "f" else 2))
         dtype = "f" + str(dtype), "c" + str(2 * dtype)
-
-        assert ZERO > 0
 
         # Filter list of atoms
         for d in range(dim - 1):
