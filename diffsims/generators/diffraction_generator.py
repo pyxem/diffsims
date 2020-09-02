@@ -66,17 +66,13 @@ class DiffractionGenerator(object):
 
     """
 
-    # TODO: Refactor the excitation error to a structure property.
-
     def __init__(
         self,
         accelerating_voltage,
-        max_excitation_error,
         debye_waller_factors=None,
         scattering_params="lobato",
     ):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
-        self.max_excitation_error = max_excitation_error
         self.debye_waller_factors = debye_waller_factors or {}
 
         scattering_params_dict = {"lobato": "lobato", "xtables": "xtables"}
@@ -90,8 +86,8 @@ class DiffractionGenerator(object):
             )
 
     def calculate_ed_data(
-        self, structure, reciprocal_radius, rotation=(0, 0, 0), with_direct_beam=True
-    ):
+        self, structure, reciprocal_radius, rotation=(0, 0, 0), excitation_function=linear, max_excitation_error=1e-2, with_direct_beam=True
+    **kwargs):
         """Calculates the Electron Diffraction data for a structure.
 
         Parameters
@@ -106,6 +102,10 @@ class DiffractionGenerator(object):
         rotation : tuple
             Euler angles, in degrees, in the rzxz convention. Default is (0,0,0)
             which aligns 'z' with the electron beam
+        excitation_function : function
+
+        max_excitation_error : float
+
         with_direct_beam : bool
             If True, the direct beam is included in the simulated diffraction
             pattern. If False, it is not.
@@ -118,7 +118,6 @@ class DiffractionGenerator(object):
         """
         # Specify variables used in calculation
         wavelength = self.wavelength
-        max_excitation_error = self.max_excitation_error
         debye_waller_factors = self.debye_waller_factors
         latt = structure.lattice
         scattering_params = self.scattering_params
@@ -152,18 +151,18 @@ class DiffractionGenerator(object):
         g_hkls = spot_distances[intersection]
         multiplicites = np.ones_like(g_hkls)
 
-        shape_factor = 1 - (excitation_error / max_excitation_error)
+        if excitation_function == "linear":
+            shape_factor = 1 - (excitation_error / max_excitation_error)
+        else:
+            shape_factor = excitation_function(excitation_error,max_excitation_error,**kwargs)
 
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(
             structure,
             g_indices,
             g_hkls,
-            debye_waller_factors,
-            multiplicites,
-            scattering_params,
-            shape_factor,
-        )
+            prefactor=shape_factor,
+            **kwargs)
 
         # Threshold peaks included in simulation based on minimum intensity.
         peak_mask = intensities > 1e-20
@@ -197,7 +196,7 @@ class DiffractionGenerator(object):
             reciprocal angstroms.
         magnitude_tolerance : float
             The minimum difference between diffraction magnitudes in reciprocal
-            angstroms for two peaks to be consdiered different.
+            angstroms for two peaks to be considered different.
         minimum_intensity : float
             The minimum intensity required for a diffraction peak to be
             considered real. Deals with numerical precision issues.
