@@ -36,6 +36,7 @@ from diffsims.utils.sim_utils import (
     get_vectorized_list_for_atomic_scattering_factors,
     is_lattice_hexagonal,
     get_intensities_params,
+    get_scattering_params_dict
 )
 from diffsims.utils.fourier_transform import from_recip
 
@@ -76,17 +77,8 @@ class DiffractionGenerator(object):
                 "This class changed in v0.3 and no longer takes a maximum_excitation_error"
             )
         self.wavelength = get_electron_wavelength(accelerating_voltage)
+        self.scatterng_params = get_scattering_params_dict(scattering_params)
         self.debye_waller_factors = debye_waller_factors
-
-        scattering_params_dict = {"lobato": "lobato", "xtables": "xtables"}
-        if scattering_params in scattering_params_dict:
-            self.scattering_params = scattering_params_dict[scattering_params]
-        else:
-            raise NotImplementedError(
-                "The scattering parameters `{}` is not implemented. "
-                "See documentation for available "
-                "implementations.".format(scattering_params)
-            )
 
     def calculate_ed_data(
         self,

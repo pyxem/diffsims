@@ -238,15 +238,15 @@ def get_kinematical_intensities(
     structure : Structure
         The structure for which to derive the structure factors.
     g_indices : array-like
-
+        Indicies of spots to be considered
     g_hkls_array : array-like
-
-    debye_waller_factors : bool
-
-    scattering_params :
-
-    prefactor :
-
+        coordinates of spots to be considered
+    debye_waller_factors : dict of str:value pairs
+        Maps element names to their temperature-dependent Debye-Waller factors.
+    scattering_params : str
+        "lobato" or "xtables"
+    prefactor : array-like
+        multiplciation factor for structure factor
     Returns
     -------
     peak_intensities : array-like
