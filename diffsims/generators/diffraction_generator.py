@@ -59,6 +59,8 @@ class DiffractionGenerator(object):
     ----------
     accelerating_voltage : float
         The accelerating voltage of the microscope in kV.
+    max_excitation_error : float
+        Removed in this version, defaults to None
     debye_waller_factors : dict of str:value pairs
         Maps element names to their temperature-dependent Debye-Waller factors.
     scattering_params : str
@@ -68,11 +70,11 @@ class DiffractionGenerator(object):
     def __init__(
         self,
         accelerating_voltage,
+        max_excitation_error=None,
         debye_waller_factors={},
-        scattering_params="lobato",
-        *args
+        scattering_params="lobato"
     ):
-        if args:
+        if max_excitation_error is not None:
             print(
                 "This class changed in v0.3 and no longer takes a maximum_excitation_error"
             )
