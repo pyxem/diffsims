@@ -90,7 +90,6 @@ def test_kinematic_simulator_plane_wave():
     sim = simulate_kinematic_scattering(
         atomic_coordinates, "Si", 300.0, simulation_size=32
     )
-    # assert isinstance(sim, ElectronDiffraction)
 
 
 def test_kinematic_simulator_gaussian_probe():
@@ -102,7 +101,6 @@ def test_kinematic_simulator_gaussian_probe():
         simulation_size=32,
         illumination="gaussian_probe",
     )
-    # assert isinstance(sim, ElectronDiffraction)
 
 
 def test_kinematic_simulator_xtables_scattering_params():
@@ -115,7 +113,6 @@ def test_kinematic_simulator_xtables_scattering_params():
         illumination="gaussian_probe",
         scattering_params="xtables",
     )
-    # assert isinstance(sim, ElectronDiffraction)
 
 
 @pytest.mark.xfail(raises=NotImplementedError)
@@ -129,7 +126,6 @@ def test_kinematic_simulator_invalid_scattering_params():
         illumination="gaussian_probe",
         scattering_params="_empty",
     )
-    # assert isinstance(sim, ElectronDiffraction)
 
 
 @pytest.mark.xfail(raises=ValueError)
@@ -138,7 +134,6 @@ def test_kinematic_simulator_invalid_illumination():
     sim = simulate_kinematic_scattering(
         atomic_coordinates, "Si", 300.0, simulation_size=32, illumination="gaussian"
     )
-    # assert isinstance(sim, ElectronDiffraction)
 
 
 @pytest.mark.parametrize(
@@ -149,7 +144,7 @@ def test_uvtw_to_uvw(uvtw, uvw):
     val = uvtw_to_uvw(uvtw)
     np.testing.assert_almost_equal(val, uvw)
 
-    
+
 class TestHolzCalibration:
     def test_get_holz_angle(self):
         wavelength = 2.51 / 1000
@@ -332,9 +327,8 @@ def test_get_kinematical_intensities(default_structure):
                     default_structure,
                     g_indices=unique_hkls,
                     g_hkls_array=g_hkls_array,
-                    debye_waller_factors={1:1},
-                    multiplicites=multiplicites,
-                    scattering_params="lobato",
-                    shape_factor=1,
+                    debye_waller_factors={"Al":1},
+                    prefactor=multiplicites,
+                    scattering_params="lobato"
                     )
     np.testing.assert_array_almost_equal(i_hkls, ([43.0979]), decimal=4)
