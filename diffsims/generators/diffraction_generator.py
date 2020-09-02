@@ -210,6 +210,7 @@ class DiffractionGenerator(object):
         max_r = reciprocal_radius
         wavelength = self.wavelength
         scattering_params = self.scattering_params
+        debye_waller_factors = self.debye_waller_factors
 
         latt = structure.lattice
         is_hex = is_lattice_hexagonal(latt)
@@ -221,23 +222,17 @@ class DiffractionGenerator(object):
         )
 
         ##spot_indicies is a numpy.array of the hkls allowd in the recip radius
-        unique_hkls, multiplicites, g_hkls = get_intensities_params(
+        g_indices, multiplicites, g_hkls = get_intensities_params(
             recip_latt, reciprocal_radius
         )
-        g_indices = unique_hkls
-        debye_waller_factors = self.debye_waller_factors
-        excitation_error = None
-        max_excitation_error = None
-        g_hkls_array = np.asarray(g_hkls)
 
         i_hkl = get_kinematical_intensities(
             structure,
             g_indices,
-            g_hkls_array,
+            np.asarray(g_hkls),
+            prefactor=multiplicities
             debye_waller_factors,
-            multiplicites,
             scattering_params,
-            shape_factor=1,
         )
 
         if is_hex:
