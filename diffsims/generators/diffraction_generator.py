@@ -344,15 +344,15 @@ class AtomicDiffractionGenerator:
             detector mesh.
 
         """
+
+        species = structure.element
+        coordinates = structure.xyz_cartn.reshape(species.size, -1)
         dim = coordinates.shape[1]
 
         if not ZERO > 0:
             raise ValueError("The value of the ZERO argument must be greater than 0")
         if not dim == 3:
             raise ValueError("This code currently only supports structure represented in 3D")
-
-        species = structure.element
-        coordinates = structure.xyz_cartn.reshape(species.size, -1)
 
         if probe_centre is None:
             probe_centre = np.zeros(dim)
