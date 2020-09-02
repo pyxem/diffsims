@@ -84,7 +84,7 @@ class DiffractionGenerator(object):
             )
 
     def calculate_ed_data(
-        self, structure, reciprocal_radius, rotation=(0, 0, 0), excitation_function=linear, max_excitation_error=1e-2, with_direct_beam=True,
+        self, structure, reciprocal_radius, rotation=(0, 0, 0), excitation_function="linear", max_excitation_error=1e-2, with_direct_beam=True,
     **kwargs):
         """Calculates the Electron Diffraction data for a structure.
 
