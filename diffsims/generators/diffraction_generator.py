@@ -77,8 +77,15 @@ class DiffractionGenerator(object):
                 "This class changed in v0.3 and no longer takes a maximum_excitation_error"
             )
         self.wavelength = get_electron_wavelength(accelerating_voltage)
-        self.scatterng_params = get_scattering_params_dict(scattering_params)
         self.debye_waller_factors = debye_waller_factors
+        if scattering_params in ["lobato","xtables"]:
+            self.scattering_params = scattering_params
+        else:
+            raise NotImplementedError(
+                "The scattering parameters `{}` is not implemented. "
+                "See documentation for available "
+                "implementations.".format(scattering_params)
+            )
 
     def calculate_ed_data(
         self,
@@ -170,7 +177,6 @@ class DiffractionGenerator(object):
             prefactor=shape_factor,
             scattering_params=self.scattering_params,
             debye_waller_factors=self.debye_waller_factors,
-            **kwargs
         )
 
         # Threshold peaks included in simulation based on minimum intensity.
