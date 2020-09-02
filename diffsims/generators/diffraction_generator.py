@@ -58,7 +58,7 @@ class DiffractionGenerator(object):
     ----------
     accelerating_voltage : float
         The accelerating voltage of the microscope in kV.
-    debye_waller_factors : dict of str
+    debye_waller_factors : dict of str:value pairs
         Maps element names to their temperature-dependent Debye-Waller factors.
     scattering_params : str
         "lobato" or "xtables"
@@ -68,8 +68,10 @@ class DiffractionGenerator(object):
         self,
         accelerating_voltage,
         debye_waller_factors={},
-        scattering_params="lobato",
+        scattering_params="lobato", *args
     ):
+        if args:
+            print("This class changed in v0.3 and no longer takes a maximum_excitation_error")
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         self.debye_waller_factors = debye_waller_factors
 
@@ -151,7 +153,7 @@ class DiffractionGenerator(object):
 
         if excitation_function == "linear":
             shape_factor = 1 - (excitation_error / max_excitation_error)
-        elif excitation_function = "binary":
+        elif excitation_function == "binary":
             shape_factor = 1
         else:
             shape_factor = excitation_function(excitation_error,max_excitation_error,**kwargs)
@@ -350,12 +352,10 @@ class AtomicDiffractionGenerator:
 
         species = structure.element
         coordinates = structure.xyz_cartn.reshape(species.size, -1)
-        dim = coordinates.shape[1]
+        dim = coordinates.shape[1] #guarenteed to be 3
 
         if not ZERO > 0:
             raise ValueError("The value of the ZERO argument must be greater than 0")
-        if not dim == 3:
-            raise ValueError("This code currently only supports structure represented in 3D")
 
         if probe_centre is None:
             probe_centre = np.zeros(dim)

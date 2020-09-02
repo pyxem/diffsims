@@ -167,14 +167,15 @@ class TestDiffractionCalculatorAtomic:
             local_structure, probe, 1, mode="other"
         )
 
+    @pytest.mark.xfail(raises=ValueError,strict=True)
+    def test_bad_ZERO(self,diffraction_calculator_atomic,local_structure):
+        _ = diffraction_calculator_atomic.calculate_ed_data(local_structure,probe,1,ZERO=-1)
 
-scattering_params = ["lobato", "xtables"]
 
 
-@pytest.mark.parametrize("scattering_param", scattering_params)
+@pytest.mark.parametrize("scattering_param",["lobato", "xtables"])
 def test_param_check(scattering_param):
     generator = DiffractionGenerator(300,scattering_params=scattering_param)
-
 
 @pytest.mark.xfail(raises=NotImplementedError)
 def test_invalid_scattering_params():
@@ -186,9 +187,3 @@ def test_invalid_scattering_params():
 def test_param_check_atomic(shape):
     detector = [np.linspace(-1, 1, s) for s in shape]
     generator = AtomicDiffractionGenerator(300, detector, True)
-
-
-@pytest.mark.xfail(raises=NotImplementedError)
-def test_invalid_scattering_params_atomic():
-    detector = [np.linspace(-1, 1, 10)] * 2
-    generator = AtomicDiffractionGenerator(300, detector)
