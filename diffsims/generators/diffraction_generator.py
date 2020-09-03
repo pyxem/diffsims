@@ -94,7 +94,7 @@ class DiffractionGenerator(object):
         structure,
         reciprocal_radius,
         rotation=(0, 0, 0),
-        excitation_function="linear",
+        shape_factor_model="linear",
         max_excitation_error=1e-2,
         with_direct_beam=True,
         **kwargs
@@ -113,7 +113,7 @@ class DiffractionGenerator(object):
         rotation : tuple
             Euler angles, in degrees, in the rzxz convention. Default is (0,0,0)
             which aligns 'z' with the electron beam
-        excitation_function : function or str
+        shape_factor_model : function or str
             a function that takes excitation_error and max_excitation_error (and potentially **kwargs) and returns an intensity
             scaling factor. The code provides "linear" and "binary" options accessed with by parsing the associated strings
         max_excitation_error : float
@@ -122,7 +122,7 @@ class DiffractionGenerator(object):
             If True, the direct beam is included in the simulated diffraction
             pattern. If False, it is not.
         **kwargs :
-            passed to excitation_function
+            passed to shape_factor_model
 
         Returns
         -------
@@ -162,12 +162,12 @@ class DiffractionGenerator(object):
         excitation_error = excitation_error[intersection]
         g_hkls = spot_distances[intersection]
 
-        if excitation_function == "linear":
+        if shape_factor_model == "linear":
             shape_factor = 1 - (excitation_error / max_excitation_error)
-        elif excitation_function == "binary":
+        elif shape_factor_model == "binary":
             shape_factor = 1
         else:
-            shape_factor = excitation_function(
+            shape_factor = shape_factor_model(
                 excitation_error, max_excitation_error, **kwargs
             )
 

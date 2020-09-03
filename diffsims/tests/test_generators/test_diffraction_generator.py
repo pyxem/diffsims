@@ -129,14 +129,14 @@ class TestDiffractionCalculator:
         self, diffraction_calculator, local_structure, string
     ):
         _ = diffraction_calculator.calculate_ed_data(
-            local_structure, 2, excitation_function=string
+            local_structure, 2, shape_factor_model=string
         )
 
     def test_shape_factor_custom(self, diffraction_calculator, local_structure):
         def local_excite(excitation_error, maximum_excitation_error, t):
             return (np.sin(t) * excitation_error) / maximum_excitation_error
 
-        _ = diffraction_calculator.calculate_ed_data(local_structure, 2,excitation_function=local_excite, t=0.2)
+        _ = diffraction_calculator.calculate_ed_data(local_structure, 2,shape_factor_model=local_excite, t=0.2)
 
     def test_calculate_profile_class(self, local_structure, diffraction_calculator):
         # tests the non-hexagonal (cubic) case
