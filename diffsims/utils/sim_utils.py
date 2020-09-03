@@ -222,10 +222,9 @@ def get_kinematical_intensities(
     structure,
     g_indices,
     g_hkls_array,
-    debye_waller_factors,
-    multiplicites,
-    scattering_params,
-    shape_factor,
+    debye_waller_factors={},
+    scattering_params="lobato",
+    prefactor=1,
 ):
 
     """Calculates peak intensities.
@@ -238,13 +237,16 @@ def get_kinematical_intensities(
     ----------
     structure : Structure
         The structure for which to derive the structure factors.
-    indices : array-like
-        The fractional coordinates of the peaks for which to calculate the
-        structure factor.
-    proximities : array-like
-        The distances between the Ewald sphere and the peak centers.
-    shape_factor_use : bool
-        True if the shape factor correction needs to be used
+    g_indices : array-like
+        Indicies of spots to be considered
+    g_hkls_array : array-like
+        coordinates of spots to be considered
+    debye_waller_factors : dict of str:value pairs
+        Maps element names to their temperature-dependent Debye-Waller factors.
+    scattering_params : str
+        "lobato" or "xtables"
+    prefactor : array-like
+        multiplciation factor for structure factor
     Returns
     -------
     peak_intensities : array-like
@@ -287,14 +289,10 @@ def get_kinematical_intensities(
         axis=-1,
     )
 
-    # Define an intensity scaling that is linear with distance from Ewald sphere
-    # along the beam direction.
-
-    prefactor = shape_factor * multiplicites
-
-    # Calculate the peak intensities from the structure factor and excitation
+    # Calculate the peak intensities from the structure factor and prefactor
     peak_intensities = prefactor * (f_hkls * f_hkls.conjugate()).real
     return peak_intensities
+
 
 def simulate_kinematic_scattering(
     atomic_coordinates,
@@ -497,6 +495,7 @@ def get_intensities_params(reciprocal_lattice, reciprocal_radius):
         g_hkls.append(dict_i_to_d[tuple(unique_hkl)])
 
     return unique_hkls, multiplicites, g_hkls
+
 
 def get_holz_angle(electron_wavelength, lattice_parameter):
     """ Converts electron wavelength and lattice paramater to holz angle

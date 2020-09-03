@@ -28,11 +28,9 @@ from diffsims.generators.diffraction_generator import (
 import diffpy.structure
 
 
-@pytest.fixture(
-    params=[(300, 0.02, None),]
-)
+@pytest.fixture(params=[(300)])
 def diffraction_calculator(request):
-    return DiffractionGenerator(*request.param)
+    return DiffractionGenerator(request.param)
 
 
 @pytest.fixture(params=[(300, [np.linspace(-1, 1, 10)] * 2)])
@@ -87,6 +85,7 @@ def probe(x, out=None, scale=None):
 class TestDiffractionCalculator:
     def test_init(self, diffraction_calculator: DiffractionGenerator):
         assert diffraction_calculator.debye_waller_factors == {}
+        _ = DiffractionGenerator(300, 2)
 
     def test_matching_results(self, diffraction_calculator, local_structure):
         diffraction = diffraction_calculator.calculate_ed_data(
@@ -125,6 +124,20 @@ class TestDiffractionCalculator:
         )
         assert np.all(smaller)
 
+    @pytest.mark.parametrize("string", ["linear", "binary"])
+    def test_shape_factor_strings(
+        self, diffraction_calculator, local_structure, string
+    ):
+        _ = diffraction_calculator.calculate_ed_data(
+            local_structure, 2, shape_factor_model=string
+        )
+
+    def test_shape_factor_custom(self, diffraction_calculator, local_structure):
+        def local_excite(excitation_error, maximum_excitation_error, t):
+            return (np.sin(t) * excitation_error) / maximum_excitation_error
+
+        _ = diffraction_calculator.calculate_ed_data(local_structure, 2,shape_factor_model=local_excite, t=0.2)
+
     def test_calculate_profile_class(self, local_structure, diffraction_calculator):
         # tests the non-hexagonal (cubic) case
         profile = diffraction_calculator.calculate_profile_data(
@@ -143,7 +156,6 @@ class TestDiffractionCalculator:
 
 class TestDiffractionCalculatorAtomic:
     def test_init(self, diffraction_calculator_atomic: AtomicDiffractionGenerator):
-        assert diffraction_calculator_atomic.debye_waller_factors == {}
         assert len(diffraction_calculator_atomic.detector) == 2
 
     def test_shapes(self, diffraction_calculator_atomic, local_structure, precessed):
@@ -168,28 +180,25 @@ class TestDiffractionCalculatorAtomic:
             local_structure, probe, 1, mode="other"
         )
 
+    @pytest.mark.xfail(raises=ValueError, strict=True)
+    def test_bad_ZERO(self, diffraction_calculator_atomic, local_structure):
+        _ = diffraction_calculator_atomic.calculate_ed_data(
+            local_structure, probe, 1, ZERO=-1
+        )
 
-scattering_params = ["lobato", "xtables"]
 
-
-@pytest.mark.parametrize("scattering_param", scattering_params)
+@pytest.mark.parametrize("scattering_param", ["lobato", "xtables"])
 def test_param_check(scattering_param):
-    generator = DiffractionGenerator(300, 0.2, None, scattering_params=scattering_param)
+    generator = DiffractionGenerator(300, scattering_params=scattering_param)
 
 
 @pytest.mark.xfail(raises=NotImplementedError)
 def test_invalid_scattering_params():
     scattering_param = "_empty"
-    generator = DiffractionGenerator(300, 0.2, None, scattering_params=scattering_param)
+    generator = DiffractionGenerator(300, scattering_params=scattering_param)
 
 
 @pytest.mark.parametrize("shape", [(10, 20), (20, 10)])
 def test_param_check_atomic(shape):
     detector = [np.linspace(-1, 1, s) for s in shape]
     generator = AtomicDiffractionGenerator(300, detector, True)
-
-
-@pytest.mark.xfail(raises=NotImplementedError)
-def test_invalid_scattering_params_atomic():
-    detector = [np.linspace(-1, 1, 10)] * 2
-    generator = AtomicDiffractionGenerator(300, detector, debye_waller_factors=True)

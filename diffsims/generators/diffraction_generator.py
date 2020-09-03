@@ -36,6 +36,7 @@ from diffsims.utils.sim_utils import (
     get_vectorized_list_for_atomic_scattering_factors,
     is_lattice_hexagonal,
     get_intensities_params,
+    get_scattering_params_dict
 )
 from diffsims.utils.fourier_transform import from_recip
 
@@ -59,29 +60,28 @@ class DiffractionGenerator(object):
     accelerating_voltage : float
         The accelerating voltage of the microscope in kV.
     max_excitation_error : float
-        The maximum extent of the relrods in reciprocal angstroms. Typically
-        equal to 1/{specimen thickness}.
-    debye_waller_factors : dict of str : float
+        Removed in this version, defaults to None
+    debye_waller_factors : dict of str:value pairs
         Maps element names to their temperature-dependent Debye-Waller factors.
-
+    scattering_params : str
+        "lobato" or "xtables"
     """
-
-    # TODO: Refactor the excitation error to a structure property.
 
     def __init__(
         self,
         accelerating_voltage,
-        max_excitation_error,
-        debye_waller_factors=None,
-        scattering_params="lobato",
+        max_excitation_error=None,
+        debye_waller_factors={},
+        scattering_params="lobato"
     ):
+        if max_excitation_error is not None:
+            print(
+                "This class changed in v0.3 and no longer takes a maximum_excitation_error"
+            )
         self.wavelength = get_electron_wavelength(accelerating_voltage)
-        self.max_excitation_error = max_excitation_error
-        self.debye_waller_factors = debye_waller_factors or {}
-
-        scattering_params_dict = {"lobato": "lobato", "xtables": "xtables"}
-        if scattering_params in scattering_params_dict:
-            self.scattering_params = scattering_params_dict[scattering_params]
+        self.debye_waller_factors = debye_waller_factors
+        if scattering_params in ["lobato","xtables"]:
+            self.scattering_params = scattering_params
         else:
             raise NotImplementedError(
                 "The scattering parameters `{}` is not implemented. "
@@ -90,7 +90,14 @@ class DiffractionGenerator(object):
             )
 
     def calculate_ed_data(
-        self, structure, reciprocal_radius, rotation=(0, 0, 0), with_direct_beam=True
+        self,
+        structure,
+        reciprocal_radius,
+        rotation=(0, 0, 0),
+        shape_factor_model="linear",
+        max_excitation_error=1e-2,
+        with_direct_beam=True,
+        **kwargs
     ):
         """Calculates the Electron Diffraction data for a structure.
 
@@ -106,9 +113,16 @@ class DiffractionGenerator(object):
         rotation : tuple
             Euler angles, in degrees, in the rzxz convention. Default is (0,0,0)
             which aligns 'z' with the electron beam
+        shape_factor_model : function or str
+            a function that takes excitation_error and max_excitation_error (and potentially **kwargs) and returns an intensity
+            scaling factor. The code provides "linear" and "binary" options accessed with by parsing the associated strings
+        max_excitation_error : float
+            the exctinction distance for reflections, in reciprocal Angstroms
         with_direct_beam : bool
             If True, the direct beam is included in the simulated diffraction
             pattern. If False, it is not.
+        **kwargs :
+            passed to shape_factor_model
 
         Returns
         -------
@@ -118,12 +132,9 @@ class DiffractionGenerator(object):
         """
         # Specify variables used in calculation
         wavelength = self.wavelength
-        max_excitation_error = self.max_excitation_error
-        debye_waller_factors = self.debye_waller_factors
         latt = structure.lattice
-        scattering_params = self.scattering_params
 
-        # Obtain crystallographic reciprocal lattice points within `max_r` and
+        # Obtain crystallographic reciprocal lattice points within `reciprocal_radius` and
         # g-vector magnitudes for intensity calculations.
         recip_latt = latt.reciprocal()
         spot_indices, cartesian_coordinates, spot_distances = get_points_in_sphere(
@@ -150,19 +161,24 @@ class DiffractionGenerator(object):
         g_indices = spot_indices[intersection]
         excitation_error = excitation_error[intersection]
         g_hkls = spot_distances[intersection]
-        multiplicites = np.ones_like(g_hkls)
 
-        shape_factor = 1 - (excitation_error / max_excitation_error)
+        if shape_factor_model == "linear":
+            shape_factor = 1 - (excitation_error / max_excitation_error)
+        elif shape_factor_model == "binary":
+            shape_factor = 1
+        else:
+            shape_factor = shape_factor_model(
+                excitation_error, max_excitation_error, **kwargs
+            )
 
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(
             structure,
             g_indices,
             g_hkls,
-            debye_waller_factors,
-            multiplicites,
-            scattering_params,
-            shape_factor,
+            prefactor=shape_factor,
+            scattering_params=self.scattering_params,
+            debye_waller_factors=self.debye_waller_factors,
         )
 
         # Threshold peaks included in simulation based on minimum intensity.
@@ -197,7 +213,7 @@ class DiffractionGenerator(object):
             reciprocal angstroms.
         magnitude_tolerance : float
             The minimum difference between diffraction magnitudes in reciprocal
-            angstroms for two peaks to be consdiered different.
+            angstroms for two peaks to be considered different.
         minimum_intensity : float
             The minimum intensity required for a diffraction peak to be
             considered real. Deals with numerical precision issues.
@@ -208,12 +224,8 @@ class DiffractionGenerator(object):
             The diffraction profile corresponding to this structure and
             experimental conditions.
         """
-        max_r = reciprocal_radius
         wavelength = self.wavelength
-        scattering_params = self.scattering_params
-
         latt = structure.lattice
-        is_hex = is_lattice_hexagonal(latt)
 
         # Obtain crystallographic reciprocal lattice points within range
         recip_latt = latt.reciprocal()
@@ -222,30 +234,29 @@ class DiffractionGenerator(object):
         )
 
         ##spot_indicies is a numpy.array of the hkls allowd in the recip radius
-        unique_hkls, multiplicites, g_hkls = get_intensities_params(
+        g_indices, multiplicities, g_hkls = get_intensities_params(
             recip_latt, reciprocal_radius
         )
-        g_indices = unique_hkls
-        debye_waller_factors = self.debye_waller_factors
-        excitation_error = None
-        max_excitation_error = None
-        g_hkls_array = np.asarray(g_hkls)
 
         i_hkl = get_kinematical_intensities(
             structure,
             g_indices,
-            g_hkls_array,
-            debye_waller_factors,
-            multiplicites,
-            scattering_params,
-            shape_factor=1,
+            np.asarray(g_hkls),
+            prefactor=multiplicities,
+            scattering_params=self.scattering_params,
+            debye_waller_factors=self.debye_waller_factors,
         )
 
-        if is_hex:
+        if is_lattice_hexagonal(latt):
             # Use Miller-Bravais indices for hexagonal lattices.
-            g_indices = (g_indices[0], g_indices[1], -g_indices[0] - g_indices[1], g_indices[2])
+            g_indices = (
+                g_indices[0],
+                g_indices[1],
+                -g_indices[0] - g_indices[1],
+                g_indices[2],
+            )
 
-        hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in unique_hkls]
+        hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in g_indices]
 
         peaks = {}
         for l, i, g in zip(hkls_labels, i_hkl, g_hkls):
@@ -285,20 +296,10 @@ class AtomicDiffractionGenerator:
 
     """
 
-    def __init__(
-        self,
-        accelerating_voltage,
-        detector,
-        reciprocal_mesh=False,
-        debye_waller_factors=None,
-    ):
+    def __init__(self, accelerating_voltage, detector, reciprocal_mesh=False):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         # Always store a 'real' mesh
         self.detector = detector if not reciprocal_mesh else from_recip(detector)
-
-        if debye_waller_factors:
-            raise NotImplementedError("Not implemented for this simulator")
-        self.debye_waller_factors = debye_waller_factors or {}
 
     def calculate_ed_data(
         self,
@@ -319,10 +320,8 @@ class AtomicDiffractionGenerator:
 
         Parameters
         ----------
-        coordinates : ndarray of floats, shape [n_atoms, 3]
-            List of atomic coordinates, i.e. atom i is centred at <coordinates>[i]
-        species : ndarray of integers, shape [n_atoms]
-            List of atomic numbers, i.e. atom i has atomic number <species>[i]
+        structure : Structure
+            The structure for upon which to perform the calculation
         probe : instance of probeFunction
             Function representing 3D shape of beam
         slice_thickness : float
@@ -366,14 +365,16 @@ class AtomicDiffractionGenerator:
 
         species = structure.element
         coordinates = structure.xyz_cartn.reshape(species.size, -1)
-        dim = coordinates.shape[1]
-        assert dim == 3
+        dim = coordinates.shape[1]  # guarenteed to be 3
+
+        if not ZERO > 0:
+            raise ValueError("The value of the ZERO argument must be greater than 0")
 
         if probe_centre is None:
             probe_centre = np.zeros(dim)
-        elif len(probe_centre) < dim:
+        elif len(probe_centre) == (dim - 1):
             probe_centre = np.array(list(probe_centre) + [0])
-        probe_centre = np.array(probe_centre)
+
         coordinates = coordinates - probe_centre[None]
 
         if not precessed:
@@ -384,8 +385,6 @@ class AtomicDiffractionGenerator:
         dtype = np.dtype(dtype)
         dtype = round(dtype.itemsize / (1 if dtype.kind == "f" else 2))
         dtype = "f" + str(dtype), "c" + str(2 * dtype)
-
-        assert ZERO > 0
 
         # Filter list of atoms
         for d in range(dim - 1):

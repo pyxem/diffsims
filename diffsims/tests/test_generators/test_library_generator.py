@@ -27,7 +27,7 @@ from diffsims.libraries.structure_library import StructureLibrary
 
 @pytest.fixture
 def diffraction_calculator():
-    return DiffractionGenerator(300.0, 0.02)
+    return DiffractionGenerator(300.0)
 
 
 @pytest.fixture
