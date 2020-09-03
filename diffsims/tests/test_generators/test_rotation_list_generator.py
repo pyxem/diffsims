@@ -30,7 +30,7 @@ from diffsims.generators.rotation_list_generators import (
     "grid",
     [
         pytest.param(
-            get_local_grid(resolution=30, center=None, grid_width=35),
+            get_local_grid(resolution=30, center=(0,1,0), grid_width=35),
             marks=pytest.mark.xfail(reason="Downstream bug"),
         ),
         get_fundamental_zone_grid(space_group=20, resolution=20),
@@ -41,14 +41,12 @@ def test_get_grid(grid):
     assert len(grid) > 0
     assert isinstance(grid[0], tuple)
 
-
-@pytest.mark.xfail(reason="Functionality removed")
 def test_get_grid_around_beam_direction():
-    grid_simple = get_grid_around_beam_direction([1, 1, 1], 1, (0, 360))
-    assert isinstance(grid_simple, list)
-    assert isinstance(grid_simple[0], tuple)
-    assert len(grid_simple) == 360
-
+    grid = get_grid_around_beam_direction((0,90,0),resolution=2,angular_range=(0,9))
+    assert isinstance(grid, list)
+    assert isinstance(grid[0], tuple)
+    assert len(grid) == 5 # should have 0,2,4,6 and 8
+    assert np.allclose([x[1] for x in grid],90) #taking z to y
 
 @pytest.mark.parametrize(
     "crystal_system",

@@ -25,6 +25,9 @@ import warnings
 from itertools import product
 
 from orix.sampling.sample_generators import get_sample_fundamental, get_sample_local
+from orix.quaternion.rotation import Rotation
+from orix.vector.neo_euler import AxAngle
+from orix.vector import Vector3d
 
 from transforms3d.euler import euler2axangle, axangle2euler
 from transforms3d.euler import axangle2euler, euler2axangle, euler2mat
@@ -65,7 +68,7 @@ def get_list_from_orix(grid, rounding=2):
     rotation_list = z.data.tolist()
     i = 0
     while i < len(rotation_list):
-        rotation_list[i] = tuple(np.round(rotation_list[i], decimals=rounding))
+        rotation_list[i] = tuple(np.round(np.rad2deg(rotation_list[i]), decimals=rounding))
         i += 1
 
     return rotation_list
@@ -103,18 +106,19 @@ def get_local_grid(resolution=2, center=None, grid_width=10):
     ----------
     resolution : float, optional
         The characteristic distance between a rotation and its neighbour (degrees)
-    center : orix.quaternion.rotation.Rotation, optional
+    center : euler angle tuple or orix.quaternion.rotation.Rotation, optional
         The rotation at which the grid is centered. If None (default) uses the identity
     grid_width : float, optional
         The largest angle of rotation away from center that is acceptable (degrees)
-
-    See Also
-    --------
 
     Returns
     -------
     rotation_list : list of tuples
     """
+    if isinstance(center,tuple):
+        z = np.deg2rad(np.asarray(center))
+        center = Rotation.from_euler(z,convention="bunge",direction="crystal2lab")
+
     orix_grid = get_sample_local(
         resolution=resolution, center=center, grid_width=grid_width
     )
@@ -147,13 +151,15 @@ def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 
     >>> beam_rotation = get_rotation_from_z_to_direction(structure,[1,1,1])
     >>> grid = get_grid_around_beam_direction(beam_rotation,1)
     """
+    z = np.deg2rad(np.asarray(beam_rotation))
+    beam_rotation = Rotation.from_euler(z,convention="bunge",direction="crystal2lab")
 
-    beam_rotation = np.deg2rad(beam_rotation)
-    axangle = euler2axangle(
-        beam_rotation[0], beam_rotation[1], beam_rotation[2], "rzxz"
-    )
-    rotation_list = None
-    raise NotImplementedError("This functionality will be (re)added in future")
+    angles = np.deg2rad(np.arange(start=angular_range[0],stop=angular_range[1],step=resolution))
+    axes   = np.repeat([[0,0,1]],angles.shape[0],axis=0)
+    in_plane_rotation = Rotation.from_neo_euler(AxAngle.from_axes_angles(axes,angles))
+
+    orix_grid = beam_rotation * in_plane_rotation
+    rotation_list = get_list_from_orix(orix_grid,rounding=2)
     return rotation_list
 
 
