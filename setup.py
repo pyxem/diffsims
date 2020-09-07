@@ -51,7 +51,7 @@ setup(
         "tqdm>=0.4.9",
         "transforms3d",
         "diffpy.structure>=3.0.0",  # First Python 3 support
-        "orix>=0.4.0",
+        "orix>=0.5.0",
         "numba",
         "psutil",
     ],
