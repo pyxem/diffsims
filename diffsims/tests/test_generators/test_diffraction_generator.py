@@ -26,6 +26,7 @@ from diffsims.generators.diffraction_generator import (
     AtomicDiffractionGenerator,
 )
 import diffpy.structure
+from diffsims.utils.shape_factor_models import linear, binary, sinc
 
 
 @pytest.fixture(params=[(300)])
@@ -124,19 +125,25 @@ class TestDiffractionCalculator:
         )
         assert np.all(smaller)
 
-    @pytest.mark.parametrize("string", ["linear", "binary"])
-    def test_shape_factor_strings(
-        self, diffraction_calculator, local_structure, string
-    ):
+    @pytest.mark.parametrize("model", [None, linear, binary, sinc])
+    def test_shape_factor_strings(self, diffraction_calculator, local_structure, model):
         _ = diffraction_calculator.calculate_ed_data(
-            local_structure, 2, shape_factor_model=string
+            local_structure, 2, shape_factor_model=model
         )
 
     def test_shape_factor_custom(self, diffraction_calculator, local_structure):
         def local_excite(excitation_error, maximum_excitation_error, t):
             return (np.sin(t) * excitation_error) / maximum_excitation_error
 
-        _ = diffraction_calculator.calculate_ed_data(local_structure, 2,shape_factor_model=local_excite, t=0.2)
+        t1 = diffraction_calculator.calculate_ed_data(
+            local_structure, 2, shape_factor_model=local_excite, t=0.2
+        )
+        t2 = diffraction_calculator.calculate_ed_data(
+            local_structure, 2, shape_factor_model=local_excite, t=0.4
+        )
+
+        # softly makes sure the two sims are different
+        assert np.sum(t1.intensities) != np.sum(t2.intensities)
 
     def test_calculate_profile_class(self, local_structure, diffraction_calculator):
         # tests the non-hexagonal (cubic) case
