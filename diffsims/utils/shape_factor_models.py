@@ -25,7 +25,7 @@ def binary(excitation_error, max_excitation_error):
 
     Parameters
     ----------
-    excitation_error : float
+    excitation_error : array-like or float
         The distance (reciprocal) from a reflection to the Ewald sphere
 
     max_excitation_error : float
@@ -33,7 +33,7 @@ def binary(excitation_error, max_excitation_error):
 
     Returns
     -------
-    intensity : float
+    intensities : array-like or float
     """
     return 1
 
@@ -44,7 +44,7 @@ def linear(excitation_error, max_excitation_error):
 
     Parameters
     ----------
-    excitation_error : float
+    excitation_error : array-like or float
         The distance (reciprocal) from a reflection to the Ewald sphere
 
     max_excitation_error : float
@@ -52,7 +52,7 @@ def linear(excitation_error, max_excitation_error):
 
     Returns
     -------
-    intensity : float
+    intensities : array-like or float
     """
 
     return 1 - excitation_error / max_excitation_error
@@ -64,7 +64,7 @@ def sinc(excitation_error, max_excitation_error, minima_number=5):
 
     Parameters
     ----------
-    excitation_error : float
+    excitation_error : array-like or float
         The distance (reciprocal) from a reflection to the Ewald sphere
 
     max_excitation_error : float
@@ -75,7 +75,7 @@ def sinc(excitation_error, max_excitation_error, minima_number=5):
 
     Returns
     -------
-    intensity : float
+    intensity : array-like or float
     """
 
     num = np.sin(np.pi * minima_number * excitation_error / max_excitation_error)
