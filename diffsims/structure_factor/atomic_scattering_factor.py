@@ -18,7 +18,7 @@
 
 import numpy as np
 
-from diffsims.diffraction.atomic_scattering_parameters import (
+from diffsims.structure_factor.atomic_scattering_parameters import (
     get_atomic_scattering_parameters,
     get_element_id_from_string,
 )
@@ -29,6 +29,8 @@ def get_kinematical_atomic_scattering_factor(atom, scattering_parameter):
     certain atom and scattering parameter.
 
     Assumes structure's Debye-Waller factors are expressed in Ångströms.
+
+    This function is adapted from EMsoft.
 
     Parameters
     ----------
@@ -68,6 +70,8 @@ def get_doyleturner_atomic_scattering_factor(
     [Doyle1968]_.
 
     Assumes structure's Debye-Waller factors are expressed in Ångströms.
+
+    This function is adapted from EMsoft.
 
     Parameters
     ----------

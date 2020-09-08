@@ -20,7 +20,7 @@ from diffpy.structure.symmetryutilities import expandPosition, SymmetryConstrain
 import numpy as np
 from scipy.constants import c, e, h, physical_constants
 
-from diffsims.diffraction.atomic_scattering_factor import (
+from diffsims.structure_factor.atomic_scattering_factor import (
     get_kinematical_atomic_scattering_factor,
     get_doyleturner_atomic_scattering_factor,
 )
@@ -58,6 +58,8 @@ def get_kinematical_structure_factor(phase, hkl, scattering_parameter):
 
     Assumes structure's lattice parameters and Debye-Waller factors are
     expressed in Ångströms.
+
+    This function is adapted from EMsoft.
 
     Parameters
     ----------
@@ -99,13 +101,19 @@ def get_kinematical_structure_factor(phase, hkl, scattering_parameter):
 
 
 def get_doyleturner_structure_factor(
-    phase, hkl, scattering_parameter, voltage, return_parameters=False,
+    phase,
+    hkl,
+    scattering_parameter,
+    voltage,
+    return_parameters=False,
 ):
     """Return the structure factor for a given family of Miller indices
     using Doyle-Turner atomic scattering parameters [Doyle1968]_.
 
     Assumes structure's lattice parameters and Debye-Waller factors are
     expressed in Ångströms.
+
+    This function is adapted from EMsoft.
 
     Parameters
     ----------
@@ -182,6 +190,8 @@ def get_doyleturner_structure_factor(
 def get_refraction_corrected_wavelength(phase, voltage):
     """Return the refraction corrected relativistic electron wavelength
     in Ångströms for a given crystal structure and beam energy in V.
+
+    This function is adapted from EMsoft.
 
     Parameters
     ----------

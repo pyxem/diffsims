@@ -18,15 +18,15 @@
 
 """Calculation of scattering factors and structure factors."""
 
-from diffsims.diffraction.atomic_scattering_factor import (
+from diffsims.structure_factor.atomic_scattering_factor import (
     get_doyleturner_atomic_scattering_factor,
     get_kinematical_atomic_scattering_factor,
 )
-from diffsims.diffraction.atomic_scattering_parameters import (
+from diffsims.structure_factor.atomic_scattering_parameters import (
     get_atomic_scattering_parameters,
     get_element_id_from_string,
 )
-from diffsims.diffraction.structure_factor import (
+from diffsims.structure_factor.structure_factor import (
     find_asymmetric_positions,
     get_doyleturner_structure_factor,
     get_kinematical_structure_factor,

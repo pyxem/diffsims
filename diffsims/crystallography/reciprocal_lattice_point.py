@@ -22,7 +22,7 @@ from itertools import product
 import numpy as np
 from orix.vector import Vector3d
 
-from diffsims.diffraction.structure_factor import (
+from diffsims.structure_factor.structure_factor import (
     get_kinematical_structure_factor,
     get_doyleturner_structure_factor,
     get_refraction_corrected_wavelength,
@@ -32,10 +32,10 @@ from diffsims.diffraction.structure_factor import (
 _FLOAT_EPS = np.finfo(np.float).eps  # Used to round values below 1e-16 to zero
 
 
-class CrystalPlane:
-    """Crystal plane (or reciprocal lattice point, reflectors, g, etc.)
+class ReciprocalLatticePoint:
+    """Reciprocal lattice point (or crystal plane, reflector, g, etc.)
     with Miller indices, length of the reciprocal lattice vectors and
-    other relevant diffraction parameters.
+    other relevant structure_factor parameters.
     """
 
     def __init__(self, phase, hkl):
@@ -65,7 +65,10 @@ class CrystalPlane:
 
     def __getitem__(self, key):
         new_cp = self.__class__(self.phase, self.hkl[key])
-        new_cp._structure_factor = self.structure_factor[key]
+        if self.structure_factor[0] is None:
+            new_cp._structure_factor = [None] * new_cp.size
+        else:
+            new_cp._structure_factor = self.structure_factor[key]
         return new_cp
 
     @property
@@ -134,7 +137,7 @@ class CrystalPlane:
 
     @property
     def allowed(self):
-        """Return whether planes diffract according to diffraction
+        """Return whether planes diffract according to structure_factor
         selection rules assuming kinematical scattering theory.
         """
         # Translational symmetry
@@ -203,10 +206,6 @@ class CrystalPlane:
         hkl = get_hkl(highest_hkl=highest_hkl)
         return cls(phase=phase, hkl=hkl).unique()
 
-    @classmethod
-    def from_nfamilies(cls, phase, nfamilies=5):
-        raise NotImplementedError
-
     def unique(self, use_symmetry=True):
         """Return planes with unique Miller indices.
 
@@ -218,7 +217,7 @@ class CrystalPlane:
 
         Returns
         -------
-        CrystalPlane
+        ReciprocalLatticePoint
         """
         if use_symmetry:
             all_hkl = self._hkldata
@@ -226,7 +225,7 @@ class CrystalPlane:
             families = defaultdict(list)
             for this_hkl in all_hkl.tolist():
                 for that_hkl in families.keys():
-                    if is_equivalent(this_hkl, that_hkl):
+                    if _is_equivalent(this_hkl, that_hkl):
                         families[tuple(that_hkl)].append(this_hkl)
                         break
                 else:
@@ -238,10 +237,14 @@ class CrystalPlane:
                 unique_hkl[i] = sorted(all_hkl_in_family)[-1]
         else:
             unique_hkl = self.hkl.unique()
+        # TODO: Enable inheriting classes pass on their properties in this new object
         return self.__class__(phase=self.phase, hkl=unique_hkl)
 
     def symmetrise(
-        self, antipodal=True, unique=True, return_multiplicity=False,
+        self,
+        antipodal=True,
+        unique=True,
+        return_multiplicity=False,
     ):
         """Return planes with symmetrically equivalent Miller indices.
 
@@ -260,7 +263,7 @@ class CrystalPlane:
 
         Returns
         -------
-        CrystalPlane
+        ReciprocalLatticePoint
             Planes with Miller indices symmetrically equivalent to the
             original planes.
         multiplicity : np.ndarray
@@ -283,6 +286,7 @@ class CrystalPlane:
             return_multiplicity=return_multiplicity,
         )
 
+        # TODO: Enable inheriting classes pass on their properties in this new object
         # Format output and return
         if unique and return_multiplicity:
             multiplicity = out[1]
@@ -322,11 +326,16 @@ class CrystalPlane:
         for i, (hkl, s) in enumerate(zip(hkls, scattering_parameters)):
             if method == "kinematical":
                 structure_factors[i] = get_kinematical_structure_factor(
-                    phase=phase, hkl=hkl, scattering_parameter=s,
+                    phase=phase,
+                    hkl=hkl,
+                    scattering_parameter=s,
                 )
             else:
                 structure_factors[i] = get_doyleturner_structure_factor(
-                    phase=phase, hkl=hkl, scattering_parameter=s, voltage=voltage,
+                    phase=phase,
+                    hkl=hkl,
+                    scattering_parameter=s,
+                    voltage=voltage,
                 )
         self._structure_factor = np.where(
             structure_factors < _FLOAT_EPS, 0, structure_factors
@@ -438,5 +447,5 @@ def get_equivalent_hkl(hkl, operations, unique=False, return_multiplicity=False)
         return new_hkl
 
 
-def is_equivalent(this_hkl: list, that_hkl: list) -> bool:
+def _is_equivalent(this_hkl: list, that_hkl: list) -> bool:
     return sorted(np.abs(this_hkl)) == sorted(np.abs(that_hkl))

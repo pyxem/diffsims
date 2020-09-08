@@ -16,17 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Generation of crystal planes hkl for a crystal structure."""
+"""Generation of reciprocal lattice points (crystal plane, reflector, g,
+hkl) for a crystal structure.
+"""
 
-from diffsims.crystallography.crystal_plane import (
-    CrystalPlane,
+from diffsims.crystallography.reciprocal_lattice_point import (
+    ReciprocalLatticePoint,
     get_equivalent_hkl,
     get_highest_hkl,
     get_hkl,
 )
 
 __all__ = [
-    "CrystalPlane",
+    "ReciprocalLatticePoint",
     "get_equivalent_hkl",
     "get_highest_hkl",
     "get_hkl",

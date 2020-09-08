@@ -17,10 +17,6 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import os
-import warnings
-
-import numpy as np
 
 from .generators.diffraction_generator import (
     DiffractionGenerator,
@@ -44,6 +40,8 @@ from .utils.atomic_diffraction_generator_support.fourier_transform import (
 from .utils.atomic_diffraction_generator_support.discretise_utils import (
     get_discretisation,
 )
+from .crystallography import *  # What's imported is specified in the modules' init
+from .structure_factor import *  # What's imported is specified in the modules' init
 
 from . import release_info
 
