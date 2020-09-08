@@ -19,7 +19,7 @@
 import pytest
 import numpy as np
 import diffpy
-import scipy.constants as sc
+from transforms3d.euler import euler2mat
 
 
 from diffsims.utils.sim_utils import (
@@ -42,7 +42,9 @@ from diffsims.utils.sim_utils import (
     et_to_beta,
     acceleration_voltage_to_wavelength,
     diffraction_scattering_angle,
+    get_intensities_params,
 )
+from diffsims.tests.test_generators.test_diffraction_generator import make_structure
 
 
 @pytest.mark.parametrize(
@@ -86,7 +88,6 @@ def test_kinematic_simulator_plane_wave():
     sim = simulate_kinematic_scattering(
         atomic_coordinates, "Si", 300.0, simulation_size=32
     )
-    # assert isinstance(sim, ElectronDiffraction)
 
 
 def test_kinematic_simulator_gaussian_probe():
@@ -98,7 +99,6 @@ def test_kinematic_simulator_gaussian_probe():
         simulation_size=32,
         illumination="gaussian_probe",
     )
-    # assert isinstance(sim, ElectronDiffraction)
 
 
 def test_kinematic_simulator_xtables_scattering_params():
@@ -111,7 +111,6 @@ def test_kinematic_simulator_xtables_scattering_params():
         illumination="gaussian_probe",
         scattering_params="xtables",
     )
-    # assert isinstance(sim, ElectronDiffraction)
 
 
 @pytest.mark.xfail(raises=NotImplementedError)
@@ -125,7 +124,6 @@ def test_kinematic_simulator_invalid_scattering_params():
         illumination="gaussian_probe",
         scattering_params="_empty",
     )
-    # assert isinstance(sim, ElectronDiffraction)
 
 
 @pytest.mark.xfail(raises=ValueError)
@@ -134,7 +132,6 @@ def test_kinematic_simulator_invalid_illumination():
     sim = simulate_kinematic_scattering(
         atomic_coordinates, "Si", 300.0, simulation_size=32, illumination="gaussian"
     )
-    # assert isinstance(sim, ElectronDiffraction)
 
 
 @pytest.mark.parametrize(
@@ -308,3 +305,34 @@ class TestDiffractionScatteringAngle:
         assert len(scattering_angle) == 2
         sa_known = np.array([9.84e-3, 6.56e-3])
         assert np.allclose(sa_known, scattering_angle, rtol=0.001)
+
+
+def test_get_intensities_params(default_structure):
+    latt = default_structure.lattice
+    reciprocal_lattice = latt.reciprocal()
+    reciprocal_radius = 0.2
+    unique_hkls, multiplicites, g_hkls = get_intensities_params(
+        reciprocal_lattice, reciprocal_radius
+    )
+    np.testing.assert_equal(multiplicites, ([1.0]))
+    np.testing.assert_equal(g_hkls, [0.0])
+    np.testing.assert_array_equal(unique_hkls, [[-0.0, -0.0, 0.0]])
+
+
+def test_get_kinematical_intensities(default_structure):
+    latt = default_structure.lattice
+    reciprocal_lattice = latt.reciprocal()
+    reciprocal_radius = 0.2
+    unique_hkls, multiplicites, g_hkls = get_intensities_params(
+        reciprocal_lattice, reciprocal_radius
+    )
+    g_hkls_array = np.asarray(g_hkls)
+    i_hkls = get_kinematical_intensities(
+        default_structure,
+        g_indices=unique_hkls,
+        g_hkls_array=g_hkls_array,
+        debye_waller_factors={"Al": 1},
+        prefactor=multiplicites,
+        scattering_params="lobato",
+    )
+    np.testing.assert_array_almost_equal(i_hkls, ([43.0979]), decimal=4)

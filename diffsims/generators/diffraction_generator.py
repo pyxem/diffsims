@@ -35,10 +35,11 @@ from diffsims.utils.sim_utils import (
     get_points_in_sphere,
     get_vectorized_list_for_atomic_scattering_factors,
     is_lattice_hexagonal,
+    get_intensities_params,
+    get_scattering_params_dict,
 )
-from diffsims.utils.atomic_diffraction_generator_support.fourier_transform import (
-    from_recip,
-)
+from diffsims.utils.fourier_transform import from_recip
+from diffsims.utils.shape_factor_models import linear, binary, sinc
 
 
 class DiffractionGenerator(object):
@@ -60,29 +61,28 @@ class DiffractionGenerator(object):
     accelerating_voltage : float
         The accelerating voltage of the microscope in kV.
     max_excitation_error : float
-        The maximum extent of the relrods in reciprocal angstroms. Typically
-        equal to 1/{specimen thickness}.
-    debye_waller_factors : dict of str : float
+        Removed in this version, defaults to None
+    debye_waller_factors : dict of str:value pairs
         Maps element names to their temperature-dependent Debye-Waller factors.
-
+    scattering_params : str
+        "lobato" or "xtables"
     """
-
-    # TODO: Refactor the excitation error to a structure property.
 
     def __init__(
         self,
         accelerating_voltage,
-        max_excitation_error,
-        debye_waller_factors=None,
+        max_excitation_error=None,
+        debye_waller_factors={},
         scattering_params="lobato",
     ):
+        if max_excitation_error is not None:
+            print(
+                "This class changed in v0.3 and no longer takes a maximum_excitation_error"
+            )
         self.wavelength = get_electron_wavelength(accelerating_voltage)
-        self.max_excitation_error = max_excitation_error
-        self.debye_waller_factors = debye_waller_factors or {}
-
-        scattering_params_dict = {"lobato": "lobato", "xtables": "xtables"}
-        if scattering_params in scattering_params_dict:
-            self.scattering_params = scattering_params_dict[scattering_params]
+        self.debye_waller_factors = debye_waller_factors
+        if scattering_params in ["lobato", "xtables"]:
+            self.scattering_params = scattering_params
         else:
             raise NotImplementedError(
                 "The scattering parameters `{}` is not implemented. "
@@ -91,7 +91,14 @@ class DiffractionGenerator(object):
             )
 
     def calculate_ed_data(
-        self, structure, reciprocal_radius, rotation=(0, 0, 0), with_direct_beam=True
+        self,
+        structure,
+        reciprocal_radius,
+        rotation=(0, 0, 0),
+        shape_factor_model=None,
+        max_excitation_error=1e-2,
+        with_direct_beam=True,
+        **kwargs
     ):
         """Calculates the Electron Diffraction data for a structure.
 
@@ -107,9 +114,16 @@ class DiffractionGenerator(object):
         rotation : tuple
             Euler angles, in degrees, in the rzxz convention. Default is (0,0,0)
             which aligns 'z' with the electron beam
+        shape_factor_model : function or None
+            a function that takes excitation_error and max_excitation_error (and potentially **kwargs) and returns an intensity
+            scaling factor. If None defaults to shape_factor_models.linear
+        max_excitation_error : float
+            the exctinction distance for reflections, in reciprocal Angstroms
         with_direct_beam : bool
             If True, the direct beam is included in the simulated diffraction
             pattern. If False, it is not.
+        **kwargs :
+            passed to shape_factor_model
 
         Returns
         -------
@@ -119,12 +133,9 @@ class DiffractionGenerator(object):
         """
         # Specify variables used in calculation
         wavelength = self.wavelength
-        max_excitation_error = self.max_excitation_error
-        debye_waller_factors = self.debye_waller_factors
         latt = structure.lattice
-        scattering_params = self.scattering_params
 
-        # Obtain crystallographic reciprocal lattice points within `max_r` and
+        # Obtain crystallographic reciprocal lattice points within `reciprocal_radius` and
         # g-vector magnitudes for intensity calculations.
         recip_latt = latt.reciprocal()
         spot_indices, cartesian_coordinates, spot_distances = get_points_in_sphere(
@@ -144,34 +155,40 @@ class DiffractionGenerator(object):
         r_sphere = 1 / wavelength
         r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
         z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
-        proximity = np.absolute(z_sphere - cartesian_coordinates[:, 2])
-        intersection = proximity < max_excitation_error
+        excitation_error = np.absolute(z_sphere - cartesian_coordinates[:, 2])
+        intersection = excitation_error < max_excitation_error
         # Mask parameters corresponding to excited reflections.
         intersection_coordinates = cartesian_coordinates[intersection]
-        intersection_indices = spot_indices[intersection]
-        proximity = proximity[intersection]
+        g_indices = spot_indices[intersection]
+        excitation_error = excitation_error[intersection]
         g_hkls = spot_distances[intersection]
+
+        if shape_factor_model is not None:
+            shape_factor = shape_factor_model(
+                excitation_error, max_excitation_error, **kwargs
+            )
+        else:
+            shape_factor = linear(excitation_error, max_excitation_error)
 
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(
             structure,
-            intersection_indices,
+            g_indices,
             g_hkls,
-            proximity,
-            max_excitation_error,
-            debye_waller_factors,
-            scattering_params,
+            prefactor=shape_factor,
+            scattering_params=self.scattering_params,
+            debye_waller_factors=self.debye_waller_factors,
         )
 
         # Threshold peaks included in simulation based on minimum intensity.
         peak_mask = intensities > 1e-20
         intensities = intensities[peak_mask]
         intersection_coordinates = intersection_coordinates[peak_mask]
-        intersection_indices = intersection_indices[peak_mask]
+        g_indices = g_indices[peak_mask]
 
         return DiffractionSimulation(
             coordinates=intersection_coordinates,
-            indices=intersection_indices,
+            indices=g_indices,
             intensities=intensities,
             with_direct_beam=with_direct_beam,
         )
@@ -195,7 +212,7 @@ class DiffractionGenerator(object):
             reciprocal angstroms.
         magnitude_tolerance : float
             The minimum difference between diffraction magnitudes in reciprocal
-            angstroms for two peaks to be consdiered different.
+            angstroms for two peaks to be considered different.
         minimum_intensity : float
             The minimum intensity required for a diffraction peak to be
             considered real. Deals with numerical precision issues.
@@ -206,21 +223,8 @@ class DiffractionGenerator(object):
             The diffraction profile corresponding to this structure and
             experimental conditions.
         """
-        max_r = reciprocal_radius
         wavelength = self.wavelength
-        scattering_params = self.scattering_params
-
         latt = structure.lattice
-        is_hex = is_lattice_hexagonal(latt)
-
-        (
-            coeffs,
-            fcoords,
-            occus,
-            dwfactors,
-        ) = get_vectorized_list_for_atomic_scattering_factors(
-            structure, {}, scattering_params=scattering_params
-        )
 
         # Obtain crystallographic reciprocal lattice points within range
         recip_latt = latt.reciprocal()
@@ -228,64 +232,47 @@ class DiffractionGenerator(object):
             recip_latt, reciprocal_radius
         )
 
+        ##spot_indicies is a numpy.array of the hkls allowd in the recip radius
+        g_indices, multiplicities, g_hkls = get_intensities_params(
+            recip_latt, reciprocal_radius
+        )
+
+        i_hkl = get_kinematical_intensities(
+            structure,
+            g_indices,
+            np.asarray(g_hkls),
+            prefactor=multiplicities,
+            scattering_params=self.scattering_params,
+            debye_waller_factors=self.debye_waller_factors,
+        )
+
+        if is_lattice_hexagonal(latt):
+            # Use Miller-Bravais indices for hexagonal lattices.
+            g_indices = (
+                g_indices[0],
+                g_indices[1],
+                -g_indices[0] - g_indices[1],
+                g_indices[2],
+            )
+
+        hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in g_indices]
+
         peaks = {}
-        mask = np.logical_not((np.any(spot_indices, axis=1) == 0))
-
-        for hkl, g_hkl in zip(spot_indices[mask], spot_distances[mask]):
-            # Force miller indices to be integers.
-            hkl = [int(round(i)) for i in hkl]
-
-            d_hkl = 1 / g_hkl
-
-            # Bragg condition
-            # theta = asin(wavelength * g_hkl / 2)
-
-            # s = sin(theta) / wavelength = 1 / 2d = |ghkl| / 2 (d =
-            # 1/|ghkl|)
-            s = g_hkl / 2
-
-            # Store s^2 since we are using it a few times.
-            s2 = s ** 2
-
-            # Vectorized computation of g.r for all fractional coords and
-            # hkl.
-            g_dot_r = np.dot(fcoords, np.transpose([hkl])).T[0]
-
-            # Highly vectorized computation of atomic scattering factors.
-            fs = np.sum(coeffs[:, :, 0] * np.exp(-coeffs[:, :, 1] * s2), axis=1)
-
-            dw_correction = np.exp(-dwfactors * s2)
-
-            # Structure factor = sum of atomic scattering factors (with
-            # position factor exp(2j * pi * g.r and occupancies).
-            # Vectorized computation.
-            f_hkl = np.sum(fs * occus * np.exp(2j * np.pi * g_dot_r) * dw_correction)
-
-            # Intensity for hkl is modulus square of structure factor.
-            i_hkl = (f_hkl * f_hkl.conjugate()).real
-
-            # two_theta = degrees(2 * theta)
-
-            if is_hex:
-                # Use Miller-Bravais indices for hexagonal lattices.
-                hkl = (hkl[0], hkl[1], -hkl[0] - hkl[1], hkl[2])
-
-            peaks[g_hkl] = [i_hkl, [tuple(hkl)], d_hkl]
+        for l, i, g in zip(hkls_labels, i_hkl, g_hkls):
+            peaks[l] = [i, g]
 
         # Scale intensities so that the max intensity is 100.
+
         max_intensity = max([v[0] for v in peaks.values()])
         x = []
         y = []
         hkls = []
-        d_hkls = []
-        for k in sorted(peaks.keys()):
+        for k in peaks.keys():
             v = peaks[k]
-            fam = get_unique_families(v[1])
-            if v[0] / max_intensity * 100 > minimum_intensity:
-                x.append(k)
+            if v[0] / max_intensity * 100 > minimum_intensity and (k != "000"):
+                x.append(v[1])
                 y.append(v[0])
-                hkls.append(fam)
-                d_hkls.append(v[2])
+                hkls.append(k)
 
         y = y / max(y) * 100
 
@@ -308,20 +295,10 @@ class AtomicDiffractionGenerator:
 
     """
 
-    def __init__(
-        self,
-        accelerating_voltage,
-        detector,
-        reciprocal_mesh=False,
-        debye_waller_factors=None,
-    ):
+    def __init__(self, accelerating_voltage, detector, reciprocal_mesh=False):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         # Always store a 'real' mesh
         self.detector = detector if not reciprocal_mesh else from_recip(detector)
-
-        if debye_waller_factors:
-            raise NotImplementedError("Not implemented for this simulator")
-        self.debye_waller_factors = debye_waller_factors or {}
 
     def calculate_ed_data(
         self,
@@ -342,10 +319,8 @@ class AtomicDiffractionGenerator:
 
         Parameters
         ----------
-        coordinates : ndarray of floats, shape [n_atoms, 3]
-            List of atomic coordinates, i.e. atom i is centred at <coordinates>[i]
-        species : ndarray of integers, shape [n_atoms]
-            List of atomic numbers, i.e. atom i has atomic number <species>[i]
+        structure : Structure
+            The structure for upon which to perform the calculation
         probe : instance of probeFunction
             Function representing 3D shape of beam
         slice_thickness : float
@@ -389,14 +364,16 @@ class AtomicDiffractionGenerator:
 
         species = structure.element
         coordinates = structure.xyz_cartn.reshape(species.size, -1)
-        dim = coordinates.shape[1]
-        assert dim == 3
+        dim = coordinates.shape[1]  # guarenteed to be 3
+
+        if not ZERO > 0:
+            raise ValueError("The value of the ZERO argument must be greater than 0")
 
         if probe_centre is None:
             probe_centre = np.zeros(dim)
-        elif len(probe_centre) < dim:
+        elif len(probe_centre) == (dim - 1):
             probe_centre = np.array(list(probe_centre) + [0])
-        probe_centre = np.array(probe_centre)
+
         coordinates = coordinates - probe_centre[None]
 
         if not precessed:
@@ -407,8 +384,6 @@ class AtomicDiffractionGenerator:
         dtype = np.dtype(dtype)
         dtype = round(dtype.itemsize / (1 if dtype.kind == "f" else 2))
         dtype = "f" + str(dtype), "c" + str(2 * dtype)
-
-        assert ZERO > 0
 
         # Filter list of atoms
         for d in range(dim - 1):
@@ -432,7 +407,7 @@ class AtomicDiffractionGenerator:
         ]
 
         if mode == "kinematic":
-            from diffsims.utils import atomic_diffraction_generator_utils as simlib
+            from diffsims.utils import kinematic_simulation_utils as simlib
         else:
             raise NotImplementedError(
                 "<mode> = %s is not currently supported" % repr(mode)

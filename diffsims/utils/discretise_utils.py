@@ -36,7 +36,7 @@ from numpy import (
     exp,
     prod,
 )
-from diffsims.utils.atomic_diffraction_generator_support.generic_utils import get_grid
+from diffsims.utils.generic_utils import get_grid
 from psutil import virtual_memory
 from scipy.special import erf
 import numba
@@ -219,6 +219,7 @@ if _CUDA:  # pragma: no cover
             i = int(n)
             n -= i
 
+            #             return __linear_interp_gpu(n, i, pc)
             return __quadratic_interp_gpu(n, i, pc)
 
     @cuda.jit(device=True, inline=True)
@@ -232,7 +233,6 @@ if _CUDA:  # pragma: no cover
         x0, x1, x2 = x0 - i0, x1 - i1, x2 - i2
         s = 0
         for i in range(pc.shape[0]):
-
             v = __quadratic_interp(x0, i0, pc[i, 0])
             v *= __quadratic_interp(x1, i1, pc[i, 1])
             v *= __quadratic_interp(x2, i2, pc[i, 2])
@@ -386,7 +386,7 @@ def do_binning(x, loc, Rmax, d, GPU):
             # Coverage: line for large memory experiments
             if subList.size * subList.itemsize > 0.25 * mem:  # pragma: no cover
                 subList = None  # treat like memory error
-            # Coverage: line for large memory experiments
+        # Coverage: line for large memory experiments
         except MemoryError:  # pragma: no cover
             pass
 

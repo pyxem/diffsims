@@ -105,7 +105,9 @@ class StructureLibrary:
         NotImplementedError:
             "This function has been removed in version 0.3.0, in favour of creation from orientation lists"
         """
-        raise NotImplementedError("This function has been removed in version 0.3.0, in favour of creation from orientation lists")
+        raise NotImplementedError(
+            "This function has been removed in version 0.3.0, in favour of creation from orientation lists"
+        )
 
     def get_library_size(self, to_print=False):
         """
