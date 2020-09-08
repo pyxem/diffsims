@@ -17,20 +17,18 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-import diffpy.structure
-import numpy as np
-from transforms3d.euler import euler2mat
+from diffpy.structure import Atom, Lattice, Structure
+from orix.crystal_map import Phase
 
-from diffsims.libraries.vector_library import DiffractionVectorLibrary
 from diffsims.generators.diffraction_generator import DiffractionGenerator
 
 
 @pytest.fixture
 def default_structure():
     """An atomic structure represented using diffpy """
-    latt = diffpy.structure.lattice.Lattice(3, 3, 5, 90, 90, 120)
-    atom = diffpy.structure.atom.Atom(atype="Ni", xyz=[0, 0, 0], lattice=latt)
-    hexagonal_structure = diffpy.structure.Structure(atoms=[atom], lattice=latt)
+    latt = Lattice(3, 3, 5, 90, 90, 120)
+    atom = Atom(atype="Ni", xyz=[0, 0, 0], lattice=latt)
+    hexagonal_structure = Structure(atoms=[atom], lattice=latt)
     return hexagonal_structure
 
 
@@ -38,3 +36,45 @@ def default_structure():
 def default_simulator():
     accelerating_voltage = 300
     return DiffractionGenerator(accelerating_voltage)
+
+
+@pytest.fixture
+def nickel_phase():
+    return Phase(
+        space_group=225,
+        structure=Structure(
+            lattice=Lattice(3.5236, 3.5236, 3.5236, 90, 90, 90),
+            atoms=[Atom(xyz=[0, 0, 0], atype="Ni")]
+        )
+    )
+
+
+@pytest.fixture
+def ferrite_phase():
+    return Phase(
+        space_group=229,
+        structure=Structure(
+            lattice=Lattice(2.8665, 2.8665, 2.8665, 90, 90, 90),
+            atoms=[
+                Atom(xyz=[0, 0, 0], atype="Fe"),
+                Atom(xyz=[0.5, 0.5, 0.5], atype="Fe"),
+            ]
+        )
+    )
+
+
+@pytest.fixture
+def silicon_carbide_phase():
+    """Silicon Carbide 4H polytype (hexagonal, space group 186)."""
+    return Phase(
+        space_group=186,
+        structure=Structure(
+            lattice=Lattice(3.073, 3.073, 10.053, 90, 90, 120),
+            atoms=[
+                Atom(atype="Si", xyz=[0, 0, 0]),
+                Atom(atype="Si", xyz=[0.33, 0.667, 0.25]),
+                Atom(atype="C", xyz=[0, 0, 0.188]),
+                Atom(atype="C", xyz=[0.333, 0.667, 0.438]),
+            ],
+        )
+    )
