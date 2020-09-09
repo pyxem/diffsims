@@ -27,6 +27,7 @@ from diffsims.structure_factor.atomic_scattering_factor import (
 
 
 rest_mass = physical_constants["atomic unit of mass"][0]
+# rest_mass = 9.109383709e-31  # Used by EMsoft
 
 
 def find_asymmetric_positions(positions, space_group):
@@ -66,7 +67,7 @@ def get_kinematical_structure_factor(phase, hkl, scattering_parameter):
     phase : orix.crystal_map.phase_list.Phase
         A phase container with a crystal structure and a space and point
         group describing the allowed symmetry operations.
-    hkl : np.ndarray
+    hkl : np.ndarray or list
         Miller indices.
     scattering_parameter : float
         Scattering parameter for these Miller indices.
@@ -120,7 +121,7 @@ def get_doyleturner_structure_factor(
     phase : orix.crystal_map.phase_list.Phase
         A phase container with a crystal structure and a space and point
         group describing the allowed symmetry operations.
-    hkl : np.ndarray
+    hkl : np.ndarray or list
         Miller indices.
     scattering_parameter : float
         Scattering parameter for these Miller indices.
@@ -164,15 +165,13 @@ def get_doyleturner_structure_factor(
             arg = 2 * np.pi * np.sum(hkl * xyz)
             structure_factor += f * np.exp(-arg * 1j)
 
-    # Derived parameters
-    # TODO: Comment these factors with stuff from Structure of Materials by De Graef
-    #  and McHenry
+    # Relativistic correction factor of wavelength
     gamma_relcor = 1 + (2 * e * 0.5 * voltage / rest_mass / (c ** 2))
+    # Mean inner potential
     v_mod = abs(structure_factor) * gamma_relcor
     v_phase = np.arctan2(structure_factor.imag, structure_factor.real)
     v_g = v_mod * np.exp(v_phase * 1j)
     pre = 2 * (rest_mass * e / h ** 2) * 1e-18
-
     structure_factor = (pre * v_g).real
 
     if return_parameters:
@@ -210,7 +209,8 @@ def get_refraction_corrected_wavelength(phase, voltage):
     temp1 = 1e9 * h / np.sqrt(2 * rest_mass * e)
     temp2 = e * 0.5 * voltage / rest_mass / (c ** 2)
 
-    # Relativistic correction factor (known as gamma)
+    # Relativistic correction factor (known as gamma). (This is used by EMsoft but not
+    # here, for now.)
     # gamma_relcor = 1 + (2 * temp2)
 
     # Relativistic acceleration voltage
@@ -226,7 +226,7 @@ def get_refraction_corrected_wavelength(phase, voltage):
     psi_hat += v_mod
     wavelength = temp1 / np.sqrt(psi_hat)
 
-    # Interaction constant sigma
+    # Interaction constant sigma (this is used by EMsoft but not here, for now)
     # sigma = 1e-18 * (2 * np.pi * rest_mass * gamma_relcor * e * wavelength) / h ** 2
 
     return wavelength

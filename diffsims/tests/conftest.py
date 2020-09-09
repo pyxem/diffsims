@@ -41,10 +41,11 @@ def default_simulator():
 @pytest.fixture
 def nickel_phase():
     return Phase(
+        name="nickel",
         space_group=225,
         structure=Structure(
             lattice=Lattice(3.5236, 3.5236, 3.5236, 90, 90, 90),
-            atoms=[Atom(xyz=[0, 0, 0], atype="Ni")]
+            atoms=[Atom(xyz=[0, 0, 0], atype="Ni", Uisoequiv=0.006332)]
         )
     )
 
@@ -52,12 +53,13 @@ def nickel_phase():
 @pytest.fixture
 def ferrite_phase():
     return Phase(
+        name="ferrite",
         space_group=229,
         structure=Structure(
             lattice=Lattice(2.8665, 2.8665, 2.8665, 90, 90, 90),
             atoms=[
-                Atom(xyz=[0, 0, 0], atype="Fe"),
-                Atom(xyz=[0.5, 0.5, 0.5], atype="Fe"),
+                Atom(xyz=[0, 0, 0], atype="Fe", Uisoequiv=0.006332),
+                Atom(xyz=[0.5, 0.5, 0.5], atype="Fe", Uisoequiv=0.006332),
             ]
         )
     )

@@ -33,10 +33,10 @@ from diffsims.structure_factor import (
         (
             "Fe",
             "NM",
-            [0.02544, 0.02343, 0.01759, 0.00506, 0.64424, 0.14880, 0.02854, 0.00350]
+            [0.02544, 0.02343, 0.01759, 0.00506, 0.64424, 0.14880, 0.02854, 0.00350],
         ),
         ("bk", "Å", [6.502, 5.478, 2.510, 0.000, 28.375, 4.975, 0.561, 0.0]),
-    ]
+    ],
 )
 def test_get_atomic_scattering_parameters(element, unit, desired_parameters):
     a, b = get_atomic_scattering_parameters(element, unit=unit)
