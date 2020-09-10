@@ -64,12 +64,16 @@ class ReciprocalLatticePoint:
         )
 
     def __getitem__(self, key):
-        new_cp = self.__class__(self.phase, self.hkl[key])
+        new_rlp = self.__class__(self.phase, self.hkl[key])
         if self.structure_factor[0] is None:
-            new_cp._structure_factor = [None] * new_cp.size
+            new_rlp._structure_factor = [None] * new_rlp.size
         else:
-            new_cp._structure_factor = self.structure_factor[key]
-        return new_cp
+            new_rlp._structure_factor = self.structure_factor[key]
+        if self.theta[0] is None:
+            new_rlp._theta = [None] * new_rlp.size
+        else:
+            new_rlp._theta = self.theta[key]
+        return new_rlp
 
     @property
     def hkl(self):
@@ -162,7 +166,7 @@ class ReciprocalLatticePoint:
             return np.mod(self.h + self.l, 2) == 0
         elif centering == "C":  # Centred on C faces only
             return np.mod(self.h + self.k, 2) == 0
-        elif centering == "R":  # Rhombohedral
+        elif centering in ["R", "H"]:  # Rhombohedral
             return np.mod(-self.h + self.k + self.l, 3) == 0
 
     @property
@@ -221,7 +225,9 @@ class ReciprocalLatticePoint:
         """
         if use_symmetry:
             all_hkl = self._hkldata
+            # Remove [0, 0, 0] points
             all_hkl = all_hkl[~np.all(np.isclose(all_hkl, 0), axis=1)]
+
             families = defaultdict(list)
             for this_hkl in all_hkl.tolist():
                 for that_hkl in families.keys():
@@ -255,7 +261,7 @@ class ReciprocalLatticePoint:
             True.
         unique : bool, optional
             Whether to return only distinct indices. Default is True.
-            If true, zero entries which are assumed to be degenerate are
+            If True, zero-entries, which are assumed to be degenerate, are
             removed.
         return_multiplicity : bool, optional
             Whether to return the multiplicity of indices. This option is
@@ -273,11 +279,11 @@ class ReciprocalLatticePoint:
         Notes
         -----
         Should be the same as EMsoft's CalcFamily in their symmetry.f90
-        module.
+        module, although not entirely sure. Use with care.
         """
         # Get symmetry operations
         pg = self.phase.point_group
-        operations = pg[~pg.improper] if not antipodal else pg
+        operations = pg if antipodal else pg[~pg.improper]
 
         out = get_equivalent_hkl(
             hkl=self.hkl,
@@ -316,23 +322,24 @@ class ReciprocalLatticePoint:
         if method not in methods:
             raise ValueError(f"method={method} must be among {methods}")
         elif method == "doyleturner" and voltage is None:
-            raise ValueError("'voltage' parameter must set when method='doyleturner'")
+            raise ValueError(
+                "'voltage' parameter must be set when method='doyleturner'"
+            )
 
-        structure_factors = np.zeros(self.size)
-        hkls = self._hkldata
-        scattering_parameters = self.scattering_parameter
-        phase = self.phase
         # TODO: Find a better way to call different methods in the loop
-        for i, (hkl, s) in enumerate(zip(hkls, scattering_parameters)):
+        structure_factors = np.zeros(self.size)
+        for i, (hkl, s) in enumerate(
+            zip(np.atleast_2d(self._hkldata), np.atleast_1d(self.scattering_parameter))
+        ):
             if method == "kinematical":
                 structure_factors[i] = get_kinematical_structure_factor(
-                    phase=phase,
+                    phase=self.phase,
                     hkl=hkl,
                     scattering_parameter=s,
                 )
             else:
                 structure_factors[i] = get_doyleturner_structure_factor(
-                    phase=phase,
+                    phase=self.phase,
                     hkl=hkl,
                     scattering_parameter=s,
                     voltage=voltage,
