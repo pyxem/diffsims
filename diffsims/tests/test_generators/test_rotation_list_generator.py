@@ -40,12 +40,16 @@ def test_get_grid(grid):
     assert len(grid) > 0
     assert isinstance(grid[0], tuple)
 
+
 def test_get_grid_around_beam_direction():
-    grid = get_grid_around_beam_direction((0,90,0),resolution=2,angular_range=(0,9))
+    grid = get_grid_around_beam_direction(
+        (0, 90, 0), resolution=2, angular_range=(0, 9)
+    )
     assert isinstance(grid, list)
     assert isinstance(grid[0], tuple)
-    assert len(grid) == 5 # should have 0,2,4,6 and 8
-    assert np.allclose([x[1] for x in grid],90) #taking z to y
+    assert len(grid) == 5  # should have 0,2,4,6 and 8
+    assert np.allclose([x[1] for x in grid], 90)  # taking z to y
+
 
 @pytest.mark.parametrize(
     "crystal_system",
