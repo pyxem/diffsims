@@ -19,8 +19,6 @@
 import numpy as np
 import math
 
-from transforms3d.axangles import axangle2mat
-
 
 def get_angle_cartesian_vec(a, b):
     """Compute the angles between two lists of vectors in a cartesian

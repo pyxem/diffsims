@@ -19,7 +19,6 @@
 import pytest
 import os
 import numpy as np
-import diffpy.structure
 
 from diffsims.generators.library_generator import (
     VectorLibraryGenerator,
