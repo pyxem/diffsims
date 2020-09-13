@@ -23,15 +23,8 @@ from scipy.constants import h, m_e, e, c, pi, mu_0
 import collections
 import diffpy.structure
 
-from transforms3d.axangles import axangle2mat
-from transforms3d.euler import mat2euler
-from transforms3d.euler import euler2mat
-
 from .atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from .lobato_scattering_params import ATOMIC_SCATTERING_PARAMS_LOBATO
-
-# from diffsims.sims.diffraction_simulation import DiffractionSimulation
-from diffsims.utils.vector_utils import get_angle_cartesian
 
 
 def get_electron_wavelength(accelerating_voltage):

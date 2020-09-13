@@ -20,8 +20,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import ndimage as ndi
 
-from diffsims.utils.sim_utils import get_unique_families
-
 
 class DiffractionSimulation:
     """Holds the result of a kinematic diffraction pattern simulation.

@@ -21,25 +21,20 @@
 """
 
 import numpy as np
-from math import pi
 from transforms3d.euler import euler2mat
 
 from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.sims.diffraction_simulation import ProfileSimulation
 
-from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from diffsims.utils.sim_utils import (
     get_electron_wavelength,
     get_kinematical_intensities,
-    get_unique_families,
     get_points_in_sphere,
-    get_vectorized_list_for_atomic_scattering_factors,
     is_lattice_hexagonal,
     get_intensities_params,
-    get_scattering_params_dict,
 )
 from diffsims.utils.fourier_transform import from_recip
-from diffsims.utils.shape_factor_models import linear, binary, sinc
+from diffsims.utils.shape_factor_models import linear
 
 
 class DiffractionGenerator(object):
