@@ -38,7 +38,6 @@ from numpy import (
 )
 from diffsims.utils.generic_utils import get_grid
 from psutil import virtual_memory
-from scipy.special import erf
 import numba
 from .generic_utils import _CUDA, cuda
 

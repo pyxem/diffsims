@@ -19,7 +19,6 @@
 import pytest
 import numpy as np
 import diffpy
-from transforms3d.euler import euler2mat
 
 
 from diffsims.utils.sim_utils import (
@@ -27,10 +26,8 @@ from diffsims.utils.sim_utils import (
     get_interaction_constant,
     get_unique_families,
     get_kinematical_intensities,
-    get_vectorized_list_for_atomic_scattering_factors,
     get_points_in_sphere,
     simulate_kinematic_scattering,
-    is_lattice_hexagonal,
     uvtw_to_uvw,
     get_holz_angle,
     scattering_angle_to_lattice_parameter,
@@ -44,7 +41,6 @@ from diffsims.utils.sim_utils import (
     diffraction_scattering_angle,
     get_intensities_params,
 )
-from diffsims.tests.test_generators.test_diffraction_generator import make_structure
 
 
 @pytest.mark.parametrize(

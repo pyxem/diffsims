@@ -19,12 +19,8 @@
 """Diffraction pattern library generator and associated tools.
 """
 
-import itertools
-import math
-
 import numpy as np
 from tqdm import tqdm
-from transforms3d.euler import euler2mat
 
 from diffsims.libraries.diffraction_library import DiffractionLibrary
 from diffsims.libraries.vector_library import DiffractionVectorLibrary

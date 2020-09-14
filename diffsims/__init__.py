@@ -17,10 +17,6 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import os
-import warnings
-
-import numpy as np
 
 from .generators.diffraction_generator import (
     DiffractionGenerator,
@@ -30,6 +26,9 @@ from .generators.library_generator import DiffractionLibraryGenerator
 from .generators.library_generator import VectorLibraryGenerator
 
 from .sims.diffraction_simulation import DiffractionSimulation
+
+from .crystallography import *  # What's imported is specified in the modules' init
+from .structure_factor import *  # What's imported is specified in the modules' init
 
 from . import release_info
 

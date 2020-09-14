@@ -17,7 +17,6 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-import diffpy.structure
 
 from diffsims.generators.diffraction_generator import DiffractionGenerator
 from diffsims.generators.library_generator import DiffractionLibraryGenerator

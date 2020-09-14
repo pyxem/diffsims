@@ -21,24 +21,20 @@
 """
 
 import numpy as np
-from math import pi
 from transforms3d.euler import euler2mat
 
 from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.sims.diffraction_simulation import ProfileSimulation
 
-from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from diffsims.utils.sim_utils import (
     get_electron_wavelength,
     get_kinematical_intensities,
-    get_unique_families,
     get_points_in_sphere,
-    get_vectorized_list_for_atomic_scattering_factors,
     is_lattice_hexagonal,
     get_intensities_params,
-    get_scattering_params_dict
 )
 from diffsims.utils.fourier_transform import from_recip
+from diffsims.utils.shape_factor_models import linear
 
 
 class DiffractionGenerator(object):
@@ -72,7 +68,7 @@ class DiffractionGenerator(object):
         accelerating_voltage,
         max_excitation_error=None,
         debye_waller_factors={},
-        scattering_params="lobato"
+        scattering_params="lobato",
     ):
         if max_excitation_error is not None:
             print(
@@ -80,7 +76,7 @@ class DiffractionGenerator(object):
             )
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         self.debye_waller_factors = debye_waller_factors
-        if scattering_params in ["lobato","xtables"]:
+        if scattering_params in ["lobato", "xtables"]:
             self.scattering_params = scattering_params
         else:
             raise NotImplementedError(
@@ -94,7 +90,7 @@ class DiffractionGenerator(object):
         structure,
         reciprocal_radius,
         rotation=(0, 0, 0),
-        shape_factor_model="linear",
+        shape_factor_model=None,
         max_excitation_error=1e-2,
         with_direct_beam=True,
         **kwargs
@@ -113,9 +109,9 @@ class DiffractionGenerator(object):
         rotation : tuple
             Euler angles, in degrees, in the rzxz convention. Default is (0,0,0)
             which aligns 'z' with the electron beam
-        shape_factor_model : function or str
+        shape_factor_model : function or None
             a function that takes excitation_error and max_excitation_error (and potentially **kwargs) and returns an intensity
-            scaling factor. The code provides "linear" and "binary" options accessed with by parsing the associated strings
+            scaling factor. If None defaults to shape_factor_models.linear
         max_excitation_error : float
             the exctinction distance for reflections, in reciprocal Angstroms
         with_direct_beam : bool
@@ -162,14 +158,12 @@ class DiffractionGenerator(object):
         excitation_error = excitation_error[intersection]
         g_hkls = spot_distances[intersection]
 
-        if shape_factor_model == "linear":
-            shape_factor = 1 - (excitation_error / max_excitation_error)
-        elif shape_factor_model == "binary":
-            shape_factor = 1
-        else:
+        if shape_factor_model is not None:
             shape_factor = shape_factor_model(
                 excitation_error, max_excitation_error, **kwargs
             )
+        else:
+            shape_factor = linear(excitation_error, max_excitation_error)
 
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(

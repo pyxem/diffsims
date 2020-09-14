@@ -17,7 +17,6 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import pickle
-import numpy as np
 
 
 def load_VectorLibrary(filename, safety=False):

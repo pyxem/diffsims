@@ -20,7 +20,6 @@ import numpy as np
 import pytest
 from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.sims.diffraction_simulation import ProfileSimulation
-from diffsims.generators.diffraction_generator import DiffractionGenerator
 
 
 @pytest.mark.xfail(raises=ValueError)
