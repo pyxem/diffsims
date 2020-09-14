@@ -135,17 +135,14 @@ class DiffractionLibrary(dict):
         if phase is not None:
             phase_entry = self[phase]
             if angle is not None:
-                orientations = phase_entry["orientations"]
-                if isinstance(orientations, np.ndarray):
-                    orientations = orientations.tolist()
                 orientation_index = _get_library_entry_from_angles(self, phase, angle)
             else:
                 orientation_index = 0
-        else:
-            if angle is not None:
-                raise ValueError(
-                    "To select a certain angle you must first specify a phase"
+        elif angle is not None:
+            raise ValueError(
+                "To select a certain angle you must first specify a phase"
                 )
+        else:
             phase_entry = next(iter(self.values()))
             orientation_index = 0
 

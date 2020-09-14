@@ -175,31 +175,22 @@ class ProfileSimulation:
         Magnitudes of scattering vectors.
     intensities : array-like, shape [n_peaks, 1]
         The kinematic intensity of the diffraction peaks.
-
-    Returns
-    -------
     hkls: [{(h, k, l): mult}] {(h, k, l): mult} is a dict of Miller
         indices for all diffracted lattice facets contributing to each
         intensity.
     """
 
     def __init__(self, magnitudes, intensities, hkls):
-        """Initializes the ProfileSimulation object with data values for the
-        magnitudes, intensities, and hkls.
-        """
         self.magnitudes = magnitudes
         self.intensities = intensities
         self.hkls = hkls
 
-    def get_plot(self, g_max, annotate_peaks=True, with_labels=True, fontsize=12):
-
+    def get_plot(self,annotate_peaks=True, with_labels=True, fontsize=12):
         """Plots the diffraction profile simulation for the
            calculate_profile_data method in DiffractionGenerator.
 
         Parameters
         ----------
-        g_max : float
-            Maximum g-vector magnitude to plot.
         annotate_peaks : boolean
             If True, peaks are annotaed with hkl information.
         with_labels : boolean

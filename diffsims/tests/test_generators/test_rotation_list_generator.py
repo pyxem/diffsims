@@ -30,8 +30,7 @@ from diffsims.generators.rotation_list_generators import (
     "grid",
     [
         pytest.param(
-            get_local_grid(resolution=30, center=(0, 1, 0), grid_width=35),
-            marks=pytest.mark.xfail(reason="Downstream bug"),
+            get_local_grid(resolution=30, center=(0,1,0), grid_width=35)
         ),
         get_fundamental_zone_grid(space_group=20, resolution=20),
     ],
