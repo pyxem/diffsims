@@ -83,7 +83,7 @@ def profile_simulation():
 
 
 def test_plot_profile_simulation(profile_simulation):
-    profile_simulation.get_plot(g_max=1)
+    profile_simulation.get_plot()
 
 
 class TestDiffractionSimulation:
