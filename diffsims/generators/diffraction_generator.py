@@ -192,8 +192,7 @@ class DiffractionGenerator(object):
         self,
         structure,
         reciprocal_radius=1.0,
-        magnitude_tolerance=1e-5,
-        minimum_intensity=1e-3,
+        minimum_intensity=1e-3
     ):
         """
         Calculates a one dimensional diffraction profile for a structure.
@@ -205,9 +204,6 @@ class DiffractionGenerator(object):
         reciprocal_radius : float
             The maximum radius of the sphere of reciprocal space to sample, in
             reciprocal angstroms.
-        magnitude_tolerance : float
-            The minimum difference between diffraction magnitudes in reciprocal
-            angstroms for two peaks to be considered different.
         minimum_intensity : float
             The minimum intensity required for a diffraction peak to be
             considered real. Deals with numerical precision issues.
@@ -269,7 +265,7 @@ class DiffractionGenerator(object):
                 y.append(v[0])
                 hkls.append(k)
 
-        y = y / max(y) * 100
+        y = np.asarray(y) / max(y) * 100
 
         return ProfileSimulation(x, y, hkls)
 
