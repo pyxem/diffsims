@@ -20,7 +20,7 @@ contribute to.
 Related projects
 ----------------
 
-Related, open-source projects that users of orix might find useful:
+Related, open-source projects that users of diffsims might find useful:
 
 - `pyxem <https://github.com/pyxem/pyxem>`_: Python library for multi-dimensional
   diffraction microscopy.
