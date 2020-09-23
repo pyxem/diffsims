@@ -49,8 +49,10 @@ extensions = [
 
 # Create links to references within diffsims' documentation to these packages
 intersphinx_mapping = {
+    "diffpy.structure": ("https://www.diffpy.org/diffpy.structure", None),
     "matplotlib": ("https://matplotlib.org", None),
     "numpy": ("https://docs.scipy.org/doc/numpy", None),
+    "orix": ("https://orix.readthedocs.io/en/stable", None),
     "python": ("https://docs.python.org/3", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
 }
