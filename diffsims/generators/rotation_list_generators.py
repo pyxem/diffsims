@@ -30,13 +30,19 @@ from orix.vector.neo_euler import AxAngle
 from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
 from diffsims.utils.sim_utils import uvtw_to_uvw
 
+
+# Corners determined by requiring a complete coverage of the pole figure. The pole
+# figures are plotted with MTEX without implying any crystal symmetry. The plotted
+# orientations are obtained by converting vectors returned by get_beam_directions_grid()
+# into Euler angles using the procedure by GitHub user @din14970 described here:
+# https://github.com/pyxem/orix/issues/125#issuecomment-698956290.
 crystal_system_dictionary = {
-    "cubic": [(0, 0, 1), (1, 0, 1), (1, 1, 1)],
-    "hexagonal": [(0, 0, 0, 1), (1, 0, -1, 0), (1, 1, -2, 0)],
-    "trigonal": [(0, 0, 0, 1), (0, -1, 1, 0), (1, -1, 0, 0)],
+    "cubic": [(0, 0, 1), (1, 1, 1), (1, 0, 1)],
+    "hexagonal": [(0, 0, 0, 1), (1, 0, -1, 0), (-1, 2, -1, 0)],
+    "trigonal": [(0, 0, 0, 1), (-2, 1, 1, 0), (-1, 2, -1, 0)],
     "tetragonal": [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
-    "orthorhombic": [(0, 0, 1), (1, 0, 0), (0, 1, 0)],
-    "monoclinic": [(0, 0, 1), (0, 1, 0), (0, -1, 0)],
+    "orthorhombic": [(0, 0, 1), (-1, 0, 0), (0, 1, 0)],
+    "monoclinic": [(0, -1, 0), (0, 0, 1), (0, 1, 0)],
 }
 
 
