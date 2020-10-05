@@ -196,8 +196,8 @@ def get_uv_sphere_mesh_vertices(resolution):
     ----------
     https://medium.com/game-dev-daily/four-ways-to-create-a-mesh-for-a-sphere-d7956b825db4
     """
-    steps_theta = int(np.ceil(180 / resolution))  # elevation
-    steps_psi = int(np.ceil(360 / resolution))  # azimuthal
+    steps_theta = int(np.ceil(180 / resolution))+1  # elevation
+    steps_psi = int(np.ceil(360 / resolution)) # azimuthal
 
     psi = np.linspace(0, 2 * np.pi, num=steps_psi, endpoint=False)
     theta = np.linspace(0, np.pi, num=steps_theta, endpoint=True)
@@ -612,10 +612,8 @@ def get_beam_directions_grid(crystal_system, resolution,
         'orthorhombic','monoclinic','triclinic'
 
     resolution : float
-        An angle in degrees characterizing the finesse of the grid. Depending
-        on the meshing method there can be a slight variation in the
-        interpretation, but it is intended to mean the worst-case angular
-        distance to a nearest neighbor grid point.
+        An angle in degrees representing the worst-case angular
+        distance to a first nearest neighbor grid point.
 
     mesh : str
         Type of meshing of the sphere that defines how the grid is created.
@@ -630,9 +628,20 @@ def get_beam_directions_grid(crystal_system, resolution,
     if mesh == "uv_sphere":
         points_in_cartesians = get_uv_sphere_mesh_vertices(resolution)
     elif mesh == "normalized_cube":
+        # special case: hexagon is a very small slice and 001 point can
+        # be isolated. Hence we increase resolution to ensure minimum angle.
+        if crystal_system == "hexagonal":
+            resolution = np.rad2deg(
+                    np.arctan(np.tan(np.deg2rad(resolution))/np.sqrt(2)))
         points_in_cartesians = get_cube_mesh_vertices(resolution,
                                                       grid_type="normalized")
+
     elif mesh == "spherified_cube_edge":
+        # special case: hexagon is a very small slice and 001 point can
+        # be isolated.  Hence we increase resolution to ensure minimum angle.
+        if crystal_system == "hexagonal":
+            resolution = np.rad2deg(
+                    np.arctan(np.tan(np.deg2rad(resolution))/np.sqrt(2)))
         points_in_cartesians = get_cube_mesh_vertices(resolution,
                                                       grid_type="spherified_edge")
     elif mesh == "spherified_cube_corner":
