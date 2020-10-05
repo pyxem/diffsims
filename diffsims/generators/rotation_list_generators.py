@@ -28,17 +28,21 @@ from orix.quaternion.rotation import Rotation
 from orix.vector.neo_euler import AxAngle
 
 from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
+from diffsims.utils.sim_utils import uvtw_to_uvw
 
-# Defines the maximum rotation angles [theta_max,psi_max,psi_min] associated with the
-# corners of the symmetry reduced region of the inverse pole figure for each crystal system.
+
+# Corners determined by requiring a complete coverage of the pole figure. The pole
+# figures are plotted with MTEX without implying any crystal symmetry. The plotted
+# orientations are obtained by converting vectors returned by get_beam_directions_grid()
+# into Euler angles using the procedure by GitHub user @din14970 described here:
+# https://github.com/pyxem/orix/issues/125#issuecomment-698956290.
 crystal_system_dictionary = {
-    "cubic": [45, 54.7, 0],
-    "hexagonal": [45, 90, 26.565],
-    "trigonal": [45, 90, -116.5],
-    "tetragonal": [45, 90, 0],
-    "orthorhombic": [90, 90, 0],
-    "monoclinic": [90, 0, -90],
-    "triclinic": [180, 360, 0],
+    "cubic": [(0, 0, 1), (1, 1, 1), (1, 0, 1)],
+    "hexagonal": [(0, 0, 0, 1), (1, 0, -1, 0), (-1, 2, -1, 0)],
+    "trigonal": [(0, 0, 0, 1), (-2, 1, 1, 0), (-1, 2, -1, 0)],
+    "tetragonal": [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
+    "orthorhombic": [(0, 0, 1), (-1, 0, 0), (0, 1, 0)],
+    "monoclinic": [(0, -1, 0), (0, 0, 1), (0, 1, 0)],
 }
 
 
@@ -184,63 +188,60 @@ def get_beam_directions_grid(crystal_system, resolution, equal="angle"):
     points_in_cartesians : np.array (N,3)
         Rows are x,y,z where z is the 001 pole direction.
     """
-    theta_max, psi_max, psi_min = crystal_system_dictionary[crystal_system]
+    steps_theta = int(np.ceil(180 / resolution))  # elevation
+    steps_psi = int(np.ceil(360 / resolution))  # azimuthal
 
-    # see docstrings for np.arange, np.linspace has better endpoint handling
-    steps_theta = int(np.ceil((theta_max - 0) / resolution))
-    steps_psi = int(np.ceil((psi_max - psi_min) / resolution))
-    theta = np.linspace(
-        0, np.deg2rad(theta_max), num=steps_theta
-    )  # radians as we're about to make spherical polar cordinates
-    if equal == "area":
+    psi = np.linspace(0, 2 * np.pi, num=steps_psi, endpoint=False)
+
+    if equal == "angle":
+        theta = np.linspace(0, np.pi, num=steps_theta, endpoint=True)
+
+    elif equal == "area":
         # http://mathworld.wolfram.com/SpherePointPicking.html
-        v_1 = (1 + np.cos(np.deg2rad(psi_max))) / 2
-        v_2 = (1 + np.cos(np.deg2rad(psi_min))) / 2
-        v_array = np.linspace(min(v_1, v_2), max(v_1, v_2), num=steps_psi)
-        psi = np.arccos(2 * v_array - 1)  # in radians
-    elif equal == "angle":
-        # now in radians as we're about to make spherical polar cordinates
-        psi = np.linspace(np.deg2rad(psi_min), np.deg2rad(psi_max), num=steps_psi)
+        v_array = np.linspace(0, 1, num=steps_psi)
+        theta = np.arccos(2 * v_array - 1)  # in radians
 
     psi_theta = np.asarray(list(product(psi, theta)))
     r = np.ones((psi_theta.shape[0], 1))
     points_in_spherical_polars = np.hstack((r, psi_theta))
 
-    # keep only theta ==0 psi ==0, do this with np.abs(theta) > 0 or psi == 0 - more generally use the smallest psi value
+    # keep only one theta ==0 point, specifically the psi ==0 one
     points_in_spherical_polars = points_in_spherical_polars[
         np.logical_or(
-            np.abs(psi_theta[:, 1]) > 0, psi_theta[:, 0] == np.min(psi_theta[:, 0])
+            np.abs(points_in_spherical_polars[:, 2]) > 0,
+            points_in_spherical_polars[:, 1] == 0,
         )
     ]
+
+    # keep only one theta ==180 point, specifically the psi ==0 one
+    points_in_spherical_polars = points_in_spherical_polars[
+        np.logical_or(
+            np.abs(points_in_spherical_polars[:, 2]) < np.deg2rad(180),
+            points_in_spherical_polars[:, 1] == 0,
+        )
+    ]
+
     points_in_cartesians = vectorised_spherical_polars_to_cartesians(
         points_in_spherical_polars
     )
 
-    if crystal_system == "cubic":
-        # add in the geodesic that runs [1,1,1] to [1,0,1]
-        v1 = np.divide([1, 1, 1], np.sqrt(3))
-        v2 = np.divide([1, 0, 1], np.sqrt(2))
+    if crystal_system == "triclinic":
+        return points_in_cartesians
 
-        def cubic_corner_geodesic(t):
-            # https://math.stackexchange.com/questions/1883904/a-time-parameterization-of-geodesics-on-the-sphere
-            w = v2 - np.multiply(np.dot(v1, v2), v1)
-            w = np.divide(w, np.linalg.norm(w))
-            # return in cartesians with t_end = np.arccos(np.dot(v1,v2))
-            return np.add(
-                np.multiply(np.cos(t.reshape(-1, 1)), v1),
-                np.multiply(np.sin(t.reshape(-1, 1)), w),
-            )
+    corners = crystal_system_dictionary[crystal_system]
+    a, b, c = corners[0], corners[1], corners[2]
+    if len(a) == 4:
+        a, b, c = uvtw_to_uvw(a), uvtw_to_uvw(b), uvtw_to_uvw(c)
 
-        t_list = np.linspace(0, np.arccos(np.dot(v1, v2)), num=steps_theta)
-        geodesic = cubic_corner_geodesic(t_list)
-        points_in_cartesians = np.vstack((points_in_cartesians, geodesic))
-        # the great circle (from [1,1,1] to [1,0,1]) forms a plane (with the
-        # origin), points on the same side as (0,0,1) are safe, the others are not
-        plane_normal = np.cross(
-            v2, v1
-        )  # dotting this with (0,0,1) gives a positive number
-        points_in_cartesians = points_in_cartesians[
-            np.dot(points_in_cartesians, plane_normal) >= 0
-        ]  # 0 is the points on the geodesic
+    # eliminates those points that lie outside of the streographic triangle
+    points_in_cartesians = points_in_cartesians[
+        np.dot(np.cross(a, b), c) * np.dot(np.cross(a, b), points_in_cartesians.T) >= 0
+    ]
+    points_in_cartesians = points_in_cartesians[
+        np.dot(np.cross(b, c), a) * np.dot(np.cross(b, c), points_in_cartesians.T) >= 0
+    ]
+    points_in_cartesians = points_in_cartesians[
+        np.dot(np.cross(c, a), b) * np.dot(np.cross(c, a), points_in_cartesians.T) >= 0
+    ]
 
     return points_in_cartesians
