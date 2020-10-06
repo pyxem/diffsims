@@ -23,7 +23,14 @@ from diffsims.generators.rotation_list_generators import (
     get_grid_around_beam_direction,
     get_fundamental_zone_grid,
     get_beam_directions_grid,
-    _get_max_grid_angle
+    get_uv_sphere_mesh_vertices,
+    get_cube_mesh_vertices,
+    get_icosahedral_mesh_vertices,
+    beam_directions_grid_to_euler,
+    _normalize_vectors,
+    _get_first_nearest_neighbors,
+    _get_angles_between_nn_gridpoints,
+    _get_max_grid_angle,
 )
 
 
@@ -52,6 +59,88 @@ def test_get_grid_around_beam_direction():
     assert np.allclose([x[1] for x in grid], 90)  # taking z to y
 
 
+def test_get_uv_sphere_mesh_vertices():
+    grid = get_uv_sphere_mesh_vertices(10)
+    np.testing.assert_almost_equal(np.sum(grid), 0)
+    assert grid.shape[0] == 614
+    assert grid.shape[1] == 3
+    np.testing.assert_almost_equal(np.sum(grid), 0)
+    grid_unique = np.unique(grid, axis=0)
+    assert grid.shape[0] == grid_unique.shape[0]
+
+
+@pytest.mark.parametrize(
+    "grid_type,expected_len",
+    [
+        ("normalized", 866),
+        ("spherified_edge", 602),
+        ("spherified_corner", 866),
+    ]
+)
+def test_get_cube_mesh_vertices(grid_type, expected_len):
+    grid = get_cube_mesh_vertices(10, grid_type=grid_type)
+    assert grid.shape[0] == expected_len
+    assert grid.shape[1] == 3
+    np.testing.assert_almost_equal(np.sum(grid), 0)
+    grid_unique = np.unique(grid, axis=0)
+    assert grid.shape[0] == grid_unique.shape[0]
+    test_vectors = np.round(_normalize_vectors(np.array(
+                            [[1, 1, 1],
+                             [1, 0, 0],
+                             [1, 1, 0],
+                             [-1, 1, -1]])), 13).tolist()
+    grid = np.round(grid, 13)
+    for i in test_vectors:
+        assert i in grid.tolist()
+
+
+def test_get_cube_mesh_vertices_exception():
+    with pytest.raises(Exception):
+        get_cube_mesh_vertices(10, "non_existant")
+
+
+def test_first_nearest_neighbors():
+    grid = _normalize_vectors(np.array([[1, 0, 0],
+                                        [0, 1, 0],
+                                        [0, 1, 1],
+                                        [1, 0, 1],
+                                        ]))
+    fnn = _normalize_vectors(np.array([[1, 0, 1],
+                                       [0, 1, 1],
+                                       [0, 1, 0],
+                                       [1, 0, 0],
+                                       ]))
+    angles = np.array([45, 45, 45, 45])
+    fnn_test = _get_first_nearest_neighbors(grid)
+    angles_test = _get_angles_between_nn_gridpoints(grid)
+    assert np.allclose(fnn, fnn_test)
+    assert np.allclose(angles, angles_test)
+    assert _get_max_grid_angle(grid) == 45.
+
+
+def test_icosahedral_grid():
+    grid = get_icosahedral_mesh_vertices(10)
+    assert grid.shape[0] == 642
+    assert grid.shape[1] == 3
+    np.testing.assert_almost_equal(np.sum(grid), 0)
+    grid_unique = np.unique(grid, axis=0)
+    assert grid.shape[0] == grid_unique.shape[0]
+
+
+def test_vectors_to_euler():
+    grid = _normalize_vectors(np.array([[1, 0, 0],
+                                        [0, 1, 0],
+                                        [0, 1, 1],
+                                        [1, 0, 1],
+                                        ]))
+    ang = np.array([[0, 90, 0],
+                    [0, 90, 90],
+                    [0, 45, 90],
+                    [0, 45, 0],
+                    ])
+    assert np.allclose(ang, beam_directions_grid_to_euler(grid))
+
+
 @pytest.mark.parametrize(
     "mesh",
     [
@@ -78,3 +167,8 @@ def test_get_beam_directions_grid(crystal_system, mesh):
     grid = get_beam_directions_grid(crystal_system, 5, mesh=mesh)
     max_angle = _get_max_grid_angle(grid)
     assert max_angle <= 5
+
+
+def test_invalid_mesh_beam_directions():
+    with pytest.raises(Exception):
+        get_beam_directions_grid(10, "non_existant")
