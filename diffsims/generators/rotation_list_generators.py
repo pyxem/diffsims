@@ -505,14 +505,6 @@ def _get_max_grid_angle(vertices, leaf_size=50):
     return np.max(_get_angles_between_nn_gridpoints(vertices, leaf_size))
 
 
-def _get_min_grid_angle(vertices, leaf_size=50):
-    """
-    Helper function to get the minimum angle between nearest neighbor grid
-    points on a grid.
-    """
-    return np.min(_get_angles_between_nn_gridpoints(vertices, leaf_size))
-
-
 def get_icosahedral_mesh_vertices(resolution):
     """
     Return the (x, y, z) coordinates of the vertices of an icosahedral
@@ -662,7 +654,7 @@ def get_beam_directions_grid(crystal_system, resolution,
     """
     if mesh == "uv_sphere":
         points_in_cartesians = get_uv_sphere_mesh_vertices(resolution)
-    elif mesh == "normalized_cube" or "spherified_cube_edge":
+    elif mesh == "normalized_cube" or mesh == "spherified_cube_edge":
         # special case: hexagon is a very small slice and 001 point can
         # be isolated. Hence we increase resolution to ensure minimum angle.
         if crystal_system == "hexagonal":
@@ -694,7 +686,7 @@ def get_beam_directions_grid(crystal_system, resolution,
         a, b, c = uvtw_to_uvw(a), uvtw_to_uvw(b), uvtw_to_uvw(c)
 
     # eliminates those points that lie outside of the stereographic triangle
-    epsilon = -1e13
+    epsilon = -1e-13
     points_in_cartesians = points_in_cartesians[
         np.dot(np.cross(a, b), c) *
         np.dot(np.cross(a, b), points_in_cartesians.T) >= epsilon
