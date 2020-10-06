@@ -171,4 +171,4 @@ def test_get_beam_directions_grid(crystal_system, mesh):
 
 def test_invalid_mesh_beam_directions():
     with pytest.raises(Exception):
-        get_beam_directions_grid(10, "non_existant")
+        _ = get_beam_directions_grid("cubic", 10, mesh="non_existant")
