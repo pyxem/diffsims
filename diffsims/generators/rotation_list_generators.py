@@ -30,10 +30,12 @@ from orix.vector.neo_euler import AxAngle
 
 from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
 from diffsims.utils.sim_utils import uvtw_to_uvw
-from diffsims.utils.sphere_mesh_generators import  get_uv_sphere_mesh_vertices,
-get_cube_mesh_vertices,
-get_icosahedral_mesh_vertices,
-beam_directions_grid_to_euler
+from diffsims.utils.sphere_mesh_generators import (
+    get_uv_sphere_mesh_vertices,
+    get_cube_mesh_vertices,
+    get_icosahedral_mesh_vertices,
+    beam_directions_grid_to_euler,
+)
 
 
 # Corners determined by requiring a complete coverage of the pole figure. The pole
@@ -169,8 +171,8 @@ def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 
     rotation_list = get_list_from_orix(orix_grid, rounding=2)
     return rotation_list
 
-def get_beam_directions_grid(crystal_system, resolution,
-                             mesh="spherified_cube_corner"):
+
+def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_corner"):
     """
     Produces an array of beam directions, within the stereographic
     triangle of the relevant crystal system. The way the array is constructed
@@ -201,7 +203,8 @@ def get_beam_directions_grid(crystal_system, resolution,
         points_in_cartesians = get_uv_sphere_mesh_vertices(resolution)
     elif mesh == "spherified_cube_corner":
         points_in_cartesians = get_cube_mesh_vertices(
-                    resolution, grid_type="spherified_corner")
+            resolution, grid_type="spherified_corner"
+        )
     elif mesh == "icosahedral":
         points_in_cartesians = get_icosahedral_mesh_vertices(resolution)
 
@@ -209,20 +212,24 @@ def get_beam_directions_grid(crystal_system, resolution,
         # special case: hexagon is a very small slice and 001 point can
         # be isolated. Hence we increase resolution to ensure minimum angle.
         if crystal_system == "hexagonal":
-            resolution = resolution/np.sqrt(2)
+            resolution = resolution / np.sqrt(2)
 
         if mesh == "normalized_cube":
             points_in_cartesians = get_cube_mesh_vertices(
-                    resolution, grid_type="normalized")
+                resolution, grid_type="normalized"
+            )
         else:
             points_in_cartesians = get_cube_mesh_vertices(
-                    resolution, grid_type="spherified_edge")
+                resolution, grid_type="spherified_edge"
+            )
 
     else:
-        raise NotImplementedError(f"The mesh {mesh} is not recognized. "
-                                  f"Please use: uv_sphere, normalized_cube, "
-                                  f"spherified_cube_edge, "
-                                  f"spherified_cube_corner, icosahedral")
+        raise NotImplementedError(
+            f"The mesh {mesh} is not recognized. "
+            f"Please use: uv_sphere, normalized_cube, "
+            f"spherified_cube_edge, "
+            f"spherified_cube_corner, icosahedral"
+        )
 
     if crystal_system == "triclinic":
         return points_in_cartesians
@@ -235,16 +242,16 @@ def get_beam_directions_grid(crystal_system, resolution,
     # eliminates those points that lie outside of the stereographic triangle
     epsilon = -1e-13
     points_in_cartesians = points_in_cartesians[
-        np.dot(np.cross(a, b), c) *
-        np.dot(np.cross(a, b), points_in_cartesians.T) >= epsilon
+        np.dot(np.cross(a, b), c) * np.dot(np.cross(a, b), points_in_cartesians.T)
+        >= epsilon
     ]
     points_in_cartesians = points_in_cartesians[
-        np.dot(np.cross(b, c), a) *
-        np.dot(np.cross(b, c), points_in_cartesians.T) >= epsilon
+        np.dot(np.cross(b, c), a) * np.dot(np.cross(b, c), points_in_cartesians.T)
+        >= epsilon
     ]
     points_in_cartesians = points_in_cartesians[
-        np.dot(np.cross(c, a), b) *
-        np.dot(np.cross(c, a), points_in_cartesians.T) >= epsilon
+        np.dot(np.cross(c, a), b) * np.dot(np.cross(c, a), points_in_cartesians.T)
+        >= epsilon
     ]
 
     angle_grid = beam_directions_grid_to_euler(points_in_cartesian)

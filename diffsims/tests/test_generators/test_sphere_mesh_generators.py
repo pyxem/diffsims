@@ -29,6 +29,7 @@ from diffsims.generators.sphere_mesh_generators import (
     _get_max_grid_angle,
 )
 
+
 def test_get_uv_sphere_mesh_vertices():
     grid = get_uv_sphere_mesh_vertices(10)
     np.testing.assert_almost_equal(np.sum(grid), 0)
@@ -41,11 +42,7 @@ def test_get_uv_sphere_mesh_vertices():
 
 @pytest.mark.parametrize(
     "grid_type,expected_len",
-    [
-        ("normalized", 866),
-        ("spherified_edge", 602),
-        ("spherified_corner", 866),
-    ]
+    [("normalized", 866), ("spherified_edge", 602), ("spherified_corner", 866),],
 )
 def test_get_cube_mesh_vertices(grid_type, expected_len):
     grid = get_cube_mesh_vertices(10, grid_type=grid_type)
@@ -54,11 +51,9 @@ def test_get_cube_mesh_vertices(grid_type, expected_len):
     np.testing.assert_almost_equal(np.sum(grid), 0)
     grid_unique = np.unique(grid, axis=0)
     assert grid.shape[0] == grid_unique.shape[0]
-    test_vectors = np.round(_normalize_vectors(np.array(
-                            [[1, 1, 1],
-                             [1, 0, 0],
-                             [1, 1, 0],
-                             [-1, 1, -1]])), 13).tolist()
+    test_vectors = np.round(
+        _normalize_vectors(np.array([[1, 1, 1], [1, 0, 0], [1, 1, 0], [-1, 1, -1]])), 13
+    ).tolist()
     grid = np.round(grid, 13)
     for i in test_vectors:
         assert i in grid.tolist()
@@ -70,22 +65,14 @@ def test_get_cube_mesh_vertices_exception():
 
 
 def test_first_nearest_neighbors():
-    grid = _normalize_vectors(np.array([[1, 0, 0],
-                                        [0, 1, 0],
-                                        [0, 1, 1],
-                                        [1, 0, 1],
-                                        ]))
-    fnn = _normalize_vectors(np.array([[1, 0, 1],
-                                       [0, 1, 1],
-                                       [0, 1, 0],
-                                       [1, 0, 0],
-                                       ]))
+    grid = _normalize_vectors(np.array([[1, 0, 0], [0, 1, 0], [0, 1, 1], [1, 0, 1],]))
+    fnn = _normalize_vectors(np.array([[1, 0, 1], [0, 1, 1], [0, 1, 0], [1, 0, 0],]))
     angles = np.array([45, 45, 45, 45])
     fnn_test = _get_first_nearest_neighbors(grid)
     angles_test = _get_angles_between_nn_gridpoints(grid)
     assert np.allclose(fnn, fnn_test)
     assert np.allclose(angles, angles_test)
-    assert _get_max_grid_angle(grid) == 45.
+    assert _get_max_grid_angle(grid) == 45.0
 
 
 def test_icosahedral_grid():
@@ -98,14 +85,6 @@ def test_icosahedral_grid():
 
 
 def test_vectors_to_euler():
-    grid = _normalize_vectors(np.array([[1, 0, 0],
-                                        [0, 1, 0],
-                                        [0, 1, 1],
-                                        [1, 0, 1],
-                                        ]))
-    ang = np.array([[0, 90, 0],
-                    [0, 90, 90],
-                    [0, 45, 90],
-                    [0, 45, 0],
-                    ])
+    grid = _normalize_vectors(np.array([[1, 0, 0], [0, 1, 0], [0, 1, 1], [1, 0, 1],]))
+    ang = np.array([[0, 90, 0], [0, 90, 90], [0, 45, 90], [0, 45, 0],])
     assert np.allclose(ang, beam_directions_grid_to_euler(grid))

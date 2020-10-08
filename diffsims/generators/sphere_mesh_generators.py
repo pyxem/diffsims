@@ -16,12 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+
 def _normalize_vectors(vectors):
     """
     Helper function which returns a list of vectors normalized to length 1 from
     a 2D array representing a list of 3D vectors
     """
-    return (vectors.T/np.linalg.norm(vectors, axis=1)).T
+    return (vectors.T / np.linalg.norm(vectors, axis=1)).T
 
 
 def get_uv_sphere_mesh_vertices(resolution):
@@ -51,8 +52,8 @@ def get_uv_sphere_mesh_vertices(resolution):
     ----------
     https://medium.com/game-dev-daily/four-ways-to-create-a-mesh-for-a-sphere-d7956b825db4
     """
-    steps_theta = int(np.ceil(180 / resolution))+1  # elevation
-    steps_psi = int(np.ceil(360 / resolution)) # azimuthal
+    steps_theta = int(np.ceil(180 / resolution)) + 1  # elevation
+    steps_psi = int(np.ceil(360 / resolution))  # azimuthal
 
     psi = np.linspace(0, 2 * np.pi, num=steps_psi, endpoint=False)
     theta = np.linspace(0, np.pi, num=steps_theta, endpoint=True)
@@ -145,25 +146,27 @@ def get_cube_mesh_vertices(resolution, grid_type="spherified_corner"):
     max_dist = 1
     if grid_type == "normalized":
         grid_len = np.tan(np.deg2rad(resolution))
-        steps = np.ceil(max_dist/grid_len)
-        i = np.arange(-steps, steps)/steps
+        steps = np.ceil(max_dist / grid_len)
+        i = np.arange(-steps, steps) / steps
     elif grid_type == "spherified_edge":
-        steps = np.ceil(np.rad2deg(max_angle)/resolution)
+        steps = np.ceil(np.rad2deg(max_angle) / resolution)
         k = np.arange(-steps, steps)
-        theta = np.arctan(max_dist)/steps
-        i = np.tan(k*theta)
+        theta = np.arctan(max_dist) / steps
+        i = np.tan(k * theta)
     elif grid_type == "spherified_corner":
         # the angle from 001 to 111
-        max_angle_111 = np.arccos(1/np.sqrt(3))
+        max_angle_111 = np.arccos(1 / np.sqrt(3))
         res_111 = np.deg2rad(resolution)
-        steps = np.ceil(max_angle_111/res_111)
+        steps = np.ceil(max_angle_111 / res_111)
         k = np.arange(-steps, steps)
-        theta = np.arctan(np.sqrt(2))/steps
-        i = np.tan(k*theta)/np.sqrt(2)
+        theta = np.arctan(np.sqrt(2)) / steps
+        i = np.tan(k * theta) / np.sqrt(2)
     else:
-        raise ValueError(f"grid type {grid_type} not a valid grid type. "
-                         f"Valid options: normalized, spherified_edge, "
-                         f"spherified_corner.")
+        raise ValueError(
+            f"grid type {grid_type} not a valid grid type. "
+            f"Valid options: normalized, spherified_edge, "
+            f"spherified_corner."
+        )
     x, y = np.meshgrid(i, i)
     x, y = x.ravel(), y.ravel()
     z = np.ones(x.shape[0])
@@ -175,8 +178,7 @@ def get_cube_mesh_vertices(resolution, grid_type="spherified_corner"):
     south = np.vstack([x, -z, y]).T
     north = np.vstack([-x, z, -y]).T
     # two corners are missing with this procedure
-    m_c = np.array([[-1, 1, 1],
-                    [1, -1, -1]])
+    m_c = np.array([[-1, 1, 1], [1, -1, -1]])
     # combine
     all_vecs = np.vstack([bottom, top, east, west, south, north, m_c])
     return _normalize_vectors(all_vecs)
@@ -254,10 +256,7 @@ def _compose_from_faces(corners, faces, n):
         else:
             bary = (
                 np.hstack(
-                    [
-                        [np.full(n - i - 1, i), np.arange(1, n - i)]
-                        for i in range(1, n)
-                    ]
+                    [[np.full(n - i - 1, i), np.arange(1, n - i)] for i in range(1, n)]
                 )
                 / n
             )
@@ -347,7 +346,7 @@ def _get_angles_between_nn_gridpoints(vertices, leaf_size=50):
     vertices = _normalize_vectors(vertices)
     nn1_vec = _get_first_nearest_neighbors(vertices, leaf_size)
     # the dot product between each point and its nearest neighbor
-    nn_dot = np.sum(vertices*nn1_vec, axis=1)
+    nn_dot = np.sum(vertices * nn1_vec, axis=1)
     # angles
     angles = np.rad2deg(np.arccos(nn_dot))
     return angles
@@ -427,10 +426,10 @@ def get_icosahedral_mesh_vertices(resolution):
     n = 1
     angle = _get_max_grid_angle(corners)
     # maybe not the most efficient approach, but the least work
-    while(angle > resolution):
+    while angle > resolution:
         vertices = _compose_from_faces(corners, faces, n)
         angle = _get_max_grid_angle(vertices)
-        n = n+1
+        n = n + 1
     # push all nodes to the sphere
     norms = np.sqrt(np.einsum("ij,ij->i", vertices, vertices))
     vertices = (vertices.T / norms.T).T
@@ -465,7 +464,7 @@ def beam_directions_grid_to_euler(vectors):
     norm = np.linalg.norm(vectors, axis=1)
     z_comp = vectors[:, 2]
     # second euler angle: around x' = angle between z and z''
-    Phi = np.arccos(z_comp/norm)
+    Phi = np.arccos(z_comp / norm)
     # first euler angle: around z = angle between x and x'
     x_comp = vectors[:, 0]
     y_comp = vectors[:, 1]
@@ -473,7 +472,7 @@ def beam_directions_grid_to_euler(vectors):
     sign = np.sign(y_comp)
     # correct for where we have y=0
     sign[y_comp == 0] = np.sign(x_comp[y_comp == 0])
-    phi2 = sign*np.nan_to_num(np.arccos(x_comp/norm_proj))
+    phi2 = sign * np.nan_to_num(np.arccos(x_comp / norm_proj))
     # phi1 is just 0, rotation around z''
     phi1 = np.zeros(phi2.shape[0])
     grid = np.rad2deg(np.vstack([phi1, Phi, phi2]).T)
