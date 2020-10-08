@@ -30,6 +30,10 @@ from orix.vector.neo_euler import AxAngle
 
 from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
 from diffsims.utils.sim_utils import uvtw_to_uvw
+from diffsims.utils.sphere_mesh_generators import  get_uv_sphere_mesh_vertices,
+get_cube_mesh_vertices,
+get_icosahedral_mesh_vertices,
+beam_directions_grid_to_euler
 
 
 # Corners determined by requiring a complete coverage of the pole figure. The pole
@@ -243,4 +247,5 @@ def get_beam_directions_grid(crystal_system, resolution,
         np.dot(np.cross(c, a), points_in_cartesians.T) >= epsilon
     ]
 
-    return points_in_cartesians
+    angle_grid = beam_directions_grid_to_euler(points_in_cartesian)
+    return angle_grid
