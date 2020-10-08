@@ -195,23 +195,26 @@ def get_beam_directions_grid(crystal_system, resolution,
     """
     if mesh == "uv_sphere":
         points_in_cartesians = get_uv_sphere_mesh_vertices(resolution)
+    elif mesh == "spherified_cube_corner":
+        points_in_cartesians = get_cube_mesh_vertices(
+                    resolution, grid_type="spherified_corner")
+    elif mesh == "icosahedral":
+        points_in_cartesians = get_icosahedral_mesh_vertices(resolution)
+
     elif mesh == "normalized_cube" or mesh == "spherified_cube_edge":
         # special case: hexagon is a very small slice and 001 point can
         # be isolated. Hence we increase resolution to ensure minimum angle.
         if crystal_system == "hexagonal":
             resolution = np.rad2deg(
                     np.arctan(np.tan(np.deg2rad(resolution))/np.sqrt(2)))
+                    
         if mesh == "normalized_cube":
             points_in_cartesians = get_cube_mesh_vertices(
                     resolution, grid_type="normalized")
         else:
             points_in_cartesians = get_cube_mesh_vertices(
                     resolution, grid_type="spherified_edge")
-    elif mesh == "spherified_cube_corner":
-        points_in_cartesians = get_cube_mesh_vertices(
-                resolution, grid_type="spherified_corner")
-    elif mesh == "icosahedral":
-        points_in_cartesians = get_icosahedral_mesh_vertices(resolution)
+
     else:
         raise NotImplementedError(f"The mesh {mesh} is not recognized. "
                                   f"Please use: uv_sphere, normalized_cube, "
