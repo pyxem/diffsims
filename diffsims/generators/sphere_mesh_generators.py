@@ -16,6 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+import numpy as np
+from scipy.spatial import cKDTree
+from itertools import product
+
+from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
 
 def _normalize_vectors(vectors):
     """

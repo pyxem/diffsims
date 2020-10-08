@@ -73,9 +73,6 @@ def test_get_grid_around_beam_direction():
 )
 def test_get_beam_directions_grid(crystal_system, mesh):
     grid = get_beam_directions_grid(crystal_system, 5, mesh=mesh)
-    max_angle = _get_max_grid_angle(grid)
-    assert max_angle <= 5
-
 
 @pytest.mark.xfail()
 def test_invalid_mesh_beam_directions():

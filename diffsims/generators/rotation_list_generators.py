@@ -21,16 +21,14 @@ Provides users with a range of gridding functions
 """
 
 import numpy as np
-from scipy.spatial import cKDTree
 from itertools import product
 
 from orix.sampling.sample_generators import get_sample_fundamental, get_sample_local
 from orix.quaternion.rotation import Rotation
 from orix.vector.neo_euler import AxAngle
 
-from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
 from diffsims.utils.sim_utils import uvtw_to_uvw
-from diffsims.utils.sphere_mesh_generators import (
+from diffsims.generators.sphere_mesh_generators import (
     get_uv_sphere_mesh_vertices,
     get_cube_mesh_vertices,
     get_icosahedral_mesh_vertices,
@@ -254,5 +252,5 @@ def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_c
         >= epsilon
     ]
 
-    angle_grid = beam_directions_grid_to_euler(points_in_cartesian)
+    angle_grid = beam_directions_grid_to_euler(points_in_cartesians)
     return angle_grid
