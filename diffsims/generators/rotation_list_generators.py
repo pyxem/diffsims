@@ -205,8 +205,7 @@ def get_beam_directions_grid(crystal_system, resolution,
         # special case: hexagon is a very small slice and 001 point can
         # be isolated. Hence we increase resolution to ensure minimum angle.
         if crystal_system == "hexagonal":
-            resolution = np.rad2deg(
-                    np.deg2rad(resolution))/np.sqrt(2))
+            resolution = resolution/np.sqrt(2)
 
         if mesh == "normalized_cube":
             points_in_cartesians = get_cube_mesh_vertices(
