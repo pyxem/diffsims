@@ -24,6 +24,7 @@ from diffsims.generators.rotation_list_generators import (
     get_fundamental_zone_grid,
     get_beam_directions_grid,
 )
+from diffsims.generators.sphere_mesh_generators import _get_max_grid_angle
 
 
 @pytest.mark.parametrize(
@@ -73,6 +74,9 @@ def test_get_grid_around_beam_direction():
 )
 def test_get_beam_directions_grid(crystal_system, mesh):
     grid = get_beam_directions_grid(crystal_system, 5, mesh=mesh)
+    # convert grid back to xyz
+    max_angle = _get_max_grid_angle(grid)
+    assert max_angle <= 5
 
 @pytest.mark.xfail()
 def test_invalid_mesh_beam_directions():
