@@ -102,11 +102,7 @@ def get_kinematical_structure_factor(phase, hkl, scattering_parameter):
 
 
 def get_doyleturner_structure_factor(
-    phase,
-    hkl,
-    scattering_parameter,
-    voltage,
-    return_parameters=False,
+    phase, hkl, scattering_parameter, voltage, return_parameters=False,
 ):
     """Return the structure factor for a given family of Miller indices
     using Doyle-Turner atomic scattering parameters [Doyle1968]_.
