@@ -194,8 +194,7 @@ def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_c
 
     Returns
     -------
-    points_in_cartesians : np.array (N,3)
-        Rows are x,y,z where z is the 001 pole direction.
+    rotation_list : list of tuples
     """
     if mesh == "uv_sphere":
         points_in_cartesians = get_uv_sphere_mesh_vertices(resolution)
