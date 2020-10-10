@@ -29,9 +29,7 @@ from diffsims.generators.rotation_list_generators import (
 @pytest.mark.parametrize(
     "grid",
     [
-        pytest.param(
-            get_local_grid(resolution=30, center=(0,1,0), grid_width=35)
-        ),
+        pytest.param(get_local_grid(resolution=30, center=(0, 1, 0), grid_width=35)),
         get_fundamental_zone_grid(space_group=20, resolution=20),
     ],
 )
@@ -52,6 +50,16 @@ def test_get_grid_around_beam_direction():
 
 
 @pytest.mark.parametrize(
+    "mesh",
+    [
+        "uv_sphere",
+        "normalized_cube",
+        "spherified_cube_edge",
+        "spherified_cube_corner",
+        "icosahedral",
+    ],
+)
+@pytest.mark.parametrize(
     "crystal_system",
     [
         "cubic",
@@ -63,6 +71,9 @@ def test_get_grid_around_beam_direction():
         "triclinic",
     ],
 )
-def test_get_beam_directions_grid(crystal_system):
-    for equal in ["angle", "area"]:
-        _ = get_beam_directions_grid(crystal_system, 5, equal=equal)
+def test_get_beam_directions_grid(crystal_system, mesh):
+    grid = get_beam_directions_grid(crystal_system, 5, mesh=mesh)
+
+@pytest.mark.xfail()
+def test_invalid_mesh_beam_directions():
+    _ = get_beam_directions_grid("cubic", 10, mesh="invalid")

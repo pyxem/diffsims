@@ -27,18 +27,27 @@ from orix.sampling.sample_generators import get_sample_fundamental, get_sample_l
 from orix.quaternion.rotation import Rotation
 from orix.vector.neo_euler import AxAngle
 
-from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
+from diffsims.utils.sim_utils import uvtw_to_uvw
+from diffsims.generators.sphere_mesh_generators import (
+    get_uv_sphere_mesh_vertices,
+    get_cube_mesh_vertices,
+    get_icosahedral_mesh_vertices,
+    beam_directions_grid_to_euler,
+)
 
-# Defines the maximum rotation angles [theta_max,psi_max,psi_min] associated with the
-# corners of the symmetry reduced region of the inverse pole figure for each crystal system.
+
+# Corners determined by requiring a complete coverage of the pole figure. The pole
+# figures are plotted with MTEX without implying any crystal symmetry. The plotted
+# orientations are obtained by converting vectors returned by get_beam_directions_grid()
+# into Euler angles using the procedure by GitHub user @din14970 described here:
+# https://github.com/pyxem/orix/issues/125#issuecomment-698956290.
 crystal_system_dictionary = {
-    "cubic": [45, 54.7, 0],
-    "hexagonal": [45, 90, 26.565],
-    "trigonal": [45, 90, -116.5],
-    "tetragonal": [45, 90, 0],
-    "orthorhombic": [90, 90, 0],
-    "monoclinic": [90, 0, -90],
-    "triclinic": [180, 360, 0],
+    "cubic": [(0, 0, 1), (1, 1, 1), (1, 0, 1)],
+    "hexagonal": [(0, 0, 0, 1), (1, 0, -1, 0), (-1, 2, -1, 0)],
+    "trigonal": [(0, 0, 0, 1), (-2, 1, 1, 0), (-1, 2, -1, 0)],
+    "tetragonal": [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
+    "orthorhombic": [(0, 0, 1), (-1, 0, 0), (0, 1, 0)],
+    "monoclinic": [(0, -1, 0), (0, 0, 1), (0, 1, 0)],
 }
 
 
@@ -161,86 +170,86 @@ def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 
     return rotation_list
 
 
-def get_beam_directions_grid(crystal_system, resolution, equal="angle"):
+def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_corner"):
     """
-    Produces an array of beam directions, evenly (see equal argument) spaced that lie within the streographic
-    triangle of the relevant crystal system.
+    Produces an array of beam directions, within the stereographic
+    triangle of the relevant crystal system. The way the array is constructed
+    is based on different methods of meshing the sphere [1] and can be
+    specified through the `mesh` argument.
 
     Parameters
     ----------
     crystal_system : str
-        Allowed are: 'cubic','hexagonal','trigonal','tetragonal','orthorhombic','monoclinic','triclinic'
+        Allowed are: 'cubic','hexagonal','trigonal','tetragonal',
+        'orthorhombic','monoclinic','triclinic'
 
     resolution : float
-        An angle in degrees. If the 'equal' option is set to 'angle' this is the misorientation between a
-        beam direction and its nearest neighbour(s). For 'equal'=='area' the density of points is as in
-        the equal angle case but each point covers an equal area
+        An angle in degrees representing the worst-case angular
+        distance to a first nearest neighbor grid point.
 
-    equal : str
-        'angle' (default) or 'area'
+    mesh : str
+        Type of meshing of the sphere that defines how the grid is created.
+        Options are: uv_sphere, normalized_cube, spherified_cube_corner
+        (default), spherified_cube_edge, and icosahedral.
 
     Returns
     -------
-    points_in_cartesians : np.array (N,3)
-        Rows are x,y,z where z is the 001 pole direction.
+    rotation_list : list of tuples
     """
-    theta_max, psi_max, psi_min = crystal_system_dictionary[crystal_system]
-
-    # see docstrings for np.arange, np.linspace has better endpoint handling
-    steps_theta = int(np.ceil((theta_max - 0) / resolution))
-    steps_psi = int(np.ceil((psi_max - psi_min) / resolution))
-    theta = np.linspace(
-        0, np.deg2rad(theta_max), num=steps_theta
-    )  # radians as we're about to make spherical polar cordinates
-    if equal == "area":
-        # http://mathworld.wolfram.com/SpherePointPicking.html
-        v_1 = (1 + np.cos(np.deg2rad(psi_max))) / 2
-        v_2 = (1 + np.cos(np.deg2rad(psi_min))) / 2
-        v_array = np.linspace(min(v_1, v_2), max(v_1, v_2), num=steps_psi)
-        psi = np.arccos(2 * v_array - 1)  # in radians
-    elif equal == "angle":
-        # now in radians as we're about to make spherical polar cordinates
-        psi = np.linspace(np.deg2rad(psi_min), np.deg2rad(psi_max), num=steps_psi)
-
-    psi_theta = np.asarray(list(product(psi, theta)))
-    r = np.ones((psi_theta.shape[0], 1))
-    points_in_spherical_polars = np.hstack((r, psi_theta))
-
-    # keep only theta ==0 psi ==0, do this with np.abs(theta) > 0 or psi == 0 - more generally use the smallest psi value
-    points_in_spherical_polars = points_in_spherical_polars[
-        np.logical_or(
-            np.abs(psi_theta[:, 1]) > 0, psi_theta[:, 0] == np.min(psi_theta[:, 0])
+    if mesh == "uv_sphere":
+        points_in_cartesians = get_uv_sphere_mesh_vertices(resolution)
+    elif mesh == "spherified_cube_corner":
+        points_in_cartesians = get_cube_mesh_vertices(
+            resolution, grid_type="spherified_corner"
         )
-    ]
-    points_in_cartesians = vectorised_spherical_polars_to_cartesians(
-        points_in_spherical_polars
-    )
+    elif mesh == "icosahedral":
+        points_in_cartesians = get_icosahedral_mesh_vertices(resolution)
 
-    if crystal_system == "cubic":
-        # add in the geodesic that runs [1,1,1] to [1,0,1]
-        v1 = np.divide([1, 1, 1], np.sqrt(3))
-        v2 = np.divide([1, 0, 1], np.sqrt(2))
+    elif mesh == "normalized_cube" or mesh == "spherified_cube_edge":
+        # special case: hexagon is a very small slice and 001 point can
+        # be isolated. Hence we increase resolution to ensure minimum angle.
+        if crystal_system == "hexagonal":
+            resolution = resolution / np.sqrt(2)
 
-        def cubic_corner_geodesic(t):
-            # https://math.stackexchange.com/questions/1883904/a-time-parameterization-of-geodesics-on-the-sphere
-            w = v2 - np.multiply(np.dot(v1, v2), v1)
-            w = np.divide(w, np.linalg.norm(w))
-            # return in cartesians with t_end = np.arccos(np.dot(v1,v2))
-            return np.add(
-                np.multiply(np.cos(t.reshape(-1, 1)), v1),
-                np.multiply(np.sin(t.reshape(-1, 1)), w),
+        if mesh == "normalized_cube":
+            points_in_cartesians = get_cube_mesh_vertices(
+                resolution, grid_type="normalized"
+            )
+        else:
+            points_in_cartesians = get_cube_mesh_vertices(
+                resolution, grid_type="spherified_edge"
             )
 
-        t_list = np.linspace(0, np.arccos(np.dot(v1, v2)), num=steps_theta)
-        geodesic = cubic_corner_geodesic(t_list)
-        points_in_cartesians = np.vstack((points_in_cartesians, geodesic))
-        # the great circle (from [1,1,1] to [1,0,1]) forms a plane (with the
-        # origin), points on the same side as (0,0,1) are safe, the others are not
-        plane_normal = np.cross(
-            v2, v1
-        )  # dotting this with (0,0,1) gives a positive number
-        points_in_cartesians = points_in_cartesians[
-            np.dot(points_in_cartesians, plane_normal) >= 0
-        ]  # 0 is the points on the geodesic
+    else:
+        raise NotImplementedError(
+            f"The mesh {mesh} is not recognized. "
+            f"Please use: uv_sphere, normalized_cube, "
+            f"spherified_cube_edge, "
+            f"spherified_cube_corner, icosahedral"
+        )
 
-    return points_in_cartesians
+    if crystal_system == "triclinic":
+        return points_in_cartesians
+    # crop to stereographic triangle which depends on crystal system
+    corners = crystal_system_dictionary[crystal_system]
+    a, b, c = corners[0], corners[1], corners[2]
+    if len(a) == 4:
+        a, b, c = uvtw_to_uvw(a), uvtw_to_uvw(b), uvtw_to_uvw(c)
+
+    # eliminates those points that lie outside of the stereographic triangle
+    epsilon = -1e-13
+    points_in_cartesians = points_in_cartesians[
+        np.dot(np.cross(a, b), c) * np.dot(np.cross(a, b), points_in_cartesians.T)
+        >= epsilon
+    ]
+    points_in_cartesians = points_in_cartesians[
+        np.dot(np.cross(b, c), a) * np.dot(np.cross(b, c), points_in_cartesians.T)
+        >= epsilon
+    ]
+    points_in_cartesians = points_in_cartesians[
+        np.dot(np.cross(c, a), b) * np.dot(np.cross(c, a), points_in_cartesians.T)
+        >= epsilon
+    ]
+
+    angle_grid = beam_directions_grid_to_euler(points_in_cartesians)
+    return angle_grid

@@ -139,9 +139,7 @@ class DiffractionLibrary(dict):
             else:
                 orientation_index = 0
         elif angle is not None:
-            raise ValueError(
-                "To select a certain angle you must first specify a phase"
-                )
+            raise ValueError("To select a certain angle you must first specify a phase")
         else:
             phase_entry = next(iter(self.values()))
             orientation_index = 0

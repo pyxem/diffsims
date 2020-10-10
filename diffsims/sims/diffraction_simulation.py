@@ -185,7 +185,7 @@ class ProfileSimulation:
         self.intensities = intensities
         self.hkls = hkls
 
-    def get_plot(self,annotate_peaks=True, with_labels=True, fontsize=12):
+    def get_plot(self, annotate_peaks=True, with_labels=True, fontsize=12):
         """Plots the diffraction profile simulation for the
            calculate_profile_data method in DiffractionGenerator.
 

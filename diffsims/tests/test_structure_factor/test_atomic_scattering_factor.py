@@ -41,8 +41,7 @@ def test_get_kinematical_atomic_scattering_factor(
     atom = Atom(atype=element, occupancy=occupancy, Uisoequiv=displacement_factor)
     assert np.allclose(
         get_kinematical_atomic_scattering_factor(
-            atom=atom,
-            scattering_parameter=scattering_parameter,
+            atom=atom, scattering_parameter=scattering_parameter,
         ),
         desired_factor,
     )
@@ -79,10 +78,7 @@ sic4h = Structure(
     ],
 )
 def test_get_doyleturner_atomic_scattering_factor(
-    structure,
-    displacement_factor,
-    scattering_parameter,
-    desired_factor,
+    structure, displacement_factor, scattering_parameter, desired_factor,
 ):
     atom = structure[0]
     atom.Uisoequiv = displacement_factor

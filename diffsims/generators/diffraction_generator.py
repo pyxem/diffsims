@@ -189,10 +189,7 @@ class DiffractionGenerator(object):
         )
 
     def calculate_profile_data(
-        self,
-        structure,
-        reciprocal_radius=1.0,
-        minimum_intensity=1e-3
+        self, structure, reciprocal_radius=1.0, minimum_intensity=1e-3
     ):
         """
         Calculates a one dimensional diffraction profile for a structure.

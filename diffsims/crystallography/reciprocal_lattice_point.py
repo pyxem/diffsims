@@ -247,10 +247,7 @@ class ReciprocalLatticePoint:
         return self.__class__(phase=self.phase, hkl=unique_hkl)
 
     def symmetrise(
-        self,
-        antipodal=True,
-        unique=True,
-        return_multiplicity=False,
+        self, antipodal=True, unique=True, return_multiplicity=False,
     ):
         """Return planes with symmetrically equivalent Miller indices.
 
@@ -333,16 +330,11 @@ class ReciprocalLatticePoint:
         ):
             if method == "kinematical":
                 structure_factors[i] = get_kinematical_structure_factor(
-                    phase=self.phase,
-                    hkl=hkl,
-                    scattering_parameter=s,
+                    phase=self.phase, hkl=hkl, scattering_parameter=s,
                 )
             else:
                 structure_factors[i] = get_doyleturner_structure_factor(
-                    phase=self.phase,
-                    hkl=hkl,
-                    scattering_parameter=s,
-                    voltage=voltage,
+                    phase=self.phase, hkl=hkl, scattering_parameter=s, voltage=voltage,
                 )
         self._structure_factor = np.where(
             structure_factors < _FLOAT_EPS, 0, structure_factors

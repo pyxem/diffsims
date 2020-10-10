@@ -45,8 +45,8 @@ def nickel_phase():
         space_group=225,
         structure=Structure(
             lattice=Lattice(3.5236, 3.5236, 3.5236, 90, 90, 90),
-            atoms=[Atom(xyz=[0, 0, 0], atype="Ni", Uisoequiv=0.006332)]
-        )
+            atoms=[Atom(xyz=[0, 0, 0], atype="Ni", Uisoequiv=0.006332)],
+        ),
     )
 
 
@@ -60,8 +60,8 @@ def ferrite_phase():
             atoms=[
                 Atom(xyz=[0, 0, 0], atype="Fe", Uisoequiv=0.006332),
                 Atom(xyz=[0.5, 0.5, 0.5], atype="Fe", Uisoequiv=0.006332),
-            ]
-        )
+            ],
+        ),
     )
 
 
@@ -78,5 +78,5 @@ def silicon_carbide_phase():
                 Atom(atype="C", xyz=[0, 0, 0.188]),
                 Atom(atype="C", xyz=[0.333, 0.667, 0.438]),
             ],
-        )
+        ),
     )
