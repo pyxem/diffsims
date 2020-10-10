@@ -16,9 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Electron diffraction pattern simulation.
-
-"""
+"""Electron diffraction pattern simulation."""
 
 import numpy as np
 from transforms3d.euler import euler2mat
@@ -333,7 +331,7 @@ class AtomicDiffractionGenerator:
         mode : str
             Only <mode>='kinematic' is currently supported.
         kwargs : dictionary
-            Extra key-word arguments to pass to child simulator
+            Extra key-word arguments to pass to child simulator.
             For kinematic:
                 GPU : bool
                     Flag to use GPU if available, default is True
