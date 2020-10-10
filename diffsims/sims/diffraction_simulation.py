@@ -23,6 +23,7 @@ from scipy import ndimage as ndi
 
 class DiffractionSimulation:
     """Holds the result of a kinematic diffraction pattern simulation.
+
     Parameters
     ----------
     coordinates : array-like, shape [n_points, 2]
@@ -168,14 +169,16 @@ class DiffractionSimulation:
 
 
 class ProfileSimulation:
-    """Holds the result of a given kinematic simulation of a diffraction profile
+    """Holds the result of a given kinematic simulation of a diffraction
+    profile.
+
     Parameters
     ----------
     magnitudes : array-like, shape [n_peaks, 1]
         Magnitudes of scattering vectors.
     intensities : array-like, shape [n_peaks, 1]
         The kinematic intensity of the diffraction peaks.
-    hkls: [{(h, k, l): mult}] {(h, k, l): mult} is a dict of Miller
+    hkls : [{(h, k, l): mult}] {(h, k, l): mult} is a dict of Miller
         indices for all diffracted lattice facets contributing to each
         intensity.
     """

@@ -26,9 +26,8 @@ def get_rotation_from_z_to_direction(structure, direction):
 
     Parameters
     ----------
-    structure : diffpy.structure
+    structure : diffpy.structure.structure.Structure
         The structure for which a rotation needs to be found
-
     direction : array like
         [UVW] direction that the 'z' axis should end up point down.
 
@@ -40,15 +39,15 @@ def get_rotation_from_z_to_direction(structure, direction):
     See Also
     --------
     generate_zap_map
-    get_grid_around_beam_direction
+    :meth:`~diffsims.generators.rotation_list_generators.get_grid_around_beam_direction`
 
     Notes
     -----
-    This implementation works with an axis arrangement that has +x as left to right,
-    +y as bottom to top and +z as out of the plane of a page. Rotations are counter clockwise
-    as you look from the tip of the axis towards the origin
+    This implementation works with an axis arrangement that has +x as
+    left to right, +y as bottom to top and +z as out of the plane of a
+    page. Rotations are counter clockwise as you look from the tip of the
+    axis towards the origin
     """
-
     # Case where we don't need a rotation, As axis is [0,0,z] or [0,0,0]
     if np.dot(direction, [0, 0, 1]) == np.linalg.norm(direction):
         return (0, 0, 0)
@@ -135,23 +134,21 @@ def generate_zap_map(
 
     Parameters
     ----------
-    structure : diffpy.structure
-        The structure to be simulated
-
+    structure : diffpy.structure.structure.Structure
+        The structure to be simulated.
     simulator : DiffractionGenerator
         The simulator used to generate the simulations
-
     system : str
-        'cubic', 'hexagonal', 'trigonal', 'tetragonal', 'orthorhombic', 'monoclinic' - Defaults to 'cubic'
-
+        'cubic', 'hexagonal', 'trigonal', 'tetragonal', 'orthorhombic',
+        'monoclinic'. Defaults to 'cubic'.
     reciprocal_radius : float
-        The range of reciprocal lattice spots to be included. Default to 1
-
+        The range of reciprocal lattice spots to be included. Default to
+        1.
     density : str
-        '3' for the corners or '7' (corners + midpoints + centroids). Defaults to 7
-
-    **kwargs :
-        keyword arguments to be passed to simulator.calculate_ed_data()
+        '3' for the corners or '7' (corners + midpoints + centroids).
+        Defaults to 7.
+    kwargs :
+        Keyword arguments to be passed to simulator.calculate_ed_data().
 
     Returns
     -------
