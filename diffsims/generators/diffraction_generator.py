@@ -23,7 +23,6 @@ from transforms3d.euler import euler2mat
 
 from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.sims.diffraction_simulation import ProfileSimulation
-
 from diffsims.utils.sim_utils import (
     get_electron_wavelength,
     get_kinematical_intensities,
@@ -97,32 +96,35 @@ class DiffractionGenerator(object):
 
         Parameters
         ----------
-        structure : Structure
-            The structure for which to derive the diffraction pattern. Note that
-            the structure must be rotated to the appropriate orientation and
-            that testing is conducted on unit cells (rather than supercells).
+        structure : diffpy.structure.structure.Structure
+            The structure for which to derive the diffraction pattern.
+            Note that the structure must be rotated to the appropriate
+            orientation and that testing is conducted on unit cells
+            (rather than supercells).
         reciprocal_radius : float
-            The maximum radius of the sphere of reciprocal space to sample, in
-            reciprocal angstroms.
+            The maximum radius of the sphere of reciprocal space to
+            sample, in reciprocal Angstroms.
         rotation : tuple
-            Euler angles, in degrees, in the rzxz convention. Default is (0,0,0)
-            which aligns 'z' with the electron beam
+            Euler angles, in degrees, in the rzxz convention. Default is
+            (0, 0, 0) which aligns 'z' with the electron beam.
         shape_factor_model : function or None
-            a function that takes excitation_error and max_excitation_error (and potentially **kwargs) and returns an intensity
-            scaling factor. If None defaults to shape_factor_models.linear
+            A function that takes excitation_error and
+            `max_excitation_error` (and potentially kwargs) and returns
+            an intensity scaling factor. If None defaults to
+            `shape_factor_models.linear`.
         max_excitation_error : float
-            the exctinction distance for reflections, in reciprocal Angstroms
+            The extinction distance for reflections, in reciprocal
+            Angstroms.
         with_direct_beam : bool
-            If True, the direct beam is included in the simulated diffraction
-            pattern. If False, it is not.
-        **kwargs :
-            passed to shape_factor_model
+            If True, the direct beam is included in the simulated
+            diffraction pattern. If False, it is not.
+        kwargs
+            Keyword arguments passed to `shape_factor_model`.
 
         Returns
         -------
-        diffsims.DiffractionSimulation
+        diffsims.sims.diffraction_simulation.DiffractionSimulation
             The data associated with this structure and diffraction setup.
-
         """
         # Specify variables used in calculation
         wavelength = self.wavelength
@@ -189,23 +191,23 @@ class DiffractionGenerator(object):
     def calculate_profile_data(
         self, structure, reciprocal_radius=1.0, minimum_intensity=1e-3
     ):
-        """
-        Calculates a one dimensional diffraction profile for a structure.
+        """Calculates a one dimensional diffraction profile for a
+        structure.
 
         Parameters
         ----------
-        structure : Structure
+        structure : diffpy.structure.structure.Structure
             The structure for which to calculate the diffraction profile.
         reciprocal_radius : float
-            The maximum radius of the sphere of reciprocal space to sample, in
-            reciprocal angstroms.
+            The maximum radius of the sphere of reciprocal space to
+            sample, in reciprocal angstroms.
         minimum_intensity : float
             The minimum intensity required for a diffraction peak to be
             considered real. Deals with numerical precision issues.
 
         Returns
         -------
-        diffsims.ProfileSimulation
+        diffsims.sims.diffraction_simulation.ProfileSimulation
             The diffraction profile corresponding to this structure and
             experimental conditions.
         """
@@ -332,13 +334,9 @@ class AtomicDiffractionGenerator:
             Only <mode>='kinematic' is currently supported.
         kwargs : dictionary
             Extra key-word arguments to pass to child simulator.
-            For kinematic:
-                GPU : bool
-                    Flag to use GPU if available, default is True
-                pointwise: bool
-                    Flag to evaluate charge pointwise on voxels rather than average,
-                    default is False
-
+            For kinematic: **GPU** (bool): Flag to use GPU if available,
+            default is True. **pointwise** (bool): Flag to evaluate charge
+            pointwise on voxels rather than average, default is False.
 
         Returns
         -------

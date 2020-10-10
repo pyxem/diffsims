@@ -281,31 +281,31 @@ def __rebin(x0, x1, x2, loc, sublist, r, s, Len):  # pragma: no cover
 
 
 def rebin(x, loc, r, k, mem):
-    """
-    Bins each location into a grid subject to memory constraints
+    """Bins each location into a grid subject to memory constraints.
 
     Parameters
     ----------
-    x : `list` [`numpy.ndarray` [`float`]], of shape [(nx,), (ny,), ...]
-        Dictates the range of the box over which to bin atoms
-    loc : `numpy.ndarray`, (n, 3)
-        Atoms to bin
-    r : `float` or [`float`, `float`, `float`]
-        Mesh size (in each direction)
-    k : `int`
+    x : list [np.ndarray [float]], of shape [(nx,), (ny,), ...]
+        Dictates the range of the box over which to bin atoms.
+    loc : np.ndarray, (n, 3)
+        Atoms to bin.
+    r : float or [float, float, float]
+        Mesh size (in each direction).
+    k : int
         Integer such that the radius of the atom is <= `k*r`.
         Consequently, each atom will appear in approximately `8k^3` bins.
-    mem : `int`
-        Upper limit of number of bytes permitted for mesh. If not possible then
-        raises a `MemoryError`
+    mem : int
+        Upper limit of number of bytes permitted for mesh. If not possible
+        then raises a `MemoryError`.
 
     Returns
     -------
-    subList : `numpy.ndarray` [`int`]
-        `subList[i0,i1,i2]` is a list of indices `[j0, j1, ..., jn, -1,...]` such that
-        the only atoms which are contained in the box:
-            `[x[0].min()+i0*r,x[0].min(),+(i0+1)*r] x [x[1].min()+i1*r,x[1].min(),+(i1+1)*r]...`
-        are the atoms with locations `loc[j0], ..., loc[jn]`
+    subList : np.ndarray [int]
+        `subList[i0,i1,i2]` is a list of indices
+        `[j0, j1, ..., jn, -1,...]` such that the only atoms which are
+        contained in the box:
+        `[x[0].min()+i0*r,x[0].min(),+(i0+1)*r] x [x[1].min()+i1*r,x[1].min(),+(i1+1)*r]...`
+        are the atoms with locations `loc[j0], ..., loc[jn]`.
     """
     assert len(x) == 3, "x must represent a 3 dimensional grid"
     mem = virtual_memory().available if mem is None else mem
@@ -334,33 +334,33 @@ def rebin(x, loc, r, k, mem):
 
 
 def do_binning(x, loc, Rmax, d, GPU):
-    """
-    Utility function which takes in a mesh, atom locations, atom radius and minimal
-    grid-spacing and returns a binned array of atom indices.
+    """Utility function which takes in a mesh, atom locations, atom radius
+    and minimal grid-spacing and returns a binned array of atom indices.
 
     Parameters
     ----------
-    x : `list` [`numpy.ndarray` [`float`]], of shape [(nx,), (ny,), ...]
-        Dictates the range of the box over which to bin atoms
-    loc : `numpy.ndarray`, (n, 3)
-        Atoms to bin
-    Rmax : `float` > 3
-        Maximum radius of an atom (rounded up to 3)
-    d : `list` of `float` > 0
+    x : list [np.ndarray [float]], of shape [(nx,), (ny,), ...]
+        Dictates the range of the box over which to bin atoms.
+    loc : np.ndarray, (n, 3)
+        Atoms to bin.
+    Rmax : float > 3
+        Maximum radius of an atom (rounded up to 3).
+    d : list of float > 0
         The finest permitted binning.
-    GPU : `bool`
-        If `True` then constrains to memory of GPU rather than RAM
+    GPU : bool
+        If `True` then constrains to memory of GPU rather than RAM.
 
     Returns
     -------
-    subList : `numpy.ndarray` [`int`]
-        `subList[i0,i1,i2]` is a list of indices `[j0, j1, ..., jn, -1,...]` such that
-        the only atoms which are contained in the box:
-            `[x[0].min()+i0*r,x[0].min(),+(i0+1)*r] x [x[1].min()+i1*r,x[1].min(),+(i1+1)*r]...`
-    r : `numpy.ndarray` [`float`]
-        size of each bin
-    mem : `int`
-        Upper limit of memory in bytes
+    subList : np.ndarray [int]
+        `subList[i0,i1,i2]` is a list of indices
+        `[j0, j1, ..., jn, -1,...]` such that the only atoms which are
+        contained in the box:
+        `[x[0].min()+i0*r,x[0].min(),+(i0+1)*r] x [x[1].min()+i1*r,x[1].min(),+(i1+1)*r]...`
+    r : np.ndarray [float]
+        Size of each bin.
+    mem : int
+        Upper limit of memory in bytes.
 
     """
     Rmax = max(3, Rmax)  # coarsest permited discretisation must be >3A

@@ -173,27 +173,27 @@ def precess_mat(alpha, theta):
 
 
 def grid2sphere(arr, x, dx, C):
-    """
-    Projects 3d array onto a sphere
+    """Projects 3d array onto a sphere.
 
     Parameters
     ----------
-    arr : `numpy.ndarray` [`float`], (nx, ny, nz)
+    arr : np.ndarray [float], (nx, ny, nz)
         Input function to be projected
-    x : `list` [`numpy.ndarray` [`float`]], of shapes [(nx,), (ny,), (nz,)]
+    x : list [np.ndarray [float]], of shapes [(nx,), (ny,), (nz,)]
         Vectors defining mesh of <arr>
-    dx : `list` [`numpy.ndarray` [`float`]], of shapes [(3,), (3,), (3,)]
-        Basis in which to orient sphere. Centre of sphere will be at `C*dx[2]`
-        and mesh of output array will be defined by the first two vectors
-    C : `float`
-        Radius of sphere
+    dx : list [np.ndarray [float]], of shapes [(3,), (3,), (3,)]
+        Basis in which to orient sphere. Centre of sphere will be at
+        `C*dx[2]` and mesh of output array will be defined by the first
+        two vectors.
+    C : float
+        Radius of sphere.
 
     Returns
     -------
-    out : `numpy.ndarray` [`float`], (nx, ny)
-        If y is the point on the line between `i*dx[0]+j*dx[1]` and `C*dx[2]`
-        which also lies on the sphere of radius `C` from `C*dx[2]` then:
-            `out[i,j] = arr(y)`
+    out : np.ndarray [float], (nx, ny)
+        If y is the point on the line between `i*dx[0]+j*dx[1]` and
+        `C*dx[2]` which also lies on the sphere of radius `C` from
+        `C*dx[2]` then: `out[i,j] = arr(y)`.
         Interpolation on arr is linear.
     """
     if C in (None, 0) or x[2].size == 1:

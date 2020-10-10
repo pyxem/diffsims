@@ -22,6 +22,7 @@ from itertools import product
 
 from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
 
+
 def _normalize_vectors(vectors):
     """
     Helper function which returns a list of vectors normalized to length 1 from
@@ -31,31 +32,29 @@ def _normalize_vectors(vectors):
 
 
 def get_uv_sphere_mesh_vertices(resolution):
-    """
-    Return the vertices of a UV (spherical coordinate) mesh on a unit sphere.
-    The mesh vertices are defined by the parametrization:
+    """Return the vertices of a UV (spherical coordinate) mesh on a unit
+    sphere [Cajaravelli2015]_. The mesh vertices are defined by the
+    parametrization:
 
-    x = sin(u)cos(v)
-    y = sin(u)sin(v)
-    z = cos(u)
+    .. math::
+        x = sin(u)cos(v)\n
+        y = sin(u)sin(v)\n
+        z = cos(u)
 
     Parameters
     ----------
     resolution : float
         An angle in degrees. The maximum angle between nearest neighbor
-        grid points. In this mesh this occurs on the equator of the sphere.
-        All elevation grid lines are separated by at most resolution. The
-        step size of u and v are rounded up to get an integer number of
-        elevation and azimuthal grid lines with equal spacing.
+        grid points. In this mesh this occurs on the equator of the
+        sphere. All elevation grid lines are separated by at most
+        resolution. The step size of u and v are rounded up to get an
+        integer number of elevation and azimuthal grid lines with equal
+        spacing.
 
     Returns
     -------
-    points_in_cartesian : np.array (N,3)
+    points_in_cartesian : numpy.ndarray (N,3)
         Rows are x, y, z where z is the 001 pole direction
-
-    References
-    ----------
-    https://medium.com/game-dev-daily/four-ways-to-create-a-mesh-for-a-sphere-d7956b825db4
     """
     steps_theta = int(np.ceil(180 / resolution)) + 1  # elevation
     steps_psi = int(np.ceil(360 / resolution))  # azimuthal
@@ -87,12 +86,12 @@ def get_uv_sphere_mesh_vertices(resolution):
 
 
 def get_cube_mesh_vertices(resolution, grid_type="spherified_corner"):
-    """
-    Return the (x, y, z) coordinates of the vertices of a cube mesh
-    on a sphere. To generate the mesh, a cube is made to surround the sphere.
-    The surfaces of the cube are subdivided into a grid. The vectors from the
-    origin to these grid points are normalized to unit length. The grid
-    on the cube can be generated in three ways, see grid_type and reference [1].
+    """Return the (x, y, z) coordinates of the vertices of a cube mesh
+    on a sphere. To generate the mesh, a cube is made to surround the
+    sphere. The surfaces of the cube are subdivided into a grid. The
+    vectors from the origin to these grid points are normalized to unit
+    length. The grid on the cube can be generated in three ways, see
+    `grid_type` and reference [Cajaravelli2015]_.
 
     Parameters
     ----------
@@ -105,7 +104,7 @@ def get_cube_mesh_vertices(resolution, grid_type="spherified_corner"):
 
     Returns
     -------
-    points_in_cartesian : np.array (N,3)
+    points_in_cartesian : numpy.ndarray (N,3)
         Rows are x, y, z where z is the 001 pole direction
 
     Notes
@@ -143,7 +142,8 @@ def get_cube_mesh_vertices(resolution, grid_type="spherified_corner"):
 
     References
     ----------
-    [1] https://medium.com/game-dev-daily/four-ways-to-create-a-mesh-for-a-sphere-d7956b825db4
+    .. [Cajaravelli2015] O. S. Cajaravelli, "Four Ways to Create a Mesh for a Sphere,"
+        https://medium.com/game-dev-daily/four-ways-to-create-a-mesh-for-a-sphere-d7956b825db4.
     """
     # the angle between 001 and 011
     max_angle = np.deg2rad(45)
@@ -196,7 +196,7 @@ def _compose_from_faces(corners, faces, n):
 
     Parameters
     ----------
-    corners: numpy.array (N, 3)
+    corners: numpy.ndarray (N, 3)
         Coordinates of vertices for starting shape
     faces : list of 3-tuples of int elements
         Each tuple in the list corresponds to the vertex indices making
@@ -206,7 +206,7 @@ def _compose_from_faces(corners, faces, n):
 
     Returns
     -------
-    vertices: numpy.array (N, 3)
+    vertices: numpy.ndarray (N, 3)
         The coordinates of the refined mesh vertices.
 
     See also
@@ -322,7 +322,7 @@ def _get_first_nearest_neighbors(points, leaf_size=50):
 
     Parameters
     ----------
-    points : numpy.array (N, D)
+    points : numpy.ndarray (N, D)
         Point cloud with N points in D dimensions
     leaf_size : int
         The NN search is performed using a cKDTree object. The way
@@ -331,7 +331,7 @@ def _get_first_nearest_neighbors(points, leaf_size=50):
 
     Returns
     -------
-    nn1_vec : numpy.array (N,D)
+    nn1_vec : numpy.ndarray (N,D)
         Point cloud with N points in D dimensions, representing the nearest
         neighbor point of each point in "points"
     """
@@ -368,24 +368,25 @@ def _get_max_grid_angle(vertices, leaf_size=50):
 def get_icosahedral_mesh_vertices(resolution):
     """
     Return the (x, y, z) coordinates of the vertices of an icosahedral
-    mesh of a cube, see reference [1]. Method was adapted from meshzoo [2].
+    mesh of a cube, see [Cajaravelli2015]_. Method was adapted from
+    meshzoo [Meshzoo]_.
 
     Parameters
     ----------
     resolution : float
-        The maximum angle in degrees between neighboring grid points. Since
-        the mesh is generated iteratively, the actual maximum angle in the
-        mesh can be slightly smaller.
+        The maximum angle in degrees between neighboring grid points.
+        Since the mesh is generated iteratively, the actual maximum angle
+        in the mesh can be slightly smaller.
 
     Returns
     -------
-    points_in_cartesian : np.array (N,3)
+    points_in_cartesian : numpy.ndarray (N,3)
         Rows are x, y, z where z is the 001 pole direction
 
     References
     ----------
-    [1] https://medium.com/game-dev-daily/four-ways-to-create-a-mesh-for-a-sphere-d7956b825db4
-    [2] https://github.com/nschloe/meshzoo/blob/master/meshzoo/sphere.py
+    .. [Meshzoo] The `meshzoo.sphere` module,
+        https://github.com/nschloe/meshzoo/blob/master/meshzoo/sphere.py.
     """
     t = (1.0 + np.sqrt(5.0)) / 2.0
     corners = np.array(
@@ -448,12 +449,12 @@ def beam_directions_grid_to_euler(vectors):
 
     Parameters
     ----------
-    vectors: numpy.array (N, 3)
+    vectors: numpy.ndarray (N, 3)
         N 3-dimensional vectors to convert to Euler angles
 
     Returns
     -------
-    grid: numpy.array (N, 3)
+    grid: numpy.ndarray (N, 3)
         Euler angles in bunge convention corresponding to each vector in
         degrees.
 

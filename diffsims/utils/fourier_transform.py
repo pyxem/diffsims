@@ -330,14 +330,13 @@ def fast_fft_len(n):
 
 
 def fftshift_phase(x):
-    """
-    Fast implementation of fft_shift:
-        fft(fftshift_phase(x)) = fft_shift(fft(x))
+    """Fast implementation of fft_shift:
+    fft(fftshift_phase(x)) = fft_shift(fft(x))
 
     Note two things:
     - this is an in-place manipulation of the (3D) input array
-    - the input array must have even side lengths. This is softly guarranteed by
-        fast_fft_len but will raise error if not true.
+    - the input array must have even side lengths. This is softly
+    guaranteed by fast_fft_len but will raise error if not true.
     """
     assert all((s % 2 == 0) or (s == 1) for s in x.shape)
     sz = x.shape

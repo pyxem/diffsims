@@ -21,7 +21,6 @@ Provides users with a range of gridding functions
 """
 
 import numpy as np
-from itertools import product
 
 from orix.sampling.sample_generators import get_sample_fundamental, get_sample_local
 from orix.quaternion.rotation import Rotation
@@ -132,26 +131,26 @@ def get_local_grid(resolution=2, center=None, grid_width=10):
 
 
 def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 360)):
-    """
-    Creates a rotation list of rotations for which the rotation is about given beam direction
+    """Creates a rotation list of rotations for which the rotation is
+    about given beam direction.
 
     Parameters
     ----------
     beam_rotation : tuple
-        A desired beam direction as a rotation (rzxz eulers), usually found via get_rotation_from_z_to_direction
-
+        A desired beam direction as a rotation (rzxz eulers), usually
+        found via get_rotation_from_z_to_direction.
     resolution : float
-        The resolution of the grid (degrees)
-
+        The resolution of the grid (degrees).
     angular_range : tuple
-        The minimum (included) and maximum (excluded) rotation around the beam direction to be included
+        The minimum (included) and maximum (excluded) rotation around the
+        beam direction to be included.
 
     Returns
     -------
     rotation_list : list of tuples
 
-    Example
-    -------
+    Examples
+    --------
     >>> from diffsims.generators.zap_map_generator import get_rotation_from_z_to_direction
     >>> beam_rotation = get_rotation_from_z_to_direction(structure,[1,1,1])
     >>> grid = get_grid_around_beam_direction(beam_rotation,1)
@@ -171,26 +170,24 @@ def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 
 
 
 def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_corner"):
-    """
-    Produces an array of beam directions, within the stereographic
-    triangle of the relevant crystal system. The way the array is constructed
-    is based on different methods of meshing the sphere [1] and can be
-    specified through the `mesh` argument.
+    """Produces an array of beam directions, within the stereographic
+    triangle of the relevant crystal system. The way the array is
+    constructed is based on different methods of meshing the sphere
+    [Cajaravelli2015]_ and can be specified through the `mesh` argument.
 
     Parameters
     ----------
     crystal_system : str
         Allowed are: 'cubic','hexagonal','trigonal','tetragonal',
         'orthorhombic','monoclinic','triclinic'
-
     resolution : float
         An angle in degrees representing the worst-case angular
         distance to a first nearest neighbor grid point.
-
     mesh : str
-        Type of meshing of the sphere that defines how the grid is created.
-        Options are: uv_sphere, normalized_cube, spherified_cube_corner
-        (default), spherified_cube_edge, and icosahedral.
+        Type of meshing of the sphere that defines how the grid is
+        created. Options are: uv_sphere, normalized_cube,
+        spherified_cube_corner (default), spherified_cube_edge, and
+        icosahedral.
 
     Returns
     -------
