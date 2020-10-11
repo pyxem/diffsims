@@ -23,4 +23,10 @@ If you know there is more to do, make a checklist here:
 - [ ] TODO 1
 - [ ] TODO 2
 
-
+#### For reviewers
+<!-- Don't remove the checklist below. -->
+- [ ] Check that the PR title is short, concise, and will make sense 1 year
+  later.
+- [ ] Check that new functions are imported in corresponding `__init__.py`.
+- [ ] Check that new features, API changes, and deprecations are mentioned in
+      the unreleased section in `CHANGELOG.md`.
