@@ -18,19 +18,7 @@
 
 import logging
 
-from .generators.diffraction_generator import (
-    DiffractionGenerator,
-    AtomicDiffractionGenerator,
-)
-from .generators.library_generator import DiffractionLibraryGenerator
-from .generators.library_generator import VectorLibraryGenerator
-
-from .sims.diffraction_simulation import DiffractionSimulation
-
-from .crystallography import *  # What's imported is specified in the modules' init
-from .structure_factor import *  # What's imported is specified in the modules' init
-
-from . import release_info
+from diffsims import release_info
 
 __version__ = release_info.version
 __author__ = release_info.author

@@ -15,3 +15,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Diffraction simulations."""
+
+from diffsims.sims import (
+    diffraction_simulation,
+)
+
+__all__ = [
+    "diffraction_simulation",
+]

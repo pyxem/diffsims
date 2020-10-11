@@ -15,3 +15,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Diffraction, structure and vector libraries."""
+
+from diffsims.libraries import (
+    diffraction_library,
+    structure_library,
+    vector_library,
+)
+
+__all__ = [
+    "diffraction_library",
+    "structure_library",
+    "vector_library",
+]
