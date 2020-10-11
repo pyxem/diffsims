@@ -3,7 +3,7 @@ API reference
 =============
 
 This reference manual details the public classes, modules and functions in diffsims as
-generated from their docstrings. Many of the docstrings contain examples.
+generated from their docstrings. Some of the docstrings contain examples.
 
 .. caution::
 

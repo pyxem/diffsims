@@ -157,9 +157,9 @@ def get_atomic_scattering_parameters(element, unit=None):
 
     Returns
     -------
-    a : np.ndarray
+    a : numpy.ndarray
         The four atomic scattering parameters a_1-4.
-    b : np.ndarray
+    b : numpy.ndarray
         The four atomic scattering parameters b_1-4.
 
     References

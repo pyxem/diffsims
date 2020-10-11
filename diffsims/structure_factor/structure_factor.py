@@ -38,12 +38,12 @@ def find_asymmetric_positions(positions, space_group):
     ----------
     positions : list
         A list of cartesian atom positions.
-    space_group : diffpy.structure.spacegroups.SpaceGroup
+    space_group : diffpy.structure.spacegroupmod.SpaceGroup
         Space group describing the symmetry operations.
 
     Returns
     -------
-    np.ndarray
+    numpy.ndarray
         Asymmetric atom positions.
     """
     asymmetric_positions = SymmetryConstraints(space_group, positions).corepos
@@ -67,7 +67,7 @@ def get_kinematical_structure_factor(phase, hkl, scattering_parameter):
     phase : orix.crystal_map.phase_list.Phase
         A phase container with a crystal structure and a space and point
         group describing the allowed symmetry operations.
-    hkl : np.ndarray or list
+    hkl : numpy.ndarray or list
         Miller indices.
     scattering_parameter : float
         Scattering parameter for these Miller indices.
@@ -102,7 +102,11 @@ def get_kinematical_structure_factor(phase, hkl, scattering_parameter):
 
 
 def get_doyleturner_structure_factor(
-    phase, hkl, scattering_parameter, voltage, return_parameters=False,
+    phase,
+    hkl,
+    scattering_parameter,
+    voltage,
+    return_parameters=False,
 ):
     """Return the structure factor for a given family of Miller indices
     using Doyle-Turner atomic scattering parameters [Doyle1968]_.
@@ -117,7 +121,7 @@ def get_doyleturner_structure_factor(
     phase : orix.crystal_map.phase_list.Phase
         A phase container with a crystal structure and a space and point
         group describing the allowed symmetry operations.
-    hkl : np.ndarray or list
+    hkl : numpy.ndarray or list
         Miller indices.
     scattering_parameter : float
         Scattering parameter for these Miller indices.

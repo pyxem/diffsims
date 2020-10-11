@@ -15,3 +15,35 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Diffraction utilities used by the other modules."""
+
+from diffsims.utils import (
+    atomic_diffraction_generator_utils,
+    atomic_scattering_params,
+    discretise_utils,
+    fourier_transform,
+    generic_utils,
+    kinematic_simulation_utils,
+    lobato_scattering_params,
+    probe_utils,
+    scattering_params,
+    shape_factor_models,
+    sim_utils,
+    vector_utils,
+)
+
+__all__ = [
+    "atomic_diffraction_generator_utils",
+    "atomic_scattering_params",
+    "discretise_utils",
+    "fourier_transform",
+    "generic_utils",
+    "kinematic_simulation_utils",
+    "lobato_scattering_params",
+    "probe_utils",
+    "scattering_params",
+    "shape_factor_models",
+    "sim_utils",
+    "vector_utils",
+]

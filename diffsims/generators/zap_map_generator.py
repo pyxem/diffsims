@@ -27,14 +27,14 @@ def get_rotation_from_z_to_direction(structure, direction):
     Parameters
     ----------
     structure : diffpy.structure.structure.Structure
-        The structure for which a rotation needs to be found
+        The structure for which a rotation needs to be found.
     direction : array like
         [UVW] direction that the 'z' axis should end up point down.
 
     Returns
     -------
     euler_angles : tuple
-        'rzxz' in degrees
+        'rzxz' in degrees.
 
     See Also
     --------
@@ -71,15 +71,12 @@ def generate_directional_simulations(
 
     Parameters
     ----------
-    structure : diffpy.structure
-        The structure from which simulations need to be produced
-
+    structure : diffpy.structure.structure.Structure
+        The structure from which simulations need to be produced.
     simulator : DiffractionGenerator
         The diffraction generator object used to produce the simulations
-
     direction_list : list of lists
         A list of [UVW] indices, eg. [[1,0,0],[1,1,0]]
-
     reciprocal_radius : float
         Default to 1
 
@@ -155,8 +152,8 @@ def generate_zap_map(
     zap_dictionary : dict
         Keys are zone axes, values are simulations
 
-    Example
-    -------
+    Examples
+    --------
     Plot all of the patterns that you have generated
 
     >>> zap_map = generate_zap_map(structure,simulator,'hexagonal',density='3')

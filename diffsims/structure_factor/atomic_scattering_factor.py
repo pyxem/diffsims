@@ -34,7 +34,7 @@ def get_kinematical_atomic_scattering_factor(atom, scattering_parameter):
 
     Parameters
     ----------
-    atom : diffpy.structure.Atom
+    atom : diffpy.structure.atom.Atom
         Atom with element type, Debye-Waller factor and occupancy number.
     scattering_parameter : float
         The scattering parameter s for these Miller indices describing
@@ -75,7 +75,7 @@ def get_doyleturner_atomic_scattering_factor(
 
     Parameters
     ----------
-    atom : diffpy.structure.Atom
+    atom : diffpy.structure.atom.Atom
         Atom with element type, Debye-Waller factor and occupancy number.
     scattering_parameter : float
         The scattering parameter s for these Miller indices describing
