@@ -86,5 +86,5 @@ def test_icosahedral_grid():
 
 def test_vectors_to_euler():
     grid = _normalize_vectors(np.array([[1, 0, 0], [0, 1, 0], [0, 1, 1], [1, 0, 1],]))
-    ang = np.array([[0, 90, 0], [0, 90, 90], [0, 45, 90], [0, 45, 0],])
+    ang = np.array([[0, 90, 90], [0, 90, 0], [0, 45, 0], [0, 45, 90],])
     assert np.allclose(ang, beam_directions_grid_to_euler(grid))
