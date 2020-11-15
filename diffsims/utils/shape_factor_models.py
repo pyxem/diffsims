@@ -77,7 +77,56 @@ def sinc(excitation_error, max_excitation_error, minima_number=5):
     -------
     intensity : array-like or float
     """
+    fac = np.pi * minima_number / max_excitation_error
+    num = np.sin(fac * excitation_error)
+    denom = fac * excitation_error
+    return np.nan_to_num(
+            np.abs(np.divide(num, denom, out=np.zeros_like(num), where=denom != 0)),
+            nan=1,
+            )
 
-    num = np.sin(np.pi * minima_number * excitation_error / max_excitation_error)
-    denom = excitation_error
-    return np.abs(np.divide(num, denom, out=np.zeros_like(num), where=denom != 0))
+
+def sin2c(excitation_error, max_excitation_error, minima_number=5):
+    """
+    Intensity with sin^2(s)/s^2 profile, after Howie-Whelan rel-rod
+
+    Parameters
+    ----------
+    excitation_error : array-like or float
+        The distance (reciprocal) from a reflection to the Ewald sphere
+
+    max_excitation_error : float
+        The distance at which a reflection becomes extinct
+
+    minima_number : int
+        The minima_number'th minima lies at max_excitation_error from 0
+
+    Returns
+    -------
+    intensity : array-like or float
+    """
+    return sinc(excitation_error, max_excitation_error, minima_number)**2
+
+
+def atanc(excitation_error, max_excitation_error):
+    """
+    Intensity with arctan(s)/s profile that closely follows sin(s)/s but
+    is smooth for s!=0.
+
+    Parameters
+    ----------
+    excitation_error : array-like or float
+        The distance (reciprocal) from a reflection to the Ewald sphere
+
+    max_excitation_error : float
+        The distance at which a reflection becomes extinct
+
+    Returns
+    -------
+    intensity : array-like or float
+    """
+    fac = np.pi * 5 / np.abs(max_excitation_error)
+    return np.nan_to_num(
+            np.arctan(fac*excitation_error)/(fac*excitation_error),
+            nan=1,
+            )
