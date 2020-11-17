@@ -108,7 +108,7 @@ def sin2c(excitation_error, max_excitation_error, minima_number=5):
     return sinc(excitation_error, max_excitation_error, minima_number)**2
 
 
-def atanc(excitation_error, max_excitation_error):
+def atanc(excitation_error, max_excitation_error, minima_number=5):
     """
     Intensity with arctan(s)/s profile that closely follows sin(s)/s but
     is smooth for s!=0.
@@ -121,11 +121,15 @@ def atanc(excitation_error, max_excitation_error):
     max_excitation_error : float
         The distance at which a reflection becomes extinct
 
+    minima_number : int
+        The minima_number'th minima in the corresponding sinx/x lies at
+        max_excitation_error from 0
+
     Returns
     -------
     intensity : array-like or float
     """
-    fac = np.pi * 5 / np.abs(max_excitation_error)
+    fac = np.pi * minima_number / np.abs(max_excitation_error)
     return np.nan_to_num(
             np.arctan(fac*excitation_error)/(fac*excitation_error),
             nan=1,
@@ -150,8 +154,8 @@ def lorentzian(excitation_error, max_excitation_error):
     intensity_factor : array-like or float
         Vector representing the rel-rod factor for each reflection
 
-    Notes
-    -----
+    References
+    ----------
     [1] L. Palatinus, P. Brázda, M. Jelínek, J. Hrdá, G. Steciuk, M. Klementová, Specifics of the data processing of precession electron diffraction tomography data and their implementation in the program PETS2.0, Acta Crystallogr. Sect. B Struct. Sci. Cryst. Eng. Mater. 75 (2019) 512–522. doi:10.1107/S2052520619007534.
     """
     # in the paper, sigma = pi*thickness.
@@ -187,8 +191,8 @@ def lorentzian_precession(excitation_error, max_excitation_error,
     intensity_factor : array-like or float
         Vector representing the rel-rod factor for each reflection
 
-    Notes
-    -----
+    References
+    ----------
     [1] L. Palatinus, P. Brázda, M. Jelínek, J. Hrdá, G. Steciuk, M. Klementová, Specifics of the data processing of precession electron diffraction tomography data and their implementation in the program PETS2.0, Acta Crystallogr. Sect. B Struct. Sci. Cryst. Eng. Mater. 75 (2019) 512–522. doi:10.1107/S2052520619007534.
     """
     sigma = np.pi/max_excitation_error

@@ -177,7 +177,7 @@ class DiffractionGenerator(object):
         A function that takes excitation_error and
         `max_excitation_error` (and potentially kwargs) and returns
         an intensity scaling factor. If None defaults to
-        `shape_factor_models.lorentzian`. A number of pre-programmed functions
+        `shape_factor_models.linear`. A number of pre-programmed functions
         are available via strings.
     kwargs
         Keyword arguments passed to `shape_factor_model`.
@@ -195,18 +195,14 @@ class DiffractionGenerator(object):
         self,
         accelerating_voltage,
         scattering_params="lobato",
-        precession_angle=None,
-        shape_factor_model=None,
+        precession_angle=0,
+        shape_factor_model="linear",
         approximate_precession=True,
         minimum_intensity=1e-20,
         **kwargs,
     ):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
         self.precession_angle = precession_angle
-        if self.precession_angle is None:
-            self.precession_angle = 0
-        if self.precession_angle < 0:
-            raise ValueError("The precession angle must be >= 0")
         self.approximate_precession = approximate_precession
         if isinstance(shape_factor_model, str):
             if shape_factor_model in _shape_factor_model_mapping.keys():
@@ -217,14 +213,8 @@ class DiffractionGenerator(object):
                     f"model, choose from: {_shape_factor_model_mapping.keys()} "
                     f"or provide your own function."
                 )
-        elif callable(shape_factor_model):
-            self.shape_factor_model = shape_factor_model
-        elif shape_factor_model is None:
-            self.shape_factor_model = lorentzian
         else:
-            raise TypeError(
-                "shape_factor_model must be a recognized string "
-                "or a callable object.")
+            self.shape_factor_model = shape_factor_model
         self.minimum_intensity = minimum_intensity
         self.shape_factor_kwargs = kwargs
         if scattering_params in ["lobato", "xtables"]:
@@ -299,15 +289,16 @@ class DiffractionGenerator(object):
         r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
         z_spot = cartesian_coordinates[:, 2]
 
-        if self.precession_angle > 0 and not self.approximate_precession:
-            # We find the average excitation error - this step can be
-            # quite expensive
-            excitation_error = _average_excitation_error_precession(
-                    z_spot,
-                    r_spot,
-                    wavelength,
-                    self.precession_angle,
-                    )
+        if self.precession_angle > 0:
+            if not self.approximate_precession:
+                # We find the average excitation error - this step can be
+                # quite expensive
+                excitation_error = _average_excitation_error_precession(
+                        z_spot,
+                        r_spot,
+                        wavelength,
+                        self.precession_angle,
+                        )
         else:
             z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
             excitation_error = z_sphere - z_spot
