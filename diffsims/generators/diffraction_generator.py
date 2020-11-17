@@ -32,7 +32,23 @@ from diffsims.utils.sim_utils import (
     get_intensities_params,
 )
 from diffsims.utils.fourier_transform import from_recip
-from diffsims.utils.shape_factor_models import linear
+from diffsims.utils.shape_factor_models import (
+        linear,
+        atanc,
+        lorentzian,
+        sinc,
+        sin2c,
+        lorentzian_precession,
+        )
+
+
+_shape_factor_model_mapping = {
+        "linear": linear,
+        "atanc": atanc,
+        "sinc": sinc,
+        "sin2c": sin2c,
+        "lorentzian": lorentzian,
+        }
 
 
 def _z_sphere_precession(phi, r_spot, wavelength, theta):
@@ -148,27 +164,69 @@ class DiffractionGenerator(object):
     ----------
     accelerating_voltage : float
         The accelerating voltage of the microscope in kV.
-    max_excitation_error : float
-        Removed in this version, defaults to None
-    debye_waller_factors : dict of str:value pairs
-        Maps element names to their temperature-dependent Debye-Waller factors.
     scattering_params : str
         "lobato" or "xtables"
+    minimum_intensity : float
+        Minimum intensity for a peak to be considered visible in the pattern
+    precession_angle : float
+        Angle about which the beam is precessed. Default is no precession.
+    approximate_precession : boolean
+        When using precession, whether to precisely calculate average
+        excitation errors and intensities or use an approximation.    
+    shape_factor_model : function or string
+        A function that takes excitation_error and
+        `max_excitation_error` (and potentially kwargs) and returns
+        an intensity scaling factor. If None defaults to
+        `shape_factor_models.lorentzian`. A number of pre-programmed functions
+        are available via strings.
+    kwargs
+        Keyword arguments passed to `shape_factor_model`.
+
+    Notes
+    -----
+    * A full calculation is much slower and is not recommended for calculating
+      a diffraction library for precession diffraction patterns.
+    * When using precession and approximate_precession=True, the shape factor
+    model defaults to lorentzian; shape_factor_model is ignored. Only with
+    approximate_precession=False the custom shape_factor_model is used.
     """
 
     def __init__(
         self,
         accelerating_voltage,
-        max_excitation_error=None,
-        debye_waller_factors={},
         scattering_params="lobato",
+        precession_angle=None,
+        shape_factor_model=None,
+        approximate_precession=True,
+        minimum_intensity=1e-20,
+        **kwargs,
     ):
-        if max_excitation_error is not None:
-            print(
-                "This class changed in v0.3 and no longer takes a maximum_excitation_error"
-            )
         self.wavelength = get_electron_wavelength(accelerating_voltage)
-        self.debye_waller_factors = debye_waller_factors
+        self.precession_angle = precession_angle
+        if self.precession_angle is None:
+            self.precession_angle = 0
+        if self.precession_angle < 0:
+            raise ValueError("The precession angle must be >= 0")
+        self.approximate_precession = approximate_precession
+        if isinstance(shape_factor_model, str):
+            if shape_factor_model in _shape_factor_model_mapping.keys():
+                self.shape_factor_model = _shape_factor_model_mapping[shape_factor_model]
+            else:
+                raise NotImplementedError(
+                    f"{shape_factor_model} is not a recognized shape factor "
+                    f"model, choose from: {_shape_factor_model_mapping.keys()} "
+                    f"or provide your own function."
+                )
+        elif callable(shape_factor_model):
+            self.shape_factor_model = shape_factor_model
+        elif shape_factor_model is None:
+            self.shape_factor_model = lorentzian
+        else:
+            raise TypeError(
+                "shape_factor_model must be a recognized string "
+                "or a callable object.")
+        self.minimum_intensity = minimum_intensity
+        self.shape_factor_kwargs = kwargs
         if scattering_params in ["lobato", "xtables"]:
             self.scattering_params = scattering_params
         else:
@@ -183,13 +241,9 @@ class DiffractionGenerator(object):
         structure,
         reciprocal_radius,
         rotation=(0, 0, 0),
-        shape_factor_model=None,
-        max_excitation_error=1e-2,
         with_direct_beam=True,
-        minimum_intensity=1e-20,
-        precession_angle=0,
-        full_calculation=False,
-        **kwargs
+        max_excitation_error=1e-2,
+        debye_waller_factors={},
     ):
         """Calculates the Electron Diffraction data for a structure.
 
@@ -206,26 +260,14 @@ class DiffractionGenerator(object):
         rotation : tuple
             Euler angles, in degrees, in the rzxz convention. Default is
             (0, 0, 0) which aligns 'z' with the electron beam.
-        shape_factor_model : function or None
-            A function that takes excitation_error and
-            `max_excitation_error` (and potentially kwargs) and returns
-            an intensity scaling factor. If None defaults to
-            `shape_factor_models.atanc`.
-        max_excitation_error : float
-            The extinction distance for reflections, in reciprocal
-            Angstroms.
         with_direct_beam : bool
             If True, the direct beam is included in the simulated
             diffraction pattern. If False, it is not.
-        minimum_intensity : float
-            Minimum intensity for a peak to be considered in the pattern
-        precession_angle : float
-            Angle about which the beam is precessed
-        full_calculation : boolean
-            When using precession, whether to precisely calculate average
-            excitation errors for filtering diffraction spots.
-        kwargs
-            Keyword arguments passed to `shape_factor_model`.
+        max_excitation_error : float
+            The extinction distance for reflections, in reciprocal
+            Angstroms. Roughly equal to 1/thickness.
+        debye_waller_factors : dict of str:value pairs
+            Maps element names to their temperature-dependent Debye-Waller factors.
 
         Returns
         -------
@@ -257,20 +299,14 @@ class DiffractionGenerator(object):
         r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
         z_spot = cartesian_coordinates[:, 2]
 
-        if precession_angle is None:
-            precession_angle = 0
-
-        if shape_factor_model is None:
-            shape_factor_model = linear
-
-        if precession_angle > 0 and full_calculation:
+        if self.precession_angle > 0 and not self.approximate_precession:
             # We find the average excitation error - this step can be
             # quite expensive
             excitation_error = _average_excitation_error_precession(
                     z_spot,
                     r_spot,
                     wavelength,
-                    precession_angle,
+                    self.precession_angle,
                     )
         else:
             z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
@@ -279,25 +315,32 @@ class DiffractionGenerator(object):
         intersection = np.abs(excitation_error) < max_excitation_error
         intersection_coordinates = cartesian_coordinates[intersection]
         excitation_error = excitation_error[intersection]
+        r_spot = r_spot[intersection]
         g_indices = spot_indices[intersection]
         g_hkls = spot_distances[intersection]
         # take into consideration rel-rods
-        if precession_angle > 0:
+        if self.precession_angle > 0 and not self.approximate_precession:
             shape_factor = _shape_factor_precession(
                     intersection_coordinates[:, 2],
-                    r_spot[intersection],
+                    r_spot,
                     wavelength,
-                    precession_angle,
-                    shape_factor_model,
-                    max_excitation_error,
-                    **kwargs,
+                    self.precession_angle,
+                    self.shape_factor_model,
+                    self.max_excitation_error,
+                    **self.shape_factor_kwargs,
                     )
-        elif precession_angle == 0:
-            shape_factor = shape_factor_model(
-                excitation_error, max_excitation_error, **kwargs
-            )
+        elif self.precession_angle > 0 and self.approximate_precession:
+            shape_factor = lorentzian_precession(
+                        excitation_error,
+                        max_excitation_error,
+                        r_spot,
+                        self.precession_angle,
+                    )
         else:
-            raise ValueError("The precession angle must be >= 0")
+            shape_factor = self.shape_factor_model(
+                excitation_error, max_excitation_error,
+                **self.shape_factor_kwargs
+            )
 
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(
@@ -306,11 +349,11 @@ class DiffractionGenerator(object):
             g_hkls,
             prefactor=shape_factor,
             scattering_params=self.scattering_params,
-            debye_waller_factors=self.debye_waller_factors,
+            debye_waller_factors=debye_waller_factors,
         )
 
         # Threshold peaks included in simulation based on minimum intensity.
-        peak_mask = intensities > minimum_intensity
+        peak_mask = intensities > self.minimum_intensity
         intensities = intensities[peak_mask]
         intersection_coordinates = intersection_coordinates[peak_mask]
         g_indices = g_indices[peak_mask]
