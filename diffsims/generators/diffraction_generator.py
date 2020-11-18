@@ -289,16 +289,15 @@ class DiffractionGenerator(object):
         r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
         z_spot = cartesian_coordinates[:, 2]
 
-        if self.precession_angle > 0:
-            if not self.approximate_precession:
-                # We find the average excitation error - this step can be
-                # quite expensive
-                excitation_error = _average_excitation_error_precession(
-                        z_spot,
-                        r_spot,
-                        wavelength,
-                        self.precession_angle,
-                        )
+        if self.precession_angle > 0 and not self.approximate_precession:
+            # We find the average excitation error - this step can be
+            # quite expensive
+            excitation_error = _average_excitation_error_precession(
+                    z_spot,
+                    r_spot,
+                    wavelength,
+                    self.precession_angle,
+                    )
         else:
             z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
             excitation_error = z_sphere - z_spot
@@ -317,7 +316,7 @@ class DiffractionGenerator(object):
                     wavelength,
                     self.precession_angle,
                     self.shape_factor_model,
-                    self.max_excitation_error,
+                    max_excitation_error,
                     **self.shape_factor_kwargs,
                     )
         elif self.precession_angle > 0 and self.approximate_precession:

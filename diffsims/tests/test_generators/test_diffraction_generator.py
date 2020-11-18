@@ -28,13 +28,25 @@ from diffsims.generators.diffraction_generator import (
     _average_excitation_error_precession,
 )
 import diffpy.structure
-from diffsims.utils.shape_factor_models import (linear, binary, sinc, sin2c,
-                                                atanc, lorentzian, 
-                                                lorentzian_precession)
+from diffsims.utils.shape_factor_models import (linear, binary, sin2c,
+                                                atanc, lorentzian)
+
 
 @pytest.fixture(params=[(300)])
 def diffraction_calculator(request):
     return DiffractionGenerator(request.param)
+
+
+@pytest.fixture(scope="module")
+def diffraction_calculator_precession_full():
+    return DiffractionGenerator(300, precession_angle=0.5,
+                                approximate_precession=False)
+
+
+@pytest.fixture(scope="module")
+def diffraction_calculator_precession_simple():
+    return DiffractionGenerator(300, precession_angle=0.5,
+                                approximate_precession=True)
 
 
 @pytest.fixture(params=[(300, [np.linspace(-1, 1, 10)] * 2)])
@@ -96,7 +108,7 @@ def test_z_sphere_precession(parameters, expected):
     assert np.allclose(result, expected)
 
 
-@pytest.mark.parametrize("model", [linear, atanc, sin2c, lorentzian])
+@pytest.mark.parametrize("model", [binary, linear, atanc, sin2c, lorentzian])
 def test_shape_factor_precession(model):
     z = np.array([-0.1, 0.1])
     r = np.array([1, 5])
@@ -133,6 +145,22 @@ class TestDiffractionCalculator:
         assert len(diffraction.indices) == len(diffraction.coordinates)
         assert len(diffraction.coordinates) == len(diffraction.intensities)
 
+    def test_precession_simple(self, diffraction_calculator_precession_simple,
+            local_structure):
+        diffraction = diffraction_calculator_precession_simple.calculate_ed_data(
+            local_structure, reciprocal_radius=5.0,
+        )
+        assert len(diffraction.indices) == len(diffraction.coordinates)
+        assert len(diffraction.coordinates) == len(diffraction.intensities)
+
+    def test_precession_full(self, diffraction_calculator_precession_full,
+            local_structure):
+        diffraction = diffraction_calculator_precession_full.calculate_ed_data(
+            local_structure, reciprocal_radius=5.0,
+        )
+        assert len(diffraction.indices) == len(diffraction.coordinates)
+        assert len(diffraction.coordinates) == len(diffraction.intensities)
+        
     def test_appropriate_scaling(self, diffraction_calculator: DiffractionGenerator):
         """Tests that doubling the unit cell halves the pattern spacing."""
         silicon = make_structure(5)
