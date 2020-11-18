@@ -49,6 +49,17 @@ def diffraction_calculator_precession_simple():
                                 approximate_precession=True)
 
 
+def local_excite(excitation_error, maximum_excitation_error, t):
+    return (np.sin(t) * excitation_error) / maximum_excitation_error
+
+
+@pytest.fixture(scope="module")
+def diffraction_calculator_custom():
+    return DiffractionGenerator(300,
+                                shape_factor_model=local_excite,
+                                t=0.2)
+
+
 @pytest.fixture(params=[(300, [np.linspace(-1, 1, 10)] * 2)])
 def diffraction_calculator_atomic(request):
     return AtomicDiffractionGenerator(*request.param)
@@ -161,6 +172,14 @@ class TestDiffractionCalculator:
         assert len(diffraction.indices) == len(diffraction.coordinates)
         assert len(diffraction.coordinates) == len(diffraction.intensities)
         
+    def test_custom_shape_func(self, diffraction_calculator_custom,
+            local_structure):
+        diffraction = diffraction_calculator_custom.calculate_ed_data(
+            local_structure, reciprocal_radius=5.0,
+        )
+        assert len(diffraction.indices) == len(diffraction.coordinates)
+        assert len(diffraction.coordinates) == len(diffraction.intensities)
+
     def test_appropriate_scaling(self, diffraction_calculator: DiffractionGenerator):
         """Tests that doubling the unit cell halves the pattern spacing."""
         silicon = make_structure(5)
@@ -197,8 +216,6 @@ class TestDiffractionCalculator:
         )
 
     def test_shape_factor_custom(self, diffraction_calculator, local_structure):
-        def local_excite(excitation_error, maximum_excitation_error, t):
-            return (np.sin(t) * excitation_error) / maximum_excitation_error
 
         t1 = diffraction_calculator.calculate_ed_data(
             local_structure, 2, max_excitation_error=0.02
