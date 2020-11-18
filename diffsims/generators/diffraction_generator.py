@@ -357,7 +357,8 @@ class DiffractionGenerator(object):
         )
 
     def calculate_profile_data(
-        self, structure, reciprocal_radius=1.0, minimum_intensity=1e-3
+        self, structure, reciprocal_radius=1.0, minimum_intensity=1e-3,
+        debye_waller_factors={}
     ):
         """Calculates a one dimensional diffraction profile for a
         structure.
@@ -372,6 +373,8 @@ class DiffractionGenerator(object):
         minimum_intensity : float
             The minimum intensity required for a diffraction peak to be
             considered real. Deals with numerical precision issues.
+        debye_waller_factors : dict of str:value pairs
+            Maps element names to their temperature-dependent Debye-Waller factors.
 
         Returns
         -------
@@ -399,7 +402,7 @@ class DiffractionGenerator(object):
             np.asarray(g_hkls),
             prefactor=multiplicities,
             scattering_params=self.scattering_params,
-            debye_waller_factors=self.debye_waller_factors,
+            debye_waller_factors=debye_waller_factors,
         )
 
         if is_lattice_hexagonal(latt):
