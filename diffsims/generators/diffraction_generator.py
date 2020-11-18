@@ -33,22 +33,22 @@ from diffsims.utils.sim_utils import (
 )
 from diffsims.utils.fourier_transform import from_recip
 from diffsims.utils.shape_factor_models import (
-        linear,
-        atanc,
-        lorentzian,
-        sinc,
-        sin2c,
-        lorentzian_precession,
-        )
+    linear,
+    atanc,
+    lorentzian,
+    sinc,
+    sin2c,
+    lorentzian_precession,
+)
 
 
 _shape_factor_model_mapping = {
-        "linear": linear,
-        "atanc": atanc,
-        "sinc": sinc,
-        "sin2c": sin2c,
-        "lorentzian": lorentzian,
-        }
+    "linear": linear,
+    "atanc": atanc,
+    "sinc": sinc,
+    "sin2c": sin2c,
+    "lorentzian": lorentzian,
+}
 
 
 def _z_sphere_precession(phi, r_spot, wavelength, theta):
@@ -75,15 +75,17 @@ def _z_sphere_precession(phi, r_spot, wavelength, theta):
         The height of the ewald sphere at the point r in A^-1
     """
     phi = np.deg2rad(phi)
-    r = 1/wavelength
+    r = 1 / wavelength
     theta = np.deg2rad(theta)
-    return (-np.sqrt(r**2*(1-np.sin(theta)**2*np.sin(phi)**2) -
-                     (r_spot - r*np.sin(theta)*np.cos(phi))**2) +
-            r*np.cos(theta))
+    return -np.sqrt(
+        r ** 2 * (1 - np.sin(theta) ** 2 * np.sin(phi) ** 2)
+        - (r_spot - r * np.sin(theta) * np.cos(phi)) ** 2
+    ) + r * np.cos(theta)
 
 
-def _shape_factor_precession(z_spot, r_spot, wavelength, precession_angle,
-                             function, max_excitation, **kwargs):
+def _shape_factor_precession(
+    z_spot, r_spot, wavelength, precession_angle, function, max_excitation, **kwargs
+):
     """
     The rel-rod shape factors for reflections taking into account
     precession
@@ -120,29 +122,30 @@ def _shape_factor_precession(z_spot, r_spot, wavelength, precession_angle,
     shf = np.zeros(z_spot.shape)
     # loop over all spots
     for i, (z_spot_i, r_spot_i) in enumerate(zip(z_spot, r_spot)):
+
         def integrand(phi):
-            z_sph = _z_sphere_precession(phi, r_spot_i,
-                                         wavelength, precession_angle)
-            return function(z_spot_i-z_sph, max_excitation, **kwargs)
+            z_sph = _z_sphere_precession(phi, r_spot_i, wavelength, precession_angle)
+            return function(z_spot_i - z_sph, max_excitation, **kwargs)
+
         # average factor integrated over the full revolution of the beam
-        shf[i] = (1/(360))*quad(integrand, 0, 360)[0]
+        shf[i] = (1 / (360)) * quad(integrand, 0, 360)[0]
     return shf
 
 
-def _average_excitation_error_precession(z_spot, r_spot,
-                                         wavelength, precession_angle):
+def _average_excitation_error_precession(z_spot, r_spot, wavelength, precession_angle):
     """
     Calculate the average excitation error for spots
     """
     ext = np.zeros(z_spot.shape)
     # loop over all spots
     for i, (z_spot_i, r_spot_i) in enumerate(zip(z_spot, r_spot)):
+
         def integrand(phi):
-            z_sph = _z_sphere_precession(phi, r_spot_i,
-                                         wavelength, precession_angle)
-            return z_spot_i-z_sph
+            z_sph = _z_sphere_precession(phi, r_spot_i, wavelength, precession_angle)
+            return z_spot_i - z_sph
+
         # average factor integrated over the full revolution of the beam
-        ext[i] = (1/(360))*quad(integrand, 0, 360)[0]
+        ext[i] = (1 / (360)) * quad(integrand, 0, 360)[0]
     return ext
 
 
@@ -172,7 +175,7 @@ class DiffractionGenerator(object):
         Angle about which the beam is precessed. Default is no precession.
     approximate_precession : boolean
         When using precession, whether to precisely calculate average
-        excitation errors and intensities or use an approximation.    
+        excitation errors and intensities or use an approximation.
     shape_factor_model : function or string
         A function that takes excitation_error and
         `max_excitation_error` (and potentially kwargs) and returns
@@ -206,7 +209,9 @@ class DiffractionGenerator(object):
         self.approximate_precession = approximate_precession
         if isinstance(shape_factor_model, str):
             if shape_factor_model in _shape_factor_model_mapping.keys():
-                self.shape_factor_model = _shape_factor_model_mapping[shape_factor_model]
+                self.shape_factor_model = _shape_factor_model_mapping[
+                    shape_factor_model
+                ]
             else:
                 raise NotImplementedError(
                     f"{shape_factor_model} is not a recognized shape factor "
@@ -293,11 +298,11 @@ class DiffractionGenerator(object):
             # We find the average excitation error - this step can be
             # quite expensive
             excitation_error = _average_excitation_error_precession(
-                    z_spot,
-                    r_spot,
-                    wavelength,
-                    self.precession_angle,
-                    )
+                z_spot,
+                r_spot,
+                wavelength,
+                self.precession_angle,
+            )
         else:
             z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
             excitation_error = z_sphere - z_spot
@@ -311,25 +316,24 @@ class DiffractionGenerator(object):
         # take into consideration rel-rods
         if self.precession_angle > 0 and not self.approximate_precession:
             shape_factor = _shape_factor_precession(
-                    intersection_coordinates[:, 2],
-                    r_spot,
-                    wavelength,
-                    self.precession_angle,
-                    self.shape_factor_model,
-                    max_excitation_error,
-                    **self.shape_factor_kwargs,
-                    )
+                intersection_coordinates[:, 2],
+                r_spot,
+                wavelength,
+                self.precession_angle,
+                self.shape_factor_model,
+                max_excitation_error,
+                **self.shape_factor_kwargs,
+            )
         elif self.precession_angle > 0 and self.approximate_precession:
             shape_factor = lorentzian_precession(
-                        excitation_error,
-                        max_excitation_error,
-                        r_spot,
-                        self.precession_angle,
-                    )
+                excitation_error,
+                max_excitation_error,
+                r_spot,
+                self.precession_angle,
+            )
         else:
             shape_factor = self.shape_factor_model(
-                excitation_error, max_excitation_error,
-                **self.shape_factor_kwargs
+                excitation_error, max_excitation_error, **self.shape_factor_kwargs
             )
 
         # Calculate diffracted intensities based on a kinematical model.
@@ -356,8 +360,11 @@ class DiffractionGenerator(object):
         )
 
     def calculate_profile_data(
-        self, structure, reciprocal_radius=1.0, minimum_intensity=1e-3,
-        debye_waller_factors={}
+        self,
+        structure,
+        reciprocal_radius=1.0,
+        minimum_intensity=1e-3,
+        debye_waller_factors={},
     ):
         """Calculates a one dimensional diffraction profile for a
         structure.
@@ -469,7 +476,7 @@ class AtomicDiffractionGenerator:
         dtype="float64",
         ZERO=1e-14,
         mode="kinematic",
-        **kwargs
+        **kwargs,
     ):
         """
         Calculates single electron diffraction image for particular atomic

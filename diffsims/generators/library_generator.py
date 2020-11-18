@@ -111,7 +111,7 @@ class DiffractionLibraryGenerator:
                     rotation=orientation,
                     with_direct_beam=with_direct_beam,
                     max_excitation_error=max_excitation_error,
-                    debye_waller_factors=debye_waller_factors
+                    debye_waller_factors=debye_waller_factors,
                 )
 
                 # Calibrate simulation
@@ -126,11 +126,11 @@ class DiffractionLibraryGenerator:
                 intensities[i] = simulation.intensities
 
             diffraction_library[phase_name] = {
-                 "simulations": simulations,
-                 "orientations": orientations,
-                 "pixel_coords": pixel_coords,
-                 "intensities": intensities,
-             }
+                "simulations": simulations,
+                "orientations": orientations,
+                "pixel_coords": pixel_coords,
+                "intensities": intensities,
+            }
         # Pass attributes to diffraction library from structure library.
         diffraction_library.identifiers = structure_library.identifiers
         diffraction_library.structures = structure_library.structures

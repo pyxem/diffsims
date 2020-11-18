@@ -28,8 +28,7 @@ from diffsims.generators.diffraction_generator import (
     _average_excitation_error_precession,
 )
 import diffpy.structure
-from diffsims.utils.shape_factor_models import (linear, binary, sin2c,
-                                                atanc, lorentzian)
+from diffsims.utils.shape_factor_models import linear, binary, sin2c, atanc, lorentzian
 
 
 @pytest.fixture(params=[(300)])
@@ -39,14 +38,12 @@ def diffraction_calculator(request):
 
 @pytest.fixture(scope="module")
 def diffraction_calculator_precession_full():
-    return DiffractionGenerator(300, precession_angle=0.5,
-                                approximate_precession=False)
+    return DiffractionGenerator(300, precession_angle=0.5, approximate_precession=False)
 
 
 @pytest.fixture(scope="module")
 def diffraction_calculator_precession_simple():
-    return DiffractionGenerator(300, precession_angle=0.5,
-                                approximate_precession=True)
+    return DiffractionGenerator(300, precession_angle=0.5, approximate_precession=True)
 
 
 def local_excite(excitation_error, maximum_excitation_error, t):
@@ -55,9 +52,7 @@ def local_excite(excitation_error, maximum_excitation_error, t):
 
 @pytest.fixture(scope="module")
 def diffraction_calculator_custom():
-    return DiffractionGenerator(300,
-                                shape_factor_model=local_excite,
-                                t=0.2)
+    return DiffractionGenerator(300, shape_factor_model=local_excite, t=0.2)
 
 
 @pytest.fixture(params=[(300, [np.linspace(-1, 1, 10)] * 2)])
@@ -109,11 +104,17 @@ def probe(x, out=None, scale=None):
         return v + 0 * x[2].reshape(1, 1, -1)
 
 
-@pytest.mark.parametrize("parameters, expected",
-                         [([0, 1, 0.001, 0.5], -0.00822681491001731),
-                          ([0, np.array([1, 2, 20]), 0.001, 0.5],
-                            np.array([-0.00822681, -0.01545354, 0.02547058])),
-                          ([180, 1, 0.001, 0.5], 0.00922693)])
+@pytest.mark.parametrize(
+    "parameters, expected",
+    [
+        ([0, 1, 0.001, 0.5], -0.00822681491001731),
+        (
+            [0, np.array([1, 2, 20]), 0.001, 0.5],
+            np.array([-0.00822681, -0.01545354, 0.02547058]),
+        ),
+        ([180, 1, 0.001, 0.5], 0.00922693),
+    ],
+)
 def test_z_sphere_precession(parameters, expected):
     result = _z_sphere_precession(*parameters)
     assert np.allclose(result, expected)
@@ -132,10 +133,10 @@ def test_average_excitation_error_precession():
     _ = _average_excitation_error_precession(z, r, 0.001, 0.5)
 
 
-@pytest.mark.parametrize("model, expected",
-                         [("linear", linear),
-                          ("lorentzian", lorentzian),
-                          (binary, binary)],)
+@pytest.mark.parametrize(
+    "model, expected",
+    [("linear", linear), ("lorentzian", lorentzian), (binary, binary)],
+)
 def test_diffraction_generator_init(model, expected):
     generator = DiffractionGenerator(300, shape_factor_model=model)
     assert generator.shape_factor_model == expected
@@ -156,26 +157,30 @@ class TestDiffractionCalculator:
         assert len(diffraction.indices) == len(diffraction.coordinates)
         assert len(diffraction.coordinates) == len(diffraction.intensities)
 
-    def test_precession_simple(self, diffraction_calculator_precession_simple,
-            local_structure):
+    def test_precession_simple(
+        self, diffraction_calculator_precession_simple, local_structure
+    ):
         diffraction = diffraction_calculator_precession_simple.calculate_ed_data(
-            local_structure, reciprocal_radius=5.0,
+            local_structure,
+            reciprocal_radius=5.0,
         )
         assert len(diffraction.indices) == len(diffraction.coordinates)
         assert len(diffraction.coordinates) == len(diffraction.intensities)
 
-    def test_precession_full(self, diffraction_calculator_precession_full,
-            local_structure):
+    def test_precession_full(
+        self, diffraction_calculator_precession_full, local_structure
+    ):
         diffraction = diffraction_calculator_precession_full.calculate_ed_data(
-            local_structure, reciprocal_radius=5.0,
+            local_structure,
+            reciprocal_radius=5.0,
         )
         assert len(diffraction.indices) == len(diffraction.coordinates)
         assert len(diffraction.coordinates) == len(diffraction.intensities)
-        
-    def test_custom_shape_func(self, diffraction_calculator_custom,
-            local_structure):
+
+    def test_custom_shape_func(self, diffraction_calculator_custom, local_structure):
         diffraction = diffraction_calculator_custom.calculate_ed_data(
-            local_structure, reciprocal_radius=5.0,
+            local_structure,
+            reciprocal_radius=5.0,
         )
         assert len(diffraction.indices) == len(diffraction.coordinates)
         assert len(diffraction.coordinates) == len(diffraction.intensities)
@@ -211,9 +216,7 @@ class TestDiffractionCalculator:
         assert np.all(smaller)
 
     def test_shape_factor_strings(self, diffraction_calculator, local_structure):
-        _ = diffraction_calculator.calculate_ed_data(
-            local_structure, 2
-        )
+        _ = diffraction_calculator.calculate_ed_data(local_structure, 2)
 
     def test_shape_factor_custom(self, diffraction_calculator, local_structure):
 
