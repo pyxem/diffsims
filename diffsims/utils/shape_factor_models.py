@@ -81,9 +81,9 @@ def sinc(excitation_error, max_excitation_error, minima_number=5):
     num = np.sin(fac * excitation_error)
     denom = fac * excitation_error
     return np.nan_to_num(
-            np.abs(np.divide(num, denom, out=np.zeros_like(num), where=denom != 0)),
-            nan=1,
-            )
+        np.abs(np.divide(num, denom, out=np.zeros_like(num), where=denom != 0)),
+        nan=1,
+    )
 
 
 def sin2c(excitation_error, max_excitation_error, minima_number=5):
@@ -105,7 +105,7 @@ def sin2c(excitation_error, max_excitation_error, minima_number=5):
     -------
     intensity : array-like or float
     """
-    return sinc(excitation_error, max_excitation_error, minima_number)**2
+    return sinc(excitation_error, max_excitation_error, minima_number) ** 2
 
 
 def atanc(excitation_error, max_excitation_error, minima_number=5):
@@ -131,15 +131,15 @@ def atanc(excitation_error, max_excitation_error, minima_number=5):
     """
     fac = np.pi * minima_number / np.abs(max_excitation_error)
     return np.nan_to_num(
-            np.arctan(fac*excitation_error)/(fac*excitation_error),
-            nan=1,
-            )
+        np.arctan(fac * excitation_error) / (fac * excitation_error),
+        nan=1,
+    )
 
 
 def lorentzian(excitation_error, max_excitation_error):
     """
     Lorentzian intensity profile that should approximate
-    the two-beam rocking curve. After [1].
+    the two-beam rocking curve. This is equation (6) in reference [1].
 
     Parameters
     ----------
@@ -160,16 +160,18 @@ def lorentzian(excitation_error, max_excitation_error):
     """
     # in the paper, sigma = pi*thickness.
     # We assume thickness = 1/max_exitation_error
-    sigma = np.pi/max_excitation_error
-    fac = sigma/(np.pi*(sigma**2*excitation_error**2+1))
+    sigma = np.pi / max_excitation_error
+    fac = sigma / (np.pi * (sigma ** 2 * excitation_error ** 2 + 1))
     return fac
 
 
-def lorentzian_precession(excitation_error, max_excitation_error,
-                          r_spot, precession_angle):
+def lorentzian_precession(
+    excitation_error, max_excitation_error, r_spot, precession_angle
+):
     """
     Intensity profile factor for a precessed beam assuming a Lorentzian
-    intensity profile for the un-precessed beam. After [1].
+    intensity profile for the un-precessed beam. This is equation (10) in
+    reference [1].
 
     Parameters
     ----------
@@ -195,8 +197,8 @@ def lorentzian_precession(excitation_error, max_excitation_error,
     ----------
     [1] L. Palatinus, P. Brázda, M. Jelínek, J. Hrdá, G. Steciuk, M. Klementová, Specifics of the data processing of precession electron diffraction tomography data and their implementation in the program PETS2.0, Acta Crystallogr. Sect. B Struct. Sci. Cryst. Eng. Mater. 75 (2019) 512–522. doi:10.1107/S2052520619007534.
     """
-    sigma = np.pi/max_excitation_error
-    u = sigma**2*(r_spot**2*precession_angle**2 - excitation_error**2)+1
-    z = np.sqrt(u**2 + 4*sigma**2 + excitation_error**2)
-    fac = (sigma/np.pi)*np.sqrt(2*(u+z)/z**2)
+    sigma = np.pi / max_excitation_error
+    u = sigma ** 2 * (r_spot ** 2 * precession_angle ** 2 - excitation_error ** 2) + 1
+    z = np.sqrt(u ** 2 + 4 * sigma ** 2 + excitation_error ** 2)
+    fac = (sigma / np.pi) * np.sqrt(2 * (u + z) / z ** 2)
     return fac

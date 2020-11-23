@@ -51,40 +51,48 @@ _shape_factor_model_mapping = {
 }
 
 
-def _z_sphere_precession(phi, r_spot, wavelength, theta):
+def _z_sphere_precession(theta, r_spot, wavelength, phi):
     """
     Returns the z-coordinate in reciprocal space of the Ewald sphere at
-    distance r from the origin along the x-axis
+    distance r_spot from the origin
 
     Parameters
     ----------
-    phi : float
-        The angle the beam is currently precessed to in degrees.
-        If the beam were projected on the x-y plane, the angle
-        is the angle between this projection with the x-axis.
-    r_spot : float
-        The distance to the point on the x-axis where we calculate z in A^-1
-    wavelength : float
-        The electron wavelength in A^-1
     theta : float
+        The azimuthal angle in degrees
+    r_spot : float
+        The projected length of the reciprocal lattice vector onto the plane
+        perpendicular to the optical axis in A^-1
+    wavelength : float
+        The electron wavelength in A
+    phi : float
         The precession angle in degrees (angle between beam and optical axis)
 
     Returns
     -------
     z : float
         The height of the ewald sphere at the point r in A^-1
+
+    Notes
+    -----
+    * The azimuthal angle is the angle the beam is currently precessed to.
+    It is the angle between the projection of the beam and the projection of
+    the relevant diffraction spot both onto the x-y plane.
+    * In the derivation of this formula we assume that we will always integrate
+    over a full precession circle, because we do not explicitly take into
+    consideration x-y coordinates of reflections.
     """
-    phi = np.deg2rad(phi)
-    r = 1 / wavelength
     theta = np.deg2rad(theta)
+    r = 1 / wavelength
+    phi = np.deg2rad(phi)
     return -np.sqrt(
-        r ** 2 * (1 - np.sin(theta) ** 2 * np.sin(phi) ** 2)
-        - (r_spot - r * np.sin(theta) * np.cos(phi)) ** 2
-    ) + r * np.cos(theta)
+        r ** 2 * (1 - np.sin(phi) ** 2 * np.sin(theta) ** 2)
+        - (r_spot - r * np.sin(phi) * np.cos(theta)) ** 2
+    ) + r * np.cos(phi)
 
 
 def _shape_factor_precession(
-    z_spot, r_spot, wavelength, precession_angle, function, max_excitation, **kwargs
+    z_spot, r_spot, wavelength, phi, shape_function, max_excitation, **kwargs
 ):
     """
     The rel-rod shape factors for reflections taking into account
@@ -98,34 +106,35 @@ def _shape_factor_precession(
         An array representing the distance of spots from the z-axis in A^-1
     wavelength : float
         The electron wavelength in A
-    precession_angle : float
+    phi : float
         The precession angle in degrees
-    function : callable
+    shape_function : callable
         A function that describes the influence from the rel-rods. Should be
         in the form func(excitation_error: np.ndarray, max_excitation: float,
         **kwargs)
     max_excitation : float
-        Maximum excitation angle to consider if precession_angle = 0. With
-        precession, it is rather a parameter to describe the "width" of the
-        rel-rods.
+        Parameter to describe the "extent" of the rel-rods.
 
     Other parameters
     ----------------
-    ** kwargs: passed directly to function
+    ** kwargs: passed directly to shape_function
 
     Notes
     -----
-    We calculate excitation_error as z_spot - z_sphere so that it is
+    * We calculate excitation_error as z_spot - z_sphere so that it is
     negative when the spot is outside the ewald sphere and positive when inside
     conform W&C chapter 12, section 12.6
+    * We assume that the sample is a thin infinitely wide slab perpendicular
+    to the optical axis, so that the shape factor function only depends on the
+    distance from each spot to the Ewald sphere parallel to the optical axis.
     """
     shf = np.zeros(z_spot.shape)
     # loop over all spots
     for i, (z_spot_i, r_spot_i) in enumerate(zip(z_spot, r_spot)):
 
         def integrand(phi):
-            z_sph = _z_sphere_precession(phi, r_spot_i, wavelength, precession_angle)
-            return function(z_spot_i - z_sph, max_excitation, **kwargs)
+            z_sph = _z_sphere_precession(phi, r_spot_i, wavelength, phi)
+            return shape_function(z_spot_i - z_sph, max_excitation, **kwargs)
 
         # average factor integrated over the full revolution of the beam
         shf[i] = (1 / (360)) * quad(integrand, 0, 360)[0]
@@ -175,7 +184,7 @@ class DiffractionGenerator(object):
         Angle about which the beam is precessed. Default is no precession.
     approximate_precession : boolean
         When using precession, whether to precisely calculate average
-        excitation errors and intensities or use an approximation.
+        excitation errors and intensities or use an approximation. See notes.
     shape_factor_model : function or string
         A function that takes excitation_error and
         `max_excitation_error` (and potentially kwargs) and returns
@@ -190,7 +199,7 @@ class DiffractionGenerator(object):
     * A full calculation is much slower and is not recommended for calculating
       a diffraction library for precession diffraction patterns.
     * When using precession and approximate_precession=True, the shape factor
-    model defaults to lorentzian; shape_factor_model is ignored. Only with
+    model defaults to Lorentzian; shape_factor_model is ignored. Only with
     approximate_precession=False the custom shape_factor_model is used.
     """
 
