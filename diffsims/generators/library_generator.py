@@ -51,6 +51,8 @@ class DiffractionLibraryGenerator:
         reciprocal_radius,
         half_shape,
         with_direct_beam=True,
+        max_excitation_error=1e-2,
+        debye_waller_factors={},
     ):
         """Calculates a dictionary of diffraction data for a library of crystal
         structures and orientations.
@@ -74,6 +76,11 @@ class DiffractionLibraryGenerator:
             The half shape of the target patterns, for 144x144 use (72,72) etc
         with_direct_beam : bool
             Include the direct beam in the library.
+        max_excitation_error : float
+            The extinction distance for reflections, in reciprocal
+            Angstroms.
+        debye_waller_factors : dict of str:value pairs
+            Maps element names to their temperature-dependent Debye-Waller factors.
 
         Returns
         -------
@@ -103,6 +110,8 @@ class DiffractionLibraryGenerator:
                     reciprocal_radius,
                     rotation=orientation,
                     with_direct_beam=with_direct_beam,
+                    max_excitation_error=max_excitation_error,
+                    debye_waller_factors=debye_waller_factors,
                 )
 
                 # Calibrate simulation
@@ -122,7 +131,6 @@ class DiffractionLibraryGenerator:
                 "pixel_coords": pixel_coords,
                 "intensities": intensities,
             }
-
         # Pass attributes to diffraction library from structure library.
         diffraction_library.identifiers = structure_library.identifiers
         diffraction_library.structures = structure_library.structures

@@ -481,5 +481,5 @@ def beam_directions_grid_to_euler(vectors):
     phi2 = sign * np.nan_to_num(np.arccos(x_comp / norm_proj))
     # phi1 is just 0, rotation around z''
     phi1 = np.zeros(phi2.shape[0])
-    grid = np.rad2deg(np.vstack([phi1, Phi, phi2]).T)
+    grid = np.rad2deg(np.vstack([phi1, Phi, np.pi / 2 - phi2]).T)
     return grid
