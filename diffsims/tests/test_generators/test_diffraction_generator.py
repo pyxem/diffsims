@@ -146,7 +146,7 @@ class TestDiffractionCalculator:
     def test_init(self, diffraction_calculator: DiffractionGenerator):
         assert diffraction_calculator.scattering_params == "lobato"
         assert diffraction_calculator.precession_angle == 0
-        assert diffraction_calculator.shape_factor_model == linear
+        assert diffraction_calculator.shape_factor_model == lorentzian
         assert diffraction_calculator.approximate_precession == True
         assert diffraction_calculator.minimum_intensity == 1e-20
 

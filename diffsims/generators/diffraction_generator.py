@@ -208,7 +208,7 @@ class DiffractionGenerator(object):
         accelerating_voltage,
         scattering_params="lobato",
         precession_angle=0,
-        shape_factor_model="linear",
+        shape_factor_model="lorentzian",
         approximate_precession=True,
         minimum_intensity=1e-20,
         **kwargs,
