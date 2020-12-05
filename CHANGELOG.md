@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `get_grid_beam_directions`, now works based off of meshes
 - the arguments in the `DiffractionGenerator` constructor and the `DiffractionLibraryGenerator.get_diffraction_library` function have been shuffled so that the former captures arguments related to "the instrument/physics" while the latter captures arguments relevant to "the sample/material".
+- CI is now provided by github actions
 
 ### Added
 - API reference documentation via Read The Docs: https://diffsims.rtfd.io
