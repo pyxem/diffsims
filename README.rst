@@ -1,7 +1,7 @@
-|Travis|_ |Coveralls|_ |docs|_ |pypi_version|_ |black|_ |doi|_
+|build_status|_ |Coveralls|_ |docs|_ |pypi_version|_ |black|_ |doi|_
 
-.. |Travis| image:: https://travis-ci.org/pyxem/diffsims.svg?branch=master
-.. _Travis: https://travis-ci.org/pyxem/diffsims
+.. |build_status| image:: https://github.com/pyxem/diffsims/workflows/build/badge.svg
+.. _build_status: https://github.com/pyxem/diffsims/actions
 
 .. |Coveralls| image:: https://coveralls.io/repos/github/pyxem/diffsims/badge.svg?branch=master
 .. _Coveralls: https://coveralls.io/github/pyxem/diffsims?branch=master
