@@ -442,6 +442,32 @@ def get_icosahedral_mesh_vertices(resolution):
     return vertices
 
 
+def get_random_sphere_vertices(resolution):
+    """
+    Create a mesh that randomly samples the surface of a sphere
+
+    Parameters
+    ----------
+    resolution: float
+        The expected mean angle between nearest neighbor
+        grid points in degrees.
+
+    Returns
+    -------
+    points_in_cartesian : numpy.ndarray (N,3)
+        Rows are x, y, z where z is the 001 pole direction
+
+    References
+    ----------
+    https://mathworld.wolfram.com/SpherePointPicking.html
+    """
+    # convert resolution in degrees to number of points
+    number = int(1/(4*np.pi)*(360/resolution)**2)
+    xyz = np.random.normal(size=(number, 3))
+    xyz = (xyz.T/np.linalg.norm(xyz, axis=1)).T
+    return xyz
+
+
 def beam_directions_grid_to_euler(vectors):
     """
     Convert list of vectors representing zones to a list of Euler angles

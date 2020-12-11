@@ -31,6 +31,7 @@ from diffsims.generators.sphere_mesh_generators import (
     get_uv_sphere_mesh_vertices,
     get_cube_mesh_vertices,
     get_icosahedral_mesh_vertices,
+    get_random_sphere_vertices,
     beam_directions_grid_to_euler,
 )
 
@@ -186,8 +187,8 @@ def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_c
     mesh : str
         Type of meshing of the sphere that defines how the grid is
         created. Options are: uv_sphere, normalized_cube,
-        spherified_cube_corner (default), spherified_cube_edge, and
-        icosahedral.
+        spherified_cube_corner (default), spherified_cube_edge,
+        icosahedral, random.
 
     Returns
     -------
@@ -216,13 +217,14 @@ def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_c
             points_in_cartesians = get_cube_mesh_vertices(
                 resolution, grid_type="spherified_edge"
             )
-
+    elif mesh == "random":
+        points_in_cartesians = get_random_sphere_vertices(resolution)
     else:
         raise NotImplementedError(
             f"The mesh {mesh} is not recognized. "
             f"Please use: uv_sphere, normalized_cube, "
             f"spherified_cube_edge, "
-            f"spherified_cube_corner, icosahedral"
+            f"spherified_cube_corner, icosahedral, random"
         )
 
     if crystal_system == "triclinic":
