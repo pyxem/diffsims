@@ -16,11 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-from diffsims.crystallography import ReciprocalLatticePoint
 import numpy as np
 from orix.crystal_map import Phase
 from orix.vector import Vector3d
 import pytest
+
+from diffsims.crystallography import ReciprocalLatticePoint
 
 
 class TestReciprocalLatticePoint:
@@ -36,7 +37,7 @@ class TestReciprocalLatticePoint:
         assert rlp.size == 2
         assert rlp.shape == (2, 3)
         assert rlp.hkl[0].shape == (1,)
-        assert rlp._hkldata[0].shape == (3,)
+        assert rlp.hkl.data[0].shape == (3,)
         assert np.issubdtype(rlp.hkl.data.dtype, int)
 
     @pytest.mark.parametrize("min_dspacing, desired_size", [(2, 9), (1, 19), (0.5, 83)])
@@ -67,8 +68,8 @@ class TestReciprocalLatticePoint:
         rlp = ReciprocalLatticePoint.from_highest_hkl(
             phase=silicon_carbide_phase, highest_hkl=highest_hkl
         )
-        assert np.allclose(rlp[0]._hkldata, desired_highest_hkl)
-        assert np.allclose(rlp[-1]._hkldata, desired_lowest_hkl)
+        assert np.allclose(rlp[0].hkl.data, desired_highest_hkl)
+        assert np.allclose(rlp[-1].hkl.data, desired_lowest_hkl)
         assert rlp.size == desired_size
 
     def test_repr(self, ferrite_phase):
@@ -202,16 +203,16 @@ class TestReciprocalLatticePoint:
         hkl = [[-1, -1, -1], [1, 1, 1], [1, 0, 0], [0, 0, 1]]
         rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=hkl)
         assert isinstance(rlp.unique(), ReciprocalLatticePoint)
-        assert np.allclose(rlp.unique(use_symmetry=False)._hkldata, hkl)
+        assert np.allclose(rlp.unique(use_symmetry=False).hkl.data, hkl)
         assert np.allclose(
-            rlp.unique(use_symmetry=True)._hkldata, [[1, 1, 1], [1, 0, 0]]
+            rlp.unique(use_symmetry=True).hkl.data, [[1, 1, 1], [1, 0, 0]]
         )
 
     def test_symmetrise(self):
         assert np.allclose(
             ReciprocalLatticePoint(phase=Phase(space_group=225), hkl=[1, 1, 1])
             .symmetrise()
-            ._hkldata,
+            .hkl.data,
             np.array(
                 [
                     [1, 1, 1],
@@ -230,7 +231,7 @@ class TestReciprocalLatticePoint:
         ).symmetrise(return_multiplicity=True)
         assert multiplicity == 12
         assert np.allclose(
-            rlp2._hkldata,
+            rlp2.hkl.data,
             [
                 [2, 2, 0],
                 [-2, 0, 0],
@@ -250,7 +251,7 @@ class TestReciprocalLatticePoint:
             phase=Phase(space_group=186), hkl=[2, 2, 0]
         ).symmetrise(antipodal=False)
         assert np.allclose(
-            rlp3._hkldata,
+            rlp3.hkl.data,
             [[2, 2, 0], [-2, 0, 0], [0, -2, 0], [-2, -2, 0], [2, 0, 0], [0, 2, 0]],
         )
 
@@ -284,3 +285,22 @@ class TestReciprocalLatticePoint:
         rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=hkl)
         rlp.calculate_theta(voltage=voltage)
         assert np.allclose(rlp.theta, desired_theta)
+
+    def test_one_point(self, ferrite_phase):
+        rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=[1, 1, 0])
+        repr(rlp)
+
+        assert rlp.size == 1
+        assert np.allclose(rlp.allowed, True)
+
+    def test_init_without_point_group_raises(self):
+        phase = Phase()
+        with pytest.raises(ValueError, match=f"The phase {phase} must have a"):
+            _ = ReciprocalLatticePoint(phase=phase, hkl=[1, 1, 1])
+
+    def test_get_allowed_without_space_group_raises(self):
+        phase = Phase(point_group="432")
+        rlp = ReciprocalLatticePoint(phase=phase, hkl=[1, 1, 1])
+        
+        with pytest.raises(ValueError, match=f"The phase {phase} must have a"):
+            _ = rlp.allowed
