@@ -288,7 +288,6 @@ class TestReciprocalLatticePoint:
 
     def test_one_point(self, ferrite_phase):
         rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=[1, 1, 0])
-        repr(rlp)
 
         assert rlp.size == 1
         assert np.allclose(rlp.allowed, True)
