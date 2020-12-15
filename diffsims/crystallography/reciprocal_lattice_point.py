@@ -18,7 +18,6 @@
 
 from collections import defaultdict
 from itertools import product
-import warnings
 
 import numpy as np
 from orix.vector import Vector3d
