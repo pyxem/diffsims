@@ -284,3 +284,9 @@ class TestReciprocalLatticePoint:
         rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=hkl)
         rlp.calculate_theta(voltage=voltage)
         assert np.allclose(rlp.theta, desired_theta)
+
+    def test_families(self, ferrite_phase):
+        pass
+
+    def test_families_indices(self, ferrite_phase):
+        pass

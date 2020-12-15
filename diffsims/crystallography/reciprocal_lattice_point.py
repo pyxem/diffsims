@@ -48,7 +48,8 @@ class ReciprocalLatticePoint:
         phase : orix.crystal_map.phase_list.Phase
             A phase container with a crystal structure and a space and
             point group describing the allowed symmetry operations.
-        hkl : orix.vector.Vector3d, np.ndarray, list, or tuple
+        hkl : orix.vector.vector3d.Vector3d, numpy.ndarray, list, or\
+                tuple
             Miller indices.
         """
         self._hkl = Vector3d(hkl)
@@ -77,27 +78,29 @@ class ReciprocalLatticePoint:
 
     @property
     def hkl(self):
-        """Return :class:`~orix.vector.Vector3d` of Miller indices."""
+        """Return :class:`~orix.vector.vector3.Vector3d` of Miller
+        indices.
+        """
         return Vector3d(self._hkl.data.astype(int))
 
     @property
     def _hkldata(self):
-        """Return :class:`np.ndarray` without 1-dimensions."""
+        """Return :class:`numpy.ndarray` without 1-dimensions."""
         return np.squeeze(self.hkl.data)
 
     @property
     def h(self):
-        """Return :class:`np.ndarray` of Miller index h."""
+        """Return :class:`numpy.ndarray` of Miller index h."""
         return self._hkldata[..., 0]
 
     @property
     def k(self):
-        """Return :class:`np.ndarray` of Miller index k."""
+        """Return :class:`numpy.ndarray` of Miller index k."""
         return self._hkldata[..., 1]
 
     @property
     def l(self):
-        """Return :class:`np.ndarray` of Miller index l."""
+        """Return :class:`numpy.ndarray` of Miller index l."""
         return self._hkldata[..., 2]
 
     @property
@@ -112,31 +115,31 @@ class ReciprocalLatticePoint:
 
     @property
     def multiplicity(self):
-        """Return either `int` or :class:`np.ndarray` of `int`."""
+        """Return either `int` or :class:`numpy.ndarray` of `int`."""
         return self.symmetrise(antipodal=True, return_multiplicity=True)[1]
 
     @property
     def gspacing(self):
-        """Return :class:`np.ndarray` of reciprocal lattice point
+        """Return :class:`numpy.ndarray` of reciprocal lattice point
         spacings.
         """
         return self.phase.structure.lattice.rnorm(self._hkldata)
 
     @property
     def dspacing(self):
-        """Return :class:`np.ndarray` of direct lattice interplanar
+        """Return :class:`numpy.ndarray` of direct lattice interplanar
         spacings.
         """
         return 1 / self.gspacing
 
     @property
     def scattering_parameter(self):
-        """Return :class:`np.ndarray` of scattering parameters s."""
+        """Return :class:`numpy.ndarray` of scattering parameters s."""
         return 0.5 * self.gspacing
 
     @property
     def structure_factor(self):
-        """Return :class:`np.ndarray` of structure factors F or None."""
+        """Return :class:`numpy.ndarray` of structure factors F or None."""
         return self._structure_factor
 
     @property
@@ -171,8 +174,12 @@ class ReciprocalLatticePoint:
 
     @property
     def theta(self):
-        """Return :class:`np.ndarray` of twice the Bragg angle."""
+        """Return :class:`numpy.ndarray` of twice the Bragg angle."""
         return self._theta
+
+    @property
+    def families(self):
+        """Return symmetrically unique Miller indices."""
 
     @classmethod
     def from_min_dspacing(cls, phase, min_dspacing=0.5):
@@ -204,7 +211,7 @@ class ReciprocalLatticePoint:
         phase : orix.crystal_map.phase_list.Phase
             A phase container with a crystal structure and a space and
             point group describing the allowed symmetry operations.
-        highest_hkl : np.ndarray, list, or tuple of int
+        highest_hkl : numpy.ndarray, list, or tuple of int
             Highest Miller indices to consider (including).
         """
         hkl = get_hkl(highest_hkl=highest_hkl)
@@ -272,7 +279,7 @@ class ReciprocalLatticePoint:
         ReciprocalLatticePoint
             Planes with Miller indices symmetrically equivalent to the
             original planes.
-        multiplicity : np.ndarray
+        multiplicity : numpy.ndarray
             Multiplicity of the original Miller indices. Only returned if
             `return_multiplicity` is True.
 
@@ -375,7 +382,7 @@ def get_highest_hkl(lattice, min_dspacing=0.5):
 
     Returns
     -------
-    highest_hkl : np.ndarray
+    highest_hkl : numpy.ndarray
         Highest Miller indices.
     """
     highest_hkl = np.ones(3, dtype=int)
@@ -394,12 +401,13 @@ def get_hkl(highest_hkl):
 
     Parameters
     ----------
-    highest_hkl : orix.vector.Vector3d, np.ndarray, list, or tuple of int
+    highest_hkl : orix.vector.vector3d.Vector3d, numpy.ndarray, list,\
+            or tuple of int
         Highest Miller indices to consider.
 
     Returns
     -------
-    hkl : np.ndarray
+    hkl : numpy.ndarray
         An array of Miller indices.
     """
     index_ranges = [np.arange(-i, i + 1) for i in highest_hkl]
@@ -411,7 +419,8 @@ def get_equivalent_hkl(hkl, operations, unique=False, return_multiplicity=False)
 
     Parameters
     ----------
-    hkl : orix.vector.Vector3d, np.ndarray, list or tuple of int
+    hkl : orix.vector.vector3.Vector3d, numpy.ndarray, list or tuple of\
+            int
         Miller indices.
     operations : orix.quaternion.symmetry.Symmetry
         Point group describing allowed symmetry operations.
@@ -423,9 +432,9 @@ def get_equivalent_hkl(hkl, operations, unique=False, return_multiplicity=False)
 
     Returns
     -------
-    new_hkl : orix.vector.Vector3d
+    new_hkl : orix.vector.vector3.Vector3d
         The symmetrically equivalent Miller indices.
-    multiplicity : np.ndarray
+    multiplicity : numpy.ndarray
         Number of symmetrically equivalent indices. Only returned if
         `return_multiplicity` is True.
     """
@@ -454,5 +463,43 @@ def get_equivalent_hkl(hkl, operations, unique=False, return_multiplicity=False)
         return new_hkl
 
 
-def _is_equivalent(this_hkl: list, that_hkl: list) -> bool:
-    return sorted(np.abs(this_hkl)) == sorted(np.abs(that_hkl))
+def _is_equivalent(this_hkl, that_hkl, reduce=False):
+    """Determine whether two Miller index 3-tuples are equivalent.
+    Symmetry is not considered.
+
+    Parameters
+    ----------
+    this_hkl : list
+    that_hkl : list
+    reduce : bool, optional
+
+    Returns
+    -------
+    bool
+    """
+    if reduce:
+        this_hkl, _ = _reduce_hkl(this_hkl)
+        that_hkl, _ = _reduce_hkl(that_hkl)
+    return np.allclose(
+        np.sort(np.abs(this_hkl).astype(int)),
+        np.sort(np.abs(that_hkl).astype(int)),
+    )
+
+
+def _reduce_hkl(hkl):
+    """Reduce Miller indices 3-tuples by a greatest common divisor.
+
+    Parameters
+    ----------
+    hkl : list or numpy.ndarray
+
+    Returns
+    -------
+    numpy.ndarray
+    numpy.ndarray
+    """
+    hkl = np.atleast_2d(hkl)
+    divisor = np.gcd.reduce(hkl, axis=1)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        hkl = hkl / divisor[:, np.newaxis]
+    return hkl.astype(int), divisor
