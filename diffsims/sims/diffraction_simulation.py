@@ -18,7 +18,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy import ndimage as ndi
+from diffsims.pattern.detector_functions import add_gaussian_blur
 
 
 class DiffractionSimulation:
@@ -163,7 +163,7 @@ class DiffractionSimulation:
             return pattern
         else:
             pattern[spot_coords[:, 0], spot_coords[:, 1]] = spot_intens
-            pattern = ndi.gaussian_filter(pattern.T, sigma)
+            pattern = add_gaussian_blur(pattern.T, sigma)
 
         return np.divide(pattern, np.max(pattern))
 
