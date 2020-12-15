@@ -20,6 +20,27 @@
 from scipy import ndimage as ndi
 
 def add_gaussian_blur(pattern,sigma):
+    """
+
+    Parameters
+    ----------
+    pattern : np.array
+
+    sigma : float
+          The standard deviation of the gaussian blur, in pixels
+    Returns
+    -------
+    blurred_pattern : np.array
+
+    Notes
+    -----
+    This blurring, as well as being inuitive is often a good first model
+    of a detector response function [source]
+
+    References
+    ----------
+    [source]
+    """
     return ndi.gaussian_filter(pattern, sigma)
 
 def add_shot_noise():
