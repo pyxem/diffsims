@@ -89,6 +89,7 @@ class ReciprocalLatticePoint:
         """Return :class:`numpy.ndarray` without 1-dimensions."""
         return np.squeeze(self.hkl.data)
 
+    @property
     def h(self):
         """Return :class:`np.ndarray` of Miller index h."""
         return self.hkl.data[..., 0]
