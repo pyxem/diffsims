@@ -57,6 +57,7 @@ def test_get_grid_around_beam_direction():
         "spherified_cube_edge",
         "spherified_cube_corner",
         "icosahedral",
+        "random",
     ],
 )
 @pytest.mark.parametrize(
@@ -73,6 +74,7 @@ def test_get_grid_around_beam_direction():
 )
 def test_get_beam_directions_grid(crystal_system, mesh):
     grid = get_beam_directions_grid(crystal_system, 5, mesh=mesh)
+
 
 @pytest.mark.xfail()
 def test_invalid_mesh_beam_directions():

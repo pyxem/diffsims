@@ -19,3 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Python 3.6 testing
+
+### Fixed
+- ReciprocalLatticePoint handles having only one point/vector

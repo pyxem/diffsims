@@ -52,8 +52,9 @@ class ReciprocalLatticePoint:
                 tuple
             Miller indices.
         """
-        self._hkl = Vector3d(hkl)
         self.phase = phase
+        self._raise_if_no_point_group()
+        self._hkl = Vector3d(hkl)
         self._structure_factor = [None] * self.size
         self._theta = [None] * self.size
 
@@ -88,20 +89,19 @@ class ReciprocalLatticePoint:
         """Return :class:`numpy.ndarray` without 1-dimensions."""
         return np.squeeze(self.hkl.data)
 
-    @property
     def h(self):
-        """Return :class:`numpy.ndarray` of Miller index h."""
-        return self._hkldata[..., 0]
+        """Return :class:`np.ndarray` of Miller index h."""
+        return self.hkl.data[..., 0]
 
     @property
     def k(self):
-        """Return :class:`numpy.ndarray` of Miller index k."""
-        return self._hkldata[..., 1]
+        """Return :class:`np.ndarray` of Miller index k."""
+        return self.hkl.data[..., 1]
 
     @property
     def l(self):
-        """Return :class:`numpy.ndarray` of Miller index l."""
-        return self._hkldata[..., 2]
+        """Return :class:`np.ndarray` of Miller index l."""
+        return self.hkl.data[..., 2]
 
     @property
     def size(self):
@@ -111,7 +111,7 @@ class ReciprocalLatticePoint:
     @property
     def shape(self):
         """Return `tuple`."""
-        return self._hkldata.shape
+        return self.hkl.data.shape
 
     @property
     def multiplicity(self):
@@ -123,7 +123,7 @@ class ReciprocalLatticePoint:
         """Return :class:`numpy.ndarray` of reciprocal lattice point
         spacings.
         """
-        return self.phase.structure.lattice.rnorm(self._hkldata)
+        return self.phase.structure.lattice.rnorm(self.hkl.data)
 
     @property
     def dspacing(self):
@@ -147,6 +147,8 @@ class ReciprocalLatticePoint:
         """Return whether planes diffract according to structure_factor
         selection rules assuming kinematical scattering theory.
         """
+        self._raise_if_no_space_group()
+
         # Translational symmetry
         centering = self.phase.space_group.short_name[0]
 
@@ -159,10 +161,10 @@ class ReciprocalLatticePoint:
             else:  # Any hkl
                 return np.ones(self.size, dtype=bool)
         elif centering == "F":  # Face-centred, hkl all odd/even
-            selection = np.sum(np.mod(self._hkldata, 2), axis=1)
+            selection = np.sum(np.mod(self.hkl.data, 2), axis=1)
             return np.array([i not in [1, 2] for i in selection], dtype=bool)
         elif centering == "I":  # Body-centred, h + k + l = 2n (even)
-            return np.mod(np.sum(self._hkldata, axis=1), 2) == 0
+            return np.mod(np.sum(self.hkl.data, axis=1), 2) == 0
         elif centering == "A":  # Centred on A faces only
             return np.mod(self.k + self.l, 2) == 0
         elif centering == "B":  # Centred on B faces only
@@ -231,7 +233,7 @@ class ReciprocalLatticePoint:
         ReciprocalLatticePoint
         """
         if use_symmetry:
-            all_hkl = self._hkldata
+            all_hkl = self.hkl.data
             # Remove [0, 0, 0] points
             all_hkl = all_hkl[~np.all(np.isclose(all_hkl, 0), axis=1)]
 
@@ -335,9 +337,7 @@ class ReciprocalLatticePoint:
 
         # TODO: Find a better way to call different methods in the loop
         structure_factors = np.zeros(self.size)
-        for i, (hkl, s) in enumerate(
-            zip(np.atleast_2d(self._hkldata), np.atleast_1d(self.scattering_parameter))
-        ):
+        for i, (hkl, s) in enumerate(zip(self.hkl.data, self.scattering_parameter)):
             if method == "kinematical":
                 structure_factors[i] = get_kinematical_structure_factor(
                     phase=self.phase,
@@ -366,6 +366,20 @@ class ReciprocalLatticePoint:
         """
         wavelength = get_refraction_corrected_wavelength(self.phase, voltage)
         self._theta = np.arcsin(0.5 * wavelength * self.gspacing)
+
+    def _raise_if_no_point_group(self):
+        """Raise ValueError if the phase attribute has no point group
+        set.
+        """
+        if self.phase.point_group is None:
+            raise ValueError(f"The phase {self.phase} must have a point group set")
+
+    def _raise_if_no_space_group(self):
+        """Raise ValueError if the phase attribute has no space group
+        set.
+        """
+        if self.phase.space_group is None:
+            raise ValueError(f"The phase {self.phase} must have a space group set")
 
 
 def get_highest_hkl(lattice, min_dspacing=0.5):
