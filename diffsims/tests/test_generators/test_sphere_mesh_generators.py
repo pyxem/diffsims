@@ -18,6 +18,7 @@
 
 import pytest
 import numpy as np
+
 from diffsims.generators.sphere_mesh_generators import (
     get_uv_sphere_mesh_vertices,
     get_cube_mesh_vertices,
@@ -35,6 +36,16 @@ def test_random_sphere_mesh():
     grid = get_random_sphere_vertices(1)
     assert grid.shape[0] == 10313
     assert grid.shape[1] == 3
+
+    res = 10
+    assert np.allclose(
+        get_random_sphere_vertices(resolution=res, seed=1),
+        get_random_sphere_vertices(resolution=res, seed=1),
+    )
+    assert not np.allclose(
+        get_random_sphere_vertices(resolution=res, seed=1),
+        get_random_sphere_vertices(resolution=res, seed=2),
+    )
 
 
 def test_get_uv_sphere_mesh_vertices():

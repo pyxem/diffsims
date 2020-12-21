@@ -73,6 +73,8 @@ def get_interaction_constant(accelerating_voltage):
     return sigma
 
 
+# TODO: Remove when functionality is replaced by
+#  diffsims.crystallography.get_hkl_family()
 def get_unique_families(hkls):
     """Returns unique families of Miller indices, which must be permutations of
     each other.

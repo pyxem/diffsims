@@ -199,8 +199,8 @@ class DiffractionGenerator(object):
     * A full calculation is much slower and is not recommended for calculating
       a diffraction library for precession diffraction patterns.
     * When using precession and approximate_precession=True, the shape factor
-    model defaults to Lorentzian; shape_factor_model is ignored. Only with
-    approximate_precession=False the custom shape_factor_model is used.
+      model defaults to Lorentzian; shape_factor_model is ignored. Only with
+      approximate_precession=False the custom shape_factor_model is used.
     """
 
     def __init__(

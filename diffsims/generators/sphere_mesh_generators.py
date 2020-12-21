@@ -442,23 +442,22 @@ def get_icosahedral_mesh_vertices(resolution):
     return vertices
 
 
-def get_random_sphere_vertices(resolution,seed=None):
-    """
-    Create a mesh that randomly samples the surface of a sphere
+def get_random_sphere_vertices(resolution, seed=None):
+    """Create a mesh that randomly samples the surface of a sphere.
 
     Parameters
     ----------
     resolution : float
-        The expected mean angle between nearest neighbor
-        grid points in degrees.
+        The expected mean angle between nearest neighbor grid points in
+        degrees.
     seed : int, optional
-        passed to np.random.default_rng(), defaults to None which 
-        will give a "new" random result each time
+        Passed to np.random.default_rng(), defaults to None which will
+        give a "new" random result each time.
 
     Returns
     -------
-    points_in_cartesian : numpy.ndarray (N,3)
-        Rows are x, y, z where z is the 001 pole direction
+    points_in_cartesian : numpy.ndarray (N, 3)
+        Rows are x, y, z where z is the 001 pole direction.
 
     References
     ----------
@@ -467,7 +466,7 @@ def get_random_sphere_vertices(resolution,seed=None):
     # convert resolution in degrees to number of points
     number = int(1/(4*np.pi)*(360/resolution)**2)
     if seed is not None:
-        rng =np.random.default_rng(seed=seed)
+        rng = np.random.default_rng(seed=seed)
     else:
         rng = np.random.default_rng()
         

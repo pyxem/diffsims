@@ -21,7 +21,7 @@ from orix.crystal_map import Phase
 from orix.vector import Vector3d
 import pytest
 
-from diffsims.crystallography import ReciprocalLatticePoint
+from diffsims.crystallography import ReciprocalLatticePoint, get_hkl_family
 
 
 class TestReciprocalLatticePoint:
@@ -200,12 +200,12 @@ class TestReciprocalLatticePoint:
             ).allowed
 
     def test_unique(self, ferrite_phase):
-        hkl = [[-1, -1, -1], [1, 1, 1], [1, 0, 0], [0, 0, 1]]
+        hkl = [[1, 1, 1], [-1, -1, -1], [1, 0, 0], [0, 0, 1], [2, 0, 0]]
         rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=hkl)
         assert isinstance(rlp.unique(), ReciprocalLatticePoint)
         assert np.allclose(rlp.unique(use_symmetry=False).hkl.data, hkl)
         assert np.allclose(
-            rlp.unique(use_symmetry=True).hkl.data, [[1, 1, 1], [1, 0, 0]]
+            rlp.unique(use_symmetry=True, reduce=True).hkl.data, [[1, 1, 1], [1, 0, 0]]
         )
 
     def test_symmetrise(self):
@@ -286,11 +286,25 @@ class TestReciprocalLatticePoint:
         rlp.calculate_theta(voltage=voltage)
         assert np.allclose(rlp.theta, desired_theta)
 
-    def test_families(self, ferrite_phase):
-        pass
+    @pytest.mark.parametrize(
+        "hkl, family_heads, family_idx, n_families",
+        [
+            (
+                [[1, 1, 1], [1, 0, 0], [-1, -1, -1], [0, 1, 0], [2, 0, 0]],
+                [[1, 1, 1], [1, 0, 0]],
+                [0, 1, 0, 1, 1],
+                2,
+            ),
+            ([[0, 1, 1], [1, 1, 0]], [0, 1, 1], [0, 0], 1),
+        ],
+    )
+    def test_families(self, ferrite_phase, hkl, family_heads, family_idx, n_families):
+        # TODO: Add tests for other crystal systems than cubic
+        rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=hkl)
 
-    def test_families_indices(self, ferrite_phase):
-        pass
+        assert np.allclose(rlp.families, family_heads)
+        assert np.allclose(rlp.family, family_idx)
+        assert rlp.n_families == n_families
 
     def test_one_point(self, ferrite_phase):
         rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=[1, 1, 0])
@@ -306,6 +320,116 @@ class TestReciprocalLatticePoint:
     def test_get_allowed_without_space_group_raises(self):
         phase = Phase(point_group="432")
         rlp = ReciprocalLatticePoint(phase=phase, hkl=[1, 1, 1])
-        
+
         with pytest.raises(ValueError, match=f"The phase {phase} must have a"):
             _ = rlp.allowed
+
+    @pytest.mark.parametrize(
+        ("hkl, desired_family_keys, desired_family_values, desired_indices, " "reduce"),
+        [
+            ([1, 1, 1], [[1, 1, 1]], [1, 1, 1], [0], False),
+            ([1, 1, 1], [[1, 1, 1]], [1, 1, 1], [0], True),
+            (
+                [[1, 1, 1], [2, 0, 0]],
+                [[1, 1, 1], [2, 0, 0]],
+                [[[1, 1, 1]], [[2, 0, 0]]],
+                [[0], [1]],
+                False,
+            ),
+            (
+                ReciprocalLatticePoint(phase=Phase(space_group=225), hkl=[1, 1, 1])
+                .symmetrise()
+                .hkl.data,
+                [1, 1, 1],
+                [
+                    [
+                        [1, 1, 1],
+                        [-1, 1, 1],
+                        [-1, -1, 1],
+                        [1, -1, 1],
+                        [1, -1, -1],
+                        [1, 1, -1],
+                        [-1, 1, -1],
+                        [-1, -1, -1],
+                    ]
+                ],
+                [np.arange(8)],
+                False,
+            ),
+            (
+                ReciprocalLatticePoint(
+                    phase=Phase(space_group=225), hkl=[[1, 1, 1], [2, 0, 0]]
+                )
+                .symmetrise()
+                .hkl.data,
+                [[1, 1, 1], [2, 0, 0]],
+                [
+                    [
+                        [1, 1, 1],
+                        [-1, 1, 1],
+                        [-1, -1, 1],
+                        [1, -1, 1],
+                        [1, -1, -1],
+                        [1, 1, -1],
+                        [-1, 1, -1],
+                        [-1, -1, -1],
+                    ],
+                    [
+                        [2, 0, 0],
+                        [0, 2, 0],
+                        [-2, 0, 0],
+                        [0, -2, 0],
+                        [0, 0, 2],
+                        [0, 0, -2],
+                    ],
+                ],
+                [np.arange(8).tolist(), np.arange(8, 14).tolist()],
+                False,
+            ),
+            (
+                ReciprocalLatticePoint(
+                    phase=Phase(space_group=225), hkl=[[1, 1, 1], [2, 2, 2]]
+                )
+                .symmetrise()
+                .hkl.data,
+                [1, 1, 1],
+                [
+                    [
+                        [1, 1, 1],
+                        [-1, 1, 1],
+                        [-1, -1, 1],
+                        [1, -1, 1],
+                        [1, -1, -1],
+                        [1, 1, -1],
+                        [-1, 1, -1],
+                        [-1, -1, -1],
+                        [2, 2, 2],
+                        [-2, 2, 2],
+                        [-2, -2, 2],
+                        [2, -2, 2],
+                        [2, -2, -2],
+                        [2, 2, -2],
+                        [-2, 2, -2],
+                        [-2, -2, -2],
+                    ]
+                ],
+                [np.arange(16)],
+                True,
+            ),
+        ],
+    )
+    def test_get_hkl_family(
+        self,
+        hkl,
+        desired_family_keys,
+        desired_family_values,
+        desired_indices,
+        reduce,
+    ):
+        """Desired sets of families and indices."""
+        families, families_idx = get_hkl_family(hkl, reduce=reduce)
+
+        for i, (k, v) in enumerate(families.items()):
+            assert np.allclose(k, desired_family_keys[i])
+            assert np.allclose(v, desired_family_values[i])
+            assert np.allclose(families_idx[k], desired_indices[i])

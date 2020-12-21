@@ -79,29 +79,24 @@ class ReciprocalLatticePoint:
 
     @property
     def hkl(self):
-        """Return :class:`~orix.vector.vector3.Vector3d` of Miller
+        """Return :class:`~orix.vector.vector3d.Vector3d` of Miller
         indices.
         """
         return Vector3d(self._hkl.data.astype(int))
 
     @property
-    def _hkldata(self):
-        """Return :class:`numpy.ndarray` without 1-dimensions."""
-        return np.squeeze(self.hkl.data)
-
-    @property
     def h(self):
-        """Return :class:`np.ndarray` of Miller index h."""
+        """Return :class:`numpy.ndarray` of Miller index h."""
         return self.hkl.data[..., 0]
 
     @property
     def k(self):
-        """Return :class:`np.ndarray` of Miller index k."""
+        """Return :class:`numpy.ndarray` of Miller index k."""
         return self.hkl.data[..., 1]
 
     @property
     def l(self):
-        """Return :class:`np.ndarray` of Miller index l."""
+        """Return :class:`numpy.ndarray` of Miller index l."""
         return self.hkl.data[..., 2]
 
     @property
@@ -145,8 +140,8 @@ class ReciprocalLatticePoint:
 
     @property
     def allowed(self):
-        """Return whether planes diffract according to structure_factor
-        selection rules assuming kinematical scattering theory.
+        """Return whether planes diffract according to structure factor
+        selection rules, assuming kinematical scattering theory.
         """
         self._raise_if_no_space_group()
 
@@ -177,18 +172,50 @@ class ReciprocalLatticePoint:
 
     @property
     def theta(self):
-        """Return :class:`numpy.ndarray` of twice the Bragg angle."""
+        r"""Return :class:`numpy.ndarray` of twice the Bragg angle
+        :math:`\theta_B`.
+        """
         return self._theta
 
     @property
     def families(self):
-        """Return symmetrically unique Miller indices."""
+        """Return the symmetrically unique Miller indices, families
+        {hkl}, describing the set of (hkl).
+
+        Returns
+        -------
+        np.ndarray
+        """
+        families, _ = get_hkl_family(hkl=self.hkl.data, reduce=True)
+        return np.asarray(list(families.keys()))
+
+    @property
+    def n_families(self):
+        """Return the number of families {hkl}."""
+        return self.families.shape[0]
+
+    @property
+    def family(self):
+        """Return the index into `self.families` {hkl} to which every
+        (hkl) belong.
+
+        Returns
+        -------
+        np.ndarray
+        """
+        families, families_idx = get_hkl_family(hkl=self.hkl.data, reduce=True)
+        family = np.zeros(self.size, dtype=int)
+        families_idx_list = list(families_idx.values())
+        n_families = len(families.keys())
+        for i in range(n_families):
+            family[families_idx_list[i]] = i
+        return family
 
     @classmethod
     def from_min_dspacing(cls, phase, min_dspacing=0.5):
-        """Create a CrystalPlane object populated by unique Miller indices
-        with a direct space interplanar spacing greater than a lower
-        threshold.
+        """Return a ReciprocalLatticePoint instance populated by unique
+        Miller indices with a direct space interplanar spacing greater
+        than a lower threshold.
 
         Parameters
         ----------
@@ -206,8 +233,8 @@ class ReciprocalLatticePoint:
 
     @classmethod
     def from_highest_hkl(cls, phase, highest_hkl):
-        """Create a CrystalPlane object populated by unique Miller indices
-        below, but including, a set of higher indices.
+        """Return a ReciprocalLatticePoint instance populated by unique
+        Miller indices below, but including, a set of higher indices.
 
         Parameters
         ----------
@@ -220,37 +247,27 @@ class ReciprocalLatticePoint:
         hkl = get_hkl(highest_hkl=highest_hkl)
         return cls(phase=phase, hkl=hkl).unique()
 
-    def unique(self, use_symmetry=True):
-        """Return planes with unique Miller indices.
+    def unique(self, use_symmetry=True, reduce=False):
+        """Return a new instance with planes with unique Miller indices
+        only.
 
         Parameters
         ----------
         use_symmetry : bool, optional
             Whether to use symmetry to remove the planes with indices
             symmetrically equivalent to another set of indices.
+        reduce : bool, optional
+            Whether to reduce Miller indices by a common divisor, e.g.
+            from (642) to (321) when `use_symmetry` is True. Default is
+            False.
 
         Returns
         -------
         ReciprocalLatticePoint
         """
         if use_symmetry:
-            all_hkl = self.hkl.data
-            # Remove [0, 0, 0] points
-            all_hkl = all_hkl[~np.all(np.isclose(all_hkl, 0), axis=1)]
-
-            families = defaultdict(list)
-            for this_hkl in all_hkl.tolist():
-                for that_hkl in families.keys():
-                    if _is_equivalent(this_hkl, that_hkl):
-                        families[tuple(that_hkl)].append(this_hkl)
-                        break
-                else:
-                    families[tuple(this_hkl)].append(this_hkl)
-
-            n_families = len(families)
-            unique_hkl = np.zeros((n_families, 3))
-            for i, all_hkl_in_family in enumerate(families.values()):
-                unique_hkl[i] = sorted(all_hkl_in_family)[-1]
+            families, _ = get_hkl_family(hkl=self.hkl.data, reduce=reduce)
+            unique_hkl = list(families.keys())
         else:
             unique_hkl = self.hkl.unique()
         # TODO: Enable inheriting classes pass on their properties in this new object
@@ -357,8 +374,8 @@ class ReciprocalLatticePoint:
         )
 
     def calculate_theta(self, voltage):
-        """Populate `self.theta` with the Bragg angle :math:`theta_B` for
-        each plane.
+        r"""Populate `self.theta` with the Bragg angle :math:`\theta_B`
+        for each (hkl).
 
         Parameters
         ----------
@@ -390,7 +407,7 @@ def get_highest_hkl(lattice, min_dspacing=0.5):
 
     Parameters
     ----------
-    lattice : diffpy.structure.Lattice
+    lattice : diffpy.structure.lattice.Lattice
         Crystal lattice.
     min_dspacing : float, optional
         Smallest interplanar spacing to consider. Default is 0.5 Å.
@@ -412,7 +429,7 @@ def get_highest_hkl(lattice, min_dspacing=0.5):
 
 
 def get_hkl(highest_hkl):
-    """Return a list of planes from a set of highest Miller indices.
+    """Return a list of points from a set of highest Miller indices.
 
     Parameters
     ----------
@@ -426,7 +443,7 @@ def get_hkl(highest_hkl):
         An array of Miller indices.
     """
     index_ranges = [np.arange(-i, i + 1) for i in highest_hkl]
-    return np.asarray(list(product(*index_ranges)))
+    return np.asarray(list(product(*index_ranges)))[::-1]
 
 
 def get_equivalent_hkl(hkl, operations, unique=False, return_multiplicity=False):
@@ -434,7 +451,7 @@ def get_equivalent_hkl(hkl, operations, unique=False, return_multiplicity=False)
 
     Parameters
     ----------
-    hkl : orix.vector.vector3.Vector3d, numpy.ndarray, list or tuple of\
+    hkl : orix.vector.vector3d.Vector3d, numpy.ndarray, list or tuple of\
             int
         Miller indices.
     operations : orix.quaternion.symmetry.Symmetry
@@ -447,7 +464,7 @@ def get_equivalent_hkl(hkl, operations, unique=False, return_multiplicity=False)
 
     Returns
     -------
-    new_hkl : orix.vector.vector3.Vector3d
+    new_hkl : orix.vector.vector3d.Vector3d
         The symmetrically equivalent Miller indices.
     multiplicity : numpy.ndarray
         Number of symmetrically equivalent indices. Only returned if
@@ -478,8 +495,38 @@ def get_equivalent_hkl(hkl, operations, unique=False, return_multiplicity=False)
         return new_hkl
 
 
+def get_hkl_family(hkl, reduce=False):
+    """Return {hkl} families and to which family each (hkl) belongs.
+
+    Parameters
+    ----------
+    hkl : numpy.ndarray or list
+    reduce : bool, optional
+
+    Returns
+    -------
+    families : dict
+    families_idx: dict
+    """
+    hkl = np.atleast_2d(hkl)
+    # Remove [0, 0, 0] points
+    hkl = hkl[~np.all(np.isclose(hkl, 0), axis=1)]
+    families = defaultdict(list)
+    families_idx = defaultdict(list)
+    for i, this_hkl in enumerate(hkl.tolist()):
+        for that_hkl in families.keys():
+            if _is_equivalent(this_hkl, that_hkl, reduce=reduce):
+                families[tuple(that_hkl)].append(this_hkl)
+                families_idx[tuple(that_hkl)].append(i)
+                break
+        else:
+            families[tuple(this_hkl)].append(this_hkl)
+            families_idx[tuple(this_hkl)].append(i)
+    return families, families_idx
+
+
 def _is_equivalent(this_hkl, that_hkl, reduce=False):
-    """Determine whether two Miller index 3-tuples are equivalent.
+    """Determine whether two sets of Miller indices are equivalent.
     Symmetry is not considered.
 
     Parameters
