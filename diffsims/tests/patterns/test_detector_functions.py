@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+import pytest
+import numpy as np
 from diffsims.pattern.detector_functions import add_shot_noise
 
 class TestShotNoise():
@@ -31,7 +33,7 @@ class TestShotNoise():
         z2 = add_shot_noise(pattern,seed=7)
         assert np.allclose(z1,z2)
 
-    def test_seed_unduplicates():
+    def test_seed_unduplicates(self,pattern):
         """ Different seeds should (almost always) give different results"""
         z1 = add_shot_noise(pattern,seed=7)
         z2 = add_shot_noise(pattern,seed=312)
