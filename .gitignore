@@ -114,6 +114,7 @@ src/
 .vscode/
 /.project
 /.pydevproject
+*.code-workspace
 
 #Ds store stuff
 .DS_store
