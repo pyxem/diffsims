@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - `ReciprocalLatticePoint.unique()` takes a `reduce` boolean parameter to make
-  e.g. (hkl) [2, 0, 0] equivalent to [1, 0, 0]
+  e.g. (2, 0, 0) equivalent to (1, 0, 0)
 - `get_grid_beam_directions`, now works based off of meshes
 - the arguments in the `DiffractionGenerator` constructor and the `DiffractionLibraryGenerator.get_diffraction_library` function have been shuffled so that the former captures arguments related to "the instrument/physics" while the latter captures arguments relevant to "the sample/material".
 - CI is now provided by github actions
