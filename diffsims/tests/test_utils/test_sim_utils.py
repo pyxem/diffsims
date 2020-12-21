@@ -65,6 +65,8 @@ def test_get_interaction_constant(accelerating_voltage, interaction_constant):
     np.testing.assert_almost_equal(val, interaction_constant)
 
 
+# TODO: Remove when functionality is replaced by
+#  diffsims.crystallography.get_hkl_family()
 def test_get_unique_families():
     hkls = ((0, 1, 1), (1, 1, 0))
     unique_families = get_unique_families(hkls)

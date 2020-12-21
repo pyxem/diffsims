@@ -25,6 +25,7 @@ from diffsims.crystallography.reciprocal_lattice_point import (
     get_equivalent_hkl,
     get_highest_hkl,
     get_hkl,
+    get_hkl_family,
 )
 
 __all__ = [
@@ -32,4 +33,5 @@ __all__ = [
     "get_equivalent_hkl",
     "get_highest_hkl",
     "get_hkl",
+    "get_hkl_family",
 ]
