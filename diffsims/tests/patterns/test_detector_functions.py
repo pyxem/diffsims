@@ -38,4 +38,6 @@ class TestShotNoise:
         """ Different seeds should (almost always) give different results"""
         z1 = add_shot_noise(pattern, seed=7)
         z2 = add_shot_noise(pattern, seed=312)
+        z3 = add_shot_noise(pattern, seed=None)
         assert not np.allclose(z1, z2)
+        assert not np.allclose(z1,z3)
