@@ -19,7 +19,8 @@
 from numpy.random import default_rng
 from scipy import ndimage as ndi
 
-def add_gaussian_blur(pattern,sigma):
+
+def add_gaussian_blur(pattern, sigma):
     """
     Blurs intensities with a gaussian function
 
@@ -37,7 +38,8 @@ def add_gaussian_blur(pattern,sigma):
     """
     return ndi.gaussian_filter(pattern, sigma)
 
-def add_shot_noise(pattern,seed=None):
+
+def add_shot_noise(pattern, seed=None):
     """
     Applies shot noise to a pattern
 

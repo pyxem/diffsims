@@ -20,21 +20,22 @@ import pytest
 import numpy as np
 from diffsims.pattern.detector_functions import add_shot_noise
 
-class TestShotNoise():
+
+class TestShotNoise:
     @pytest.fixture()
     def pattern(self):
-        z = np.zeros((128,128))
-        z[40:44,50:53] = 1e5
+        z = np.zeros((128, 128))
+        z[40:44, 50:53] = 1e5
         return z
 
-    def test_seed_duplicates(self,pattern):
+    def test_seed_duplicates(self, pattern):
         """ Same seed should imply same result """
-        z1 = add_shot_noise(pattern,seed=7)
-        z2 = add_shot_noise(pattern,seed=7)
-        assert np.allclose(z1,z2)
+        z1 = add_shot_noise(pattern, seed=7)
+        z2 = add_shot_noise(pattern, seed=7)
+        assert np.allclose(z1, z2)
 
-    def test_seed_unduplicates(self,pattern):
+    def test_seed_unduplicates(self, pattern):
         """ Different seeds should (almost always) give different results"""
-        z1 = add_shot_noise(pattern,seed=7)
-        z2 = add_shot_noise(pattern,seed=312)
-        assert not np.allclose(z1,z2)
+        z1 = add_shot_noise(pattern, seed=7)
+        z2 = add_shot_noise(pattern, seed=312)
+        assert not np.allclose(z1, z2)
