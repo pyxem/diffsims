@@ -36,6 +36,12 @@ def test_random_sphere_mesh():
     assert grid.shape[0] == 10313
     assert grid.shape[1] == 3
 
+def test_seed_for_random_sphere_mesh():
+    grid_7 = get_random_sphere_vertices(seed=7)
+    grid_7_again = get_random_sphere_vertices(seed=7)
+    grid_8 = get_random_sphere_vertices(seed=8)
+    assert np.allclose(grid_7,grid_7_again)
+    assert not np.allclose(grid_7,grid_8)
 
 def test_get_uv_sphere_mesh_vertices():
     grid = get_uv_sphere_mesh_vertices(10)
