@@ -63,4 +63,4 @@ def add_shot_noise(pattern,seed=None):
     else:
         rng = default_rng()
 
-    return rng.poisson(z)
+    return rng.poisson(pattern)
