@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - API reference documentation via Read The Docs: https://diffsims.rtfd.io
 - New module: `sphere_mesh_generators`
+- New module: `detector_fucntions`
 - beam precession is now supported in simulating electron diffraction patterns
 - more shape factor functions have been added
 - This project now keeps a Changelog
