@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+import numpy as np
+
 from numpy.random import default_rng
 from scipy import ndimage as ndi
 
@@ -116,7 +118,7 @@ def add_gaussian_noise(pattern, sigma, seed=None):
     corrupted_pattern :
     """
     rng = _process_seed_argument(seed)
-    pertubations = rng.normal(loc=0, scale=sigma, shape=pattern.shape)
+    pertubations = rng.normal(loc=0, scale=sigma, size=pattern.shape)
     pattern = pattern + pertubations
 
     return constrain_to_dynamic_range(pattern)
