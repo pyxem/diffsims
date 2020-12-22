@@ -19,6 +19,7 @@
 from numpy.random import default_rng
 from scipy import ndimage as ndi
 
+
 def _process_seed_argument(seed):
     """ Sets up a numpy random number generator with a seed"""
     if seed is not None:
@@ -28,8 +29,9 @@ def _process_seed_argument(seed):
 
     return rng
 
-def constrain_to_dynamic_range(pattern,detector_max=None):
-    """ Force the values within pattern to lie between [0,detector_max]
+
+def constrain_to_dynamic_range(pattern, detector_max=None):
+    """Force the values within pattern to lie between [0,detector_max]
 
     Parameters
     ----------
@@ -49,6 +51,7 @@ def constrain_to_dynamic_range(pattern,detector_max=None):
         pattern[pattern > detector_max] = detector_max
 
     return pattern
+
 
 def add_gaussian_blur(pattern, sigma):
     """
@@ -94,7 +97,8 @@ def add_shot_noise(pattern, seed=None):
 
     return rng.poisson(pattern)
 
-def add_gaussian_noise(pattern,sigma,seed=None):
+
+def add_gaussian_noise(pattern, sigma, seed=None):
     """
     Applies gaussian noise at each pixel within the pattern
 
@@ -112,13 +116,13 @@ def add_gaussian_noise(pattern,sigma,seed=None):
     corrupted_pattern :
     """
     rng = _process_seed_argument(seed)
-    pertubations = rng.normal(loc=0,scale=sigma,shape=pattern.shape)
+    pertubations = rng.normal(loc=0, scale=sigma, shape=pattern.shape)
     pattern = pattern + pertubations
 
     return constrain_to_dynamic_range(pattern)
 
 
-def add_dead_pixels(pattern,n=None,fraction=None,seed=None):
+def add_dead_pixels(pattern, n=None, fraction=None, seed=None):
     """
     Adds randomly placed dead pixels onto a pattern
 
@@ -141,7 +145,7 @@ def add_dead_pixels(pattern,n=None,fraction=None,seed=None):
     # sorting the n/fraction kwargs
 
     both_none = n is None and fraction is None
-    neither_none =  n is not None and fraction is not None
+    neither_none = n is not None and fraction is not None
 
     if both_none or neither_none:
         raise ValueError("Exactly one of 'n' and 'fraction' must be None")
@@ -154,15 +158,15 @@ def add_dead_pixels(pattern,n=None,fraction=None,seed=None):
     rng = _process_seed_argument(seed)
 
     # .astype rounds down, these generate values from 0 to (pattern.shape - 1)
-    xdead = rng.uniform(low=0,high=pattern.shape[0],size=n).astype(int)
-    ydead = rng.uniform(low=0,high=pattern.shape[1],size=n).astype(int)
+    xdead = rng.uniform(low=0, high=pattern.shape[0], size=n).astype(int)
+    ydead = rng.uniform(low=0, high=pattern.shape[1], size=n).astype(int)
 
-    pattern[xdead,ydead] = 0
+    pattern[xdead, ydead] = 0
 
     return pattern
 
 
-def add_linear_detector_gain(pattern,gain):
+def add_linear_detector_gain(pattern, gain):
     """
     Multiplies the pattern by a gain (which is not a function of the pattern)
 
@@ -177,10 +181,10 @@ def add_linear_detector_gain(pattern,gain):
     corrupted_pattern : np.array
         The pattern, with gain applied
     """
-    return np.multiply(pattern,gain)
+    return np.multiply(pattern, gain)
 
 
-def add_detector_offset(pattern,offset):
+def add_detector_offset(pattern, offset):
     """
     Adds/subtracts a fixed offset value from a pattern
 
@@ -196,5 +200,5 @@ def add_detector_offset(pattern,offset):
         The pattern, with offset applied, pixels that would have been negative
         are instead 0.
     """
-    pattern = np.add(pattern,offset)
+    pattern = np.add(pattern, offset)
     return constrain_to_dynamic_range(pattern)
