@@ -18,13 +18,19 @@
 
 import pytest
 import numpy as np
-from diffsims.pattern.detector_functions import add_shot_noise,add_gaussian_noise,add_dead_pixels,add_linear_detector_gain,add_detector_offset
+from diffsims.pattern.detector_functions import constrain_to_dynamic_range,add_shot_noise,add_gaussian_noise,add_dead_pixels,add_linear_detector_gain,add_detector_offset
 
 @pytest.fixture()
 def pattern():
     z = np.zeros((128, 128))
     z[40:44, 50:53] = 1e5
     return z
+
+def test_constrain_to_dynamic_range(pattern):
+    max = np.max(pattern)
+    dmax = int(max/3)
+    z = constrain_to_dynamic_range(pattern,detector_max=dmax)
+    assert np.max(z) == dmax
 
 class TestShotNoise:
 
@@ -57,6 +63,13 @@ class TestDeadPixel:
         z1 = add_dead_pixels(pattern,n=6, seed=7)
         z2 = add_dead_pixels(pattern,n=6, seed=7)
         assert np.allclose(z1, z2)
+        assert np.sum(z1==0) == 6 # we should have 6 dead pixels!
+
+    def test_frac_kwarg(self,pattern):
+        pattern = pattern + 1 #so that we can detect dead pixels
+        pattern_size = pattern.shape[0] * pattern.shape[1]
+        fraction = 6 / pattern_size
+        z1 = add_dead_pixels(pattern,fraction=fraction)
         assert np.sum(z1==0) == 6 # we should have 6 dead pixels!
 
     @pytest.mark.xfail(strict=True)
