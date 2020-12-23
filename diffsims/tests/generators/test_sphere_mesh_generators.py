@@ -36,12 +36,14 @@ def test_random_sphere_mesh():
     assert grid.shape[0] == 10313
     assert grid.shape[1] == 3
 
+
 def test_seed_for_random_sphere_mesh():
-    grid_7 = get_random_sphere_vertices(resolution=3,seed=7)
-    grid_7_again = get_random_sphere_vertices(resolution=3,seed=7)
-    grid_8 = get_random_sphere_vertices(resolution=3,seed=8)
-    assert np.allclose(grid_7,grid_7_again)
-    assert not np.allclose(grid_7,grid_8)
+    grid_7 = get_random_sphere_vertices(resolution=3, seed=7)
+    grid_7_again = get_random_sphere_vertices(resolution=3, seed=7)
+    grid_8 = get_random_sphere_vertices(resolution=3, seed=8)
+    assert np.allclose(grid_7, grid_7_again)
+    assert not np.allclose(grid_7, grid_8)
+
 
 def test_get_uv_sphere_mesh_vertices():
     grid = get_uv_sphere_mesh_vertices(10)
@@ -55,7 +57,11 @@ def test_get_uv_sphere_mesh_vertices():
 
 @pytest.mark.parametrize(
     "grid_type,expected_len",
-    [("normalized", 866), ("spherified_edge", 602), ("spherified_corner", 866),],
+    [
+        ("normalized", 866),
+        ("spherified_edge", 602),
+        ("spherified_corner", 866),
+    ],
 )
 def test_get_cube_mesh_vertices(grid_type, expected_len):
     grid = get_cube_mesh_vertices(10, grid_type=grid_type)
@@ -78,8 +84,26 @@ def test_get_cube_mesh_vertices_exception():
 
 
 def test_first_nearest_neighbors():
-    grid = _normalize_vectors(np.array([[1, 0, 0], [0, 1, 0], [0, 1, 1], [1, 0, 1],]))
-    fnn = _normalize_vectors(np.array([[1, 0, 1], [0, 1, 1], [0, 1, 0], [1, 0, 0],]))
+    grid = _normalize_vectors(
+        np.array(
+            [
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 1, 1],
+                [1, 0, 1],
+            ]
+        )
+    )
+    fnn = _normalize_vectors(
+        np.array(
+            [
+                [1, 0, 1],
+                [0, 1, 1],
+                [0, 1, 0],
+                [1, 0, 0],
+            ]
+        )
+    )
     angles = np.array([45, 45, 45, 45])
     fnn_test = _get_first_nearest_neighbors(grid)
     angles_test = _get_angles_between_nn_gridpoints(grid)
@@ -98,6 +122,22 @@ def test_icosahedral_grid():
 
 
 def test_vectors_to_euler():
-    grid = _normalize_vectors(np.array([[1, 0, 0], [0, 1, 0], [0, 1, 1], [1, 0, 1],]))
-    ang = np.array([[0, 90, 90], [0, 90, 0], [0, 45, 0], [0, 45, 90],])
+    grid = _normalize_vectors(
+        np.array(
+            [
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 1, 1],
+                [1, 0, 1],
+            ]
+        )
+    )
+    ang = np.array(
+        [
+            [0, 90, 90],
+            [0, 90, 0],
+            [0, 45, 0],
+            [0, 45, 90],
+        ]
+    )
     assert np.allclose(ang, beam_directions_grid_to_euler(grid))

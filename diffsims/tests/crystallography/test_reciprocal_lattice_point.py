@@ -300,6 +300,6 @@ class TestReciprocalLatticePoint:
     def test_get_allowed_without_space_group_raises(self):
         phase = Phase(point_group="432")
         rlp = ReciprocalLatticePoint(phase=phase, hkl=[1, 1, 1])
-        
+
         with pytest.raises(ValueError, match=f"The phase {phase} must have a"):
             _ = rlp.allowed

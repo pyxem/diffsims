@@ -82,7 +82,13 @@ def test_max_atom_getA():
 )
 def test_rebin(r):
     x = [np.linspace(0, 1, 10), np.linspace(0, 1, 21), np.linspace(0, 1, 32)]
-    loc = np.concatenate([0 * np.linspace(0, 1, 500)[:, None],] * 3, axis=1)
+    loc = np.concatenate(
+        [
+            0 * np.linspace(0, 1, 500)[:, None],
+        ]
+        * 3,
+        axis=1,
+    )
     k = 1
     mem = 1e5
     rebin(x, loc, r, k, mem)
@@ -90,7 +96,11 @@ def test_rebin(r):
 
 @pytest.mark.parametrize(
     "n, shape",
-    [([0], (1, 1, 1)), ([1, 14], (10, 20, 30)), ([14, 14, 14], (10, 20, 30)),],
+    [
+        ([0], (1, 1, 1)),
+        ([1, 14], (10, 20, 30)),
+        ([14, 14, 14], (10, 20, 30)),
+    ],
 )
 def test_getDiscretisation(n, shape):
     atoms, species = create_atoms(n, shape)
@@ -130,7 +140,11 @@ def test_getDiscretisation_bools(n, shape, grid):
 
 @pytest.mark.parametrize(
     "n, shape",
-    [([0], (1, 1, 1)), ([1, 14], (10, 20, 30)), ([14, 14, 14], (10, 20, 30)),],
+    [
+        ([0], (1, 1, 1)),
+        ([1, 14], (10, 20, 30)),
+        ([14, 14, 14], (10, 20, 30)),
+    ],
 )
 def test_getDiscretisation_2d(n, shape):
     atoms, species = create_atoms(n, shape)
@@ -168,7 +182,11 @@ def test_getDiscretisation_str():
 
 
 @pytest.mark.parametrize(
-    "n, shape", [([10, 15, 20], (1, 2, 3)), ([14, 14, 14], (1, 2, 3)),]
+    "n, shape",
+    [
+        ([10, 15, 20], (1, 2, 3)),
+        ([14, 14, 14], (1, 2, 3)),
+    ],
 )
 def test_pointwise(n, shape):
     atoms, species = create_atoms(n, shape)
@@ -186,7 +204,11 @@ def test_pointwise(n, shape):
 if _CUDA:  # pragma: no cover
 
     @pytest.mark.parametrize(
-        "n, shape", [([20, 14], (10, 20, 30)), ([14, 14, 14], (10, 20, 30)),]
+        "n, shape",
+        [
+            ([20, 14], (10, 20, 30)),
+            ([14, 14, 14], (10, 20, 30)),
+        ],
     )
     def test_CUDA(n, shape):
         atoms, species = create_atoms(n, shape)

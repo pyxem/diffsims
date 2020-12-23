@@ -56,7 +56,10 @@ def test_from_systems_methods():
 
 @pytest.mark.parametrize(
     "identifiers, structures, orientations",
-    [(["a"], [1, 2], [3, 4]), (["a"], [1], [3, 4]),],
+    [
+        (["a"], [1, 2], [3, 4]),
+        (["a"], [1], [3, 4]),
+    ],
 )
 @pytest.mark.xfail(raises=ValueError)
 def test_constructor_parameter_validation_errors(identifiers, structures, orientations):

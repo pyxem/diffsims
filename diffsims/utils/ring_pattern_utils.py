@@ -18,6 +18,7 @@
 
 import numpy as np
 
+
 def calc_radius_with_distortion(x, y, xc, yc, asym, rot):
     """ calculate the distance of each 2D point from the center (xc, yc) """
     xp = x * np.cos(rot) - y * np.sin(rot)

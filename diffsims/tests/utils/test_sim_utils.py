@@ -45,7 +45,12 @@ from diffsims.utils.sim_utils import (
 
 @pytest.mark.parametrize(
     "accelerating_voltage, wavelength",
-    [(100, 0.0370143659), (200, 0.0250793403), (300, 0.0196874888), ("inf", 0),],
+    [
+        (100, 0.0370143659),
+        (200, 0.0250793403),
+        (300, 0.0196874888),
+        ("inf", 0),
+    ],
 )
 def test_get_electron_wavelength(accelerating_voltage, wavelength):
     val = get_electron_wavelength(accelerating_voltage=accelerating_voltage)
@@ -132,7 +137,11 @@ def test_kinematic_simulator_invalid_illumination():
 
 @pytest.mark.parametrize(
     "uvtw, uvw",
-    [((0, 0, 0, 1), (0, 0, 1)), ((1, 0, 0, 1), (2, 1, 1)), ((2, 2, 0, 0), (1, 1, 0)),],
+    [
+        ((0, 0, 0, 1), (0, 0, 1)),
+        ((1, 0, 0, 1), (2, 1, 1)),
+        ((2, 2, 0, 0), (1, 1, 0)),
+    ],
 )
 def test_uvtw_to_uvw(uvtw, uvw):
     val = uvtw_to_uvw(uvtw)

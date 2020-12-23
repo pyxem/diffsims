@@ -18,7 +18,7 @@
 
 import pytest
 import numpy as np
-from diffsims.utils.kinematic_simulation_utils import (
+from diffsims.utils.atomic_diffraction_generator_utils import (
     get_diffraction_image,
     precess_mat,
     grid2sphere,
@@ -88,7 +88,12 @@ def test_get_diffraction_image(n, vol_shape, grid_shape, precession, wavelength)
 
 
 @pytest.mark.parametrize(
-    "alpha, theta, x", [(0, 10, (-1, 0, 1)), (10, 0, (1, 2, 3)), (5, 10, (-1, 1, -1)),]
+    "alpha, theta, x",
+    [
+        (0, 10, (-1, 0, 1)),
+        (10, 0, (1, 2, 3)),
+        (5, 10, (-1, 1, -1)),
+    ],
 )
 def test_precess_mat(alpha, theta, x):
     R = precess_mat(alpha, theta)
@@ -111,7 +116,12 @@ def test_precess_mat(alpha, theta, x):
 
 @pytest.mark.parametrize(
     "shape, rad",
-    [((10,) * 3, 100), ((10, 20, 20), 200), ((10, 20, 30), 300), ((10, 20, 1), 1e10),],
+    [
+        ((10,) * 3, 100),
+        ((10, 20, 20), 200),
+        ((10, 20, 30), 300),
+        ((10, 20, 1), 1e10),
+    ],
 )
 def test_grid2sphere(shape, rad):
     x = [np.linspace(-1, 1, s) if s > 1 else np.array([0]) for s in shape]

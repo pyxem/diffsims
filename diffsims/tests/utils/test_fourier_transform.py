@@ -181,7 +181,14 @@ def test_freq2(shape):
         assert abs(x[i] - z[i] + z[i].min()).max() < 1e-6
 
 
-@pytest.mark.parametrize("rX, rY", [([1], 1000), ([1] * 2, 1000), ([1] * 3, 1000),])
+@pytest.mark.parametrize(
+    "rX, rY",
+    [
+        ([1], 1000),
+        ([1] * 2, 1000),
+        ([1] * 3, 1000),
+    ],
+)
 def test_DFT(rX, rY):
     x, y = get_recip_points(len(rX), rX=rX, rY=rY)
     axes = 0 if len(x) == 1 else None
