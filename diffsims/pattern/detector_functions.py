@@ -99,6 +99,38 @@ def add_shot_noise(pattern, seed=None):
 
     return rng.poisson(pattern)
 
+def add_shot_and_point_spread(pattern,sigma,shot_noise=True,seed=None):
+    """
+    Adds (potentially) both shot and point spread noise to a pattern
+
+    Parameters
+    ----------
+    pattern : np.array
+        The diffraction pattern at the detector
+    sigma : float
+        The standard deviation of the gaussian blur, in pixels
+    shot_noise : bool
+        Whether to include shot noise in the original signal, default True
+    seed : int or None
+        seed value for the random number generator (effects the shot noise only)
+
+    Returns
+    -------
+    detector_pattern : np.array
+        A single sample of the pattern after accounting for detector properties
+
+    See also
+    --------
+    add_shot_noise : adds only shot noise
+    """
+
+    # shot noise happens before the detector response (operations won't commute)
+    if shot_noise:
+        pattern = add_shot_noise(pattern,seed)
+
+    pattern = add_gaussian_blur(pattern,sigma)
+
+    return pattern
 
 def add_gaussian_noise(pattern, sigma, seed=None):
     """
