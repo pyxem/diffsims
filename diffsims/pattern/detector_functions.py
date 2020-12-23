@@ -55,7 +55,7 @@ def constrain_to_dynamic_range(pattern, detector_max=None):
     return pattern
 
 
-def add_gaussian_blur(pattern, sigma):
+def add_gaussian_point_spread(pattern, sigma):
     """
     Blurs intensities across space with a gaussian function
 
@@ -102,7 +102,7 @@ def add_shot_noise(pattern, seed=None):
 
 def add_shot_and_point_spread(pattern, sigma, shot_noise=True, seed=None):
     """
-    Adds (potentially) both shot and point spread noise to a pattern
+    Adds shot noise (optional) and gaussian point spread (via a convolution) to a pattern
 
     Parameters
     ----------
@@ -129,7 +129,7 @@ def add_shot_and_point_spread(pattern, sigma, shot_noise=True, seed=None):
     if shot_noise:
         pattern = add_shot_noise(pattern, seed)
 
-    pattern = add_gaussian_blur(pattern, sigma)
+    pattern = add_gaussian_point_spread(pattern, sigma)
 
     return pattern
 
