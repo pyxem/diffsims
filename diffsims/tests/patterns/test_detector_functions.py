@@ -20,6 +20,7 @@ import pytest
 import numpy as np
 from diffsims.pattern.detector_functions import (
     constrain_to_dynamic_range,
+    add_shot_and_point_spread,
     add_shot_noise,
     add_gaussian_noise,
     add_dead_pixels,
@@ -40,6 +41,17 @@ def test_constrain_to_dynamic_range(pattern):
     dmax = int(max / 3)
     z = constrain_to_dynamic_range(pattern, detector_max=dmax)
     assert np.max(z) == dmax
+
+
+def test_add_shot_and_point_spread(pattern):
+    z = add_shot_and_point_spread(pattern, 0, shot_noise=False)
+    assert np.allclose(z, pattern)
+    # seed testing so we can go through shot_noise = True
+    z1a = add_shot_and_point_spread(pattern, 2, shot_noise=True, seed=7)
+    z1b = add_shot_and_point_spread(pattern, 2, shot_noise=True, seed=7)
+    z2 = add_shot_and_point_spread(pattern, 2, shot_noise=True, seed=8)
+    assert np.allclose(z1a, z1b)
+    assert not np.allclose(z1a, z2)
 
 
 class TestShotNoise:

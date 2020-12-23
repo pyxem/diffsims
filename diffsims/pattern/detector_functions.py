@@ -99,7 +99,8 @@ def add_shot_noise(pattern, seed=None):
 
     return rng.poisson(pattern)
 
-def add_shot_and_point_spread(pattern,sigma,shot_noise=True,seed=None):
+
+def add_shot_and_point_spread(pattern, sigma, shot_noise=True, seed=None):
     """
     Adds (potentially) both shot and point spread noise to a pattern
 
@@ -126,11 +127,12 @@ def add_shot_and_point_spread(pattern,sigma,shot_noise=True,seed=None):
 
     # shot noise happens before the detector response (operations won't commute)
     if shot_noise:
-        pattern = add_shot_noise(pattern,seed)
+        pattern = add_shot_noise(pattern, seed)
 
-    pattern = add_gaussian_blur(pattern,sigma)
+    pattern = add_gaussian_blur(pattern, sigma)
 
     return pattern
+
 
 def add_gaussian_noise(pattern, sigma, seed=None):
     """
