@@ -123,6 +123,7 @@ def add_shot_and_point_spread(pattern, sigma, shot_noise=True, seed=None):
     See also
     --------
     add_shot_noise : adds only shot noise
+    add_gaussian_point_spread
     """
 
     # shot noise happens before the detector response (operations won't commute)
