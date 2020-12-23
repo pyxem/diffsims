@@ -19,7 +19,7 @@ credits = [
     "Jedrzej Morzy",
     "Tomas Ostasevicius",
     "Alex Borrelli",
-    "Tina Bergh"
+    "Tina Bergh",
 ]
 license = "GPLv3"
 maintainer = "Duncan Johnstone, Phillip Crout, Håkon Wiik Ånes"

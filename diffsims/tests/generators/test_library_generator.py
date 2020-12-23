@@ -42,7 +42,9 @@ def structure_library(default_structure):
 class TestDiffractionLibraryGenerator:
     @pytest.mark.parametrize(
         "calibration, reciprocal_radius, half_shape, with_direct_beam",
-        [(0.017, 2.4, (72, 72), False),],
+        [
+            (0.017, 2.4, (72, 72), False),
+        ],
     )
     def test_get_diffraction_library(
         self,

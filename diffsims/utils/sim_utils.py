@@ -140,7 +140,7 @@ def get_scattering_params_dict(scattering_params):
 def get_vectorized_list_for_atomic_scattering_factors(
     structure, debye_waller_factors, scattering_params
 ):
-    """ Create a flattened array of coeffs, fcoords and occus for vectorized
+    """Create a flattened array of coeffs, fcoords and occus for vectorized
     computation of atomic scattering factors.
 
     Note: The dimensions of the returned objects are not necessarily the same
@@ -491,7 +491,7 @@ def get_intensities_params(reciprocal_lattice, reciprocal_radius):
 
 
 def get_holz_angle(electron_wavelength, lattice_parameter):
-    """ Converts electron wavelength and lattice paramater to holz angle
+    """Converts electron wavelength and lattice paramater to holz angle
     Parameters
     ----------
     electron_wavelength : scalar
