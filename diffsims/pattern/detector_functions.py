@@ -198,7 +198,7 @@ def add_dead_pixels(pattern, n=None, fraction=None, seed=None):
     xdead = rng.uniform(low=0, high=pattern.shape[0], size=n).astype(int)
     ydead = rng.uniform(low=0, high=pattern.shape[1], size=n).astype(int)
 
-    pattern[xdead, ydead] = 0
+    pattern[ydead, xdead] = 0
 
     return pattern
 
