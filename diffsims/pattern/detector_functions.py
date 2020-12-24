@@ -198,9 +198,11 @@ def add_dead_pixels(pattern, n=None, fraction=None, seed=None):
     xdead = rng.uniform(low=0, high=pattern.shape[0], size=n).astype(int)
     ydead = rng.uniform(low=0, high=pattern.shape[1], size=n).astype(int)
 
-    pattern[ydead, xdead] = 0
+    # otherwise pattern will also have 0 elements
+    corrupted = pattern.copy()
+    corrupted[ydead, xdead] = 0
 
-    return pattern
+    return corrupted
 
 
 def add_linear_detector_gain(pattern, gain):
