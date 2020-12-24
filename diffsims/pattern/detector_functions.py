@@ -21,17 +21,6 @@ import numpy as np
 from numpy.random import default_rng
 from scipy import ndimage as ndi
 
-
-def _process_seed_argument(seed):
-    """ Sets up a numpy random number generator with a seed"""
-    if seed is not None:
-        rng = default_rng(seed)
-    else:
-        rng = default_rng()
-
-    return rng
-
-
 def constrain_to_dynamic_range(pattern, detector_max=None):
     """Force the values within pattern to lie between [0,detector_max]
 
@@ -96,7 +85,7 @@ def add_shot_noise(pattern, seed=None):
     This function will (as it should) behave differently depending on the
     pattern intensity, so be mindful to put your intensities in physical units
     """
-    rng = _process_seed_argument(seed)
+    rng = default_rng(seed)
 
     return rng.poisson(pattern)
 
@@ -153,7 +142,7 @@ def add_gaussian_noise(pattern, sigma, seed=None):
     -------
     corrupted_pattern :
     """
-    rng = _process_seed_argument(seed)
+    rng = default_rng(seed)
     pertubations = rng.normal(loc=0, scale=sigma, size=pattern.shape)
     pattern = pattern + pertubations
 
@@ -193,8 +182,7 @@ def add_dead_pixels(pattern, n=None, fraction=None, seed=None):
         pattern_size = pattern.shape[0] * pattern.shape[1]
         n = int(fraction * pattern_size)
 
-    rng = _process_seed_argument(seed)
-
+    rng = default_rng(seed)
     # .astype rounds down, these generate values from 0 to (pattern.shape - 1)
     xdead = rng.uniform(low=0, high=pattern.shape[0], size=n).astype(int)
     ydead = rng.uniform(low=0, high=pattern.shape[1], size=n).astype(int)
