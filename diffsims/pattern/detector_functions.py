@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+np.ndarray# -*- coding: utf-8 -*-
 # Copyright 2017-2020 The diffsims developers
 #
 # This file is part of diffsims.
@@ -37,14 +37,14 @@ def constrain_to_dynamic_range(pattern, detector_max=None):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : np.ndarray
         The diffraction pattern at the detector after corruption
     detector_max : float
         The maximum allowed value at the detector
 
     Returns
     -------
-    within_range_pattern: np.array
+    within_range_pattern: np.ndarray
         The pattern, with values >=0 and =< detector_max
     """
     pattern[pattern < 0] = 0
@@ -61,14 +61,14 @@ def add_gaussian_point_spread(pattern, sigma):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : np.ndarray
         The diffraction pattern at the detector
     sigma : float
         The standard deviation of the gaussian blur, in pixels
 
     Returns
     -------
-    blurred_pattern : np.array
+    blurred_pattern : np.ndarray
         The blurred pattern (deterministic)
     """
     return ndi.gaussian_filter(pattern, sigma)
@@ -80,14 +80,14 @@ def add_shot_noise(pattern, seed=None):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : np.ndarray
         The diffraction pattern at the detector
     seed : int or None
         seed value for the random number generator
 
     Returns
     -------
-    shotted_pattern : np.array
+    shotted_pattern : np.ndarray
         A single sample of the pattern after accounting for shot noise
 
     Notes
@@ -106,7 +106,7 @@ def add_shot_and_point_spread(pattern, sigma, shot_noise=True, seed=None):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : np.ndarray
         The diffraction pattern at the detector
     sigma : float
         The standard deviation of the gaussian blur, in pixels
@@ -117,7 +117,7 @@ def add_shot_and_point_spread(pattern, sigma, shot_noise=True, seed=None):
 
     Returns
     -------
-    detector_pattern : np.array
+    detector_pattern : np.ndarray
         A single sample of the pattern after accounting for detector properties
 
     See also
@@ -141,7 +141,7 @@ def add_gaussian_noise(pattern, sigma, seed=None):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : np.ndarray
         The diffraction pattern at the detector
     sigma : float
         The (absolute) deviation of the gaussian errors
@@ -165,7 +165,7 @@ def add_dead_pixels(pattern, n=None, fraction=None, seed=None):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : np.ndarray
         The diffraction pattern at the detector
     n : int
         The number of dead pixels, defaults to None
@@ -176,7 +176,7 @@ def add_dead_pixels(pattern, n=None, fraction=None, seed=None):
 
     Returns
     -------
-    corrupted_pattern : np.array
+    corrupted_pattern : np.ndarray
         The pattern, with dead pixels included
     """
     # sorting the n/fraction kwargs
@@ -211,13 +211,13 @@ def add_linear_detector_gain(pattern, gain):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : np.ndarray
         The diffraction pattern at the detector
-    gain : float or np.array
+    gain : float or np.ndarray
         Multiplied through the pattern, broadcasting applies
     Returns
     -------
-    corrupted_pattern : np.array
+    corrupted_pattern : np.ndarray
         The pattern, with gain applied
     """
     return np.multiply(pattern, gain)
@@ -229,13 +229,13 @@ def add_detector_offset(pattern, offset):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : np.ndarray
         The diffraction pattern at the detector
-    offset : float or np.array
+    offset : float or np.ndarray
         Added through the pattern, broadcasting applies
     Returns
     -------
-    corrupted_pattern : np.array
+    corrupted_pattern : np.ndarray
         The pattern, with offset applied, pixels that would have been negative
         are instead 0.
     """
