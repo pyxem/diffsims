@@ -21,6 +21,7 @@ import numpy as np
 from numpy.random import default_rng
 from scipy import ndimage as ndi
 
+
 def constrain_to_dynamic_range(pattern, detector_max=None):
     """Force the values within pattern to lie between [0,detector_max]
 

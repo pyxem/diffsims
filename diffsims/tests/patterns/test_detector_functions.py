@@ -41,34 +41,35 @@ def test_constrain_to_dynamic_range(pattern):
     dmax = int(max / 3)
     z = constrain_to_dynamic_range(pattern, detector_max=dmax)
     assert np.max(z) == dmax
-    assert not np.may_share_memory(pattern,z)
+    assert not np.may_share_memory(pattern, z)
+
 
 class TestReturnsareCopies:
     """ We want pattern to remain untouched by the noise addition """
-    
-    def test_copy_shot_and_point_spread(self,pattern):
+
+    def test_copy_shot_and_point_spread(self, pattern):
         """ Also covers shot/point independantly """
         z = add_shot_and_point_spread(pattern, 2, shot_noise=True)
-        assert not np.may_share_memory(pattern,z)
+        assert not np.may_share_memory(pattern, z)
 
-    def test_copy_gaussian(self,pattern):
-        z = add_gaussian_noise(pattern,2)
-        assert not np.may_share_memory(pattern,z)
+    def test_copy_gaussian(self, pattern):
+        z = add_gaussian_noise(pattern, 2)
+        assert not np.may_share_memory(pattern, z)
 
-    def test_copy_gain_and_offset(self,pattern):
-        zgain = add_linear_detector_gain(pattern,1.1)
-        zoff = add_detector_offset(pattern,0.1)
-        assert not np.may_share_memory(pattern,zgain)
-        assert not np.may_share_memory(pattern,zoff)
+    def test_copy_gain_and_offset(self, pattern):
+        zgain = add_linear_detector_gain(pattern, 1.1)
+        zoff = add_detector_offset(pattern, 0.1)
+        assert not np.may_share_memory(pattern, zgain)
+        assert not np.may_share_memory(pattern, zoff)
 
-    def test_copy_deadpixel(self,pattern):
+    def test_copy_deadpixel(self, pattern):
         pattern = pattern + 1  # so that we can detect dead pixels
         z = add_dead_pixels(pattern, n=6, seed=7)
-        assert not np.may_share_memory(pattern,z)
+        assert not np.may_share_memory(pattern, z)
 
 
 class TestShotAndPointSpread:
-    def test_add_shot_and_point_spread(self,pattern):
+    def test_add_shot_and_point_spread(self, pattern):
         z = add_shot_and_point_spread(pattern, 0, shot_noise=False)
         assert np.allclose(z, pattern)
         # seed testing so we can go through shot_noise = True
