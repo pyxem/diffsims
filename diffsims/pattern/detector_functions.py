@@ -47,12 +47,13 @@ def constrain_to_dynamic_range(pattern, detector_max=None):
     within_range_pattern: np.ndarray
         The pattern, with values >=0 and =< detector_max
     """
-    pattern[pattern < 0] = 0
+    within_range = pattern.copy()
+    within_range[within_range < 0] = 0
 
     if detector_max is not None:
-        pattern[pattern > detector_max] = detector_max
+        within_range[within_range > detector_max] = detector_max
 
-    return pattern
+    return within_range
 
 
 def add_gaussian_point_spread(pattern, sigma):
