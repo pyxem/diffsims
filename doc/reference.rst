@@ -134,6 +134,19 @@ structure_factor
 
 ....
 
+pattern
+=======
+
+detector_functions
+------------------
+
+.. automodule:: diffsims.pattern.detector_functions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+....
+
 utils
 =====
 
