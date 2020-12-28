@@ -27,14 +27,14 @@ def constrain_to_dynamic_range(pattern, detector_max=None):
 
     Parameters
     ----------
-    pattern : np.ndarray
+    pattern : numpy.ndarray
         The diffraction pattern at the detector after corruption
     detector_max : float
         The maximum allowed value at the detector
 
     Returns
     -------
-    within_range_pattern: np.ndarray
+    within_range_pattern: numpy.ndarray
         The pattern, with values >=0 and =< detector_max
     """
     within_range = pattern.copy()
