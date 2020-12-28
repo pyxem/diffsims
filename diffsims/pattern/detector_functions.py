@@ -22,37 +22,28 @@ from numpy.random import default_rng
 from scipy import ndimage as ndi
 
 
-def _process_seed_argument(seed):
-    """ Sets up a numpy random number generator with a seed"""
-    if seed is not None:
-        rng = default_rng(seed)
-    else:
-        rng = default_rng()
-
-    return rng
-
-
 def constrain_to_dynamic_range(pattern, detector_max=None):
     """Force the values within pattern to lie between [0,detector_max]
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : numpy.ndarray
         The diffraction pattern at the detector after corruption
     detector_max : float
         The maximum allowed value at the detector
 
     Returns
     -------
-    within_range_pattern: np.array
+    within_range_pattern: numpy.ndarray
         The pattern, with values >=0 and =< detector_max
     """
-    pattern[pattern < 0] = 0
+    within_range = pattern.copy()
+    within_range[within_range < 0] = 0
 
     if detector_max is not None:
-        pattern[pattern > detector_max] = detector_max
+        within_range[within_range > detector_max] = detector_max
 
-    return pattern
+    return within_range
 
 
 def add_gaussian_point_spread(pattern, sigma):
@@ -61,14 +52,14 @@ def add_gaussian_point_spread(pattern, sigma):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : numpy.ndarray
         The diffraction pattern at the detector
     sigma : float
         The standard deviation of the gaussian blur, in pixels
 
     Returns
     -------
-    blurred_pattern : np.array
+    blurred_pattern : numpy.ndarray
         The blurred pattern (deterministic)
     """
     return ndi.gaussian_filter(pattern, sigma)
@@ -80,14 +71,14 @@ def add_shot_noise(pattern, seed=None):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : numpy.ndarray
         The diffraction pattern at the detector
     seed : int or None
         seed value for the random number generator
 
     Returns
     -------
-    shotted_pattern : np.array
+    shotted_pattern : numpy.ndarray
         A single sample of the pattern after accounting for shot noise
 
     Notes
@@ -95,7 +86,7 @@ def add_shot_noise(pattern, seed=None):
     This function will (as it should) behave differently depending on the
     pattern intensity, so be mindful to put your intensities in physical units
     """
-    rng = _process_seed_argument(seed)
+    rng = default_rng(seed)
 
     return rng.poisson(pattern)
 
@@ -106,7 +97,7 @@ def add_shot_and_point_spread(pattern, sigma, shot_noise=True, seed=None):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : numpy.ndarray
         The diffraction pattern at the detector
     sigma : float
         The standard deviation of the gaussian blur, in pixels
@@ -117,13 +108,13 @@ def add_shot_and_point_spread(pattern, sigma, shot_noise=True, seed=None):
 
     Returns
     -------
-    detector_pattern : np.array
+    detector_pattern : numpy.ndarray
         A single sample of the pattern after accounting for detector properties
 
     See also
     --------
     add_shot_noise : adds only shot noise
-    add_gaussian_point_spread
+    add_gaussian_point_spread : adds only point spread
     """
 
     # shot noise happens before the detector response (operations won't commute)
@@ -141,7 +132,7 @@ def add_gaussian_noise(pattern, sigma, seed=None):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : numpy.ndarray
         The diffraction pattern at the detector
     sigma : float
         The (absolute) deviation of the gaussian errors
@@ -152,7 +143,7 @@ def add_gaussian_noise(pattern, sigma, seed=None):
     -------
     corrupted_pattern :
     """
-    rng = _process_seed_argument(seed)
+    rng = default_rng(seed)
     pertubations = rng.normal(loc=0, scale=sigma, size=pattern.shape)
     pattern = pattern + pertubations
 
@@ -165,7 +156,7 @@ def add_dead_pixels(pattern, n=None, fraction=None, seed=None):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : numpy.ndarray
         The diffraction pattern at the detector
     n : int
         The number of dead pixels, defaults to None
@@ -176,7 +167,7 @@ def add_dead_pixels(pattern, n=None, fraction=None, seed=None):
 
     Returns
     -------
-    corrupted_pattern : np.array
+    corrupted_pattern : numpy.ndarray
         The pattern, with dead pixels included
     """
     # sorting the n/fraction kwargs
@@ -192,15 +183,16 @@ def add_dead_pixels(pattern, n=None, fraction=None, seed=None):
         pattern_size = pattern.shape[0] * pattern.shape[1]
         n = int(fraction * pattern_size)
 
-    rng = _process_seed_argument(seed)
-
+    rng = default_rng(seed)
     # .astype rounds down, these generate values from 0 to (pattern.shape - 1)
     xdead = rng.uniform(low=0, high=pattern.shape[0], size=n).astype(int)
     ydead = rng.uniform(low=0, high=pattern.shape[1], size=n).astype(int)
 
-    pattern[xdead, ydead] = 0
+    # otherwise pattern will also have 0 elements
+    corrupted = pattern.copy()
+    corrupted[ydead, xdead] = 0
 
-    return pattern
+    return corrupted
 
 
 def add_linear_detector_gain(pattern, gain):
@@ -209,13 +201,13 @@ def add_linear_detector_gain(pattern, gain):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : numpy.ndarray
         The diffraction pattern at the detector
-    gain : float or np.array
+    gain : float or numpy.ndarray
         Multiplied through the pattern, broadcasting applies
     Returns
     -------
-    corrupted_pattern : np.array
+    corrupted_pattern : numpy.ndarray
         The pattern, with gain applied
     """
     return np.multiply(pattern, gain)
@@ -227,13 +219,13 @@ def add_detector_offset(pattern, offset):
 
     Parameters
     ----------
-    pattern : np.array
+    pattern : numpy.ndarray
         The diffraction pattern at the detector
-    offset : float or np.array
+    offset : float or numpy.ndarray
         Added through the pattern, broadcasting applies
     Returns
     -------
-    corrupted_pattern : np.array
+    corrupted_pattern : np.ndarray
         The pattern, with offset applied, pixels that would have been negative
         are instead 0.
     """
