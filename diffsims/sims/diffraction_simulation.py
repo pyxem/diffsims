@@ -167,6 +167,41 @@ class DiffractionSimulation:
 
         return np.divide(pattern, np.max(pattern))
 
+    def plot(self, size_factor=1, units="real", **kwargs):
+        """A quick-plot function for a simulation of spots
+
+        Parameters
+        ----------
+        size_factor : float, optional
+            linear spot size scaling, default to 1
+        units : str, optional
+            'real' or 'pixel', only changes scalebars, falls back on 'real', the default
+        **kwargs :
+            passed to ax.scatter() method
+
+        Returns
+        -------
+        ax,sp
+
+        Notes
+        -----
+        spot size scales with the square root of the intensity.
+        """
+        _, ax = plt.subplots()
+        ax.set_aspect("equal")
+        if units == "pixel":
+            coords = self.calibrated_coordinates
+        else:
+            coords = self.coordinates
+
+        sp = ax.scatter(
+            coords[:, 0],
+            coords[:, 1],
+            s=size_factor * np.sqrt(self.intensities),
+            **kwargs
+        )
+        return ax, sp
+
 
 class ProfileSimulation:
     """Holds the result of a given kinematic simulation of a diffraction
