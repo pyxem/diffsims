@@ -190,14 +190,14 @@ class DiffractionSimulation:
         _, ax = plt.subplots()
         ax.set_aspect("equal")
         if units == "pixel":
-            coords = simulation.calibrated_coordinates
+            coords = self.calibrated_coordinates
         else:
-            coords = simulation.coordinates
+            coords = self.coordinates
 
         sp = ax.scatter(
             coords[:, 0],
             coords[:, 1],
-            s=size_factor * np.sqrt(simulation.intensities),
+            s=size_factor * np.sqrt(self.intensities),
             **kwargs
         )
         return ax, sp
