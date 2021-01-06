@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New module: `detector_functions`
 - New module: `ring_pattern_utils`
 - beam precession is now supported in simulating electron diffraction patterns
+- plot method for `DiffractionSimulation`
 - more shape factor functions have been added
 - This project now keeps a Changelog
 
