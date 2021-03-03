@@ -19,6 +19,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from diffsims.pattern.detector_functions import add_shot_and_point_spread
+from diffsims.utils import mask_utils
 
 
 class DiffractionSimulation:
@@ -123,6 +124,45 @@ class DiffractionSimulation:
     @intensities.setter
     def intensities(self, intensities):
         self._intensities = intensities
+
+    def get_as_mask(self, shape, radius=6., negative=True,
+                    radius_function=None, direct_beam_position=None,
+                    *args, **kwargs):
+        """
+        Return the diffraction pattern as a binary mask of type
+        bool
+
+        Parameters
+        ----------
+        shape: 2-tuple of ints
+            Shape of the output mask (width, height)
+        radius: float or array, optional
+            Radii of the spots in pixels. An array may be supplied
+            of the same length as the number of spots.
+        negative: bool, optional
+            Whether the spots are masked (True) or everything
+            else is masked (False)
+        radius_function: Callable, optional
+            Calculate the radius as a function of the spot intensity,
+            for example np.sqrt. args and kwargs supplied to this method
+            are passed to this function. Will override radius.
+        direct_beam_position: 2-tuple of ints, optional
+            The (x,y) coordinate in pixels of the direct beam. Defaults to
+            the center of the image.
+        """
+        r = radius
+        cx, cy = shape[0]//2, shape[1]//2
+        if direct_beam_position is not None:
+            cx, cy = direct_beam_position
+        point_coordinates_shifted = self.calibrated_coordinates[:, :-1].copy()
+        point_coordinates_shifted[:, 0] += cx
+        point_coordinates_shifted[:, 1] += cy
+        if radius_function is not None:
+            r = radius_function(self.intensities, *args, **kwargs)
+        mask = mask_utils.create_mask(shape, fill=negative)
+        mask_utils.add_circles_to_mask(point_coordinates_shifted, r, mask,
+                                    fill=not negative)
+        return mask
 
     def get_diffraction_pattern(self, size=512, sigma=10):
         """Returns the diffraction data as a numpy array with
