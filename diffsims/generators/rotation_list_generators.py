@@ -170,7 +170,7 @@ def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 
     return rotation_list
 
 
-def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_corner"):
+def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_edge"):
     """Produces an array of beam directions, within the stereographic
     triangle of the relevant crystal system. The way the array is
     constructed is based on different methods of meshing the sphere
@@ -227,16 +227,26 @@ def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_c
             f"spherified_cube_corner, icosahedral, random"
         )
 
-    if crystal_system == "triclinic":
-        return points_in_cartesians
     # crop to stereographic triangle which depends on crystal system
+    epsilon = -1e-13
+    if crystal_system == "triclinic":
+        return beam_directions_grid_to_euler(points_in_cartesians)
+    if crystal_system == "monoclinic":
+        points_in_cartesian = points_in_cartesians[
+                np.dot(np.array([0,0,1]), points_in_cartesians.T) >= epsilon
+                ]
+        points_in_cartesian = points_in_cartesians[
+                np.dot(np.array([1,0,0]), points_in_cartesians.T) >= epsilon
+                ]
+        return beam_directions_grid_to_euler(points_in_cartesian)
+        
+    # for all other systems, determine it from the triangle vertices
     corners = crystal_system_dictionary[crystal_system]
     a, b, c = corners[0], corners[1], corners[2]
     if len(a) == 4:
         a, b, c = uvtw_to_uvw(a), uvtw_to_uvw(b), uvtw_to_uvw(c)
 
     # eliminates those points that lie outside of the stereographic triangle
-    epsilon = -1e-13
     points_in_cartesians = points_in_cartesians[
         np.dot(np.cross(a, b), c) * np.dot(np.cross(a, b), points_in_cartesians.T)
         >= epsilon
