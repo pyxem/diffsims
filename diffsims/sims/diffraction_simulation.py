@@ -160,7 +160,7 @@ class DiffractionSimulation:
         if radius_function is not None:
             r = radius_function(self.intensities, *args, **kwargs)
         mask = mask_utils.create_mask(shape, fill=negative)
-        mask_utils.add_circles_to_mask(point_coordinates_shifted, r, mask,
+        mask_utils.add_circles_to_mask(mask, point_coordinates_shifted, r,
                                     fill=not negative)
         return mask
 
