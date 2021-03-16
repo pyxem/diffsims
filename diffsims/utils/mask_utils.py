@@ -5,7 +5,7 @@ import numpy as np
 
 def create_mask(shape, fill=True):
     """
-    Instantiate an empty mask
+    Initiate an empty mask
     """
     return np.full(shape, fill, dtype=bool)
 
@@ -19,7 +19,7 @@ def invert_mask(mask):
 
 def add_polygon_to_mask(mask, coords, fill=False):
     """
-    Add a poligon defined by sequential vertex coordinates to the mask.
+    Add a polygon defined by sequential vertex coordinates to the mask.
 
     Parameters
     ----------
