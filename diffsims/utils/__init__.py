@@ -31,6 +31,7 @@ from diffsims.utils import (
     shape_factor_models,
     sim_utils,
     vector_utils,
+    mask_utils,
 )
 
 __all__ = [
@@ -46,4 +47,5 @@ __all__ = [
     "shape_factor_models",
     "sim_utils",
     "vector_utils",
+    "mask_utils",
 ]

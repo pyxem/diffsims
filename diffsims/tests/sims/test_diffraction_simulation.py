@@ -174,6 +174,20 @@ class TestDiffractionSimulation:
         )
         z = empty_sim.get_diffraction_pattern(size=10)
 
+    def test_get_as_mask(self):
+        short_sim = DiffractionSimulation(
+            coordinates=np.asarray([[0.3, 1.2, 0]]),
+            intensities=np.ones(1),
+            calibration=[1, 2],
+        )
+        mask = short_sim.get_as_mask((20, 10),
+                                     radius_function=np.sqrt,
+                                     direct_beam_position=(10, 6)
+                                     )
+        assert mask.shape[0] == 20
+        assert mask.shape[1] == 10
+        
+
     @pytest.mark.parametrize("units_in",['pixel','real'])
     def test_plot_method(self,units_in):
         short_sim = DiffractionSimulation(
