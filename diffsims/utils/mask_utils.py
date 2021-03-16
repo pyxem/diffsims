@@ -29,6 +29,11 @@ def add_polygon_to_mask(mask, coords, fill=False):
         (x, y) coordinates of vertices
     fill: int, optional
         Fill value. 0 is black (negative, False) and 1 is white (True)
+
+    Returns
+    -------
+    None:
+        the mask is adjusted inplace
     """
     coords = np.array(coords)
     coords = np.ravel(coords, order='C').tolist()
@@ -52,6 +57,11 @@ def add_circles_to_mask(mask, coords, r, fill=False):
         radii of the circles
     fill: int, optional
         Fill value. 0 is black (negative, False) and 1 is white (True)
+
+    Returns
+    -------
+    None:
+        the mask is adjusted inplace
     """
     coords = np.array(coords)
     r = r*np.ones(coords.shape[0])
@@ -78,8 +88,8 @@ def add_circle_to_mask(mask, x, y, r, fill=False):
 
     Returns
     -------
-    mask: (H, W) array of dtype bool
-        The array with the new addition
+    None:
+        the mask is adjusted inplace
     """
     xx = np.arange(mask.shape[1])
     yy = np.arange(mask.shape[0])
@@ -106,6 +116,11 @@ def add_annulus_to_mask(mask, r1, r2, x=None, y=None, fill=False):
         y-coordinate of the circle center in pixels. Defaults to the center of the mask.
     fill: int, optional
         Fill value. 0 is black (block, False) and 1 is white (pass, True)
+
+    Returns
+    -------
+    None:
+        the mask is adjusted inplace
     """
     if x is None:
         x = mask.shape[1] / 2
@@ -138,6 +153,11 @@ def add_band_to_mask(mask, x, y, theta, width, fill=False):
         width of the band in pixels
     fill: int, optional
         Fill value. 0 is black (block, False) and 1 is white (pass, True)
+
+    Returns
+    -------
+    None:
+        the mask is adjusted inplace
     """
     # see distance from point to line formula https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
     theta_r = np.deg2rad(theta)
