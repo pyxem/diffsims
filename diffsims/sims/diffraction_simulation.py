@@ -160,7 +160,7 @@ class DiffractionSimulation:
         point_coordinates_shifted = self.calibrated_coordinates[:, :-1].copy()
         x = point_coordinates_shifted[:, 0]
         y = point_coordinates_shifted[:, 1]
-        theta = np.arctan2(y, x) + in_plane_angle
+        theta = np.arctan2(y, x) + np.deg2rad(in_plane_angle)
         rd = np.sqrt(x**2 + y**2)
         point_coordinates_shifted[:, 0] = rd * np.cos(theta) + cx
         point_coordinates_shifted[:, 1] = rd * np.sin(theta) + cy
