@@ -127,6 +127,7 @@ class DiffractionSimulation:
 
     def get_as_mask(self, shape, radius=6., negative=True,
                     radius_function=None, direct_beam_position=None,
+                    in_plane_angle=0,
                     *args, **kwargs):
         """
         Return the diffraction pattern as a binary mask of type
@@ -149,14 +150,20 @@ class DiffractionSimulation:
         direct_beam_position: 2-tuple of ints, optional
             The (x,y) coordinate in pixels of the direct beam. Defaults to
             the center of the image.
+        in_plane_angle: float, optional
+            In plane rotation of the pattern in degrees
         """
         r = radius
         cx, cy = shape[0]//2, shape[1]//2
         if direct_beam_position is not None:
             cx, cy = direct_beam_position
         point_coordinates_shifted = self.calibrated_coordinates[:, :-1].copy()
-        point_coordinates_shifted[:, 0] += cx
-        point_coordinates_shifted[:, 1] += cy
+        x = point_coordinates_shifted[:, 0]
+        y = point_coordinates_shifted[:, 1]
+        theta = np.arctan2(y, x) + np.deg2rad(in_plane_angle)
+        rd = np.sqrt(x**2 + y**2)
+        point_coordinates_shifted[:, 0] = rd * np.cos(theta) + cx
+        point_coordinates_shifted[:, 1] = rd * np.sin(theta) + cy
         if radius_function is not None:
             r = radius_function(self.intensities, *args, **kwargs)
         mask = mask_utils.create_mask(shape, fill=negative)
