@@ -199,6 +199,6 @@ def lorentzian_precession(
     """
     sigma = np.pi / max_excitation_error
     u = sigma ** 2 * (r_spot ** 2 * precession_angle ** 2 - excitation_error ** 2) + 1
-    z = np.sqrt(u ** 2 + 4 * sigma ** 2 + excitation_error ** 2)
+    z = np.sqrt(u ** 2 + 4 * sigma ** 2 * excitation_error ** 2)
     fac = (sigma / np.pi) * np.sqrt(2 * (u + z) / z ** 2)
     return fac
