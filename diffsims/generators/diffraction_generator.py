@@ -51,7 +51,7 @@ _shape_factor_model_mapping = {
 }
 
 def _shape_factor_precession(
-    excitation_error, r_spot, wavelength, phi, shape_function, max_excitation, **kwargs
+    excitation_error, r_spot, phi, shape_function, max_excitation, **kwargs
 ):
     """
     The rel-rod shape factors for reflections taking into account
@@ -85,13 +85,13 @@ def _shape_factor_precession(
     to the optical axis, so that the shape factor function only depends on the
     distance from each spot to the Ewald sphere parallel to the optical axis.
     """
-    shf = np.zeros(z_spot.shape)
+    shf = np.zeros(excitation_error.shape)
     # loop over all spots
     for i, (excitation_error_i, r_spot_i) in enumerate(zip(excitation_error, r_spot)):
 
         def integrand(theta):
             # Equation 8 in L.Palatinus et al. Acta Cryst. (2019) B75, 512-522
-            S_zero = z_spot_i - z_sph
+            S_zero = excitation_error_i
             variable_term = r_spot_i*np.deg2rad(phi)*np.cos(theta)
             return shape_function(S_zero + variable_term, max_excitation, **kwargs)
 
@@ -224,7 +224,7 @@ class DiffractionGenerator(object):
         # Obtain crystallographic reciprocal lattice points within `reciprocal_radius` and
         # g-vector magnitudes for intensity calculations.
         recip_latt = latt.reciprocal()
-        g_indices, cartesian_coordinates, g_distances = get_points_in_sphere(
+        g_indices, cartesian_coordinates, g_hkls = get_points_in_sphere(
             recip_latt, reciprocal_radius
         )
 
@@ -251,7 +251,7 @@ class DiffractionGenerator(object):
             excitation_error = excitation_error[intersection]
             r_spot = r_spot[intersection]
             g_indices = g_indices[intersection]
-            g_hkls = g_distances[intersection]
+            g_hkls = g_hkls[intersection]
 
             # calculate shape factor
             shape_factor = self.shape_factor_model(
@@ -259,7 +259,7 @@ class DiffractionGenerator(object):
             )
         else:
             intersection_coordinates = cartesian_coordinates #for naming simplicity
-            
+
             if self.approximate_precession:
                 shape_factor = lorentzian_precession(
                     excitation_error,
@@ -271,7 +271,7 @@ class DiffractionGenerator(object):
                 shape_factor = _shape_factor_precession(
                     excitation_error,
                     r_spot,
-                    self.precession_angle,
+                    np.deg2rad(self.precession_angle),
                     self.shape_factor_model,
                     max_excitation_error,
                     **self.shape_factor_kwargs,
