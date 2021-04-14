@@ -224,7 +224,7 @@ class DiffractionGenerator(object):
         # Obtain crystallographic reciprocal lattice points within `reciprocal_radius` and
         # g-vector magnitudes for intensity calculations.
         recip_latt = latt.reciprocal()
-        g_indices, intersection_coordinates, g_distances = get_points_in_sphere(
+        g_indices, cartesian_coordinates, g_distances = get_points_in_sphere(
             recip_latt, reciprocal_radius
         )
 
@@ -247,7 +247,7 @@ class DiffractionGenerator(object):
         if self.precession_angle == 0:
             # Mask parameters corresponding to excited reflections.
             intersection = np.abs(excitation_error) < max_excitation_error
-            intersection_coordinates = intersection_coordinates[intersection]
+            intersection_coordinates = cartesian_coordinates[intersection]
             excitation_error = excitation_error[intersection]
             r_spot = r_spot[intersection]
             g_indices = g_indices[intersection]
@@ -258,6 +258,8 @@ class DiffractionGenerator(object):
                 excitation_error, max_excitation_error, **self.shape_factor_kwargs
             )
         else:
+            intersection_coordinates = cartesian_coordinates #for naming simplicity
+            
             if self.approximate_precession:
                 shape_factor = lorentzian_precession(
                     excitation_error,
