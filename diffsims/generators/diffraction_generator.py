@@ -188,7 +188,7 @@ class DiffractionGenerator(object):
         are available via strings.
     approximate_precession : boolean
         When using precession, whether to precisely calculate average
-        excitation errors and intensities or use an approximation. See notes.
+        excitation errors and intensities or use an approximation.
     minimum_intensity : float
         Minimum intensity for a peak to be considered visible in the pattern (fractional from the maximum)
     kwargs :
@@ -196,8 +196,6 @@ class DiffractionGenerator(object):
 
     Notes
     -----
-    * A full calculation is much slower and is not recommended for calculating
-      a diffraction library for precession diffraction patterns.
     * When using precession and approximate_precession=True, the shape factor
     model defaults to Lorentzian; shape_factor_model is ignored. Only with
     approximate_precession=False the custom shape_factor_model is used.
