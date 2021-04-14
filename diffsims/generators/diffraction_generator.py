@@ -297,8 +297,7 @@ class DiffractionGenerator(object):
         R = euler2mat(ai, aj, ak, axes="rzxz")
         cartesian_coordinates = np.matmul(R, cartesian_coordinates.T).T
 
-        # Identify points intersecting the Ewald sphere within maximum
-        # excitation error and store the magnitude of their excitation error.
+        # Identify the excitation errors of candidate points
         r_sphere = 1 / wavelength
         r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
         z_spot = cartesian_coordinates[:, 2]
@@ -309,35 +308,34 @@ class DiffractionGenerator(object):
         if self.precession_angle == 0:
             # Mask parameters corresponding to excited reflections.
             intersection = np.abs(excitation_error) < max_excitation_error
-            intersection_coordinates = cartesian_coordinates[intersection]
+            intersection_coordinates = intersection_coordinates[intersection]
             excitation_error = excitation_error[intersection]
             r_spot = r_spot[intersection]
-            g_indices = spot_indices[intersection]
-            g_hkls = spot_distances[intersection]
+            g_indices = g_indices[intersection]
+            g_hkls = g_distances[intersection]
 
-        # take into consideration rel-rods
-        if self.precession_angle > 0 and not self.approximate_precession:
-            shape_factor = _shape_factor_precession(
-                intersection_coordinates[:, 2],
-                r_spot,
-                wavelength,
-                self.precession_angle,
-                self.shape_factor_model,
-                max_excitation_error,
-                **self.shape_factor_kwargs,
-            )
-        elif self.precession_angle > 0 and self.approximate_precession:
-            shape_factor = lorentzian_precession(
-                excitation_error,
-                max_excitation_error,
-                r_spot,
-                np.deg2rad(self.precession_angle),
-            )
-        else:
+            # calculate shape factor
             shape_factor = self.shape_factor_model(
                 excitation_error, max_excitation_error, **self.shape_factor_kwargs
             )
-
+        else:
+            if self.approximate_precession:
+                shape_factor = lorentzian_precession(
+                    excitation_error,
+                    max_excitation_error,
+                    r_spot,
+                    np.deg2rad(self.precession_angle),
+                )
+            else:
+                shape_factor = _shape_factor_precession(
+                    intersection_coordinates[:, 2],
+                    r_spot,
+                    wavelength,
+                    self.precession_angle,
+                    self.shape_factor_model,
+                    max_excitation_error,
+                    **self.shape_factor_kwargs,
+                )
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(
             structure,
