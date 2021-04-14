@@ -285,7 +285,7 @@ class DiffractionGenerator(object):
         # Obtain crystallographic reciprocal lattice points within `reciprocal_radius` and
         # g-vector magnitudes for intensity calculations.
         recip_latt = latt.reciprocal()
-        spot_indices, cartesian_coordinates, spot_distances = get_points_in_sphere(
+        g_indices, intersection_coordinates, g_distances = get_points_in_sphere(
             recip_latt, reciprocal_radius
         )
 
@@ -314,11 +314,6 @@ class DiffractionGenerator(object):
             r_spot = r_spot[intersection]
             g_indices = spot_indices[intersection]
             g_hkls = spot_distances[intersection]
-
-        else:
-            intersection_coordinates = cartesian_coordinates
-            g_indices = spot_indices
-            g_hkls = spot_distances
 
         # take into consideration rel-rods
         if self.precession_angle > 0 and not self.approximate_precession:
