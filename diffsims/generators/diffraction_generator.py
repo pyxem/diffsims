@@ -64,7 +64,7 @@ def _shape_factor_precession(
     r_spot : np.ndarray (N,)
         An array representing the distance of spots from the z-axis in A^-1
     phi : float
-        The precession angle in degrees
+        The precession angle in radians
     shape_function : callable
         A function that describes the influence from the rel-rods. Should be
         in the form func(excitation_error: np.ndarray, max_excitation: float,
@@ -92,7 +92,7 @@ def _shape_factor_precession(
         def integrand(theta):
             # Equation 8 in L.Palatinus et al. Acta Cryst. (2019) B75, 512-522
             S_zero = excitation_error_i
-            variable_term = r_spot_i*np.deg2rad(phi)*np.cos(theta)
+            variable_term = r_spot_i*(phi)*np.cos(theta)
             return shape_function(S_zero + variable_term, max_excitation, **kwargs)
 
         # average factor integrated over the full revolution of the beam

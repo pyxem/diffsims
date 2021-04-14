@@ -185,7 +185,7 @@ def lorentzian_precession(
         The distance (reciprocal) from each reflection to the origin
 
     precession_angle : float
-        The beam precession angle in degrees; the angle the beam makes
+        The beam precession angle in radians; the angle the beam makes
         with the optical axis.
 
     Returns
