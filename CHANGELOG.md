@@ -9,8 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added 
 - Simulations now have a .get_as_mask() method (#154, #158)
 
-## 2021-03-15 - version 0.4.1
+### Fixed 
+- Precession simulations (#161)
 
+## 2021-03-15 - version 0.4.1
 ### Changed
 - `get_grid_beam_directions` default meshing changed to "spherified_cube_edge" from "spherified_cube_corner"
 
