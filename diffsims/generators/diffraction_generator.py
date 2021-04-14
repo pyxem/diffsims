@@ -178,20 +178,20 @@ class DiffractionGenerator(object):
         The accelerating voltage of the microscope in kV.
     scattering_params : str
         "lobato" or "xtables"
-    minimum_intensity : float
-        Minimum intensity for a peak to be considered visible in the pattern
     precession_angle : float
         Angle about which the beam is precessed. Default is no precession.
-    approximate_precession : boolean
-        When using precession, whether to precisely calculate average
-        excitation errors and intensities or use an approximation. See notes.
     shape_factor_model : function or string
         A function that takes excitation_error and
         `max_excitation_error` (and potentially kwargs) and returns
         an intensity scaling factor. If None defaults to
         `shape_factor_models.linear`. A number of pre-programmed functions
         are available via strings.
-    kwargs
+    approximate_precession : boolean
+        When using precession, whether to precisely calculate average
+        excitation errors and intensities or use an approximation. See notes.
+    minimum_intensity : float
+        Minimum intensity for a peak to be considered visible in the pattern (fractional from the maximum)
+    kwargs :
         Keyword arguments passed to `shape_factor_model`.
 
     Notes
@@ -303,25 +303,23 @@ class DiffractionGenerator(object):
         r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
         z_spot = cartesian_coordinates[:, 2]
 
-        if self.precession_angle > 0 and not self.approximate_precession:
-            # We find the average excitation error - this step can be
-            # quite expensive
-            excitation_error = _average_excitation_error_precession(
-                z_spot,
-                r_spot,
-                wavelength,
-                self.precession_angle,
-            )
+        z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
+        excitation_error = z_sphere - z_spot
+
+        if self.precession_angle == 0:
+            # Mask parameters corresponding to excited reflections.
+            intersection = np.abs(excitation_error) < max_excitation_error
+            intersection_coordinates = cartesian_coordinates[intersection]
+            excitation_error = excitation_error[intersection]
+            r_spot = r_spot[intersection]
+            g_indices = spot_indices[intersection]
+            g_hkls = spot_distances[intersection]
+
         else:
-            z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
-            excitation_error = z_sphere - z_spot
-        # Mask parameters corresponding to excited reflections.
-        intersection = np.abs(excitation_error) < max_excitation_error
-        intersection_coordinates = cartesian_coordinates[intersection]
-        excitation_error = excitation_error[intersection]
-        r_spot = r_spot[intersection]
-        g_indices = spot_indices[intersection]
-        g_hkls = spot_distances[intersection]
+            intersection_coordinates = cartesian_coordinates
+            g_indices = spot_indices
+            g_hkls = spot_distances
+
         # take into consideration rel-rods
         if self.precession_angle > 0 and not self.approximate_precession:
             shape_factor = _shape_factor_precession(
@@ -338,7 +336,7 @@ class DiffractionGenerator(object):
                 excitation_error,
                 max_excitation_error,
                 r_spot,
-                self.precession_angle,
+                np.deg2rad(self.precession_angle),
             )
         else:
             shape_factor = self.shape_factor_model(
@@ -356,7 +354,7 @@ class DiffractionGenerator(object):
         )
 
         # Threshold peaks included in simulation based on minimum intensity.
-        peak_mask = intensities > self.minimum_intensity
+        peak_mask = intensities > np.max(intensities) * self.minimum_intensity
         intensities = intensities[peak_mask]
         intersection_coordinates = intersection_coordinates[peak_mask]
         g_indices = g_indices[peak_mask]
