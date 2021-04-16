@@ -4,13 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 2021-04-16 - version 0.4.2
 
 ### Added 
 - Simulations now have a .get_as_mask() method (#154, #158)
+- Python 3.9 testing (#161)
+
+### Fixed 
+- Precession simulations (#161)
+
+### Changed
+- Simulations now use a fractional (rather than absolute) min_intensity (#161)
 
 ## 2021-03-15 - version 0.4.1
-
 ### Changed
 - `get_grid_beam_directions` default meshing changed to "spherified_cube_edge" from "spherified_cube_corner"
 

@@ -23,9 +23,7 @@ from diffsims.sims.diffraction_simulation import ProfileSimulation
 from diffsims.generators.diffraction_generator import (
     DiffractionGenerator,
     AtomicDiffractionGenerator,
-    _z_sphere_precession,
     _shape_factor_precession,
-    _average_excitation_error_precession,
 )
 import diffpy.structure
 from diffsims.utils.shape_factor_models import linear, binary, sin2c, atanc, lorentzian
@@ -103,35 +101,11 @@ def probe(x, out=None, scale=None):
         v = v * abs(x[1].reshape(1, -1, 1)) < 6
         return v + 0 * x[2].reshape(1, 1, -1)
 
-
-@pytest.mark.parametrize(
-    "parameters, expected",
-    [
-        ([0, 1, 0.001, 0.5], -0.00822681491001731),
-        (
-            [0, np.array([1, 2, 20]), 0.001, 0.5],
-            np.array([-0.00822681, -0.01545354, 0.02547058]),
-        ),
-        ([180, 1, 0.001, 0.5], 0.00922693),
-    ],
-)
-def test_z_sphere_precession(parameters, expected):
-    result = _z_sphere_precession(*parameters)
-    assert np.allclose(result, expected)
-
-
 @pytest.mark.parametrize("model", [binary, linear, atanc, sin2c, lorentzian])
 def test_shape_factor_precession(model):
-    z = np.array([-0.1, 0.1])
+    excitation = np.array([-0.1, 0.1])
     r = np.array([1, 5])
-    _ = _shape_factor_precession(z, r, 0.001, 0.5, model, 0.1)
-
-
-def test_average_excitation_error_precession():
-    z = np.array([-0.1, 0.1])
-    r = np.array([1, 5])
-    _ = _average_excitation_error_precession(z, r, 0.001, 0.5)
-
+    _ = _shape_factor_precession(excitation, r, 0.5, model, 0.1)
 
 @pytest.mark.parametrize(
     "model, expected",

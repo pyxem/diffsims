@@ -50,49 +50,8 @@ _shape_factor_model_mapping = {
     "lorentzian": lorentzian,
 }
 
-
-def _z_sphere_precession(theta, r_spot, wavelength, phi):
-    """
-    Returns the z-coordinate in reciprocal space of the Ewald sphere at
-    distance r_spot from the origin
-
-    Parameters
-    ----------
-    theta : float
-        The azimuthal angle in degrees
-    r_spot : float
-        The projected length of the reciprocal lattice vector onto the plane
-        perpendicular to the optical axis in A^-1
-    wavelength : float
-        The electron wavelength in A
-    phi : float
-        The precession angle in degrees (angle between beam and optical axis)
-
-    Returns
-    -------
-    z : float
-        The height of the ewald sphere at the point r in A^-1
-
-    Notes
-    -----
-    * The azimuthal angle is the angle the beam is currently precessed to.
-    It is the angle between the projection of the beam and the projection of
-    the relevant diffraction spot both onto the x-y plane.
-    * In the derivation of this formula we assume that we will always integrate
-    over a full precession circle, because we do not explicitly take into
-    consideration x-y coordinates of reflections.
-    """
-    theta = np.deg2rad(theta)
-    r = 1 / wavelength
-    phi = np.deg2rad(phi)
-    return -np.sqrt(
-        r ** 2 * (1 - np.sin(phi) ** 2 * np.sin(theta) ** 2)
-        - (r_spot - r * np.sin(phi) * np.cos(theta)) ** 2
-    ) + r * np.cos(phi)
-
-
 def _shape_factor_precession(
-    z_spot, r_spot, wavelength, phi, shape_function, max_excitation, **kwargs
+    excitation_error, r_spot, phi, shape_function, max_excitation, **kwargs
 ):
     """
     The rel-rod shape factors for reflections taking into account
@@ -100,14 +59,12 @@ def _shape_factor_precession(
 
     Parameters
     ----------
-    z_spot : np.ndarray (N,)
-        An array representing the z-coordinates of the reflections in A^-1
+    excitation_error : np.ndarray (N,)
+        An array of excitation errors
     r_spot : np.ndarray (N,)
         An array representing the distance of spots from the z-axis in A^-1
-    wavelength : float
-        The electron wavelength in A
     phi : float
-        The precession angle in degrees
+        The precession angle in radians
     shape_function : callable
         A function that describes the influence from the rel-rods. Should be
         in the form func(excitation_error: np.ndarray, max_excitation: float,
@@ -128,35 +85,19 @@ def _shape_factor_precession(
     to the optical axis, so that the shape factor function only depends on the
     distance from each spot to the Ewald sphere parallel to the optical axis.
     """
-    shf = np.zeros(z_spot.shape)
+    shf = np.zeros(excitation_error.shape)
     # loop over all spots
-    for i, (z_spot_i, r_spot_i) in enumerate(zip(z_spot, r_spot)):
+    for i, (excitation_error_i, r_spot_i) in enumerate(zip(excitation_error, r_spot)):
 
-        def integrand(phi):
-            z_sph = _z_sphere_precession(phi, r_spot_i, wavelength, phi)
-            return shape_function(z_spot_i - z_sph, max_excitation, **kwargs)
+        def integrand(theta):
+            # Equation 8 in L.Palatinus et al. Acta Cryst. (2019) B75, 512-522
+            S_zero = excitation_error_i
+            variable_term = r_spot_i*(phi)*np.cos(theta)
+            return shape_function(S_zero + variable_term, max_excitation, **kwargs)
 
         # average factor integrated over the full revolution of the beam
-        shf[i] = (1 / (360)) * quad(integrand, 0, 360)[0]
+        shf[i] = (1 / (2*np.pi)) * quad(integrand, 0, 2*np.pi)[0]
     return shf
-
-
-def _average_excitation_error_precession(z_spot, r_spot, wavelength, precession_angle):
-    """
-    Calculate the average excitation error for spots
-    """
-    ext = np.zeros(z_spot.shape)
-    # loop over all spots
-    for i, (z_spot_i, r_spot_i) in enumerate(zip(z_spot, r_spot)):
-
-        def integrand(phi):
-            z_sph = _z_sphere_precession(phi, r_spot_i, wavelength, precession_angle)
-            return z_spot_i - z_sph
-
-        # average factor integrated over the full revolution of the beam
-        ext[i] = (1 / (360)) * quad(integrand, 0, 360)[0]
-    return ext
-
 
 class DiffractionGenerator(object):
     """Computes electron diffraction patterns for a crystal structure.
@@ -178,26 +119,24 @@ class DiffractionGenerator(object):
         The accelerating voltage of the microscope in kV.
     scattering_params : str
         "lobato" or "xtables"
-    minimum_intensity : float
-        Minimum intensity for a peak to be considered visible in the pattern
     precession_angle : float
         Angle about which the beam is precessed. Default is no precession.
-    approximate_precession : boolean
-        When using precession, whether to precisely calculate average
-        excitation errors and intensities or use an approximation. See notes.
     shape_factor_model : function or string
         A function that takes excitation_error and
         `max_excitation_error` (and potentially kwargs) and returns
         an intensity scaling factor. If None defaults to
         `shape_factor_models.linear`. A number of pre-programmed functions
         are available via strings.
-    kwargs
+    approximate_precession : boolean
+        When using precession, whether to precisely calculate average
+        excitation errors and intensities or use an approximation.
+    minimum_intensity : float
+        Minimum intensity for a peak to be considered visible in the pattern (fractional from the maximum)
+    kwargs :
         Keyword arguments passed to `shape_factor_model`.
 
     Notes
     -----
-    * A full calculation is much slower and is not recommended for calculating
-      a diffraction library for precession diffraction patterns.
     * When using precession and approximate_precession=True, the shape factor
     model defaults to Lorentzian; shape_factor_model is ignored. Only with
     approximate_precession=False the custom shape_factor_model is used.
@@ -285,7 +224,7 @@ class DiffractionGenerator(object):
         # Obtain crystallographic reciprocal lattice points within `reciprocal_radius` and
         # g-vector magnitudes for intensity calculations.
         recip_latt = latt.reciprocal()
-        spot_indices, cartesian_coordinates, spot_distances = get_points_in_sphere(
+        g_indices, cartesian_coordinates, g_hkls = get_points_in_sphere(
             recip_latt, reciprocal_radius
         )
 
@@ -297,54 +236,46 @@ class DiffractionGenerator(object):
         R = euler2mat(ai, aj, ak, axes="rzxz")
         cartesian_coordinates = np.matmul(R, cartesian_coordinates.T).T
 
-        # Identify points intersecting the Ewald sphere within maximum
-        # excitation error and store the magnitude of their excitation error.
+        # Identify the excitation errors of candidate points
         r_sphere = 1 / wavelength
         r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
         z_spot = cartesian_coordinates[:, 2]
 
-        if self.precession_angle > 0 and not self.approximate_precession:
-            # We find the average excitation error - this step can be
-            # quite expensive
-            excitation_error = _average_excitation_error_precession(
-                z_spot,
-                r_spot,
-                wavelength,
-                self.precession_angle,
-            )
-        else:
-            z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
-            excitation_error = z_sphere - z_spot
-        # Mask parameters corresponding to excited reflections.
-        intersection = np.abs(excitation_error) < max_excitation_error
-        intersection_coordinates = cartesian_coordinates[intersection]
-        excitation_error = excitation_error[intersection]
-        r_spot = r_spot[intersection]
-        g_indices = spot_indices[intersection]
-        g_hkls = spot_distances[intersection]
-        # take into consideration rel-rods
-        if self.precession_angle > 0 and not self.approximate_precession:
-            shape_factor = _shape_factor_precession(
-                intersection_coordinates[:, 2],
-                r_spot,
-                wavelength,
-                self.precession_angle,
-                self.shape_factor_model,
-                max_excitation_error,
-                **self.shape_factor_kwargs,
-            )
-        elif self.precession_angle > 0 and self.approximate_precession:
-            shape_factor = lorentzian_precession(
-                excitation_error,
-                max_excitation_error,
-                r_spot,
-                self.precession_angle,
-            )
-        else:
+        z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
+        excitation_error = z_sphere - z_spot
+
+        if self.precession_angle == 0:
+            # Mask parameters corresponding to excited reflections.
+            intersection = np.abs(excitation_error) < max_excitation_error
+            intersection_coordinates = cartesian_coordinates[intersection]
+            excitation_error = excitation_error[intersection]
+            r_spot = r_spot[intersection]
+            g_indices = g_indices[intersection]
+            g_hkls = g_hkls[intersection]
+
+            # calculate shape factor
             shape_factor = self.shape_factor_model(
                 excitation_error, max_excitation_error, **self.shape_factor_kwargs
             )
+        else:
+            intersection_coordinates = cartesian_coordinates #for naming simplicity
 
+            if self.approximate_precession:
+                shape_factor = lorentzian_precession(
+                    excitation_error,
+                    max_excitation_error,
+                    r_spot,
+                    np.deg2rad(self.precession_angle),
+                )
+            else:
+                shape_factor = _shape_factor_precession(
+                    excitation_error,
+                    r_spot,
+                    np.deg2rad(self.precession_angle),
+                    self.shape_factor_model,
+                    max_excitation_error,
+                    **self.shape_factor_kwargs,
+                )
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(
             structure,
@@ -356,7 +287,7 @@ class DiffractionGenerator(object):
         )
 
         # Threshold peaks included in simulation based on minimum intensity.
-        peak_mask = intensities > self.minimum_intensity
+        peak_mask = intensities > np.max(intensities) * self.minimum_intensity
         intensities = intensities[peak_mask]
         intersection_coordinates = intersection_coordinates[peak_mask]
         g_indices = g_indices[peak_mask]
