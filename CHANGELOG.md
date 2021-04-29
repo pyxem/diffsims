@@ -4,13 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+- Minimal version of dependencies numpy >= 1.17 and tqdm >= 4.9
+
 ## 2021-04-16 - version 0.4.2
 
-### Added 
+### Added
 - Simulations now have a .get_as_mask() method (#154, #158)
 - Python 3.9 testing (#161)
 
-### Fixed 
+### Fixed
 - Precession simulations (#161)
 
 ### Changed

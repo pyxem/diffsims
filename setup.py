@@ -35,7 +35,7 @@ extra_feature_requirements["dev"] = ["black >= 19.3b0", "pre-commit >= 1.16"] + 
 setup(
     name=name,
     version=version,
-    description="Diffraction Simulations in Python.",
+    description="Diffraction Simulations in Python",
     author=author,
     author_email=email,
     license=license,
@@ -45,6 +45,8 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -55,17 +57,16 @@ setup(
     ],
     packages=find_packages(),
     extras_require=extra_feature_requirements,
-    # adjust the tabbing
     install_requires=[
-        "scipy>=0.15",
-        "numpy>=1.10",
-        "matplotlib>=3.1.1",
-        "tqdm>=0.4.9",
-        "transforms3d",
-        "diffpy.structure>=3.0.0",  # First Python 3 support
-        "orix>=0.5.0",
+        "diffpy.structure >= 3.0.0",  # First Python 3 support
+        "matplotlib >= 3.1.1",
         "numba",
+        "numpy >= 1.17",
+        "orix >= 0.5.0",
         "psutil",
+        "scipy >= 0.15",
+        "tqdm >= 4.9",
+        "transforms3d",
     ],
     python_requires=">=3.6",
     package_data={
