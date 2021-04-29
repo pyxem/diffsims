@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Changed
-- Minimal version of dependencies: numpy >= 1.17, scipy >= 0.15, tqdm >= 4.9
+- Minimal version of dependencies numpy >= 1.17 and tqdm >= 4.9
 
 ## 2021-04-16 - version 0.4.2
 
