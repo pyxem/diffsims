@@ -50,6 +50,7 @@ _shape_factor_model_mapping = {
     "lorentzian": lorentzian,
 }
 
+
 def _shape_factor_precession(
     excitation_error, r_spot, phi, shape_function, max_excitation, **kwargs
 ):
@@ -92,12 +93,13 @@ def _shape_factor_precession(
         def integrand(theta):
             # Equation 8 in L.Palatinus et al. Acta Cryst. (2019) B75, 512-522
             S_zero = excitation_error_i
-            variable_term = r_spot_i*(phi)*np.cos(theta)
+            variable_term = r_spot_i * (phi) * np.cos(theta)
             return shape_function(S_zero + variable_term, max_excitation, **kwargs)
 
         # average factor integrated over the full revolution of the beam
-        shf[i] = (1 / (2*np.pi)) * quad(integrand, 0, 2*np.pi)[0]
+        shf[i] = (1 / (2 * np.pi)) * quad(integrand, 0, 2 * np.pi)[0]
     return shf
+
 
 class DiffractionGenerator(object):
     """Computes electron diffraction patterns for a crystal structure.
@@ -118,9 +120,10 @@ class DiffractionGenerator(object):
     accelerating_voltage : float
         The accelerating voltage of the microscope in kV.
     scattering_params : str
-        "lobato" or "xtables"
+        "lobato", "xtables" or None. If None is provided then atomic
+        scattering is not taken into consideration.
     precession_angle : float
-        Angle about which the beam is precessed. Default is no precession.
+        Angle about which the beam is precessed in degrees. Default is no precession.
     shape_factor_model : function or string
         A function that takes excitation_error and
         `max_excitation_error` (and potentially kwargs) and returns
@@ -170,7 +173,7 @@ class DiffractionGenerator(object):
             self.shape_factor_model = shape_factor_model
         self.minimum_intensity = minimum_intensity
         self.shape_factor_kwargs = kwargs
-        if scattering_params in ["lobato", "xtables"]:
+        if scattering_params in ["lobato", "xtables", None]:
             self.scattering_params = scattering_params
         else:
             raise NotImplementedError(
@@ -186,6 +189,7 @@ class DiffractionGenerator(object):
         rotation=(0, 0, 0),
         with_direct_beam=True,
         max_excitation_error=1e-2,
+        shape_factor_width=None,
         debye_waller_factors={},
     ):
         """Calculates the Electron Diffraction data for a structure.
@@ -207,8 +211,13 @@ class DiffractionGenerator(object):
             If True, the direct beam is included in the simulated
             diffraction pattern. If False, it is not.
         max_excitation_error : float
-            The extinction distance for reflections, in reciprocal
-            Angstroms. Roughly equal to 1/thickness.
+            The cut-off for geometric excitation error in the z-direction
+            in units of reciprocal Angstroms. Spots with a larger distance
+            from the Ewald sphere are removed from the pattern.
+            Related to the extinction distance and roungly equal to 1/thickness.
+        shape_factor_width : float
+            Determines the width of the reciprocal rel-rod, for fine-grained
+            control. If not set will be set equal to max_excitation_error.
         debye_waller_factors : dict of str:value pairs
             Maps element names to their temperature-dependent Debye-Waller factors.
 
@@ -244,26 +253,36 @@ class DiffractionGenerator(object):
         z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
         excitation_error = z_sphere - z_spot
 
+        # determine the pre-selection reflections
         if self.precession_angle == 0:
-            # Mask parameters corresponding to excited reflections.
             intersection = np.abs(excitation_error) < max_excitation_error
-            intersection_coordinates = cartesian_coordinates[intersection]
-            excitation_error = excitation_error[intersection]
-            r_spot = r_spot[intersection]
-            g_indices = g_indices[intersection]
-            g_hkls = g_hkls[intersection]
+        else:
+            # only consider points that are between or touch the cones created by the ewald sphere extremes
+            # ewald sphere is approximated flat
+            intersection = np.abs(z_spot) - np.abs(
+                max_excitation_error
+            ) < r_spot * np.tan(np.deg2rad(self.precession_angle))
 
+        # select these reflections
+        intersection_coordinates = cartesian_coordinates[intersection]
+        excitation_error = excitation_error[intersection]
+        r_spot = r_spot[intersection]
+        g_indices = g_indices[intersection]
+        g_hkls = g_hkls[intersection]
+
+        if shape_factor_width is None:
+            shape_factor_width = max_excitation_error
+        # select and evaluate shape factor model
+        if self.precession_angle == 0:
             # calculate shape factor
             shape_factor = self.shape_factor_model(
-                excitation_error, max_excitation_error, **self.shape_factor_kwargs
+                excitation_error, shape_factor_width, **self.shape_factor_kwargs
             )
         else:
-            intersection_coordinates = cartesian_coordinates #for naming simplicity
-
             if self.approximate_precession:
                 shape_factor = lorentzian_precession(
                     excitation_error,
-                    max_excitation_error,
+                    shape_factor_width,
                     r_spot,
                     np.deg2rad(self.precession_angle),
                 )
@@ -273,7 +292,7 @@ class DiffractionGenerator(object):
                     r_spot,
                     np.deg2rad(self.precession_angle),
                     self.shape_factor_model,
-                    max_excitation_error,
+                    shape_factor_width,
                     **self.shape_factor_kwargs,
                 )
         # Calculate diffracted intensities based on a kinematical model.
@@ -286,7 +305,7 @@ class DiffractionGenerator(object):
             debye_waller_factors=debye_waller_factors,
         )
 
-        # Threshold peaks included in simulation based on minimum intensity.
+        # Threshold peaks included in simulation as factor of maximum intensity.
         peak_mask = intensities > np.max(intensities) * self.minimum_intensity
         intensities = intensities[peak_mask]
         intersection_coordinates = intersection_coordinates[peak_mask]

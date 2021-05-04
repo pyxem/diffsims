@@ -161,7 +161,11 @@ def lorentzian(excitation_error, max_excitation_error):
     # in the paper, sigma = pi*thickness.
     # We assume thickness = 1/max_exitation_error
     sigma = np.pi / max_excitation_error
-    fac = sigma / (np.pi * (sigma ** 2 * excitation_error ** 2 + 1))
+    fac = (
+        sigma
+        / (np.pi * (sigma ** 2 * excitation_error ** 2 + 1))
+        * max_excitation_error
+    )
     return fac
 
 
