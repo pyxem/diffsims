@@ -54,8 +54,9 @@ def linear(excitation_error, max_excitation_error):
     -------
     intensities : array-like or float
     """
-
-    return 1 - np.abs(excitation_error) / max_excitation_error
+    sf = 1 - np.abs(excitation_error) / max_excitation_error
+    sf[sf < 0.0] = 0.0
+    return sf
 
 
 def sinc(excitation_error, max_excitation_error, minima_number=5):
