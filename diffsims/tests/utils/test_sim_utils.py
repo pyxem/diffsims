@@ -324,7 +324,14 @@ def test_get_intensities_params(default_structure):
     np.testing.assert_array_equal(unique_hkls, [[-0.0, -0.0, 0.0]])
 
 
-def test_get_kinematical_intensities(default_structure):
+@pytest.mark.parametrize(
+    "scattering_params, answer",
+    [
+        ("lobato", 43.0979),
+        (None, 1.0),
+    ],
+)
+def test_get_kinematical_intensities(default_structure, scattering_params, answer):
     latt = default_structure.lattice
     reciprocal_lattice = latt.reciprocal()
     reciprocal_radius = 0.2
@@ -338,6 +345,6 @@ def test_get_kinematical_intensities(default_structure):
         g_hkls_array=g_hkls_array,
         debye_waller_factors={"Al": 1},
         prefactor=multiplicites,
-        scattering_params="lobato",
+        scattering_params=scattering_params,
     )
-    np.testing.assert_array_almost_equal(i_hkls, ([43.0979]), decimal=4)
+    np.testing.assert_array_almost_equal(i_hkls, ([answer]), decimal=4)
