@@ -156,7 +156,7 @@ class DiffractionGenerator(object):
         **kwargs,
     ):
         self.wavelength = get_electron_wavelength(accelerating_voltage)
-        self.precession_angle = precession_angle
+        self.precession_angle = np.abs(precession_angle)
         self.approximate_precession = approximate_precession
         if isinstance(shape_factor_model, str):
             if shape_factor_model in _shape_factor_model_mapping.keys():
@@ -257,11 +257,16 @@ class DiffractionGenerator(object):
         if self.precession_angle == 0:
             intersection = np.abs(excitation_error) < max_excitation_error
         else:
-            # only consider points that are between or touch the cones created by the ewald sphere extremes
-            # ewald sphere is approximated flat
-            intersection = np.abs(z_spot) - np.abs(
-                max_excitation_error
-            ) < r_spot * np.tan(np.deg2rad(self.precession_angle))
+            # only consider points that intersect the ewald sphere at some point
+            # the center point of the sphere
+            P_z = r_sphere * np.cos(np.deg2rad(self.precession_angle))
+            P_t = r_sphere * np.sin(np.deg2rad(self.precession_angle))
+            # the extremes of the ewald sphere
+            z_surf_up = P_z - np.sqrt(r_sphere ** 2 - (r_spot + P_t) ** 2)
+            z_surf_do = P_z - np.sqrt(r_sphere ** 2 - (r_spot - P_t) ** 2)
+            intersection = (z_spot - max_excitation_error <= z_surf_up) & (
+                z_spot + max_excitation_error >= z_surf_do
+            )
 
         # select these reflections
         intersection_coordinates = cartesian_coordinates[intersection]
