@@ -154,6 +154,8 @@ def get_vectorized_list_for_atomic_scattering_factors(
         The atomic structure for which scattering factors are required.
     debye_waller_factors : list
         List of Debye-Waller factors for atoms in structure.
+    scattering_params: string
+        The type of scattering params to use. "lobato", "xtables", and None are supported.
 
     Returns
     -------
@@ -167,16 +169,20 @@ def get_vectorized_list_for_atomic_scattering_factors(
         Debye-Waller factors for each atom in the structure.
     """
 
-    scattering_params_dict = get_scattering_params_dict(scattering_params)
+    if scattering_params is not None:
+        scattering_params_dict = get_scattering_params_dict(scattering_params)
+    else:
+        scattering_params_dict = {}
 
     n_structures = len(structure)
     coeffs = np.empty((n_structures, 5, 2))
     fcoords = np.empty((n_structures, 3))
     occus = np.empty(n_structures)
     dwfactors = np.empty(n_structures)
+    default = np.zeros((5, 2))
 
     for i, site in enumerate(structure):
-        coeffs[i] = scattering_params_dict[site.element]
+        coeffs[i] = scattering_params_dict.get(site.element, default)
         dwfactors[i] = debye_waller_factors.get(site.element, 0)
         fcoords[i] = site.xyz
         occus[i] = site.occupancy
@@ -237,7 +243,7 @@ def get_kinematical_intensities(
     debye_waller_factors : dict of str:value pairs
         Maps element names to their temperature-dependent Debye-Waller factors.
     scattering_params : str
-        "lobato" or "xtables"
+        "lobato", "xtables" or None
     prefactor : array-like
         multiplciation factor for structure factor
     Returns
@@ -263,7 +269,11 @@ def get_kinematical_intensities(
     g_hkls_sq = g_hkls_array ** 2
 
     # Create array containing atomic scattering factors.
-    fs = get_atomic_scattering_factors(g_hkls_sq, coeffs, scattering_params)
+    if scattering_params is not None:
+        fs = get_atomic_scattering_factors(g_hkls_sq, coeffs, scattering_params)
+    else:
+        # ignore atomic scattering, all factors are one
+        fs = np.ones((g_hkls_sq.shape[0], coeffs.shape[0]))
 
     # Change the coordinate system of fcoords to align with that of g_indices
     fcoords = np.dot(

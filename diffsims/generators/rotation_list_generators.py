@@ -233,13 +233,13 @@ def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_e
         return beam_directions_grid_to_euler(points_in_cartesians)
     if crystal_system == "monoclinic":
         points_in_cartesian = points_in_cartesians[
-                np.dot(np.array([0,0,1]), points_in_cartesians.T) >= epsilon
-                ]
+            np.dot(np.array([0, 0, 1]), points_in_cartesians.T) >= epsilon
+        ]
         points_in_cartesian = points_in_cartesians[
-                np.dot(np.array([1,0,0]), points_in_cartesians.T) >= epsilon
-                ]
+            np.dot(np.array([1, 0, 0]), points_in_cartesians.T) >= epsilon
+        ]
         return beam_directions_grid_to_euler(points_in_cartesian)
-        
+
     # for all other systems, determine it from the triangle vertices
     corners = crystal_system_dictionary[crystal_system]
     a, b, c = corners[0], corners[1], corners[2]

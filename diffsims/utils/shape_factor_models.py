@@ -38,6 +38,7 @@ def binary(excitation_error, max_excitation_error):
     return 1
 
 
+@np.vectorize
 def linear(excitation_error, max_excitation_error):
     """
     Returns an intensity linearly scaled with by the excitation error
@@ -54,8 +55,10 @@ def linear(excitation_error, max_excitation_error):
     -------
     intensities : array-like or float
     """
-
-    return 1 - np.abs(excitation_error) / max_excitation_error
+    sf = 1 - np.abs(excitation_error) / max_excitation_error
+    if sf < 0.:
+        sf = 0.
+    return sf
 
 
 def sinc(excitation_error, max_excitation_error, minima_number=5):
@@ -161,7 +164,11 @@ def lorentzian(excitation_error, max_excitation_error):
     # in the paper, sigma = pi*thickness.
     # We assume thickness = 1/max_exitation_error
     sigma = np.pi / max_excitation_error
-    fac = sigma / (np.pi * (sigma ** 2 * excitation_error ** 2 + 1))
+    fac = (
+        sigma
+        / (np.pi * (sigma ** 2 * excitation_error ** 2 + 1))
+        * max_excitation_error
+    )
     return fac
 
 
