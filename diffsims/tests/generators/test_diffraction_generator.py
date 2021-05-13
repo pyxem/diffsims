@@ -107,6 +107,15 @@ def test_shape_factor_precession(model):
     r = np.array([1, 5])
     _ = _shape_factor_precession(excitation, r, 0.5, model, 0.1)
 
+
+def test_linear_shape_factor():
+    excitation = np.array([-2, -1, -0.5, 0, 0.5, 1, 2])
+    totest = linear(excitation, 1)
+    np.testing.assert_allclose(totest, np.array([0,0,0.5,1,0.5,0,0]))
+    np.testing.assert_allclose(linear(0.5, 1), 0.5)
+
+
+
 @pytest.mark.parametrize(
     "model, expected",
     [("linear", linear), ("lorentzian", lorentzian), (binary, binary)],
