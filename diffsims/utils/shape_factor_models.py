@@ -38,7 +38,6 @@ def binary(excitation_error, max_excitation_error):
     return 1
 
 
-@np.vectorize
 def linear(excitation_error, max_excitation_error):
     """
     Returns an intensity linearly scaled with by the excitation error
@@ -56,8 +55,10 @@ def linear(excitation_error, max_excitation_error):
     intensities : array-like or float
     """
     sf = 1 - np.abs(excitation_error) / max_excitation_error
-    if sf < 0.:
-        sf = 0.
+    if isinstance(excitation_error, np.ndarray):
+        sf[sf < 0.0] = 0.0
+    else:
+        sf = max(sf, 0.)
     return sf
 
 

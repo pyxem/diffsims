@@ -52,6 +52,7 @@ class DiffractionLibraryGenerator:
         half_shape,
         with_direct_beam=True,
         max_excitation_error=1e-2,
+        shape_factor_width=None,
         debye_waller_factors={},
     ):
         """Calculates a dictionary of diffraction data for a library of crystal
@@ -79,6 +80,9 @@ class DiffractionLibraryGenerator:
         max_excitation_error : float
             The extinction distance for reflections, in reciprocal
             Angstroms.
+        shape_factor_width : float
+            Determines the width of the shape functions of the reflections in
+            Angstroms. If not set is equal to max_excitation_error.
         debye_waller_factors : dict of str:value pairs
             Maps element names to their temperature-dependent Debye-Waller factors.
 
@@ -93,6 +97,8 @@ class DiffractionLibraryGenerator:
         diffraction_library = DiffractionLibrary()
         # The electron diffraction calculator to do simulations
         diffractor = self.electron_diffraction_calculator
+        if shape_factor_width is None:
+            shape_factor_width = max_excitation_error
         # Iterate through phases in library.
         for phase_name in structure_library.struct_lib.keys():
             phase_diffraction_library = dict()
@@ -111,6 +117,7 @@ class DiffractionLibraryGenerator:
                     rotation=orientation,
                     with_direct_beam=with_direct_beam,
                     max_excitation_error=max_excitation_error,
+                    shape_factor_width=shape_factor_width,
                     debye_waller_factors=debye_waller_factors,
                 )
 
