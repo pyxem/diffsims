@@ -127,7 +127,7 @@ class DiffractionSimulation:
 
     def get_as_mask(self, shape, radius=6., negative=True,
                     radius_function=None, direct_beam_position=None,
-                    in_plane_angle=0,
+                    in_plane_angle=0, mirrored=False,
                     *args, **kwargs):
         """
         Return the diffraction pattern as a binary mask of type
@@ -152,6 +152,9 @@ class DiffractionSimulation:
             the center of the image.
         in_plane_angle: float, optional
             In plane rotation of the pattern in degrees
+        mirrored: bool, optional
+            Whether the pattern should be flipped over the x-axis,
+            corresponding to the inverted orientation
         """
         r = radius
         cx, cy = shape[0]//2, shape[1]//2
@@ -160,7 +163,8 @@ class DiffractionSimulation:
         point_coordinates_shifted = self.calibrated_coordinates[:, :-1].copy()
         x = point_coordinates_shifted[:, 0]
         y = point_coordinates_shifted[:, 1]
-        theta = np.arctan2(y, x) + np.deg2rad(in_plane_angle)
+        mirrored_factor = -1 if mirrored else 1
+        theta = mirrored_factor * np.arctan2(y, x) + np.deg2rad(in_plane_angle)
         rd = np.sqrt(x**2 + y**2)
         point_coordinates_shifted[:, 0] = rd * np.cos(theta) + cx
         point_coordinates_shifted[:, 1] = rd * np.sin(theta) + cy
