@@ -218,7 +218,11 @@ class DiffractionSimulation:
 
         return np.divide(pattern, np.max(pattern))
 
-    def plot(self, size_factor=1, units="real", **kwargs):
+    def plot(self, size_factor=1, units="real", show_labels=False, 
+            label_offset=(0, 0),
+            label_formatting={},
+            ax=None,
+            **kwargs):
         """A quick-plot function for a simulation of spots
 
         Parameters
@@ -227,6 +231,16 @@ class DiffractionSimulation:
             linear spot size scaling, default to 1
         units : str, optional
             'real' or 'pixel', only changes scalebars, falls back on 'real', the default
+        show_labels : bool, optional
+            draw the miller indices near the spots
+        label_offset : 2-tuple, optional
+            the relative location of the spot labels. Does nothing if `show_labels`
+            is False.
+        label_formatting : dict, optional
+            keyword arguments passed to `ax.text` for drawing the labels. Does
+            nothing if `show_labels` is False.
+        ax : matplotlib Axes, optional
+            axes on which to draw the pattern. If `None`, a new axis is created
         **kwargs :
             passed to ax.scatter() method
 
@@ -238,8 +252,9 @@ class DiffractionSimulation:
         -----
         spot size scales with the square root of the intensity.
         """
-        _, ax = plt.subplots()
-        ax.set_aspect("equal")
+        if ax is None:
+            _, ax = plt.subplots()
+            ax.set_aspect("equal")
         if units == "pixel":
             coords = self.calibrated_coordinates
         else:
@@ -251,6 +266,37 @@ class DiffractionSimulation:
             s=size_factor * np.sqrt(self.intensities),
             **kwargs
         )
+
+        if show_labels:
+            millers = self.indices.astype(np.int16)
+            if millers.shape[0] != coords.shape[0]:
+                # ensure we don't label 0,0,0, smallest miller index is 001
+                miller_dist = np.linalg.norm(millers, axis=1)
+                condition = miller_dist > 0.1
+                millers = millers[condition]
+            # only label the points inside the axes
+            xlim = ax.get_xlim()
+            ylim = ax.get_ylim()
+            condition = ((coords[:,0] > min(xlim)) &
+                         (coords[:,0] < max(xlim)) &
+                         (coords[:,1] > min(ylim)) &
+                         (coords[:,1] < max(ylim)))
+            millers = millers[condition]
+            coords = coords[condition]
+            for miller, coordinate in zip(millers, coords):
+                label = "("
+                for index in miller:
+                    if index<0:
+                        label += r"$\bar{" + str(abs(index)) +r"}$"
+                    else:
+                        label += str(abs(index))
+                    label += " "
+                label = label[:-1] + ")"
+                ax.text(coordinate[0] + label_offset[0],
+                        coordinate[1] + label_offset[1],
+                        label, ha="center", va="center",
+                        **label_formatting,
+                        )
         return ax, sp
 
 
