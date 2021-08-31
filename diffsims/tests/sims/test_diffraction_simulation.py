@@ -186,14 +186,16 @@ class TestDiffractionSimulation:
                                      )
         assert mask.shape[0] == 20
         assert mask.shape[1] == 10
-        
 
     @pytest.mark.parametrize("units_in",['pixel','real'])
     def test_plot_method(self,units_in):
         short_sim = DiffractionSimulation(
-            coordinates=np.asarray([[0.3, 1.2, 0]]),
-            intensities=np.ones(1),
+            coordinates=np.asarray([[0.3, 1.2, 0],
+                                    [2.1, 3.4, 0]]),
+            indices=np.array([[-2, 3, 4],
+                              [ 2,-6, 1],
+                              [ 0, 0, 0]]),
+            intensities=np.array([3., 5.]),
             calibration=[1, 2],
         )
-
-        ax,sp = short_sim.plot(units=units_in)
+        ax, sp = short_sim.plot(units=units_in, show_labels=True)

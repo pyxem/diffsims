@@ -218,7 +218,7 @@ class DiffractionSimulation:
 
         return np.divide(pattern, np.max(pattern))
 
-    def plot(self, size_factor=1, units="real", show_labels=False, 
+    def plot(self, size_factor=1, units="real", show_labels=False,
             label_offset=(0, 0),
             label_formatting={},
             ax=None,
@@ -283,6 +283,11 @@ class DiffractionSimulation:
                          (coords[:,1] < max(ylim)))
             millers = millers[condition]
             coords = coords[condition]
+            # default alignment options
+            if "ha" not in label_offset and "horizontalalignment" not in label_formatting:
+                label_formatting["ha"]="center"
+            if "va" not in label_offset and "verticalalignment" not in label_formatting:
+                label_formatting["va"]="center"
             for miller, coordinate in zip(millers, coords):
                 label = "("
                 for index in miller:
@@ -294,7 +299,7 @@ class DiffractionSimulation:
                 label = label[:-1] + ")"
                 ax.text(coordinate[0] + label_offset[0],
                         coordinate[1] + label_offset[1],
-                        label, ha="center", va="center",
+                        label,
                         **label_formatting,
                         )
         return ax, sp
