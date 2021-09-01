@@ -58,7 +58,7 @@ def add_polygon_to_mask(mask, coords, fill=False):
     tempmask = Image.fromarray(mask)
     draw = ImageDraw.Draw(tempmask)
     draw.polygon(coords, fill=fill)
-    mask[:] = np.array(tempmask, dtype=bool)
+    mask[:] = np.array(tempmask).astype(bool)
 
 
 def add_circles_to_mask(mask, coords, r, fill=False):
