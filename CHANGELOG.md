@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Added
+- extra parameters in diffraction pattern's plot method for drawing miller index labels next to the diffraction spots
 - Option to use None for `scattering_params` which ignores atomic scattering
 
 ### Changed
