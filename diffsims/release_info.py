@@ -1,5 +1,5 @@
 name = "diffsims"
-version = "0.4.2"
+version = "0.4.3-dev"
 author = "Duncan Johnstone, Phillip Crout"
 copyright = "Copyright 2017-2021, The pyXem Developers"
 credits = [
