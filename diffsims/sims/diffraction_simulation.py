@@ -20,9 +20,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from diffsims.pattern.detector_functions import add_shot_and_point_spread
 from diffsims.utils import mask_utils
+from collections import Sequence
 
 
-class DiffractionSimulation:
+class DiffractionSimulation(Sequence):
     """Holds the result of a kinematic diffraction pattern simulation.
 
     Parameters
@@ -68,6 +69,21 @@ class DiffractionSimulation:
         self.calibration = calibration
         self.offset = offset
         self.with_direct_beam = with_direct_beam
+
+    def __len__(self):
+        return self.direct_beam_mask.shape[0]
+
+    def __getitem__(self, sliced):
+        coords = self.coordinates[sliced]
+        inds = self.indices[sliced]
+        ints = self.intensities[sliced]
+        return DiffractionSimulation(coords,
+                                     indices=inds,
+                                     intensities=ints,
+                                     calibration=self.calibration,
+                                     offset=self.offset,
+                                     with_direct_beam=self.with_direct_beam
+                                    )
 
     @property
     def indices(self):
