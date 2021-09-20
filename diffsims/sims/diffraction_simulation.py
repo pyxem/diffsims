@@ -44,7 +44,7 @@ class DiffractionSimulation:
 
     def __init__(
         self,
-        coordinates=None,
+        coordinates,
         indices=None,
         intensities=None,
         calibration=1.0,
@@ -54,25 +54,33 @@ class DiffractionSimulation:
         """Initializes the DiffractionSimulation object with data values for
         the coordinates, indices, intensities, calibration and offset.
         """
-        self._coordinates = None
-        self.coordinates = coordinates
-        self.indices = indices
-        self._intensities = None
-        self.intensities = intensities
-        self._calibration = (1.0, 1.0)
+        if indices is None:
+            indices = np.zeros((coordinates.shape[0], 3))
+        if intensities is None:
+            intensities = np.zeros((coordinates.shape[0]))
+        # check here whether shapes are all the same
+        if coordinates.shape[0] == indices.shape[0] == intensities.shape[0]:
+            self._coordinates = coordinates
+            self._indices = indices
+            self._intensities = intensities
+        else:
+            raise ValueError("Coordinate, intensity, and indices lists must be same size.")
         self.calibration = calibration
         self.offset = offset
         self.with_direct_beam = with_direct_beam
 
     @property
+    def indices(self):
+        return self._indices[self.direct_beam_mask]
+
+    @indices.setter
+    def indices(self, indices):
+        self._indices[self.direct_beam_mask] = indices
+
+    @property
     def calibrated_coordinates(self):
         """ndarray : Coordinates converted into pixel space."""
-        coordinates = np.copy(self.coordinates)
-        coordinates[:, 0] += self.offset[0]
-        coordinates[:, 1] += self.offset[1]
-        coordinates[:, 0] /= self.calibration[0]
-        coordinates[:, 1] /= self.calibration[1]
-        return coordinates
+        return (self.coordinates[:, :2] + np.array(self.offset))/np.array(self.calibration)
 
     @property
     def calibration(self):
@@ -106,24 +114,20 @@ class DiffractionSimulation:
     @property
     def coordinates(self):
         """ndarray : The coordinates of all unmasked points."""
-        if self._coordinates is None:
-            return None
         return self._coordinates[self.direct_beam_mask]
 
     @coordinates.setter
     def coordinates(self, coordinates):
-        self._coordinates = coordinates
+        self._coordinates[self.direct_beam_mask] = coordinates
 
     @property
     def intensities(self):
         """ndarray : The intensities of all unmasked points."""
-        if self._intensities is None:
-            return None
         return self._intensities[self.direct_beam_mask]
 
     @intensities.setter
     def intensities(self, intensities):
-        self._intensities = intensities
+        self._intensities[self.direct_beam_mask] = intensities
 
     def get_as_mask(self, shape, radius=6., negative=True,
                     radius_function=None, direct_beam_position=None,
@@ -160,7 +164,7 @@ class DiffractionSimulation:
         cx, cy = shape[0]//2, shape[1]//2
         if direct_beam_position is not None:
             cx, cy = direct_beam_position
-        point_coordinates_shifted = self.calibrated_coordinates[:, :-1].copy()
+        point_coordinates_shifted = self.calibrated_coordinates.copy()
         x = point_coordinates_shifted[:, 0]
         y = point_coordinates_shifted[:, 1]
         mirrored_factor = -1 if mirrored else 1
@@ -269,11 +273,6 @@ class DiffractionSimulation:
 
         if show_labels:
             millers = self.indices.astype(np.int16)
-            if millers.shape[0] != coords.shape[0]:
-                # ensure we don't label 0,0,0, smallest miller index is 001
-                miller_dist = np.linalg.norm(millers, axis=1)
-                condition = miller_dist > 0.1
-                millers = millers[condition]
             # only label the points inside the axes
             xlim = ax.get_xlim()
             ylim = ax.get_ylim()
