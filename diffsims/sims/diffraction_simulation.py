@@ -262,11 +262,10 @@ class DiffractionSimulation(Sequence):
             Boolean mask of the diffraction pattern
         """
         r = radius
-        cx, cy = shape[1]//2, shape[0]//2
-        if direct_beam_position is not None:
-            cx, cy = direct_beam_position
+        if direct_beam_position is None:
+            direct_beam_position = (shape[1]//2, shape[0]//2)
         point_coordinates_shifted = self._get_transformed_coordinates(
-                in_plane_angle, center=(cx, cy), mirrored=mirrored, units="pixels")
+                in_plane_angle, center=direct_beam_position, mirrored=mirrored, units="pixels")
         if radius_function is not None:
             r = radius_function(self.intensities, *args, **kwargs)
         mask = mask_utils.create_mask(shape, fill=negative)
@@ -307,10 +306,9 @@ class DiffractionSimulation(Sequence):
         produces reasonably good patterns when the lattice parameters are on
         the order of 0.5nm and a the default size and sigma are used.
         """
-        cx, cy = shape[1]//2, shape[0]//2
-        if direct_beam_position is not None:
-            cx, cy = direct_beam_position
-        coordinates = self._get_transformed_coordinates(in_plane_angle, (cx, cy), mirrored, units="pixel")
+        if direct_beam_position is None:
+            direct_beam_position = (shape[1]//2, shape[0]//2)
+        coordinates = self._get_transformed_coordinates(in_plane_angle, direct_beam_position, mirrored, units="pixel")
         in_frame = ((coordinates[:, 0] >= 0) & (coordinates[:, 0] < shape[1]) &
                     (coordinates[:, 1] >= 0) & (coordinates[:, 1] < shape[0]))
         spot_coords = coordinates[in_frame].astype(int)
@@ -371,13 +369,12 @@ class DiffractionSimulation(Sequence):
         -----
         spot size scales with the square root of the intensity.
         """
-        cx, cy = 0, 0
-        if direct_beam_position is not None:
-            cx, cy = direct_beam_position
+        if direct_beam_position is None:
+            direct_beam_position = (0, 0)
         if ax is None:
             _, ax = plt.subplots()
             ax.set_aspect("equal")
-        coords = self._get_transformed_coordinates(in_plane_angle, (cx, cy), mirrored, units=units)
+        coords = self._get_transformed_coordinates(in_plane_angle, direct_beam_position, mirrored, units=units)
         sp = ax.scatter(
             coords[:, 0],
             coords[:, 1],

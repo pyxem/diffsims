@@ -95,7 +95,7 @@ class TestDiffractionSimulation:
         return DiffractionSimulation(np.array([[0, 0, 0],[1, 2, 3], [3, 4, 5]]), calibration=0.5)
 
     @pytest.mark.xfail(raises=ValueError)
-    def failed_initialization(self):
+    def test_failed_initialization(self):
         DiffractionSimulation(np.array([[0, 0, 0],[1, 2, 3], [3, 4, 5]]), indices=np.array([1, 2, 3]))
 
     def test_init(self, diffraction_simulation):
@@ -107,12 +107,15 @@ class TestDiffractionSimulation:
         assert diffraction_simulation.calibration is None
         assert len(diffraction_simulation) == 2
 
-    def get_get_item(self, diffraction_simulation):
+    def test_single_spot(self):
+        assert DiffractionSimulation(np.array([1, 2, 3])).coordinates.shape == (1, 3)
+
+    def test_get_item(self, diffraction_simulation):
         assert diffraction_simulation[1].coordinates.shape == (1, 3)
-        assert diffraction_simulation[1:3].coordinates.shape == (2, 3)
+        assert diffraction_simulation[0:2].coordinates.shape == (2, 3)
 
     @pytest.mark.xfail(raises=ValueError)
-    def fail_get_item(self, diffraction_simulation):
+    def test_fail_get_item(self, diffraction_simulation):
         diffraction_simulation[None]
 
     def test_addition(self, diffraction_simulation):
@@ -147,6 +150,14 @@ class TestDiffractionSimulation:
         diffraction_simulation.with_direct_beam = True
         diffraction_simulation.coordinates = coords
         assert np.allclose(diffraction_simulation.coordinates, coords)
+
+    def test_intensities_setter(self, diffraction_simulation):
+        ints = np.array([1, 2, 3])
+        diffraction_simulation.intensities = ints[-1]
+        assert np.allclose(diffraction_simulation.intensities, ints[-1])
+        diffraction_simulation.with_direct_beam = True
+        diffraction_simulation.intensities = ints
+        assert np.allclose(diffraction_simulation.intensities, ints)
 
     @pytest.mark.parametrize(
         "calibration, expected",
@@ -263,7 +274,6 @@ class TestDiffractionSimulation:
         )
         mask = short_sim.get_as_mask((20, 10),
                                      radius_function=np.sqrt,
-                                     direct_beam_position=(10, 6)
                                      )
         assert mask.shape[0] == 20
         assert mask.shape[1] == 10
