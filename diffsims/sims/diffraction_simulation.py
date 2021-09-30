@@ -56,19 +56,24 @@ class DiffractionSimulation(Sequence):
         the coordinates, indices, intensities, calibration and offset.
         """
         if coordinates.ndim == 1:
-            coordinates = coordinates[None,:]
+            coordinates = coordinates[None, :]
         if indices is None:
             indices = np.full((coordinates.shape[0], 3), np.nan)
         if intensities is None:
             intensities = np.full((coordinates.shape[0]), np.nan)
         # check here whether shapes are all the same
-        if (coordinates.shape[0] == indices.shape[0] == intensities.shape[0] and
-            coordinates.ndim == indices.ndim == 2 and intensities.ndim==1):
+        if (
+            coordinates.shape[0] == indices.shape[0] == intensities.shape[0]
+            and coordinates.ndim == indices.ndim == 2
+            and intensities.ndim == 1
+        ):
             self._coordinates = coordinates
             self._indices = indices
             self._intensities = intensities
         else:
-            raise ValueError("Coordinate, intensity, and indices lists must be of the correct and matching shape.")
+            raise ValueError(
+                "Coordinate, intensity, and indices lists must be of the correct and matching shape."
+            )
         self.calibration = calibration
         self.offset = offset
         self.with_direct_beam = with_direct_beam
@@ -87,13 +92,14 @@ class DiffractionSimulation(Sequence):
         # some valid numpy slices will create invalid shapes for diffraction simulation
         if coords.ndim > 2 or coords.shape[1] > 3 or coords.shape[1] < 2:
             raise ValueError(f"Invalid slice: {sliced}")
-        return DiffractionSimulation(coords,
-                                     indices=inds,
-                                     intensities=ints,
-                                     calibration=self.calibration,
-                                     offset=self.offset,
-                                     with_direct_beam=self.with_direct_beam
-                                    )
+        return DiffractionSimulation(
+            coords,
+            indices=inds,
+            intensities=ints,
+            calibration=self.calibration,
+            offset=self.offset,
+            with_direct_beam=self.with_direct_beam,
+        )
 
     def _combine_data(self, other):
         coords = np.concatenate([self._coordinates, other._coordinates], axis=0)
@@ -103,13 +109,14 @@ class DiffractionSimulation(Sequence):
 
     def __add__(self, other):
         coords, inds, ints = self._combine_data(other)
-        return DiffractionSimulation(coords,
-                                     indices=inds,
-                                     intensities=ints,
-                                     calibration=self.calibration,
-                                     offset=self.offset,
-                                     with_direct_beam=self.with_direct_beam
-                                    )
+        return DiffractionSimulation(
+            coords,
+            indices=inds,
+            intensities=ints,
+            calibration=self.calibration,
+            offset=self.offset,
+            with_direct_beam=self.with_direct_beam,
+        )
 
     def extend(self, other):
         """Add the diffraction spots from another DiffractionSimulation"""
@@ -130,7 +137,9 @@ class DiffractionSimulation(Sequence):
     def calibrated_coordinates(self):
         """ndarray : Coordinates converted into pixel space."""
         if self.calibration is not None:
-            return (self.coordinates[:, :2] + np.array(self.offset))/np.array(self.calibration)
+            return (self.coordinates[:, :2] + np.array(self.offset)) / np.array(
+                self.calibration
+            )
         else:
             raise Exception("Pixel calibration is not set!")
 
@@ -184,8 +193,9 @@ class DiffractionSimulation(Sequence):
     def intensities(self, intensities):
         self._intensities[self.direct_beam_mask] = intensities
 
-    def _get_transformed_coordinates(self, angle, center=(0, 0),
-                                     mirrored=False, units="real"):
+    def _get_transformed_coordinates(
+        self, angle, center=(0, 0), mirrored=False, units="real"
+    ):
         """
         Get the coordinates of diffraction spots rotated, flipped or shifted
         in-plane
@@ -215,20 +225,30 @@ class DiffractionSimulation(Sequence):
         y = coords_transformed[:, 1]
         mirrored_factor = -1 if mirrored else 1
         theta = mirrored_factor * np.arctan2(y, x) + np.deg2rad(angle)
-        rd = np.sqrt(x**2 + y**2)
+        rd = np.sqrt(x ** 2 + y ** 2)
         coords_transformed[:, 0] = rd * np.cos(theta) + cx
         coords_transformed[:, 1] = rd * np.sin(theta) + cy
         return coords_transformed
 
     def rotate_shift_coordinates(self, angle, center=(0, 0), mirrored=False):
         """Translate, rotate or mirror the pattern"""
-        coords_new = self._get_transformed_coordinates(angle, center, mirrored, units="real")
+        coords_new = self._get_transformed_coordinates(
+            angle, center, mirrored, units="real"
+        )
         self.coordinates = coords_new
 
-    def get_as_mask(self, shape, radius=6., negative=True,
-                    radius_function=None, direct_beam_position=None,
-                    in_plane_angle=0, mirrored=False,
-                    *args, **kwargs):
+    def get_as_mask(
+        self,
+        shape,
+        radius=6.0,
+        negative=True,
+        radius_function=None,
+        direct_beam_position=None,
+        in_plane_angle=0,
+        mirrored=False,
+        *args,
+        **kwargs,
+    ):
         """
         Return the diffraction pattern as a binary mask of type
         bool
@@ -263,19 +283,29 @@ class DiffractionSimulation(Sequence):
         """
         r = radius
         if direct_beam_position is None:
-            direct_beam_position = (shape[1]//2, shape[0]//2)
+            direct_beam_position = (shape[1] // 2, shape[0] // 2)
         point_coordinates_shifted = self._get_transformed_coordinates(
-                in_plane_angle, center=direct_beam_position, mirrored=mirrored, units="pixels")
+            in_plane_angle,
+            center=direct_beam_position,
+            mirrored=mirrored,
+            units="pixels",
+        )
         if radius_function is not None:
             r = radius_function(self.intensities, *args, **kwargs)
         mask = mask_utils.create_mask(shape, fill=negative)
-        mask_utils.add_circles_to_mask(mask, point_coordinates_shifted, r,
-                                    fill=not negative)
+        mask_utils.add_circles_to_mask(
+            mask, point_coordinates_shifted, r, fill=not negative
+        )
         return mask
 
-    def get_diffraction_pattern(self, shape=(512, 512), sigma=10,
-                                direct_beam_position=None, in_plane_angle=0,
-                                mirrored=False):
+    def get_diffraction_pattern(
+        self,
+        shape=(512, 512),
+        sigma=10,
+        direct_beam_position=None,
+        in_plane_angle=0,
+        mirrored=False,
+    ):
         """Returns the diffraction data as a numpy array with
         two-dimensional Gaussians representing each diffracted peak. Should only
         be used for qualitative work.
@@ -307,10 +337,16 @@ class DiffractionSimulation(Sequence):
         the order of 0.5nm and a the default size and sigma are used.
         """
         if direct_beam_position is None:
-            direct_beam_position = (shape[1]//2, shape[0]//2)
-        coordinates = self._get_transformed_coordinates(in_plane_angle, direct_beam_position, mirrored, units="pixel")
-        in_frame = ((coordinates[:, 0] >= 0) & (coordinates[:, 0] < shape[1]) &
-                    (coordinates[:, 1] >= 0) & (coordinates[:, 1] < shape[0]))
+            direct_beam_position = (shape[1] // 2, shape[0] // 2)
+        coordinates = self._get_transformed_coordinates(
+            in_plane_angle, direct_beam_position, mirrored, units="pixel"
+        )
+        in_frame = (
+            (coordinates[:, 0] >= 0)
+            & (coordinates[:, 0] < shape[1])
+            & (coordinates[:, 1] >= 0)
+            & (coordinates[:, 1] < shape[0])
+        )
         spot_coords = coordinates[in_frame].astype(int)
         spot_intens = self.intensities[in_frame]
         pattern = np.zeros(shape)
@@ -322,16 +358,19 @@ class DiffractionSimulation(Sequence):
             pattern = add_shot_and_point_spread(pattern.T, sigma, shot_noise=False)
         return np.divide(pattern, np.max(pattern))
 
-    def plot(self, size_factor=1,
-            direct_beam_position=None,
-            in_plane_angle=0,
-            mirrored=False,
-            units="real",
-            show_labels=False,
-            label_offset=(0, 0),
-            label_formatting={},
-            ax=None,
-            **kwargs):
+    def plot(
+        self,
+        size_factor=1,
+        direct_beam_position=None,
+        in_plane_angle=0,
+        mirrored=False,
+        units="real",
+        show_labels=False,
+        label_offset=(0, 0),
+        label_formatting={},
+        ax=None,
+        **kwargs,
+    ):
         """A quick-plot function for a simulation of spots
 
         Parameters
@@ -374,12 +413,14 @@ class DiffractionSimulation(Sequence):
         if ax is None:
             _, ax = plt.subplots()
             ax.set_aspect("equal")
-        coords = self._get_transformed_coordinates(in_plane_angle, direct_beam_position, mirrored, units=units)
+        coords = self._get_transformed_coordinates(
+            in_plane_angle, direct_beam_position, mirrored, units=units
+        )
         sp = ax.scatter(
             coords[:, 0],
             coords[:, 1],
             s=size_factor * np.sqrt(self.intensities),
-            **kwargs
+            **kwargs,
         )
 
         if show_labels:
@@ -387,31 +428,37 @@ class DiffractionSimulation(Sequence):
             # only label the points inside the axes
             xlim = ax.get_xlim()
             ylim = ax.get_ylim()
-            condition = ((coords[:,0] > min(xlim)) &
-                         (coords[:,0] < max(xlim)) &
-                         (coords[:,1] > min(ylim)) &
-                         (coords[:,1] < max(ylim)))
+            condition = (
+                (coords[:, 0] > min(xlim))
+                & (coords[:, 0] < max(xlim))
+                & (coords[:, 1] > min(ylim))
+                & (coords[:, 1] < max(ylim))
+            )
             millers = millers[condition]
             coords = coords[condition]
             # default alignment options
-            if "ha" not in label_offset and "horizontalalignment" not in label_formatting:
-                label_formatting["ha"]="center"
+            if (
+                "ha" not in label_offset
+                and "horizontalalignment" not in label_formatting
+            ):
+                label_formatting["ha"] = "center"
             if "va" not in label_offset and "verticalalignment" not in label_formatting:
-                label_formatting["va"]="center"
+                label_formatting["va"] = "center"
             for miller, coordinate in zip(millers, coords):
                 label = "("
                 for index in miller:
-                    if index<0:
-                        label += r"$\bar{" + str(abs(index)) +r"}$"
+                    if index < 0:
+                        label += r"$\bar{" + str(abs(index)) + r"}$"
                     else:
                         label += str(abs(index))
                     label += " "
                 label = label[:-1] + ")"
-                ax.text(coordinate[0] + label_offset[0],
-                        coordinate[1] + label_offset[1],
-                        label,
-                        **label_formatting,
-                        )
+                ax.text(
+                    coordinate[0] + label_offset[0],
+                    coordinate[1] + label_offset[1],
+                    label,
+                    **label_formatting,
+                )
         return ax, sp
 
 

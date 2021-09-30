@@ -88,18 +88,24 @@ def test_plot_profile_simulation(profile_simulation):
 class TestDiffractionSimulation:
     @pytest.fixture
     def diffraction_simulation(self):
-        return DiffractionSimulation(np.array([[0, 0, 0],[1, 2, 3], [3, 4, 5]]))
+        return DiffractionSimulation(np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]]))
 
     @pytest.fixture
     def diffraction_simulation_calibrated(self):
-        return DiffractionSimulation(np.array([[0, 0, 0],[1, 2, 3], [3, 4, 5]]), calibration=0.5)
+        return DiffractionSimulation(
+            np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]]), calibration=0.5
+        )
 
     @pytest.mark.xfail(raises=ValueError)
     def test_failed_initialization(self):
-        DiffractionSimulation(np.array([[0, 0, 0],[1, 2, 3], [3, 4, 5]]), indices=np.array([1, 2, 3]))
+        DiffractionSimulation(
+            np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]]), indices=np.array([1, 2, 3])
+        )
 
     def test_init(self, diffraction_simulation):
-        assert np.allclose(diffraction_simulation.coordinates, np.array([[1, 2, 3], [3, 4, 5]]))
+        assert np.allclose(
+            diffraction_simulation.coordinates, np.array([[1, 2, 3], [3, 4, 5]])
+        )
         assert np.isnan(diffraction_simulation.indices).all()
         assert diffraction_simulation.indices.shape == (2, 3)
         assert np.isnan(diffraction_simulation.intensities).all()
@@ -120,23 +126,34 @@ class TestDiffractionSimulation:
 
     def test_addition(self, diffraction_simulation):
         sim = diffraction_simulation + diffraction_simulation
-        assert np.allclose(sim.coordinates, np.array([[1, 2, 3],
-                                                      [3, 4, 5],
-                                                      [1, 2, 3],
-                                                      [3, 4, 5],
-                                                      ]))
+        assert np.allclose(
+            sim.coordinates,
+            np.array(
+                [
+                    [1, 2, 3],
+                    [3, 4, 5],
+                    [1, 2, 3],
+                    [3, 4, 5],
+                ]
+            ),
+        )
 
     def test_extend(self, diffraction_simulation):
         diffraction_simulation.extend(diffraction_simulation)
-        assert np.allclose(diffraction_simulation.coordinates, np.array([
-                                                      [1, 2, 3],
-                                                      [3, 4, 5],
-                                                      [1, 2, 3],
-                                                      [3, 4, 5],
-                                                      ]))
+        assert np.allclose(
+            diffraction_simulation.coordinates,
+            np.array(
+                [
+                    [1, 2, 3],
+                    [3, 4, 5],
+                    [1, 2, 3],
+                    [3, 4, 5],
+                ]
+            ),
+        )
 
     def test_indices_setter_getter(self, diffraction_simulation):
-        indices = np.array([[1, 2, 3],[2, 3,4],[3, 4, 5]])
+        indices = np.array([[1, 2, 3], [2, 3, 4], [3, 4, 5]])
         diffraction_simulation.indices = indices[-1]
         assert np.allclose(diffraction_simulation.indices, indices[-1])
         diffraction_simulation.with_direct_beam = True
@@ -144,7 +161,7 @@ class TestDiffractionSimulation:
         assert np.allclose(diffraction_simulation.indices, indices)
 
     def test_coordinates_setter(self, diffraction_simulation):
-        coords = np.array([[1, 2, 3],[2, 3,4],[3, 4, 5]])
+        coords = np.array([[1, 2, 3], [2, 3, 4], [3, 4, 5]])
         diffraction_simulation.coordinates = coords[-1]
         assert np.allclose(diffraction_simulation.coordinates, coords[-1])
         diffraction_simulation.with_direct_beam = True
@@ -189,11 +206,10 @@ class TestDiffractionSimulation:
             (np.array([[-1, 0, 0], [1, 0, 0]]), False, np.array([True, True])),
         ],
     )
-    def test_direct_beam_mask(
-        self, coordinates, with_direct_beam, expected
-    ):
-        diffraction_simulation = DiffractionSimulation(coordinates,
-                                                       with_direct_beam=with_direct_beam)
+    def test_direct_beam_mask(self, coordinates, with_direct_beam, expected):
+        diffraction_simulation = DiffractionSimulation(
+            coordinates, with_direct_beam=with_direct_beam
+        )
         diffraction_simulation.with_direct_beam = with_direct_beam
         mask = diffraction_simulation.direct_beam_mask
         assert np.all(mask == expected)
@@ -218,7 +234,7 @@ class TestDiffractionSimulation:
                 None,
                 (0.0, 0.0),
                 None,
-                marks=pytest.mark.xfail(raises=Exception)
+                marks=pytest.mark.xfail(raises=Exception),
             ),
         ],
     )
@@ -232,24 +248,28 @@ class TestDiffractionSimulation:
         diffraction_simulation = DiffractionSimulation(coordinates)
         diffraction_simulation.calibration = calibration
         diffraction_simulation.offset = offset
-        assert np.allclose(diffraction_simulation.calibrated_coordinates,
-                           expected)
+        assert np.allclose(diffraction_simulation.calibrated_coordinates, expected)
 
     @pytest.mark.parametrize(
         "units, expected",
         [
-            ("real", np.array([[-2,1,3],[-4,3,5]])),
-            ("pixel", np.array([[-4,2],[-8,6]])),
+            ("real", np.array([[-2, 1, 3], [-4, 3, 5]])),
+            ("pixel", np.array([[-4, 2], [-8, 6]])),
         ],
     )
-    def test_transform_coordinates(self, diffraction_simulation_calibrated, units, expected):
-        tc = diffraction_simulation_calibrated._get_transformed_coordinates(90, units=units)
+    def test_transform_coordinates(
+        self, diffraction_simulation_calibrated, units, expected
+    ):
+        tc = diffraction_simulation_calibrated._get_transformed_coordinates(
+            90, units=units
+        )
         assert np.allclose(tc, expected)
 
     def test_rotate_shift_coordinates(self, diffraction_simulation):
         diffraction_simulation.rotate_shift_coordinates(90)
-        assert np.allclose(diffraction_simulation.coordinates,
-                           np.array([[-2,1,3],[-4,3,5]]))
+        assert np.allclose(
+            diffraction_simulation.coordinates, np.array([[-2, 1, 3], [-4, 3, 5]])
+        )
 
     def test_assertion_free_get_diffraction_pattern(self):
         short_sim = DiffractionSimulation(
@@ -272,22 +292,25 @@ class TestDiffractionSimulation:
             intensities=np.ones(1),
             calibration=[1, 2],
         )
-        mask = short_sim.get_as_mask((20, 10),
-                                     radius_function=np.sqrt,
-                                     )
+        mask = short_sim.get_as_mask(
+            (20, 10),
+            radius_function=np.sqrt,
+        )
         assert mask.shape[0] == 20
         assert mask.shape[1] == 10
 
-    @pytest.mark.parametrize("units_in",['pixel','real'])
-    def test_plot_method(self,units_in):
+    @pytest.mark.parametrize("units_in", ["pixel", "real"])
+    def test_plot_method(self, units_in):
         short_sim = DiffractionSimulation(
-            coordinates=np.asarray([[0.3, 1.2, 0],
-                                    [-2, 3, 0],
-                                    [2.1, 3.4, 0],]),
-            indices=np.array([[-2, 3, 4],
-                              [ 2,-6, 1],
-                              [ 0, 0, 0]]),
-            intensities=np.array([3., 5., 2.]),
+            coordinates=np.asarray(
+                [
+                    [0.3, 1.2, 0],
+                    [-2, 3, 0],
+                    [2.1, 3.4, 0],
+                ]
+            ),
+            indices=np.array([[-2, 3, 4], [2, -6, 1], [0, 0, 0]]),
+            intensities=np.array([3.0, 5.0, 2.0]),
             calibration=[1, 2],
         )
         ax, sp = short_sim.plot(units=units_in, show_labels=True)
