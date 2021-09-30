@@ -48,35 +48,45 @@ class DiffractionSimulation(Sequence):
         coordinates,
         indices=None,
         intensities=None,
-        calibration=1.0,
+        calibration=None,
         offset=(0.0, 0.0),
         with_direct_beam=False,
     ):
         """Initializes the DiffractionSimulation object with data values for
         the coordinates, indices, intensities, calibration and offset.
         """
+        if coordinates.ndim == 1:
+            coordinates = coordinates[None,:]
         if indices is None:
-            indices = np.zeros((coordinates.shape[0], 3))
+            indices = np.full((coordinates.shape[0], 3), np.nan)
         if intensities is None:
-            intensities = np.zeros((coordinates.shape[0]))
+            intensities = np.full((coordinates.shape[0]), np.nan)
         # check here whether shapes are all the same
-        if coordinates.shape[0] == indices.shape[0] == intensities.shape[0]:
+        if (coordinates.shape[0] == indices.shape[0] == intensities.shape[0] and
+            coordinates.ndim == indices.ndim == 2 and intensities.ndim==1):
             self._coordinates = coordinates
             self._indices = indices
             self._intensities = intensities
         else:
-            raise ValueError("Coordinate, intensity, and indices lists must be same size.")
+            raise ValueError("Coordinate, intensity, and indices lists must be of the correct and matching shape.")
         self.calibration = calibration
         self.offset = offset
         self.with_direct_beam = with_direct_beam
 
     def __len__(self):
-        return self.direct_beam_mask.shape[0]
+        return self.coordinates.shape[0]
 
     def __getitem__(self, sliced):
         coords = self.coordinates[sliced]
         inds = self.indices[sliced]
         ints = self.intensities[sliced]
+        if coords.ndim == 1:
+            coords = coords[None, :]
+            inds = inds[None, :]
+            ints = ints[None]
+        # some valid numpy slices will create invalid shapes for diffraction simulation
+        if coords.ndim > 2 or coords.shape[1] > 3 or coords.shape[1] < 2:
+            raise ValueError(f"Invalid slice: {sliced}")
         return DiffractionSimulation(coords,
                                      indices=inds,
                                      intensities=ints,
@@ -84,6 +94,29 @@ class DiffractionSimulation(Sequence):
                                      offset=self.offset,
                                      with_direct_beam=self.with_direct_beam
                                     )
+
+    def _combine_data(self, other):
+        coords = np.concatenate([self._coordinates, other._coordinates], axis=0)
+        inds = np.concatenate([self._indices, other._indices], axis=0)
+        ints = np.concatenate([self._intensities, other._intensities], axis=0)
+        return coords, inds, ints
+
+    def __add__(self, other):
+        coords, inds, ints = self._combine_data(other)
+        return DiffractionSimulation(coords,
+                                     indices=inds,
+                                     intensities=ints,
+                                     calibration=self.calibration,
+                                     offset=self.offset,
+                                     with_direct_beam=self.with_direct_beam
+                                    )
+
+    def extend(self, other):
+        """Add the diffraction spots from another DiffractionSimulation"""
+        coords, inds, ints = self._combine_data(other)
+        self._coordinates = coords
+        self._indices = inds
+        self._ints = ints
 
     @property
     def indices(self):
@@ -96,7 +129,10 @@ class DiffractionSimulation(Sequence):
     @property
     def calibrated_coordinates(self):
         """ndarray : Coordinates converted into pixel space."""
-        return (self.coordinates[:, :2] + np.array(self.offset))/np.array(self.calibration)
+        if self.calibration is not None:
+            return (self.coordinates[:, :2] + np.array(self.offset))/np.array(self.calibration)
+        else:
+            raise Exception("Pixel calibration is not set!")
 
     @property
     def calibration(self):
@@ -106,6 +142,9 @@ class DiffractionSimulation(Sequence):
 
     @calibration.setter
     def calibration(self, calibration):
+        if calibration is None:
+            self._calibration = calibration
+            return
         if np.all(np.equal(calibration, 0)):
             raise ValueError("`calibration` cannot be zero.")
         if isinstance(calibration, float) or isinstance(calibration, int):
@@ -145,6 +184,47 @@ class DiffractionSimulation(Sequence):
     def intensities(self, intensities):
         self._intensities[self.direct_beam_mask] = intensities
 
+    def _get_transformed_coordinates(self, angle, center=(0, 0),
+                                     mirrored=False, units="real"):
+        """
+        Get the coordinates of diffraction spots rotated, flipped or shifted
+        in-plane
+
+        Parameters
+        ----------
+        angle: float
+            Angle in degrees
+        center: 2-tuple of floats
+            Center of the patterns
+        mirrored: bool
+            Mirror accross the x axis
+        units: str
+            "real" or "pixel"
+
+        Returns
+        -------
+        coords_transformed: np.ndarray of shape (N, 3) or (N, 2)
+            transformed coordinates
+        """
+        if units == "real":
+            coords_transformed = self.coordinates.copy()
+        else:
+            coords_transformed = self.calibrated_coordinates.copy()
+        cx, cy = center
+        x = coords_transformed[:, 0]
+        y = coords_transformed[:, 1]
+        mirrored_factor = -1 if mirrored else 1
+        theta = mirrored_factor * np.arctan2(y, x) + np.deg2rad(angle)
+        rd = np.sqrt(x**2 + y**2)
+        coords_transformed[:, 0] = rd * np.cos(theta) + cx
+        coords_transformed[:, 1] = rd * np.sin(theta) + cy
+        return coords_transformed
+
+    def rotate_shift_coordinates(self, angle, center=(0, 0), mirrored=False):
+        """Translate, rotate or mirror the pattern"""
+        coords_new = self._get_transformed_coordinates(angle, center, mirrored, units="real")
+        self.coordinates = coords_new
+
     def get_as_mask(self, shape, radius=6., negative=True,
                     radius_function=None, direct_beam_position=None,
                     in_plane_angle=0, mirrored=False,
@@ -175,19 +255,18 @@ class DiffractionSimulation(Sequence):
         mirrored: bool, optional
             Whether the pattern should be flipped over the x-axis,
             corresponding to the inverted orientation
+
+        Returns
+        -------
+        mask: numpy.ndarray
+            Boolean mask of the diffraction pattern
         """
         r = radius
-        cx, cy = shape[0]//2, shape[1]//2
+        cx, cy = shape[1]//2, shape[0]//2
         if direct_beam_position is not None:
             cx, cy = direct_beam_position
-        point_coordinates_shifted = self.calibrated_coordinates.copy()
-        x = point_coordinates_shifted[:, 0]
-        y = point_coordinates_shifted[:, 1]
-        mirrored_factor = -1 if mirrored else 1
-        theta = mirrored_factor * np.arctan2(y, x) + np.deg2rad(in_plane_angle)
-        rd = np.sqrt(x**2 + y**2)
-        point_coordinates_shifted[:, 0] = rd * np.cos(theta) + cx
-        point_coordinates_shifted[:, 1] = rd * np.sin(theta) + cy
+        point_coordinates_shifted = self._get_transformed_coordinates(
+                in_plane_angle, center=(cx, cy), mirrored=mirrored, units="pixels")
         if radius_function is not None:
             r = radius_function(self.intensities, *args, **kwargs)
         mask = mask_utils.create_mask(shape, fill=negative)
@@ -195,18 +274,27 @@ class DiffractionSimulation(Sequence):
                                     fill=not negative)
         return mask
 
-    def get_diffraction_pattern(self, size=512, sigma=10):
+    def get_diffraction_pattern(self, shape=(512, 512), sigma=10,
+                                direct_beam_position=None, in_plane_angle=0,
+                                mirrored=False):
         """Returns the diffraction data as a numpy array with
         two-dimensional Gaussians representing each diffracted peak. Should only
         be used for qualitative work.
 
         Parameters
         ----------
-        size  : int
+        shape  : tuple of ints
             The size of a side length (in pixels)
-
         sigma : float
             Standard deviation of the Gaussian function to be plotted (in pixels).
+        direct_beam_position: 2-tuple of ints, optional
+            The (x,y) coordinate in pixels of the direct beam. Defaults to
+            the center of the image.
+        in_plane_angle: float, optional
+            In plane rotation of the pattern in degrees
+        mirrored: bool, optional
+            Whether the pattern should be flipped over the x-axis,
+            corresponding to the inverted orientation
 
         Returns
         -------
@@ -219,26 +307,29 @@ class DiffractionSimulation(Sequence):
         produces reasonably good patterns when the lattice parameters are on
         the order of 0.5nm and a the default size and sigma are used.
         """
-        side_length = np.min(np.multiply((size / 2), self.calibration))
-        mask_for_sides = np.all(
-            (np.abs(self.coordinates[:, 0:2]) < side_length), axis=1
-        )
-
-        spot_coords = np.add(
-            self.calibrated_coordinates[mask_for_sides], size / 2
-        ).astype(int)
-        spot_intens = self.intensities[mask_for_sides]
-        pattern = np.zeros([size, size])
+        cx, cy = shape[1]//2, shape[0]//2
+        if direct_beam_position is not None:
+            cx, cy = direct_beam_position
+        coordinates = self._get_transformed_coordinates(in_plane_angle, (cx, cy), mirrored, units="pixel")
+        in_frame = ((coordinates[:, 0] >= 0) & (coordinates[:, 0] < shape[1]) &
+                    (coordinates[:, 1] >= 0) & (coordinates[:, 1] < shape[0]))
+        spot_coords = coordinates[in_frame].astype(int)
+        spot_intens = self.intensities[in_frame]
+        pattern = np.zeros(shape)
         # checks that we have some spots
         if spot_intens.shape[0] == 0:
             return pattern
         else:
             pattern[spot_coords[:, 0], spot_coords[:, 1]] = spot_intens
             pattern = add_shot_and_point_spread(pattern.T, sigma, shot_noise=False)
-
         return np.divide(pattern, np.max(pattern))
 
-    def plot(self, size_factor=1, units="real", show_labels=False,
+    def plot(self, size_factor=1,
+            direct_beam_position=None,
+            in_plane_angle=0,
+            mirrored=False,
+            units="real",
+            show_labels=False,
             label_offset=(0, 0),
             label_formatting={},
             ax=None,
@@ -249,6 +340,14 @@ class DiffractionSimulation(Sequence):
         ----------
         size_factor : float, optional
             linear spot size scaling, default to 1
+        direct_beam_position: 2-tuple of ints, optional
+            The (x,y) coordinate in pixels of the direct beam. Defaults to
+            the center of the image.
+        in_plane_angle: float, optional
+            In plane rotation of the pattern in degrees
+        mirrored: bool, optional
+            Whether the pattern should be flipped over the x-axis,
+            corresponding to the inverted orientation
         units : str, optional
             'real' or 'pixel', only changes scalebars, falls back on 'real', the default
         show_labels : bool, optional
@@ -272,14 +371,13 @@ class DiffractionSimulation(Sequence):
         -----
         spot size scales with the square root of the intensity.
         """
+        cx, cy = 0, 0
+        if direct_beam_position is not None:
+            cx, cy = direct_beam_position
         if ax is None:
             _, ax = plt.subplots()
             ax.set_aspect("equal")
-        if units == "pixel":
-            coords = self.calibrated_coordinates
-        else:
-            coords = self.coordinates
-
+        coords = self._get_transformed_coordinates(in_plane_angle, (cx, cy), mirrored, units=units)
         sp = ax.scatter(
             coords[:, 0],
             coords[:, 1],
