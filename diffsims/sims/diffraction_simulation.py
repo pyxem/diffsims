@@ -20,10 +20,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from diffsims.pattern.detector_functions import add_shot_and_point_spread
 from diffsims.utils import mask_utils
-from collections import Sequence
+import copy
 
 
-class DiffractionSimulation(Sequence):
+class DiffractionSimulation:
     """Holds the result of a kinematic diffraction pattern simulation.
 
     Parameters
@@ -75,13 +75,19 @@ class DiffractionSimulation(Sequence):
                 "Coordinate, intensity, and indices lists must be of the correct and matching shape."
             )
         self.calibration = calibration
-        self.offset = offset
+        self.offset = np.array(offset)
         self.with_direct_beam = with_direct_beam
 
     def __len__(self):
         return self.coordinates.shape[0]
 
+    @property
+    def size(self):
+        return self.__len__()
+
     def __getitem__(self, sliced):
+        """Sliced is any valid numpy slice that does not change the number of
+        dimensions or number of columns"""
         coords = self.coordinates[sliced]
         inds = self.indices[sliced]
         ints = self.intensities[sliced]
@@ -101,26 +107,19 @@ class DiffractionSimulation(Sequence):
             with_direct_beam=self.with_direct_beam,
         )
 
-    def _combine_data(self, other):
-        coords = np.concatenate([self._coordinates, other._coordinates], axis=0)
-        inds = np.concatenate([self._indices, other._indices], axis=0)
-        ints = np.concatenate([self._intensities, other._intensities], axis=0)
-        return coords, inds, ints
+    def deepcopy(self):
+        return copy.deepcopy(self)
 
     def __add__(self, other):
-        coords, inds, ints = self._combine_data(other)
-        return DiffractionSimulation(
-            coords,
-            indices=inds,
-            intensities=ints,
-            calibration=self.calibration,
-            offset=self.offset,
-            with_direct_beam=self.with_direct_beam,
-        )
+        new = self.deepcopy()
+        new.extend(other)
+        return new
 
     def extend(self, other):
         """Add the diffraction spots from another DiffractionSimulation"""
-        coords, inds, ints = self._combine_data(other)
+        coords = np.concatenate([self._coordinates, other._coordinates], axis=0)
+        inds = np.concatenate([self._indices, other._indices], axis=0)
+        ints = np.concatenate([self._intensities, other._intensities], axis=0)
         self._coordinates = coords
         self._indices = inds
         self._ints = ints
@@ -137,9 +136,7 @@ class DiffractionSimulation(Sequence):
     def calibrated_coordinates(self):
         """ndarray : Coordinates converted into pixel space."""
         if self.calibration is not None:
-            return (self.coordinates[:, :2] + np.array(self.offset)) / np.array(
-                self.calibration
-            )
+            return (self.coordinates[:, :2] + self.offset) / self.calibration
         else:
             raise Exception("Pixel calibration is not set!")
 
@@ -152,18 +149,18 @@ class DiffractionSimulation(Sequence):
     @calibration.setter
     def calibration(self, calibration):
         if calibration is None:
-            self._calibration = calibration
-            return
-        if np.all(np.equal(calibration, 0)):
+            pass
+        elif np.all(np.equal(calibration, 0)):
             raise ValueError("`calibration` cannot be zero.")
-        if isinstance(calibration, float) or isinstance(calibration, int):
-            self._calibration = (calibration, calibration)
+        elif isinstance(calibration, float) or isinstance(calibration, int):
+            calibration = np.array((calibration, calibration))
         elif len(calibration) == 2:
-            self._calibration = calibration
+            calibration = np.array(calibration)
         else:
             raise ValueError(
                 "`calibration` must be a float or length-2" "tuple of floats."
             )
+        self._calibration = calibration
 
     @property
     def direct_beam_mask(self):
@@ -196,26 +193,7 @@ class DiffractionSimulation(Sequence):
     def _get_transformed_coordinates(
         self, angle, center=(0, 0), mirrored=False, units="real"
     ):
-        """
-        Get the coordinates of diffraction spots rotated, flipped or shifted
-        in-plane
-
-        Parameters
-        ----------
-        angle: float
-            Angle in degrees
-        center: 2-tuple of floats
-            Center of the patterns
-        mirrored: bool
-            Mirror accross the x axis
-        units: str
-            "real" or "pixel"
-
-        Returns
-        -------
-        coords_transformed: np.ndarray of shape (N, 3) or (N, 2)
-            transformed coordinates
-        """
+        """Translate, rotate or mirror the pattern spot coordinates"""
         if units == "real":
             coords_transformed = self.coordinates.copy()
         else:
@@ -231,7 +209,18 @@ class DiffractionSimulation(Sequence):
         return coords_transformed
 
     def rotate_shift_coordinates(self, angle, center=(0, 0), mirrored=False):
-        """Translate, rotate or mirror the pattern"""
+        """
+        Rotate, flip or shift patterns in-plane
+
+        Parameters
+        ----------
+        angle: float
+            In plane rotation angle in degrees
+        center: 2-tuple of floats
+            Center coordinate of the patterns
+        mirrored: bool
+            Mirror across the x axis
+        """
         coords_new = self._get_transformed_coordinates(
             angle, center, mirrored, units="real"
         )

@@ -22,13 +22,13 @@ from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.sims.diffraction_simulation import ProfileSimulation
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_wrong_calibration_setting():
-    DiffractionSimulation(
-        coordinates=np.asarray([[0.3, 1.2, 0]]),
-        intensities=np.ones(1),
-        calibration=[1, 2, 5],
-    )
+    with pytest.raises(ValueError, match="must be a float"):
+        DiffractionSimulation(
+            coordinates=np.asarray([[0.3, 1.2, 0]]),
+            intensities=np.ones(1),
+            calibration=[1, 2, 5],
+        )
 
 
 @pytest.fixture
@@ -96,11 +96,11 @@ class TestDiffractionSimulation:
             np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]]), calibration=0.5
         )
 
-    @pytest.mark.xfail(raises=ValueError)
     def test_failed_initialization(self):
-        DiffractionSimulation(
-            np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]]), indices=np.array([1, 2, 3])
-        )
+        with pytest.raises(ValueError, match="Coordinate"):
+            DiffractionSimulation(
+                np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]]), indices=np.array([1, 2, 3])
+            )
 
     def test_init(self, diffraction_simulation):
         assert np.allclose(
@@ -120,9 +120,9 @@ class TestDiffractionSimulation:
         assert diffraction_simulation[1].coordinates.shape == (1, 3)
         assert diffraction_simulation[0:2].coordinates.shape == (2, 3)
 
-    @pytest.mark.xfail(raises=ValueError)
     def test_fail_get_item(self, diffraction_simulation):
-        diffraction_simulation[None]
+        with pytest.raises(ValueError, match="Invalid"):
+            _ = diffraction_simulation[None]
 
     def test_addition(self, diffraction_simulation):
         sim = diffraction_simulation + diffraction_simulation
@@ -179,16 +179,16 @@ class TestDiffractionSimulation:
     @pytest.mark.parametrize(
         "calibration, expected",
         [
-            (5.0, (5.0, 5.0)),
+            (5.0, np.array((5.0, 5.0))),
             pytest.param(0, (0, 0), marks=pytest.mark.xfail(raises=ValueError)),
             pytest.param((0, 0), (0, 0), marks=pytest.mark.xfail(raises=ValueError)),
-            ((1.5, 1.5), (1.5, 1.5)),
-            ((1.3, 1.5), (1.3, 1.5)),
+            ((1.5, 1.5), np.array((1.5, 1.5))),
+            ((1.3, 1.5), np.array((1.3, 1.5))),
         ],
     )
     def test_calibration(self, diffraction_simulation, calibration, expected):
         diffraction_simulation.calibration = calibration
-        assert diffraction_simulation.calibration == expected
+        assert np.allclose(diffraction_simulation.calibration, expected)
 
     @pytest.mark.parametrize(
         "coordinates, with_direct_beam, expected",
