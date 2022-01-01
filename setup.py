@@ -25,7 +25,7 @@ exec(open("diffsims/release_info.py").read())  # grab version info
 # tests. From setuptools:
 # https://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies
 extra_feature_requirements = {
-    "doc": ["sphinx >= 3.0.2", "sphinx-rtd-theme >= 0.4.3"],
+    "doc": ["furo", "sphinx >= 3.0.2"],
     "tests": ["pytest >= 5.4", "pytest-cov >= 2.8.1", "coverage >= 5.0"],
 }
 extra_feature_requirements["dev"] = ["black >= 19.3b0", "pre-commit >= 1.16"] + list(
@@ -58,19 +58,19 @@ setup(
     packages=find_packages(),
     extras_require=extra_feature_requirements,
     install_requires=[
-        "diffpy.structure >= 3.0.0",  # First Python 3 support
-        "matplotlib >= 3.1.1",
+        "diffpy.structure   >= 3.0.0",  # First Python 3 support
+        "matplotlib         >= 3.1.1",
         "numba",
-        "numpy >= 1.17",
-        "orix >= 0.5.0",
+        "numpy              >= 1.17",
+        "orix               >= 0.5.0",
         "psutil",
-        "scipy >= 0.15",
-        "tqdm >= 4.9",
+        "scipy              >= 0.15",
+        "tqdm               >= 4.9",
         "transforms3d",
     ],
     python_requires=">=3.6",
     package_data={
-        "": ["LICENSE", "README.rst", "readthedocs.yml"],
+        "": ["LICENSE", "README.rst", "readthedocs.yaml"],
         "diffsims": ["*.py"],
     },
 )
