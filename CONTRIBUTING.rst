@@ -1,159 +1,161 @@
+=================
 Contributor Guide
 =================
 
 This guide is intended to get new developers started with contributing to diffsims.
 
 Many potential contributors will be scientists with much expert knowledge but
-potentially little experience with open-source code development. This guide is
-primarily aimed at this audience, helping to reduce the barrier to contribution.
+potentially little experience with open-source code development. This guide is primarily
+aimed at this audience, helping to reduce the barrier to contribution.
 
+We have a `Code of Conduct
+<https://github.com/pyxem/diffsims/blob/master/.github/CODE_OF_CONDUCT.md>`_ that must
+be honoured by contributors.
 
 Start using diffsims
---------------------
+====================
 
-The best way to start understanding how diffsims is to use it.
+The best way to start understanding how diffsims works is to use it.
 
-For developing the code the home of diffsims is on github and you'll see that
-a lot of this guide boils down to using that platform well. so visit the
-following link and poke around the code, issues, and pull requests: `diffsims
-on Github <https://github.com/pyxem/diffsims>`_.
+For developing the code the home of diffsims is on GitHub and you'll see that a lot of
+this guide boils down to using that platform well. so visit the following link and poke
+around the code, issues, and pull requests (PRs): `diffsims
+on GitHub <https://github.com/pyxem/diffsims>`_.
 
-It's probably also worth visiting the `Github <https://github.com/>`_ home page
-and going through the "boot camp" to get a feel for the terminology.
+It's probably also worth visiting the `GitHub guides <https://guides.github.com>`_ to
+get a feel for the terminology.
 
-In brief, to give you a hint on the terminology to search for, the contribution
-pattern is:
+In brief, to give you a hint on the terminology to search for, the contribution pattern
+is:
 
-1. Setup git/github if you don't have it.
-2. Fork diffsims on github.
+1. Setup git/GitHub if you don't have it.
+2. Fork diffsims on GitHub.
 3. Checkout your fork on your local machine.
 4. Create a new branch locally where you will make your changes.
 5. Push the local changes to your own github fork.
-6. Create a pull request (PR) to the official diffsims repository.
+6. Create a PR to the official diffsims repository.
 
 Note: You cannot mess up the main diffsims project. So when you're starting out be
-confident to play, get it wrong, and if it all goes wrong you can always get a
-fresh install of diffsims!
+confident to play, get it wrong, and if it all goes wrong you can always get a fresh
+install of diffsims!
 
-PS: If you choose to develop in Windows/Mac you may find `Github Desktop
+PS: If you choose to develop in Windows/Mac you may find the `Github Desktop
 <https://desktop.github.com>`_ useful.
 
-
 Questions?
-----------
+==========
 
-Open source projects are all about community - we put in much effort to make
-good tools available to all and most people are happy to help others start out.
-Everyone had to start at some point and the philosophy of these projects
-centers around the fact that we can do better by working together.
+Open source projects are all about community - we put in much effort to make good tools
+available to all and most people are happy to help others start out. Everyone had to
+start at some point and the philosophy of these projects centers around the fact that we
+can do better by working together.
 
 Much of the conversation happens in 'public' using the 'issues' pages on
-`Github <https://github.com/pyxem/diffsims/issues>`_ -- doing things in public can
-be scary but it ensures that issues are identified and logged until dealt with.
-This is also a good place to make a proposal for some new feature or tool that
-you want to work on.
-
+`GitHub <https://github.com/pyxem/diffsims/issues>`_ -- doing things in public can be
+scary but it ensures that issues are identified and logged until dealt with. This is
+also a good place to make a proposal for some new feature or tool that you want to work
+on.
 
 Good coding practice
 ====================
 
-The most important aspects of good coding practice are: (1) to work in managable
-branches, (2) develop good code style, (3) write tests for new functions, and (4)
+The most important aspects of good coding practice are: (1) to work in manageable
+branches, (2) develop a good code style, (3) write tests for new functions, and (4)
 document what the code does. Tips on these points are provided below.
 
+Use git to work in manageable branches
+--------------------------------------
 
-Use git to work in managable branches
--------------------------------------
-
-Git is an open source "version control" system that enables you to can separate
-out your modifications to the code into many versions (called branches) and
-switch between them easily. Later you can choose which version you want to have
-integrated into diffsims.
+Git is an open source "version control" system that enables you to can separate out your
+modifications to the code into many versions (called branches) and switch between them
+easily. Later you can choose which version you want to have integrated into diffsims.
 
 You can learn all about Git `here <http://www.git-scm.com/about>`_!
 
-The most important thing to separate your contributions so that each branch is
+The most important thing is to separate your contributions so that each branch is a
 small advancement on the "master" code or on another branch.
-
 
 Get the style right
 -------------------
 
-diffsims follows the Style Guide for Python Code - these are just some rules for
+diffsims closely follows the Style Guide for Python Code - these are just some rules for
 consistency that you can read all about in the `Python Style Guide
 <https://www.python.org/dev/peps/pep-0008/>`_.
 
-To enforce this, we require that the following auto correction is applied at the
-end of pull request. The simplest option is to run (from the home directory of
-diffsims)
+Please run the latest version of
+`black <https://black.readthedocs.io/en/stable/the_black_code_style/index.html>`_ on
+your newly added and modified files prior to each PR.
 
-Note that if you have recently run tests locally you may have a test generated
-file diffsims/file_01.pickle on your machine, which should be deleted prior to
-running the following code.
+Run and write tests
+-------------------
 
-Linux:
+All functionality in diffsims is tested via the `pytest <https://docs.pytest.org>`_
+framework. The tests reside in the ``diffsims.tests`` module. Tests are short functions
+that call functions in diffsims and compare resulting output values with known answers.
+Good tests should depend on as few other features as possible so that when they break we
+know exactly what caused it.
 
-.. code:: bash
+Install necessary dependencies to run the tests::
 
-    chmod +x pepstorm.sh
-    ./pepstorm.sh
-    git add .
-    git commit -m "autopep8 corrections"
+   pip install --editable .[tests]
 
-Windows:
+Some useful `fixtures <https://docs.pytest.org/en/latest/fixture.html>`_ are available
+in the ``conftest.py`` file.
 
-.. code:: batch
+To run the tests::
 
-    pepstorm.bat
-    git add .
-    git commit -m "autopep8 corrections"
+   pytest --cov --pyargs diffsims
 
+The ``--cov`` flag makes `coverage.py <https://coverage.readthedocs.io/en/latest/>`_
+print a nice report in the terminal. For an even nicer presentation, you can use
+``coverage.py`` directly::
 
-Writing tests
--------------
+   coverage html
 
-diffsims aims to have all of the functions within it tested, which involves writing
-short methods that call the functions and check output values agains known
-answers. Good tests should depend on as few other features as possible so that
-when they break we know exactly what caused it.
-
-diffsims uses the `pytest <http://doc.pytest.org/>`_ library for testing. The
-tests reside in the ``diffsims.tests`` module. To run them (from the diffsims project
-folder):
-
-.. code:: bash
-
-   pytest
-
+Then, you can open the created ``htmlcov/index.html`` in the browser and inspect the
+coverage in more detail.
 
 Useful hints on testing:
 
-* When comparing integers, it's fine to use ``==``. When comparing floats use something like assert ``np.allclose(shifts,shifts_expected,atol=0.2)``
-* ``@pytest.mark.parametrize()`` is a very convenient decorator to test several
-  parameters of the same function without having to write to much repetitive
-  code, which is often error-prone. See `pytest documentation for more details
+- When comparing integers, it's fine to use ``==``. When comparing floats use something
+  like assert ``np.allclose(shifts, shifts_expected, atol=0.2)``.
+- ``@pytest.mark.parametrize()`` is a convenient decorator to test several parameters of
+  the same function without having to write to much repetitive code, which is often
+  error-prone. See `pytest documentation for more details
   <http://doc.pytest.org/en/latest/parametrize.html>`_.
-* We test the code coverage on pull requests, you can check the coverage on a
-  local branch using
 
-.. code:: bash
+Build and write documentation
+-----------------------------
 
-   pytest --cov=diffsims
-
-* Some useful fixtures (a basic diffraction pattern, a basic structure...) can
-  be found in conftest.py, you can just call these directly in the test suite.
-
-
-Write documentation
--------------------
-
-Docstrings -- written at the start of a function and give essential information
-about how it should be used, such as which arguments can be passed to it and
-what the syntax should be. The docstrings need to follow the `numpy specification
-<https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_,
+Docstrings -- written at the start of a function -- give essential information about how
+it should be used, such as which arguments can be passed to it and what the syntax
+should be. The docstrings follow the `NumPy specification
+<https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>`_,
 as shown in `this example <https://github.com/numpy/numpy/blob/master/doc/example.py>`_.
 
+We use `Sphinx <https://www.sphinx-doc.org/en/master>`_ for documenting functionality.
+Install necessary dependencies to build the documentation::
 
+    pip install -e .[doc]
+
+Then, build the documentation from the ``doc`` directory::
+
+    cd doc
+    make html
+
+The documentation's HTML pages are built in the ``doc/build/html`` directory from files
+in the `reStructuredText (reST)
+<https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`_
+plaintext markup language. They should be accessible in the browser by typing
+``file:///your-absolute/path/to/diffsims/doc/build/html/index.html`` in the address bar.
+
+Continuous integration (CI)
+===========================
+
+We use `GitHub Actions <https://github.com/pyxem/diffsims/actions>`_ to ensure that
+diffsims can be installed on Windows, macOS and Linux. After a successful installation,
+the CI server runs the tests. After the tests return no errors, code coverage is
+reported to `Coveralls <https://coveralls.io/github/pyxem/diffsims?branch=master>`_.
 
 Learn more
 ==========
