@@ -7,8 +7,8 @@ generated from their docstrings. Some of the docstrings contain examples.
 
 .. caution::
 
-    diffsims is in an alpha stage, and there will likely be breaking changes with each
-    release.
+    diffsims is in continuous development (alpha stage), so expect some breaking changes
+    with each release.
 
 ....
 
