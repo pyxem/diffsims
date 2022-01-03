@@ -1,1 +1,10 @@
+include CHANGELOG.rst
+include CONTRIBUTING.rst
 include LICENSE
+include MANIFEST.in
+include README.rst
+include readthedocs.yaml
+include setup.cfg
+include setup.py
+
+recursive-include doc Makefile make.bat *.rst *.py

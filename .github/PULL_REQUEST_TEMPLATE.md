@@ -1,32 +1,21 @@
----
-name: Pull request 
-about: A pull request that fixes a bug or adds a feature
+#### Description of the change
 
----
 
-**Release Notes**
-> new feature / improvement / bugfix / developer change
-Summary: 1 line per end-user relevant change
+#### Progress of the PR
 
-**What does this PR do? Please describe and/or link to an open issue.**
-A clear and concise description of what the code in this PR does. Does it fix a bug or add a new feature?
-If it is related to an open issue, reference it here.
+- [ ] [Docstrings for all functions](https://github.com/numpy/numpy/blob/master/doc/example.py)
+- [ ] Unit tests with pytest for all lines
+- [ ] Clean code style by [running black](https://diffsims.readthedocs.io/en/latest/contributing.html#get-the-style-right)
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
-
-**Are there any known issues? Do you need help?**
-If the code isn't quite working as you want it to, tell us here so we can help you polish the code.
-
-**Work in progress?**
-If you know there is more to do, make a checklist here:
-- [ ] TODO 1
-- [ ] TODO 2
+#### Minimal example of the bug fix or new feature
+```python
+>>> from diffsims.utils import sim_utils
+>>> # Your new feature...
+```
 
 #### For reviewers
 <!-- Don't remove the checklist below. -->
-- [ ] Check that the PR title is short, concise, and will make sense 1 year
-  later.
-- [ ] Check that new functions are imported in corresponding `__init__.py`.
-- [ ] Check that new features, API changes, and deprecations are mentioned in
-      the unreleased section in `CHANGELOG.md`.
+- [ ] The PR title is short, concise, and will make sense 1 year later.
+- [ ] New functions are imported in corresponding `__init__.py`.
+- [ ] New features, API changes, and deprecations are mentioned in the
+      unreleased section in `CHANGELOG.rst`.

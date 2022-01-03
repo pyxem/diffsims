@@ -51,7 +51,7 @@ extensions = [
 intersphinx_mapping = {
     "diffpy.structure": ("https://www.diffpy.org/diffpy.structure", None),
     "matplotlib": ("https://matplotlib.org", None),
-    "numpy": ("https://docs.scipy.org/doc/numpy", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
     "orix": ("https://orix.readthedocs.io/en/stable", None),
     "python": ("https://docs.python.org/3", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
@@ -71,16 +71,15 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-# Logo
-# html_logo = "_static/img/diffsims_logo.png"
-# html_favicon = "_static/img/diffsims_logo.png"
+# Syntax highlighting
+pygments_style = "friendly"
 
 
 def linkcode_resolve(domain, info):

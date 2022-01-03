@@ -102,7 +102,7 @@ def _shape_factor_precession(
 
 
 class DiffractionGenerator(object):
-    """Computes electron diffraction patterns for a crystal structure.
+    r"""Computes electron diffraction patterns for a crystal structure.
 
     1. Calculate reciprocal lattice of structure. Find all reciprocal points
        within the limiting sphere given by :math:`\\frac{2}{\\lambda}`.
@@ -123,26 +123,29 @@ class DiffractionGenerator(object):
         "lobato", "xtables" or None. If None is provided then atomic
         scattering is not taken into consideration.
     precession_angle : float
-        Angle about which the beam is precessed in degrees. Default is no precession.
-    shape_factor_model : function or string
+        Angle about which the beam is precessed in degrees. Default is
+        no precession.
+    shape_factor_model : func or str
         A function that takes excitation_error and
         `max_excitation_error` (and potentially kwargs) and returns
         an intensity scaling factor. If None defaults to
-        `shape_factor_models.linear`. A number of pre-programmed functions
-        are available via strings.
-    approximate_precession : boolean
+        `shape_factor_models.linear`. A number of pre-programmed
+        functions are available via strings.
+    approximate_precession : bool
         When using precession, whether to precisely calculate average
         excitation errors and intensities or use an approximation.
     minimum_intensity : float
-        Minimum intensity for a peak to be considered visible in the pattern (fractional from the maximum)
-    kwargs :
+        Minimum intensity for a peak to be considered visible in the
+        pattern (fractional from the maximum).
+    kwargs
         Keyword arguments passed to `shape_factor_model`.
 
     Notes
     -----
-    * When using precession and approximate_precession=True, the shape factor
-    model defaults to Lorentzian; shape_factor_model is ignored. Only with
-    approximate_precession=False the custom shape_factor_model is used.
+    When using precession and approximate_precession=True, the shape
+    factor model defaults to Lorentzian; shape_factor_model is ignored.
+    Only with `approximate_precession=False` the
+    `custom shape_factor_model` is used.
     """
 
     def __init__(

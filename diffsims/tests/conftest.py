@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 from diffpy.structure import Atom, Lattice, Structure
 from orix.crystal_map import Phase
+import pytest
 
 from diffsims.generators.diffraction_generator import DiffractionGenerator
 
