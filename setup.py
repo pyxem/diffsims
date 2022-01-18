@@ -47,6 +47,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -59,12 +60,12 @@ setup(
     extras_require=extra_feature_requirements,
     install_requires=[
         "diffpy.structure   >= 3.0.0",  # First Python 3 support
-        "matplotlib         >= 3.1.1",
+        "matplotlib         >= 3.3",
         "numba",
         "numpy              >= 1.17",
         "orix               >= 0.5.0",
         "psutil",
-        "scipy              >= 0.15",
+        "scipy              >= 1.0",
         "tqdm               >= 4.9",
         "transforms3d",
     ],

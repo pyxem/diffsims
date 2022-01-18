@@ -10,7 +10,7 @@ We recommend you install it in a `conda environment
 <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_
 with the `Miniconda distribution`_::
 
-   conda create --name diffsims-env python=3.9
+   conda create --name diffsims-env python=3.10
    conda activate diffsims-env
 
 If you prefer a graphical interface to manage packages and environments, install the
