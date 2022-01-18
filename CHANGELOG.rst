@@ -16,6 +16,7 @@ Added
 - Extra parameters in diffraction pattern's plot method for drawing miller index labels
   next to the diffraction spots
 - Option to use None for `scattering_params` which ignores atomic scattering
+- Python 3.10 support.
 
 Changed
 -------

@@ -16,7 +16,7 @@ jobs:
         run: python setup.py manifix
 
   build-with-pip:
-    name: ${{ matrix.os }}/py${{ matrix.python-version }}/pip
+    name: ${{ matrix.os }}-py${{ matrix.python-version }}${{ matrix.label }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     env:
@@ -25,7 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: [3.8, 3.9]
+        python-version: [3.9, '3.10']
         include:
           # Oldest supported version of main dependencies on Python 3.6
           - os: ubuntu-latest
@@ -33,15 +33,15 @@ jobs:
             OLDEST_SUPPORTED_VERSION: true
             # orix requires matplotlib 3.3, matplotlib 3.3 requires numpy 1.15
             # numba requires scipy==1.0
-            # scipy==0.15 throws ufunc error
             DEPENDENCIES: diffpy.structure==3.0.0 matplotlib==3.3 numpy==1.17 orix==0.5.0 scipy==1.0 tqdm==4.9
+            LABEL: -oldest
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Display versions
+      - name: Display Python and pip versions
         run: python -V; pip -V
       - name: Install depedencies and package
         shell: bash
@@ -49,6 +49,8 @@ jobs:
       - name: Install oldest supported version
         if: ${{ matrix.OLDEST_SUPPORTED_VERSION }}
         run: pip install ${{ matrix.DEPENDENCIES }}
+      - name: Display package versions
+        run: pip list
       - name: Run tests
         run: pytest --cov=diffsims --pyargs diffsims
       - name: Generate line coverage
