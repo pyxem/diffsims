@@ -46,7 +46,11 @@ def get_kinematical_atomic_scattering_factor(atom, scattering_parameter):
         Scattering factor for this atom on this plane.
     """
     # Get the atomic scattering parameters
-    element_id = get_element_id_from_string(atom.element)
+    element = atom.element
+    if isinstance(element, str):
+        element_id = get_element_id_from_string(element)
+    else:
+        element_id = int(element)
     a, b = get_atomic_scattering_parameters(element_id)
 
     # Get the scattering parameter squared
