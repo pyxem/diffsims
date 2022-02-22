@@ -30,12 +30,12 @@ _FLOAT_EPS = np.finfo(float).eps
 
 
 class ReciprocalLatticeVector(Miller):
-    """Reciprocal lattice vector (or crystal plane, reflector, g, etc.)
-    with Miller indices, length of the reciprocal lattice vectors and
-    other relevant diffraction parameters.
+    """Reciprocal lattice vector (or crystal plane normal, reflector, g,
+    etc.) with Miller indices, length of the reciprocal lattice vectors
+    and other relevant diffraction parameters.
 
     This class extends :class:`orix.vector.Miller` to reciprocal
-    lattice vectors for diffraction.
+    lattice vectors specifically for diffraction experiments.
     """
 
     def __init__(self, *args, **kwargs):
