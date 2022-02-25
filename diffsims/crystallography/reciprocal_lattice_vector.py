@@ -114,6 +114,8 @@ class ReciprocalLatticeVector(Miller):
         # Translational symmetry
         centering = self.phase.space_group.short_name[0]
 
+        hkl = np.atleast_2d(np.round(self.hkl).astype(int))
+
         if centering == "P":  # Primitive
             if self.phase.space_group.crystal_system == "HEXAGONAL":
                 # TODO: See rules in e.g.
@@ -123,18 +125,24 @@ class ReciprocalLatticeVector(Miller):
             else:  # Any hkl
                 return np.ones(self.size, dtype=bool)
         elif centering == "F":  # Face-centred, hkl all odd/even
-            selection = np.sum(np.mod(self.hkl, 2), axis=1)
+#            selection = np.sum(np.mod(self.hkl, 2), axis=1)
+            selection = np.sum(np.mod(hkl, 2), axis=1)
             return np.array([i not in [1, 2] for i in selection], dtype=bool)
         elif centering == "I":  # Body-centred, h + k + l = 2n (even)
-            return np.mod(np.sum(self.hkl, axis=1), 2) == 0
+#            return np.mod(np.sum(self.hkl, axis=1), 2) == 0
+            return np.mod(np.sum(hkl, axis=1), 2) == 0
         elif centering == "A":  # Centred on A faces only
-            return np.mod(self.k + self.l, 2) == 0
+#            return np.mod(self.k + self.l, 2) == 0
+            return np.mod(hkl[:, 1] + hkl[:, 2], 2) == 0
         elif centering == "B":  # Centred on B faces only
-            return np.mod(self.h + self.l, 2) == 0
+#            return np.mod(self.h + self.l, 2) == 0
+            return np.mod(hkl[:, 0] + hkl[:, 2], 2) == 0
         elif centering == "C":  # Centred on C faces only
-            return np.mod(self.h + self.k, 2) == 0
+#            return np.mod(self.h + self.k, 2) == 0
+            return np.mod(hkl[:, 0] + hkl[:, 1], 2) == 0
         elif centering in ["R", "H"]:  # Rhombohedral
-            return np.mod(-self.h + self.k + self.l, 3) == 0
+#            return np.mod(-self.h + self.k + self.l, 3) == 0
+            return np.mod(-hkl[:, 0] + hkl[:, 1] + hkl[:, 2], 3) == 0
 
     def calculate_structure_factor(self, method="kinematical", voltage=None):
         """Populate `self.structure_factor` with the structure factor
