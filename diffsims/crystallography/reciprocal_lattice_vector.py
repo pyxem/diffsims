@@ -41,19 +41,19 @@ class ReciprocalLatticeVector(Miller):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.coordinate_format = "hkl"
-        self._structure_factor = [None] * self.size
-        self._theta = [None] * self.size
+        self._structure_factor = np.full(self.size, np.nan)
+        self._theta = np.full(self.size, np.nan)
         if self.phase is not None:
             self._raise_if_no_point_group()
 
     def __getitem__(self, key):
         v_new = super().__getitem__(key)
-        if self.structure_factor[0] is None:
-            v_new._structure_factor = [None] * v_new.size
+        if np.isnan(self.structure_factor).all():
+            v_new._structure_factor = np.full(v_new.size, np.nan)
         else:
             v_new._structure_factor = self.structure_factor[key]
-        if self.theta[0] is None:
-            v_new._theta = [None] * v_new.size
+        if np.isnan(self.theta).all():
+            v_new._theta = np.full(v_new.size, np.nan)
         else:
             v_new._theta = self.theta[key]
         return v_new
@@ -125,23 +125,17 @@ class ReciprocalLatticeVector(Miller):
             else:  # Any hkl
                 return np.ones(self.size, dtype=bool)
         elif centering == "F":  # Face-centred, hkl all odd/even
-#            selection = np.sum(np.mod(self.hkl, 2), axis=1)
             selection = np.sum(np.mod(hkl, 2), axis=1)
             return np.array([i not in [1, 2] for i in selection], dtype=bool)
         elif centering == "I":  # Body-centred, h + k + l = 2n (even)
-#            return np.mod(np.sum(self.hkl, axis=1), 2) == 0
             return np.mod(np.sum(hkl, axis=1), 2) == 0
         elif centering == "A":  # Centred on A faces only
-#            return np.mod(self.k + self.l, 2) == 0
             return np.mod(hkl[:, 1] + hkl[:, 2], 2) == 0
         elif centering == "B":  # Centred on B faces only
-#            return np.mod(self.h + self.l, 2) == 0
             return np.mod(hkl[:, 0] + hkl[:, 2], 2) == 0
         elif centering == "C":  # Centred on C faces only
-#            return np.mod(self.h + self.k, 2) == 0
             return np.mod(hkl[:, 0] + hkl[:, 1], 2) == 0
         elif centering in ["R", "H"]:  # Rhombohedral
-#            return np.mod(-self.h + self.k + self.l, 3) == 0
             return np.mod(-hkl[:, 0] + hkl[:, 1] + hkl[:, 2], 3) == 0
 
     def calculate_structure_factor(self, method="kinematical", voltage=None):
@@ -189,6 +183,21 @@ class ReciprocalLatticeVector(Miller):
         """
         wavelength = get_refraction_corrected_wavelength(self.phase, voltage)
         self._theta = np.arcsin(0.5 * wavelength * self.gspacing)
+
+    def symmetrise(self, **kwargs):
+        return_index = kwargs.get("return_index", False)
+        kwargs.setdefault("return_index", True)
+        out = super().symmetrise(**kwargs)
+        idx = out[-1]
+        out[0]._structure_factor = self.structure_factor[idx]
+        out[0]._theta = self.theta[idx]
+        if return_index:
+            return out
+        else:
+            out = out[:-1]
+            if len(out) == 1:
+                out = out[0]
+            return out
 
     def _raise_if_no_point_group(self):
         """Raise ValueError if the phase attribute has no point group
