@@ -29,7 +29,7 @@ from diffsims.structure_factor.structure_factor import (
 )
 
 
-_FLOAT_EPS = np.finfo(np.float).eps  # Used to round values below 1e-16 to zero
+_FLOAT_EPS = np.finfo(float).eps  # Used to round values below 1e-16 to zero
 
 
 class ReciprocalLatticePoint:
