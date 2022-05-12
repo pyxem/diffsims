@@ -225,7 +225,6 @@ def get_kinematical_intensities(
     scattering_params="lobato",
     prefactor=1,
 ):
-
     """Calculates peak intensities.
 
     The peak intensity is a combination of the structure factor for a given
@@ -246,11 +245,11 @@ def get_kinematical_intensities(
         "lobato", "xtables" or None
     prefactor : array-like
         multiplciation factor for structure factor
+
     Returns
     -------
     peak_intensities : array-like
         The intensities of the peaks.
-
     """
     (
         coeffs,
