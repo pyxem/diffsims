@@ -1,0 +1,65 @@
+{
+  "creators": [
+    {
+      "name": "Duncan Johnstone"
+    },
+    {
+      "name":"Phillip Crout",
+      "orcid": "0000-0001-5754-0938"
+    },
+    {
+      "name":"Håkon Wiik Ånes",
+      "orcid": "0000-0002-1213-2911",
+      "affiliation": "Norwegian University of Science and Technology"
+    },
+    {
+      "name":"Eric Prestat"
+    },
+    {
+      "name":"Rob Tovey"
+    },
+    {
+      "name":"Simon Høgås"
+    },
+    {
+      "name":"Ben Martineau"
+    },
+    {
+      "name":"Joonatan Laulainen"
+    },
+    {
+      "name":"Niels Cautaerts",
+      "orcid": "0000-0002-6402-9879"
+    },
+    {
+      "name":"Isabel Wood"
+    },
+    {
+      "name":"Sean Collins"
+    },
+    {
+      "name":"Stef Smeets"
+    },
+    {
+      "name":"Alex Borrelli"
+    },
+    {
+      "name": "Tiarnan Doherty"
+    },
+    {
+      "name":"Jedrzej Morzy"
+    },
+    {
+      "name":"Endre Jacobsen"
+    },
+    {
+      "name":"Tina Bergh"
+    },
+    {
+      "name":"Tomas Ostasevicius"
+    },
+    {
+      "name":"Eirik Opheim"
+    }
+  ]
+}

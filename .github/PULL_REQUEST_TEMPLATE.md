@@ -19,3 +19,5 @@
 - [ ] New functions are imported in corresponding `__init__.py`.
 - [ ] New features, API changes, and deprecations are mentioned in the
       unreleased section in `CHANGELOG.rst`.
+- [ ] Contributor(s) are listed correctly in `credits` in `diffsims/release_info.py` and
+      in `.zenodo.json`.
