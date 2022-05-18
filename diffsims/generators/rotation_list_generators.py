@@ -67,7 +67,7 @@ def get_list_from_orix(grid, rounding=2):
     rotation_list : list of tuples
         A rotation list
     """
-    z = grid.to_euler(convention="bunge")
+    z = grid.to_euler()
     rotation_list = z.data.tolist()
     i = 0
     while i < len(rotation_list):
@@ -122,7 +122,7 @@ def get_local_grid(resolution=2, center=None, grid_width=10):
     """
     if isinstance(center, tuple):
         z = np.deg2rad(np.asarray(center))
-        center = Rotation.from_euler(z, convention="bunge", direction="crystal2lab")
+        center = Rotation.from_euler(z)
 
     orix_grid = get_sample_local(
         resolution=resolution, center=center, grid_width=grid_width
@@ -153,11 +153,11 @@ def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 
     Examples
     --------
     >>> from diffsims.generators.zap_map_generator import get_rotation_from_z_to_direction
-    >>> beam_rotation = get_rotation_from_z_to_direction(structure,[1,1,1])
-    >>> grid = get_grid_around_beam_direction(beam_rotation,1)
+    >>> beam_rotation = get_rotation_from_z_to_direction(structure, [1, 1, 1])
+    >>> grid = get_grid_around_beam_direction(beam_rotation, 1)
     """
     z = np.deg2rad(np.asarray(beam_rotation))
-    beam_rotation = Rotation.from_euler(z, convention="bunge", direction="crystal2lab")
+    beam_rotation = Rotation.from_euler(z)
 
     angles = np.deg2rad(
         np.arange(start=angular_range[0], stop=angular_range[1], step=resolution)
