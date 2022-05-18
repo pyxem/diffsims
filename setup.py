@@ -66,8 +66,7 @@ setup(
         "matplotlib         >= 3.3",
         "numba",
         "numpy              >= 1.17",
-        # TODO: Revert orix minimal to >= 0.4 once 0.9.0rc2 is confirmed to work
-        "orix               == 0.9.0rc2",
+        "orix               >= 0.5",
         "psutil",
         "scipy              >= 1.0",
         "tqdm               >= 4.9",
