@@ -66,7 +66,7 @@ setup(
         "matplotlib         >= 3.3",
         "numba",
         "numpy              >= 1.17",
-        "orix               >= 0.5",
+        "orix               >= 0.9",
         "psutil",
         "scipy              >= 1.0",
         "tqdm               >= 4.9",
