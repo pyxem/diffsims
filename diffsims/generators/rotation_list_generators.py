@@ -22,9 +22,9 @@ Provides users with a range of gridding functions
 
 import numpy as np
 
-from orix.sampling.sample_generators import get_sample_fundamental, get_sample_local
-from orix.quaternion.rotation import Rotation
-from orix.vector.neo_euler import AxAngle
+from orix.quaternion import Rotation
+from orix.sampling import get_sample_fundamental, get_sample_local
+from orix.vector import AxAngle
 
 from diffsims.utils.sim_utils import uvtw_to_uvw
 from diffsims.generators.sphere_mesh_generators import (
@@ -43,7 +43,8 @@ from diffsims.generators.sphere_mesh_generators import (
 # https://github.com/pyxem/orix/issues/125#issuecomment-698956290.
 crystal_system_dictionary = {
     "cubic": [(0, 0, 1), (1, 1, 1), (1, 0, 1)],
-    "hexagonal": [(0, 0, 0, 1), (1, 0, -1, 0), (2, -1, -1, 0)],
+#    "hexagonal": [(0, 0, 0, 1), (1, 0, -1, 0), (2, -1, -1, 0)],
+    "hexagonal": [(0, 0, 0, 1), (1, 0, -1, 0), (-1, 2, -1, 0)],
     "trigonal": [(0, 0, 0, 1), (-2, 1, 1, 0), (-1, 2, -1, 0)],
     "tetragonal": [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
     "orthorhombic": [(0, 0, 1), (-1, 0, 0), (0, 1, 0)],
@@ -79,7 +80,7 @@ def get_list_from_orix(grid, rounding=2):
     return rotation_list
 
 
-def get_fundamental_zone_grid(resolution=2, point_group=None, space_group=None):
+def get_fundamental_zone_grid(resolution=2, space_group=None):
     """
     Generates an equispaced grid of rotations within a fundamental zone.
 
@@ -87,8 +88,6 @@ def get_fundamental_zone_grid(resolution=2, point_group=None, space_group=None):
     ----------
     resolution : float, optional
         The characteristic distance between a rotation and its neighbour (degrees)
-    point_group : orix.quaternion.symmetry.Symmetry, optional
-        One of the 11 proper point groups, defaults to None
     space_group: int, optional
         Between 1 and 231, defaults to None
 
@@ -99,7 +98,7 @@ def get_fundamental_zone_grid(resolution=2, point_group=None, space_group=None):
     """
 
     orix_grid = get_sample_fundamental(resolution=resolution, space_group=space_group)
-    rotation_list = get_list_from_orix(orix_grid, rounding=2)
+    rotation_list = get_list_from_orix(orix_grid)
     return rotation_list
 
 
@@ -127,7 +126,7 @@ def get_local_grid(resolution=2, center=None, grid_width=10):
     orix_grid = get_sample_local(
         resolution=resolution, center=center, grid_width=grid_width
     )
-    rotation_list = get_list_from_orix(orix_grid, rounding=2)
+    rotation_list = get_list_from_orix(orix_grid)
     return rotation_list
 
 
@@ -166,7 +165,7 @@ def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 
     in_plane_rotation = Rotation.from_neo_euler(AxAngle.from_axes_angles(axes, angles))
 
     orix_grid = beam_rotation * in_plane_rotation
-    rotation_list = get_list_from_orix(orix_grid, rounding=2)
+    rotation_list = get_list_from_orix(orix_grid)
     return rotation_list
 
 
@@ -179,15 +178,15 @@ def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_e
     Parameters
     ----------
     crystal_system : str
-        Allowed are: 'cubic','hexagonal','trigonal','tetragonal',
-        'orthorhombic','monoclinic','triclinic'
+        Allowed are: 'cubic', 'hexagonal', 'trigonal', 'tetragonal',
+        'orthorhombic', 'monoclinic', 'triclinic'.
     resolution : float
-        An angle in degrees representing the worst-case angular
-        distance to a first nearest neighbor grid point.
+        An angle in degrees representing the worst-case angular distance
+        to a first nearest neighbor grid point.
     mesh : str
         Type of meshing of the sphere that defines how the grid is
         created. Options are: uv_sphere, normalized_cube,
-        spherified_cube_corner (default), spherified_cube_edge,
+        spherified_cube_corner, spherified_cube_edge (default),
         icosahedral, random.
 
     Returns
@@ -221,10 +220,9 @@ def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_e
         points_in_cartesians = get_random_sphere_vertices(resolution)
     else:
         raise NotImplementedError(
-            f"The mesh {mesh} is not recognized. "
-            f"Please use: uv_sphere, normalized_cube, "
-            f"spherified_cube_edge, "
-            f"spherified_cube_corner, icosahedral, random"
+            f"The mesh {mesh} is not recognized. Please use: uv_sphere, "
+            "normalized_cube, spherified_cube_edge, spherified_cube_corner, "
+            "icosahedral, random"
         )
 
     # crop to stereographic triangle which depends on crystal system
@@ -232,9 +230,6 @@ def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_e
     if crystal_system == "triclinic":
         return beam_directions_grid_to_euler(points_in_cartesians)
     if crystal_system == "monoclinic":
-        points_in_cartesian = points_in_cartesians[
-            np.dot(np.array([0, 0, 1]), points_in_cartesians.T) >= epsilon
-        ]
         points_in_cartesian = points_in_cartesians[
             np.dot(np.array([1, 0, 0]), points_in_cartesians.T) >= epsilon
         ]
@@ -261,4 +256,5 @@ def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_e
     ]
 
     angle_grid = beam_directions_grid_to_euler(points_in_cartesians)
+
     return angle_grid
