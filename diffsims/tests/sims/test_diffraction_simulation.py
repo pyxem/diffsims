@@ -90,18 +90,21 @@ def test_plot_profile_simulation(profile_simulation):
 class TestDiffractionSimulation:
     @pytest.fixture
     def diffraction_simulation(self):
-        return DiffractionSimulation(np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]]))
+        return DiffractionSimulation(
+            np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]], dtype=float)
+        )
 
     @pytest.fixture
     def diffraction_simulation_calibrated(self):
         return DiffractionSimulation(
-            np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]]), calibration=0.5
+            np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]], dtype=float), calibration=0.5
         )
 
     def test_failed_initialization(self):
         with pytest.raises(ValueError, match="Coordinate"):
             DiffractionSimulation(
-                np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]]), indices=np.array([1, 2, 3])
+                np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]], dtype=float),
+                indices=np.array([1, 2, 3])
             )
 
     def test_init(self, diffraction_simulation):
