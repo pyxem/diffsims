@@ -21,6 +21,8 @@ Added
 Changed
 -------
 - Minimal version of dependencies numpy >= 1.17 and tqdm >= 4.9
+- The Laue group representing the rotation list sampling of "hexagonal" from 6/m to
+  6/mmm.
 
 2021-04-16 - version 0.4.2
 ==========================
