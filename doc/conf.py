@@ -21,7 +21,7 @@ from os.path import relpath, dirname
 import re
 import sys
 
-from diffsims import __author__, __version__, __file__
+from diffsims import __author__, __file__, __version__
 
 # -- Project information -----------------------------------------------------
 
@@ -50,11 +50,11 @@ extensions = [
 # Create links to references within diffsims' documentation to these packages
 intersphinx_mapping = {
     "diffpy.structure": ("https://www.diffpy.org/diffpy.structure", None),
-    "matplotlib": ("https://matplotlib.org", None),
+    "matplotlib": ("https://matplotlib.org/stable", None),
     "numpy": ("https://numpy.org/doc/stable", None),
     "orix": ("https://orix.readthedocs.io/en/stable", None),
     "python": ("https://docs.python.org/3", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy", None),
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -86,7 +86,7 @@ def linkcode_resolve(domain, info):
     """Determine the URL corresponding to Python object.
 
     This is taken from SciPy's conf.py:
-    https://github.com/scipy/scipy/blob/master/doc/source/conf.py.
+    https://github.com/scipy/scipy/blob/develop/doc/source/conf.py.
     """
     if domain != "py":
         return None
@@ -131,12 +131,12 @@ def linkcode_resolve(domain, info):
     fn = relpath(fn, start=startdir).replace(os.path.sep, "/")
 
     if fn.startswith("diffsims/"):
-        m = re.match(r"^.*dev0\+([a-f0-9]+)$", __version__)
+        m = re.match(r"^.*dev0\+([a-f\d]+)$", __version__)
         pre_link = "https://github.com/pyxem/diffsims/blob/"
         if m:
             return pre_link + "%s/%s%s" % (m.group(1), fn, linespec)
         elif "dev" in __version__:
-            return pre_link + "master/%s%s" % (fn, linespec)
+            return pre_link + "develop/%s%s" % (fn, linespec)
         else:
             return pre_link + "v%s/%s%s" % (__version__, fn, linespec)
     else:

@@ -1,27 +1,30 @@
 name = "diffsims"
-version = "0.5.dev0"
+version = "0.5.0rc1"
 author = "Duncan Johnstone, Phillip Crout"
-copyright = "Copyright 2017-2022, The pyXem developers"
+copyright = "Copyright 2017-2022, The diffsims developers"
+# Initial committer first, then listed by line additions
 credits = [
     "Duncan Johnstone",
     "Phillip Crout",
+    "Håkon Wiik Ånes",
+    "Eric Prestat",
+    "Rob Tovey",
     "Simon Høgås",
     "Ben Martineau",
-    "Isabel Wood",
-    "Håkon Wiik Ånes",
-    "Joonatan Laulainen",
-    "Stef Smeets",
-    "Sean Collins",
-    "Endre Jacobsen",
     "Niels Cautaerts",
-    "Eric Prestat",
+    "Joonatan Laulainen",
+    "Isabel Wood",
+    "Sean Collins",
+    "Stef Smeets",
+    "Alex Borrelli",
     "Tiarnan Doherty",
     "Jedrzej Morzy",
-    "Tomas Ostasevicius",
-    "Alex Borrelli",
+    "Endre Jacobsen",
     "Tina Bergh",
+    "Tomas Ostasevicius",
+    "Eirik Opheim",
 ]
-license = "GPLv3"
+license = "GPLv3+"
 maintainer = "Duncan Johnstone, Phillip Crout, Håkon Wiik Ånes"
 email = "pyxem.team@gmail.com"
 status = "Development"

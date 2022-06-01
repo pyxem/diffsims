@@ -8,8 +8,8 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0>`_
 and this project adheres to `Semantic Versioning
 <https://semver.org/spec/v2.0.0.html>`_.
 
-Unreleased
-==========
+2022-05-30 - version 0.5.0
+==========================
 
 Added
 -----
@@ -20,7 +20,7 @@ Added
 
 Changed
 -------
-- Minimal version of dependencies numpy >= 1.17 and tqdm >= 4.9.
+- Minimal version of dependencies orix >= 0.9, numpy >= 1.17 and tqdm >= 4.9.
 - The Laue group representing the rotation list sampling of "hexagonal" from 6/m to
   6/mmm.
 - Loosened the angle tolerance in ``DiffractionLibrary.get_library_entry()`` from

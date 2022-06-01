@@ -50,7 +50,10 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        (
+            "License :: OSI Approved :: GNU General Public License v3 or later "
+            "(GPLv3+)"
+        ),
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Topic :: Scientific/Engineering",
@@ -63,7 +66,7 @@ setup(
         "matplotlib         >= 3.3",
         "numba",
         "numpy              >= 1.17",
-        "orix               >= 0.5.0",
+        "orix               >= 0.9",
         "psutil",
         "scipy              >= 1.0",
         "tqdm               >= 4.9",

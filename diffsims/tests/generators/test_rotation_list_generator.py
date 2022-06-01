@@ -16,8 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import numpy as np
+import pytest
+
 from diffsims.generators.rotation_list_generators import (
     get_local_grid,
     get_grid_around_beam_direction,
@@ -73,7 +74,7 @@ def test_get_grid_around_beam_direction():
     ],
 )
 def test_get_beam_directions_grid(crystal_system, mesh):
-    grid = get_beam_directions_grid(crystal_system, 5, mesh=mesh)
+    _ = get_beam_directions_grid(crystal_system, 5, mesh=mesh)
 
 
 @pytest.mark.parametrize(

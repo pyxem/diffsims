@@ -18,8 +18,10 @@
 
 import numpy as np
 import pytest
-from diffsims.sims.diffraction_simulation import DiffractionSimulation
-from diffsims.sims.diffraction_simulation import ProfileSimulation
+
+from diffsims.sims.diffraction_simulation import (
+    DiffractionSimulation, ProfileSimulation
+)
 
 
 def test_wrong_calibration_setting():
@@ -140,6 +142,7 @@ class TestDiffractionSimulation:
                 ]
             ),
         )
+        assert sim.size == 4
 
     def test_extend(self, diffraction_simulation):
         diffraction_simulation.extend(diffraction_simulation)
