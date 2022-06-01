@@ -77,6 +77,23 @@ def test_get_beam_directions_grid(crystal_system, mesh):
     _ = get_beam_directions_grid(crystal_system, 5, mesh=mesh)
 
 
+@pytest.mark.parametrize(
+    "crystal_system, desired_size",
+    [
+        ("cubic", 300),
+        ("hexagonal", 1050),
+        ("trigonal", 1657),
+        ("tetragonal", 852),
+        ("orthorhombic", 1657),
+        ("monoclinic", 6441),
+        ("triclinic", 12698),
+    ]
+)
+def test_get_beam_directions_grid_size(crystal_system, desired_size):
+    grid = get_beam_directions_grid(crystal_system, 2)
+    assert grid.shape[0] == desired_size
+
+
 @pytest.mark.xfail()
 def test_invalid_mesh_beam_directions():
     _ = get_beam_directions_grid("cubic", 10, mesh="invalid")

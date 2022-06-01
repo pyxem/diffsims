@@ -43,7 +43,7 @@ from diffsims.generators.sphere_mesh_generators import (
 # https://github.com/pyxem/orix/issues/125#issuecomment-698956290.
 crystal_system_dictionary = {
     "cubic": [(0, 0, 1), (1, 1, 1), (1, 0, 1)],
-    "hexagonal": [(0, 0, 0, 1), (1, 0, -1, 0), (2, -1, -1, 0)],
+    "hexagonal": [(0, 0, 0, 1), (9, 1, -10, 0), (2, -1, -1, 0)],
     "trigonal": [(0, 0, 0, 1), (-2, 1, 1, 0), (-1, 2, -1, 0)],
     "tetragonal": [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
     "orthorhombic": [(0, 0, 1), (-1, 0, 0), (0, 1, 0)],
