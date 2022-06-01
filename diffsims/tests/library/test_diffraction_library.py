@@ -16,17 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import os
+
 import numpy as np
+import pytest
 
 from diffsims.generators.diffraction_generator import DiffractionGenerator
 from diffsims.generators.library_generator import DiffractionLibraryGenerator
-
-from diffsims.sims.diffraction_simulation import DiffractionSimulation
-
 from diffsims.libraries.diffraction_library import load_DiffractionLibrary
 from diffsims.libraries.structure_library import StructureLibrary
+from diffsims.sims.diffraction_simulation import DiffractionSimulation
 
 
 @pytest.fixture
@@ -80,24 +79,24 @@ def test_library_io(get_library):
         )
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_angle_but_no_phase(get_library):
     # we have given an angle but no phase
-    assert isinstance(
-        get_library.get_library_entry(angle=(0, 0, 0))["Sim"], DiffractionSimulation
-    )
+    with pytest.raises(ValueError, match="To select a certain angle you must first "):
+        assert isinstance(
+            get_library.get_library_entry(angle=(0, 0, 0))["Sim"], DiffractionSimulation
+        )
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_unknown_library_entry(get_library):
     # The angle we have asked for is not in the library
-    assert isinstance(
-        get_library.get_library_entry(phase="Phase", angle=(1e-3, 0, 0))["Sim"],
-        DiffractionSimulation,
-    )
+    with pytest.raises(ValueError, match="It appears that no library entry lies"):
+        assert isinstance(
+            get_library.get_library_entry(phase="Phase", angle=(1e-1, 0, 0))["Sim"],
+            DiffractionSimulation,
+        )
 
 
-@pytest.mark.xfail(raises=RuntimeError)
 def test_unsafe_loading(get_library):
-    get_library.pickle_library("file_01.pickle")
-    loaded_library = load_DiffractionLibrary("file_01.pickle")
+    with pytest.raises(RuntimeError, match="Unpickling is risky, turn safety to True "):
+        get_library.pickle_library("file_01.pickle")
+        _ = load_DiffractionLibrary("file_01.pickle")

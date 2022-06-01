@@ -17,6 +17,7 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import pickle
+
 import numpy as np
 
 
@@ -26,18 +27,19 @@ def load_DiffractionLibrary(filename, safety=False):
     Parameters
     ----------
     filename : str
-        The location of the file to be loaded
-    safety : bool (defaults to False)
-        Unpickling is risky, this variable requires you to acknowledge this.
+        The location of the file to be loaded.
+    safety : bool
+        Unpickling is risky, this variable requires you to acknowledge
+        this. Default is False.
 
     Returns
     -------
     DiffractionLibrary
-        Previously saved Library
+        Previously saved Library.
 
     See Also
     --------
-    DiffractionLibrary.pickle_library()
+    DiffractionLibrary.pickle_library
 
     """
     if safety:
@@ -45,43 +47,44 @@ def load_DiffractionLibrary(filename, safety=False):
             return pickle.load(handle)
     else:
         raise RuntimeError(
-            "Unpickling is risky, turn safety to True if \
-        trust the author of this content"
+            "Unpickling is risky, turn safety to True if you trust the author of this "
+            "content"
         )
 
 
 def _get_library_entry_from_angles(library, phase, angles):
-    """Finds an element that is orientation within 1e-5 of that specified.
+    """Finds an element that is orientation within 1e-2 of that
+    specified.
 
-    This is necessary because of floating point round off / hashability. If
-    multiple entries satisfy the above criterion a random (the first hit)
-    selection is made.
+    This is necessary because of floating point round off / hashability.
+    If multiple entries satisfy the above criterion a random (the first
+    hit) selection is made.
 
     Parameters
     ----------
     library : DiffractionLibrary
-        The library to be searched
+        The library to be searched.
     phase : str
         The phase of interest.
     angles : tuple
-        The orientation of interest as a tuple of Euler angles following the
-        Bunge convention [z, x, z] in degrees.
+        The orientation of interest as a tuple of Euler angles in
+        degrees, following the Bunge convention [z, x, z].
 
     Returns
     -------
     orientation_index : int
-        Index of the given orientation
+        Index of the given orientation.
 
     """
 
     phase_entry = library[phase]
     for orientation_index, orientation in enumerate(phase_entry["orientations"]):
-        if np.sum(np.abs(np.subtract(orientation, angles))) < 1e-5:
+        if np.sum(np.abs(np.subtract(orientation, angles))) < 1e-2:
             return orientation_index
 
     # We haven't found a suitable key
     raise ValueError(
-        "It appears that no library entry lies with 1e-5 of the target angle"
+        "It appears that no library entry lies with 1e-2 of the target angle"
     )
 
 

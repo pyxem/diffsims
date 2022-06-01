@@ -14,15 +14,17 @@ Unreleased
 Added
 -----
 - Extra parameters in diffraction pattern's plot method for drawing miller index labels
-  next to the diffraction spots
-- Option to use None for `scattering_params` which ignores atomic scattering
+  next to the diffraction spots.
+- Option to use None for ``scattering_params`` which ignores atomic scattering.
 - Python 3.10 support.
 
 Changed
 -------
-- Minimal version of dependencies numpy >= 1.17 and tqdm >= 4.9
+- Minimal version of dependencies numpy >= 1.17 and tqdm >= 4.9.
 - The Laue group representing the rotation list sampling of "hexagonal" from 6/m to
   6/mmm.
+- Loosened the angle tolerance in ``DiffractionLibrary.get_library_entry()`` from
+  ``1e-5`` to ``1e-2``.
 
 2021-04-16 - version 0.4.2
 ==========================
