@@ -16,20 +16,20 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+import collections
 import math
 
+import diffpy.structure
 import numpy as np
 from scipy.constants import h, m_e, e, c, pi, mu_0
-import collections
-import diffpy.structure
 
-from .atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
-from .lobato_scattering_params import ATOMIC_SCATTERING_PARAMS_LOBATO
+from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
+from diffsims.utils.lobato_scattering_params import ATOMIC_SCATTERING_PARAMS_LOBATO
 
 
 def get_electron_wavelength(accelerating_voltage):
-    """Calculates the (relativistic) electron wavelength in Angstroms for a
-    given accelerating voltage in kV.
+    """Calculates the (relativistic) electron wavelength in Angstroms
+    for a given accelerating voltage in kV.
 
     Parameters
     ----------
@@ -54,7 +54,7 @@ def get_electron_wavelength(accelerating_voltage):
 
 def get_interaction_constant(accelerating_voltage):
     """Calculates the interaction constant, sigma, for a given
-    acelerating voltage.
+    accelerating voltage.
 
     Parameters
     ----------
@@ -67,15 +67,13 @@ def get_interaction_constant(accelerating_voltage):
         The relativistic electron wavelength in m.
 
     """
-    wavelength = get_electron_wavelength(accelerating_voltage)
     sigma = 2 * pi * (m_e + e * accelerating_voltage)
-
     return sigma
 
 
 def get_unique_families(hkls):
-    """Returns unique families of Miller indices, which must be permutations of
-    each other.
+    """Returns unique families of Miller indices, which must be
+    permutations of each other.
 
     Parameters
     ----------
@@ -84,7 +82,7 @@ def get_unique_families(hkls):
 
     Returns
     -------
-    pretty_unique : dictionary
+    pretty_unique : dict
         A dict with unique hkl and multiplicity {hkl: multiplicity}.
     """
 
@@ -140,32 +138,34 @@ def get_scattering_params_dict(scattering_params):
 def get_vectorized_list_for_atomic_scattering_factors(
     structure, debye_waller_factors, scattering_params
 ):
-    """Create a flattened array of coeffs, fcoords and occus for vectorized
-    computation of atomic scattering factors.
+    """Create a flattened array of coeffs, fcoords and occus for
+    vectorized computation of atomic scattering factors.
 
-    Note: The dimensions of the returned objects are not necessarily the same
-    size as the number of atoms in the structure as each partially occupied
-    specie occupies its own position in the flattened array.
-
+    Note: The dimensions of the returned objects are not necessarily
+    the same size as the number of atoms in the structure as each
+    partially occupied specie occupies its own position in the flattened
+    array.
 
     Parameters
     ----------
-    structure : diffpy.structure
+    structure : diffpy.structure.Structure
         The atomic structure for which scattering factors are required.
-    debye_waller_factors : list
-        List of Debye-Waller factors for atoms in structure.
+    debye_waller_factors : dist
+        Debye-Waller factors for atoms in the structure.
     scattering_params: string
-        The type of scattering params to use. "lobato", "xtables", and None are supported.
+        The type of scattering params to use. "lobato", "xtables", and
+        None are supported.
 
     Returns
     -------
-    coeffs : np.array()
-        Coefficients of atomic scattering factor parameterization for each atom.
-    fcoords : np.array()
+    coeffs : numpy.ndarray
+        Coefficients of atomic scattering factor parameterization for
+        each atom.
+    fcoords : numpy.ndarray
         Fractional coordinates of each atom in structure.
-    occus : np.array()
+    occus : numpy.ndarray
         Occupancy of each atomic site.
-    dwfactors : np.array()
+    dwfactors : numpy.ndarray
         Debye-Waller factors for each atom in the structure.
     """
 
@@ -195,17 +195,20 @@ def get_atomic_scattering_factors(g_hkl_sq, coeffs, scattering_params):
 
     Parameters
     ----------
-    g_hkl_sq : ndarray
+    g_hkl_sq : numpy.ndarray
         One-dimensional array of g-vector lengths squared.
-    coeffs : ndarray
-        Three-dimensional array [n, 5, 2] of coefficients corresponding to the n atoms.
-    scattering_params : string
-        Type of scattering factor calculation to use. One of 'lobato', 'xtables'.
+    coeffs : numpy.ndarray
+        Three-dimensional array [n, 5, 2] of coefficients corresponding
+        to the n atoms.
+    scattering_params : str
+        Type of scattering factor calculation to use. One of 'lobato',
+        'xtables'.
 
     Returns
     -------
-    scattering_factors : ndarray
+    scattering_factors : numpy.ndarray
         The calculated atomic scattering parameters.
+
     """
     g_sq_coeff_1 = np.outer(g_hkl_sq, coeffs[:, :, 1]).reshape(
         g_hkl_sq.shape + coeffs[:, :, 1].shape
@@ -217,44 +220,21 @@ def get_atomic_scattering_factors(g_hkl_sq, coeffs, scattering_params):
     return np.sum(coeffs[:, :, 0] * f, axis=-1)
 
 
-def get_kinematical_intensities(
+def _get_kinematical_structure_factor(
     structure,
     g_indices,
     g_hkls_array,
-    debye_waller_factors={},
+    debye_waller_factors=None,
     scattering_params="lobato",
-    prefactor=1,
 ):
-    """Calculates peak intensities.
+    """See docstring of :func:`get_kinematical_intensities`."""
+    if debye_waller_factors is None:
+        debye_waller_factors = {}
 
-    The peak intensity is a combination of the structure factor for a given
-    peak and the position the Ewald sphere intersects the relrod. In this
-    implementation, the intensity scales linearly with proximity.
-
-    Parameters
-    ----------
-    structure : Structure
-        The structure for which to derive the structure factors.
-    g_indices : array-like
-        Indicies of spots to be considered
-    g_hkls_array : array-like
-        coordinates of spots to be considered
-    debye_waller_factors : dict of str:value pairs
-        Maps element names to their temperature-dependent Debye-Waller factors.
-    scattering_params : str
-        "lobato", "xtables" or None
-    prefactor : array-like
-        multiplciation factor for structure factor
-
-    Returns
-    -------
-    peak_intensities : array-like
-        The intensities of the peaks.
-    """
     (
         coeffs,
-        fcoords,
-        occus,
+        xyz,
+        occupancy,
         dwfactors,
     ) = get_vectorized_list_for_atomic_scattering_factors(
         structure=structure,
@@ -262,33 +242,73 @@ def get_kinematical_intensities(
         scattering_params=scattering_params,
     )
 
-    # Store array of g_hkls^2 values since used multiple times.
+    gspacing_squared = g_hkls_array ** 2
 
-    ##length of the unique hkls
-    g_hkls_sq = g_hkls_array ** 2
-
-    # Create array containing atomic scattering factors.
     if scattering_params is not None:
-        fs = get_atomic_scattering_factors(g_hkls_sq, coeffs, scattering_params)
+        atomic_scattering_factor = get_atomic_scattering_factors(
+            gspacing_squared, coeffs, scattering_params
+        )
     else:
-        # ignore atomic scattering, all factors are one
-        fs = np.ones((g_hkls_sq.shape[0], coeffs.shape[0]))
+        # Set all atomic scattering factors to 1
+        atomic_scattering_factor = np.ones((gspacing_squared.shape[0], coeffs.shape[0]))
 
-    # Change the coordinate system of fcoords to align with that of g_indices
-    fcoords = np.dot(
-        fcoords,
-        np.linalg.inv(np.dot(structure.lattice.stdbase, structure.lattice.recbase)),
-    )
-
-    # Calculate structure factors for all excited g-vectors.
-    f_hkls = np.sum(
-        fs
-        * occus
+    # Calculate the complex structure factor
+    structure_factor = np.sum(
+        atomic_scattering_factor
+        * occupancy
         * np.exp(
-            2j * np.pi * np.dot(g_indices, fcoords.T)
-            - 0.25 * np.outer(g_hkls_sq, dwfactors)
+            2j * np.pi * np.dot(g_indices, xyz.T)
+            - 0.25 * np.outer(gspacing_squared, dwfactors)
         ),
         axis=-1,
+    )
+
+    return structure_factor
+
+
+def get_kinematical_intensities(
+    structure,
+    g_indices,
+    g_hkls_array,
+    debye_waller_factors=None,
+    scattering_params="lobato",
+    prefactor=1,
+):
+    """Calculates peak intensities.
+
+    The peak intensity is a combination of the structure factor for a
+    given peak and the position the Ewald sphere intersects the relrod.
+    In this implementation, the intensity scales linearly with
+    proximity.
+
+    Parameters
+    ----------
+    structure : diffpy.structure.Structure
+        The structure for which to derive the structure factors.
+    g_indices : numpy.ndarray
+        Indicies of spots to be considered.
+    g_hkls_array : numpy.ndarray
+        Coordinates of spots to be considered.
+    debye_waller_factors : dict
+        Maps element names to their temperature-dependent Debye-Waller
+        factors.
+    scattering_params : str
+        "lobato", "xtables" or None
+    prefactor : float or numpy.ndarray
+        Multiplciation factor for structure factor.
+
+    Returns
+    -------
+    peak_intensities : numpy.ndarray
+        The intensities of the peaks.
+
+    """
+    f_hkls = _get_kinematical_structure_factor(
+        structure=structure,
+        g_indices=g_indices,
+        g_hkls_array=g_hkls_array,
+        debye_waller_factors=debye_waller_factors,
+        scattering_params=scattering_params,
     )
 
     # Calculate the peak intensities from the structure factor and prefactor
