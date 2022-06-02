@@ -17,16 +17,12 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
-from orix.vector import Miller, Vector3d
+from orix.vector import Miller
 
 from diffsims.structure_factor.structure_factor import (
-    get_kinematical_structure_factor,
-    get_doyleturner_structure_factor,
     get_refraction_corrected_wavelength,
 )
-from diffsims.utils.sim_utils import (
-    get_atomic_scattering_factors, get_scattering_params_dict
-)
+from diffsims.utils.sim_utils import _get_kinematical_structure_factor
 
 
 class ReciprocalLatticeVector(Miller):
@@ -148,10 +144,15 @@ class ReciprocalLatticeVector(Miller):
             Either "lobato" or "xtables".
         """
         # Reduce number of vectors to calculate the structure factor for
-        v, inv = Vector3d(self.coordinates).unique(return_inverse=True)
-        structure_factor = _calculate_structure_factor(
-            self.phase.structure, v.data, scattering_params
+        v, inv = np.unique(self.coordinates, axis=0, return_inverse=True)
+
+        structure_factor = _get_kinematical_structure_factor(
+            structure=self.phase.structure,
+            g_indices=v,
+            g_hkls_array=self.phase.structure.lattice.rnorm(v),
+            scattering_params=scattering_params,
         )
+
         self._structure_factor = structure_factor[inv]
 
     def calculate_theta(self, voltage):
@@ -268,56 +269,3 @@ class ReciprocalLatticeVector(Miller):
         """
         if self.phase.space_group is None:
             raise ValueError(f"The phase {self.phase} must have a space group set")
-
-
-def _calculate_structure_factor(structure, hkl, scattering_params="xtables"):
-    """Calculate the structure factor :math:`F_{hkl}` for each vector.
-
-    Parameters
-    ----------
-    structure : diffpy.structure.Structure
-    hkl : numpy.ndarray
-    scattering_params : str
-        Either "lobato" or "xtables".
-
-    Returns
-    -------
-    structure_factor : numpy.ndarray
-        Complex array of :math:`F_{hkl}`.
-    """
-    scattering_params_dict = get_scattering_params_dict(scattering_params)
-
-    # Reciprocal structure matrix A*
-    astar = structure.lattice.recbase.T
-
-    # Transform reciprocal lattice vectors to cartesian lattice vectors
-    hkl_cartesian = np.matmul(hkl, astar)
-
-    # Arrays used in vectorized computation of structure factors
-    scattering_parameters = np.empty((len(structure), 5, 2))
-    occupancy = structure.occupancy
-    debye_waller_factors = structure.Bisoequiv
-    for i, site in enumerate(structure):
-        scattering_parameters[i] = scattering_params_dict.get(site.element, 0)
-
-    # Atomic scattering factors
-    gspacing_squared = structure.lattice.rnorm(hkl) ** 2
-    atomic_scattering_factor = get_atomic_scattering_factors(
-        gspacing_squared, scattering_parameters, scattering_params
-    )
-
-    # Atom positions in cartesian coordinates
-    xyz_cartesian = structure.xyz_cartn
-
-    # Structure factor as a sum from single atomic scattering factors
-    structure_factor = np.sum(
-        atomic_scattering_factor
-        * occupancy
-        * np.exp(
-            2j * np.pi * np.dot(hkl_cartesian, xyz_cartesian.T)
-            - 0.25 * np.outer(gspacing_squared, debye_waller_factors)
-        ),
-        axis=-1,
-    )
-
-    return structure_factor
