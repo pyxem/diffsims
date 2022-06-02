@@ -29,16 +29,23 @@ class TestReciprocalLatticeVector:
         "hkl", [[[1, 1, 1], [2, 0, 0]], np.array([[1, 1, 1], [2, 0, 0]])]
     )
     def test_init_reciprocal_lattice_vector(self, nickel_phase, hkl):
+        """`ReciprocalLatticeVector` instance is initialized as
+        expected.
+        """
         rlv = ReciprocalLatticeVector(phase=nickel_phase, hkl=hkl)
         assert rlv.phase.name == nickel_phase.name
         assert isinstance(rlv, Miller)
-        assert rlv.structure_factor[0] is None
-        assert rlv.theta[0] is None
         assert rlv.size == 2
         assert rlv.shape == (2,)
         assert rlv[0].shape == (1,)
         assert rlv.hkl[0].shape == (3,)
         assert np.issubdtype(rlv.data.dtype, float)
+        assert np.allclose(
+            rlv.structure_factor,
+            np.full(rlv.size, np.nan, dtype="complex128"),
+            equal_nan=True
+        )
+        assert np.allclose(rlv.theta, np.full(rlv.size, np.nan), equal_nan=True)
 
     @pytest.mark.parametrize(
         "min_dspacing, desired_size", [(2, 26), (1, 124), (0.5, 1330)]
@@ -68,8 +75,8 @@ class TestReciprocalLatticeVector:
         rlv = ReciprocalLatticeVector.from_highest_indices(
             phase=silicon_carbide_phase, hkl=highest_hkl
         )
-        assert np.allclose(rlv[0].hkl.data, desired_highest_hkl)
-        assert np.allclose(rlv[-1].hkl.data, desired_lowest_hkl)
+        assert np.allclose(rlv[0].hkl, desired_highest_hkl)
+        assert np.allclose(rlv[-1].hkl, desired_lowest_hkl)
         assert rlv.size == desired_size
 
     def test_repr(self, ferrite_phase):
@@ -154,8 +161,8 @@ class TestReciprocalLatticeVector:
         assert np.allclose(rlv.allowed, desired_allowed)
 
     def test_allowed_b_centering(self):
-        """B centering will never fire since no diffpy.structure space group has
-        'B' first in the name.
+        """B centering will never fire since no diffpy.structure space
+        group has 'B' first in the name.
         """
         phase = Phase(space_group=15)
         phase.space_group.short_name = "B"
@@ -181,7 +188,7 @@ class TestReciprocalLatticeVector:
     def test_calculate_theta(self, ferrite_phase, voltage, hkl, desired_theta):
         rlv = ReciprocalLatticeVector(phase=ferrite_phase, hkl=hkl)
         rlv.calculate_theta(voltage=voltage)
-        assert np.allclose(rlv.theta, desired_theta)
+        assert np.allclose(rlv.theta, desired_theta, atol=1e-6)
 
     def test_one_point(self, ferrite_phase):
         rlv = ReciprocalLatticeVector(phase=ferrite_phase, hkl=[1, 1, 0])

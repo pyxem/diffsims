@@ -32,6 +32,8 @@ class ReciprocalLatticeVector(Miller):
 
     This class extends :class:`orix.vector.Miller` to reciprocal
     lattice vectors specifically for diffraction experiments.
+
+    All lengths are assumed to be given in Ångströms.
     """
 
     def __init__(self, *args, **kwargs):
@@ -40,12 +42,12 @@ class ReciprocalLatticeVector(Miller):
         self._theta = np.full(self.size, np.nan)
         if self.phase is not None:
             self._raise_if_no_point_group()
-        self._structure_factor = np.full(self.size, np.nan, dtype=np.complex)
+        self._structure_factor = np.full(self.size, np.nan, dtype="complex128")
 
     def __getitem__(self, key):
         v_new = super().__getitem__(key)
         if np.isnan(self.structure_factor).all():
-            v_new._structure_factor = np.full(v_new.size, np.nan)
+            v_new._structure_factor = np.full(v_new.size, np.nan, dtype="complex128")
         else:
             v_new._structure_factor = self.structure_factor[key]
         if np.isnan(self.theta).all():
@@ -165,7 +167,6 @@ class ReciprocalLatticeVector(Miller):
             Beam energy in V.
         """
         wavelength = get_refraction_corrected_wavelength(self.phase, voltage)
-        wavelength *= 10
         self._theta = np.arcsin(0.5 * wavelength * self.gspacing)
 
     def symmetrise(self, **kwargs):
