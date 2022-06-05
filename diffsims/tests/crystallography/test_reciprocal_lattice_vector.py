@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+from diffpy.structure import Atom, Lattice, Structure
 import numpy as np
 from orix.crystal_map import Phase
 from orix.vector import Vector3d
@@ -43,7 +44,7 @@ class TestReciprocalLatticeVector:
         assert np.allclose(
             rlv.structure_factor,
             np.full(rlv.size, np.nan, dtype="complex128"),
-            equal_nan=True
+            equal_nan=True,
         )
         assert np.allclose(rlv.theta, np.full(rlv.size, np.nan), equal_nan=True)
 
@@ -70,9 +71,7 @@ class TestReciprocalLatticeVector:
         with pytest.raises(ValueError, match="Exactly one of "):
             _ = ReciprocalLatticeVector(nickel_phase)
 
-    @pytest.mark.parametrize(
-        "d, desired_size", [(2, 18), (1, 92), (0.5, 750)]
-    )
+    @pytest.mark.parametrize("d, desired_size", [(2, 18), (1, 92), (0.5, 750)])
     def test_init_from_min_dspacing(self, ferrite_phase, d, desired_size):
         """Class method gives desired number of vectors."""
         rlv = ReciprocalLatticeVector.from_min_dspacing(ferrite_phase, d)
@@ -105,7 +104,7 @@ class TestReciprocalLatticeVector:
         rlv = ReciprocalLatticeVector.from_min_dspacing(ferrite_phase, 2)
         assert repr(rlv).split("\n")[:2] == [
             "ReciprocalLatticeVector (18,), ferrite (m-3m)",
-            "[[ 1.  1.  0.]"
+            "[[ 1.  1.  0.]",
         ]
 
     def test_get_item(self, ferrite_phase):
@@ -208,6 +207,10 @@ class TestReciprocalLatticeVector:
         with pytest.raises(NotImplementedError):
             _ = rlv.allowed
 
+        rlv.phase.space_group.short_name = "D"
+        with pytest.raises(ValueError):
+            _ = rlv.allowed
+
     @pytest.mark.parametrize(
         "voltage, hkl, desired_theta",
         [(20e3, [1, 1, 1], 0.00259284), (200e3, [2, 0, 0], 0.00087484)],
@@ -242,8 +245,7 @@ class TestReciprocalLatticeVector:
             _ = rlv.allowed
 
     def test_multiplicity(self, nickel_phase, silicon_carbide_phase):
-        """Correct vector multiplicity for cubic and hexagonal phases.
-        """
+        """Correct vector multiplicity for cubic and hexagonal phases."""
         rlv_ni = ReciprocalLatticeVector(nickel_phase, hkl=[[1, 1, 1], [2, 0, 0]])
         assert np.allclose(rlv_ni.multiplicity, [8, 6])
 
@@ -305,16 +307,168 @@ class TestReciprocalLatticeVector:
         rlv.print_table()
         captured = capsys.readouterr()
         assert captured.out == (
-            "h k l   d       I       |F|_hkl  I_Rel.  Mult  \n"
-            "1 1 1   2.034   nan     nan      nan     8     \n"
-            "2 0 0   1.762   nan     nan      nan     6     \n"
+            " h k l      d       I     |F|_hkl  I_Rel.   Mult \n"
+            " 1 1 1    2.034    nan      nan     nan      8   \n"
+            " 2 0 0    1.762    nan      nan     nan      6   \n"
         )
 
         rlv.calculate_structure_factor()
         rlv.print_table()
         captured = capsys.readouterr()
         assert captured.out == (
-            "h k l   d       I       |F|_hkl  I_Rel.  Mult  \n"
-            "1 1 1   2.034   8.7     3.0      100.0   8     \n"
-            "2 0 0   1.762   6.8     2.6      77.3    6     \n"
+            " h k l      d       I     |F|_hkl  I_Rel.   Mult \n"
+            " 1 1 1    2.034    8.7      3.0    100.0     8   \n"
+            " 2 0 0    1.762    6.8      2.6     77.3     6   \n"
         )
+
+    def test_coordinate_format(self, nickel_phase):
+        rlv1 = ReciprocalLatticeVector(nickel_phase, hkl=[1, 1, 1])
+        assert rlv1.coordinate_format == "hkl"
+        assert rlv1.coordinates.shape == (1, 3)
+
+        rlv2 = ReciprocalLatticeVector(nickel_phase, hkil=[1, 1, -2, 1])
+        assert rlv2.coordinate_format == "hkil"
+        assert rlv2.coordinates.shape == (1, 4)
+        rlv2.coordinate_format = "hkl"
+        assert rlv2.coordinates.shape == (1, 3)
+
+        rlv3 = ReciprocalLatticeVector(nickel_phase, xyz=rlv1.data)
+        assert rlv2.coordinate_format == "hkl"
+        assert np.allclose(rlv1.coordinates, rlv3.coordinates)
+
+        with pytest.raises(ValueError):
+            rlv1.coordinate_format = "xyz"
+
+
+class TestOverwrittenObject3d:
+    def setup_class(self):
+        rlv = ReciprocalLatticeVector(
+            phase=Phase(
+                name="nickel",
+                space_group=225,
+                structure=Structure(
+                    lattice=Lattice(3.5236, 3.5236, 3.5236, 90, 90, 90),
+                    atoms=[Atom(xyz=[0, 0, 0], atype="Ni", Uisoequiv=0.006332)],
+                ),
+            ),
+            hkl=[(1, 1, 1), (2, 0, 0), (2, 2, 0), (3, 1, 1), (2, 2, 2), (4, 0, 0)],
+        )
+        rlv.calculate_theta(20e3)
+        rlv.calculate_structure_factor()
+        self.vector = rlv
+
+    def test_reshape(self):
+        rlv0 = self.vector
+        rlv = rlv0.reshape(3, 2)
+        assert np.allclose(rlv.structure_factor, rlv0.structure_factor.reshape((3, 2)))
+        assert np.allclose(rlv.theta, rlv0.theta.reshape((3, 2)))
+
+    def test_unit(self):
+        rlv = self.vector.unit
+        assert np.allclose(np.linalg.norm(rlv.data, axis=1), 1)
+        assert np.isnan(rlv.structure_factor).all()
+        assert np.isnan(rlv.theta).all()
+
+    def test_flatten(self):
+        rlv0 = self.vector
+        rlv = rlv0.flatten()
+        assert rlv.shape == (6,)
+        assert np.allclose(rlv.structure_factor, rlv0.structure_factor)
+        assert np.allclose(rlv.theta, rlv0.theta)
+
+    def test_squeeze(self):
+        rlv0 = self.vector
+
+        rlv1 = rlv0.reshape(2, 1, 3)
+        assert rlv1.shape == (2, 1, 3)
+        assert np.allclose(
+            rlv1.structure_factor, rlv0.structure_factor.reshape(2, 1, 3)
+        )
+        assert np.allclose(rlv1.theta, rlv0.theta.reshape(2, 1, 3))
+
+        rlv2 = rlv1.squeeze()
+        assert rlv2.shape == (2, 3)
+        assert np.allclose(rlv2.structure_factor, rlv0.structure_factor.reshape(2, 3))
+        assert np.allclose(rlv2.theta, rlv0.theta.reshape(2, 3))
+
+    def test_transpose(self):
+        rlv1 = self.vector.reshape(2, 3)
+        rlv2 = rlv1.transpose()
+        assert np.allclose(rlv1.structure_factor, rlv2.structure_factor.reshape(2, 3))
+
+    def test_stack(self):
+        rlv1 = ReciprocalLatticeVector.stack(self.vector)
+        assert rlv1.shape == (1, 6)
+        assert self.vector._compatible_with(rlv1)
+
+        rlv2 = ReciprocalLatticeVector.stack((self.vector, self.vector))
+        assert rlv2.shape == (6, 2)
+
+        rlv3 = self.vector.deepcopy()
+        rlv3.phase.structure.lattice.setLatPar(a=2)
+        assert not self.vector._compatible_with(rlv3)
+        with pytest.raises(ValueError):
+            _ = ReciprocalLatticeVector.stack((self.vector, rlv3))
+
+    def test_empty(self):
+        with pytest.raises(NotImplementedError):
+            _ = ReciprocalLatticeVector.empty()
+
+
+class TestOverwrittenVector3d:
+    def setup_class(self):
+        rlv = ReciprocalLatticeVector(
+            phase=Phase(
+                name="nickel",
+                space_group=225,
+                structure=Structure(
+                    lattice=Lattice(3.5236, 3.5236, 3.5236, 90, 90, 90),
+                    atoms=[Atom(xyz=[0, 0, 0], atype="Ni", Uisoequiv=0.006332)],
+                ),
+            ),
+            hkl=[(1, 1, 1), (2, 0, 0), (2, 2, 0), (3, 1, 1), (2, 2, 2), (4, 0, 0)],
+        )
+        rlv.calculate_theta(20e3)
+        rlv.calculate_structure_factor()
+        self.vector = rlv
+
+    def test_angle_with(self):
+        pass
+
+    def test_cross(self):
+        pass
+
+    def test_dot(self):
+        pass
+
+    def test_get_nearest(self):
+        with pytest.raises(NotImplementedError):
+            _ = self.vector.get_nearest()
+
+    def test_in_fundamental_sector(self):
+        with pytest.raises(NotImplementedError):
+            _ = self.vector.in_fundamental_sector()
+
+    def test_mean(self):
+        with pytest.raises(NotImplementedError):
+            _ = self.vector.mean()
+
+    def test_rotate(self):
+        with pytest.raises(NotImplementedError):
+            _ = self.vector.rotate()
+
+    def test_from_polar(self):
+        with pytest.raises(NotImplementedError):
+            _ = ReciprocalLatticeVector.from_polar(np.pi / 2, np.pi / 2)
+
+    def test_xvector(self):
+        with pytest.raises(NotImplementedError):
+            _ = ReciprocalLatticeVector.xvector()
+
+    def test_yvector(self):
+        with pytest.raises(NotImplementedError):
+            _ = ReciprocalLatticeVector.yvector()
+
+    def test_zvector(self):
+        with pytest.raises(NotImplementedError):
+            _ = ReciprocalLatticeVector.zvector()
