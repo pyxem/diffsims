@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+from copy import deepcopy
+from functools import cached_property
+
 import numpy as np
 from orix.vector import Miller, Vector3d
 from orix.vector.miller import (
@@ -24,7 +27,7 @@ from orix.vector.miller import (
     _get_indices_from_highest,
     _hkil2hkl,
     _hkl2hkil,
-    _transform_space
+    _transform_space,
 )
 
 from diffsims.structure_factor.structure_factor import (
@@ -49,46 +52,51 @@ class ReciprocalLatticeVector(Vector3d):
     from a minimal interplanar spacing.
     """
 
-    def __init__(self, phase, hkl=None, hkil=None):
-        r"""Create a set of reciprocal lattice vectors, :math:`(hkl)` or
-        :math:`(hkil)`.
+    def __init__(self, phase, xyz=None, hkl=None, hkil=None):
+        r"""Create a set of reciprocal lattice vectors from
+        :math:`(hkl)` or :math:`(hkil)`.
 
-        Exactly one of ``hkl`` or ``hkil`` must be passed.
-
-        The vectors are assumed to be integers and are stored internally
-        as cartesian coordinates in the ``data`` attribute.
+        The vectors are internally as cartesian coordinates in the
+        ``data`` attribute.
 
         Parameters
         ----------
         phase : orix.crystal_map.Phase
             A phase with a crystal lattice and symmetry.
+        xyz : numpy.ndarray, list, or tuple, optional
+            Cartesian coordinates of indices of reciprocal lattice
+            vector(s) ``hkl``. Default is ``None``. This, ``hkl``, or
+            ``hkil`` is required.
         hkl : numpy.ndarray, list, or tuple, optional
             Indices of reciprocal lattice vector(s). Default is
-            ``None``.
+            ``None``. This, ``xyz``, or ``hkil`` is required.
         hkil : numpy.ndarray, list, or tuple, optional
             Indices of reciprocal lattice vector(s), often preferred
             over ``hkl`` in trigonal and hexagonal lattices. Default is
-            ``None``.
+            ``None``. This, ``xyz``, or ``hkl`` is required.
         """
         self.phase = phase
         self._raise_if_no_point_group()
 
-        if np.sum([i is not None for i in [hkl, hkil]]) != 1:
-            raise ValueError("Exactly one of `hkl`, `hkil` must be passed")
+        if np.sum([i is not None for i in [xyz, hkl, hkil]]) != 1:
+            raise ValueError("Exactly one of `xyz`, `hkl`, or `hkil` must be passed")
+        elif xyz is not None:
+            xyz = np.asarray(xyz)
+            self._coordinate_format = "hkl"
         elif hkil is not None:
             hkil = np.asarray(hkil)
             _check_hkil(hkil)
             hkl = _hkil2hkl(hkil)
             self._coordinate_format = "hkil"
+            xyz = _transform_space(hkl, "r", "c", phase.structure.lattice)
         else:
             hkl = np.asarray(hkl)
             self._coordinate_format = "hkl"
-        hkl = np.round(hkl).astype(float)
-        xyz = _transform_space(hkl, "r", "c", phase.structure.lattice)
+            xyz = _transform_space(hkl, "r", "c", phase.structure.lattice)
         super().__init__(xyz)
 
-        self._theta = np.full(self.size, np.nan)
-        self._structure_factor = np.full(self.size, np.nan, dtype="complex128")
+        self._theta = np.full(self.shape, np.nan)
+        self._structure_factor = np.full(self.shape, np.nan, dtype="complex128")
 
     def __getitem__(self, key):
         miller_new = self._as_miller().__getitem__(key)
@@ -96,13 +104,13 @@ class ReciprocalLatticeVector(Vector3d):
 
         if np.isnan(self.structure_factor).all():
             rlv_new._structure_factor = np.full(
-                rlv_new.size, np.nan, dtype="complex128"
+                rlv_new.shape, np.nan, dtype="complex128"
             )
         else:
             rlv_new._structure_factor = self.structure_factor[key]
 
         if np.isnan(self.theta).all():
-            rlv_new._theta = np.full(rlv_new.size, np.nan)
+            rlv_new._theta = np.full(rlv_new.shape, np.nan)
         else:
             rlv_new._theta = self.theta[key]
 
@@ -115,15 +123,12 @@ class ReciprocalLatticeVector(Vector3d):
         symmetry = self.phase.point_group.name
         data = np.array_str(self.coordinates, precision=0, suppress_small=True)
         phase_name = self.phase.name
-        return (
-            f"{name} {shape}, {phase_name} ({symmetry})\n" f"{data}"
-        )
+        return f"{name} {shape}, {phase_name} ({symmetry})\n" f"{data}"
 
-    @property
+    @cached_property
     def hkl(self):
         """Miller indices."""
-        hkl = _transform_space(self.data, "c", "r", self.phase.structure.lattice)
-        return np.round(hkl).astype(float)
+        return _transform_space(self.data, "c", "r", self.phase.structure.lattice)
 
     @property
     def hkil(self):
@@ -154,7 +159,7 @@ class ReciprocalLatticeVector(Vector3d):
         """
         return self.hkl[..., 2]
 
-    @property
+    @cached_property
     def multiplicity(self):
         """Number of symmetrically equivalent directions per vector."""
         mult = self.symmetrise(return_multiplicity=True)[1]
@@ -172,12 +177,22 @@ class ReciprocalLatticeVector(Vector3d):
         """Vector coordinate format, either ``"hkl"`` or ``"hkil"``."""
         return self._coordinate_format
 
+    @coordinate_format.setter
+    def coordinate_format(self, value):
+        """Set the vector coordinate format, either ``"hkl"``, or
+        ``"hkil"``.
+        """
+        formats = ["hkl", "hkil"]
+        if value not in formats:
+            raise ValueError(f"Available coordinate formats are {formats}")
+        self._coordinate_format = value
+
     @property
     def coordinates(self):
         """Miller or Miller-Bravais indices."""
         return self.__getattribute__(self.coordinate_format)
 
-    @property
+    @cached_property
     def gspacing(self):
         r"""Reciprocal lattice vector spacing :math:`g`."""
         return self.phase.structure.lattice.rnorm(self.hkl)
@@ -206,7 +221,7 @@ class ReciprocalLatticeVector(Vector3d):
         """
         return self._theta
 
-    @property
+    @cached_property
     def allowed(self):
         """Return whether vectors diffract according to diffraction
         selection rules assuming kinematic scattering theory.
@@ -216,27 +231,36 @@ class ReciprocalLatticeVector(Vector3d):
         # Translational symmetry
         centering = self.phase.space_group.short_name[0]
 
+        if centering not in ["P", "I", "A", "B", "C", "R", "H", "F"]:
+            raise ValueError(f"Unknown unit cell centering {centering}")
+        else:
+            hkl = self.hkl.reshape((-1, 3))
+
         if centering == "P":  # Primitive
-            if self.phase.space_group.crystal_system == "HEXAGONAL":
+            if self.is_hexagonal:
                 # TODO: See rules in e.g.
                 #  https://mcl1.ncifcrf.gov/dauter_pubs/284.pdf, Table 4
                 #  http://xrayweb.chem.ou.edu/notes/symmetry.html, Systematic Absences
                 raise NotImplementedError
             else:  # Any hkl
-                return np.ones(self.size, dtype=bool)
-        elif centering == "F":  # Face-centred, hkl all odd/even
-            selection = np.sum(np.mod(self.hkl, 2), axis=1)
-            return np.array([i not in [1, 2] for i in selection], dtype=bool)
+                is_allowed = np.ones(self.size, dtype=bool)
         elif centering == "I":  # Body-centred, h + k + l = 2n (even)
-            return np.mod(np.sum(self.hkl, axis=1), 2) == 0
+            is_allowed = np.mod(np.sum(hkl, axis=1), 2) == 0
         elif centering == "A":  # Centred on A faces only
-            return np.mod(self.hkl[:, 1] + self.hkl[:, 2], 2) == 0
+            is_allowed = np.mod(hkl[:, 1] + hkl[:, 2], 2) == 0
         elif centering == "B":  # Centred on B faces only
-            return np.mod(self.hkl[:, 0] + self.hkl[:, 2], 2) == 0
+            is_allowed = np.mod(hkl[:, 0] + hkl[:, 2], 2) == 0
         elif centering == "C":  # Centred on C faces only
-            return np.mod(self.hkl[:, 0] + self.hkl[:, 1], 2) == 0
+            is_allowed = np.mod(hkl[:, 0] + hkl[:, 1], 2) == 0
         elif centering in ["R", "H"]:  # Rhombohedral
-            return np.mod(-self.hkl[:, 0] + self.hkl[:, 1] + self.hkl[:, 2], 3) == 0
+            is_allowed = np.mod(-hkl[:, 0] + hkl[:, 1] + hkl[:, 2], 3) == 0
+        else:  # "F", face-centred, hkl all odd/even
+            selection = np.sum(np.mod(hkl, 2), axis=1)
+            is_allowed = np.array([i not in [1, 2] for i in selection], dtype=bool)
+
+        return is_allowed.reshape(self.shape)
+
+    # ------------------------- Custom methods ----------------------- #
 
     def calculate_structure_factor(self, scattering_params="xtables"):
         """Populate `self.structure_factor` with the complex structure
@@ -248,17 +272,18 @@ class ReciprocalLatticeVector(Vector3d):
             Either "lobato" or "xtables".
         """
         # Reduce number of vectors to calculate the structure factor for
-        # TODO: Use symmetry
-        hkl, inv = np.unique(self.hkl, axis=0, return_inverse=True)
+        # TODO: Use symmetry to contract vectors and then expand factors
+        hkl = self.hkl.reshape((-1, 3))
+        hkl_unique, inv = np.unique(hkl, axis=0, return_inverse=True)
 
         structure_factor = _get_kinematical_structure_factor(
             structure=self.phase.structure,
-            g_indices=hkl,
-            g_hkls_array=self.phase.structure.lattice.rnorm(hkl),
+            g_indices=hkl_unique,
+            g_hkls_array=self.phase.structure.lattice.rnorm(hkl_unique),
             scattering_params=scattering_params,
         )
 
-        self._structure_factor = structure_factor[inv]
+        self._structure_factor = structure_factor[inv].reshape(self.shape)
 
     def calculate_theta(self, voltage):
         """Populate `self.theta` with the Bragg angle :math:`theta_B`
@@ -271,6 +296,65 @@ class ReciprocalLatticeVector(Vector3d):
         """
         wavelength = get_refraction_corrected_wavelength(self.phase, voltage)
         self._theta = np.arcsin(0.5 * wavelength * self.gspacing)
+
+    def deepcopy(self):
+        """Return a deepcopy of the instance."""
+        return deepcopy(self)
+
+    def print_table(self):
+        """Table with indices, structure factor values and multiplicity."""
+        # Column alignment
+        align = "^"  # right ">", left "<", or centered "^"
+
+        # Column widths
+        width = 6
+        hkl_width = width + 2
+        d_width = width
+        i_width = width
+        f_hkl_width = width + 1
+        i_rel_width = width
+        mult_width = width
+
+        # Header (note the two-space spacing)
+        data = (
+            "{:{align}{width}}  ".format(" h k l ", width=hkl_width, align=align)
+            + "{:{align}{width}}  ".format("d", width=d_width, align=align)
+            + "{:{align}{width}}  ".format("I", width=i_width, align=align)
+            + "{:{align}{width}}  ".format("|F|_hkl", width=f_hkl_width, align=align)
+            + "{:{align}{width}}  ".format("I_Rel.", width=i_rel_width, align=align)
+            + "{:{align}{width}}\n".format("Mult", width=mult_width, align=align)
+        )
+
+        v = self.unique(use_symmetry=True)
+        structure_factor = v.structure_factor
+        f_hkl = structure_factor.real
+        intensity = (structure_factor * structure_factor.conjugate()).real
+        order = np.argsort(intensity)
+        v = v[order][::-1]
+        f_hkl = f_hkl[order][::-1]
+        intensity = intensity[order][::-1]
+
+        size = v.size
+        hkl = np.round(v.coordinates).astype(int)
+        hkl_string = np.array_str(hkl).replace("[", "").replace("]", "").split("\n")
+        d = v.dspacing
+        intensity_rel = (intensity / intensity[0]) * 100
+        mult = v.multiplicity
+
+        for i in range(size):
+            hkl_string_i = hkl_string[i].lstrip(" ")
+            data += (
+                f"{hkl_string_i:{align}{hkl_width}}  "
+                + f"{d[i]:{align}{d_width}.3f}  "
+                + f"{intensity[i]:{align}{i_width}.1f}  "
+                + f"{f_hkl[i]:{align}{f_hkl_width}.1f}  "
+                + f"{intensity_rel[i]:{align}{i_rel_width}.1f}  "
+                + f"{mult[i]:{align}{mult_width}}"
+            )
+            if i != size - 1:
+                data += "\n"
+
+        print(data)
 
     def symmetrise(self, return_multiplicity=False, return_index=False):
         """Unique vectors symmetrically equivalent to the ones in
@@ -297,9 +381,7 @@ class ReciprocalLatticeVector(Vector3d):
             vectors. Returned if ``return_index=True``.
         """
         out = self._as_miller().symmetrise(
-            unique=True,
-            return_multiplicity=return_multiplicity,
-            return_index=True
+            unique=True, return_multiplicity=return_multiplicity, return_index=True
         )
 
         if return_multiplicity:
@@ -308,8 +390,8 @@ class ReciprocalLatticeVector(Vector3d):
             miller, idx = out
 
         new_rlv = self._from_miller(miller, self.coordinate_format)
-        new_rlv._structure_factor = self.structure_factor[idx]
-        new_rlv._theta = self.theta[idx]
+        new_rlv._structure_factor = self.structure_factor.ravel()[idx]
+        new_rlv._theta = self.theta.ravel()[idx]
 
         new_out = (new_rlv,)
         if return_multiplicity:
@@ -320,94 +402,6 @@ class ReciprocalLatticeVector(Vector3d):
             return new_out[0]
         else:
             return new_out
-
-    def unique(self, use_symmetry=False, return_index=False):
-        """Unique vectors in ``self``.
-
-        Parameters
-        ----------
-        use_symmetry : bool, optional
-            Whether to consider equivalent vectors to compute the unique
-            vectors. Default is ``False``.
-        return_index : bool, optional
-            Whether to return the indices of the (flattened) data where
-            the unique entries were found. Default is ``False``.
-
-        Returns
-        -------
-        ReciprocalLatticeVector
-            Flattened unique vectors.
-        idx : numpy.ndarray
-            Indices of the unique data in the (flattened) array.
-        """
-        kwargs = dict(use_symmetry=use_symmetry, return_index=True)
-        miller, idx = self._as_miller().unique(**kwargs)
-        idx = idx[::-1]
-
-        new_rlv = self._from_miller(miller, self.coordinate_format)
-        new_rlv._structure_factor = self.structure_factor[idx]
-        new_rlv._theta = self.theta[idx]
-
-        if return_index:
-            return new_rlv, idx
-        else:
-            return new_rlv
-
-    def print_table(self):
-        """Table with indices, structure factor values and multiplicity.
-        """
-        # Column alignment
-        align = "<"  # right ">", left "<", or centered "^"
-
-        # Column widths
-        width = 6
-        hkl_width = width
-        d_width = width
-        i_width = width
-        f_hkl_width = width + 1
-        i_rel_width = width
-        mult_width = width
-
-        # Header (note the two-space spacing)
-        data = (
-            "{:{align}{width}}  ".format("h k l", width=hkl_width, align=align)
-            + "{:{align}{width}}  ".format("d", width=d_width, align=align)
-            + "{:{align}{width}}  ".format("I", width=i_width, align=align)
-            + "{:{align}{width}}  ".format("|F|_hkl", width=f_hkl_width, align=align)
-            + "{:{align}{width}}  ".format("I_Rel.", width=i_rel_width, align=align)
-            + "{:{align}{width}}\n".format("Mult", width=mult_width, align=align)
-        )
-
-        v = self.unique(use_symmetry=True)
-        structure_factor = v.structure_factor
-        f_hkl = structure_factor.real
-        intensity = (structure_factor * structure_factor.conjugate()).real
-        order = np.argsort(intensity)
-        v = v[order][::-1]
-        f_hkl = f_hkl[order][::-1]
-        intensity = intensity[order][::-1]
-
-        size = v.size
-        hkl = v.coordinates.round(2).astype(int)
-        hkl_string = np.array_str(hkl).replace("[", "").replace("]", "").split("\n")
-        d = v.dspacing
-        intensity_rel = (intensity / intensity[0]) * 100
-        mult = v.multiplicity
-
-        for i in range(size):
-            hkl_string_i = hkl_string[i].lstrip(" ")
-            data += (
-                f"{hkl_string_i:{align}{hkl_width}}  "
-                + f"{d[i]:{align}{d_width}.3f}  "
-                + f"{intensity[i]:{align}{i_width}.1f}  "
-                + f"{f_hkl[i]:{align}{f_hkl_width}.1f}  "
-                + f"{intensity_rel[i]:{align}{i_rel_width}.1f}  "
-                + f"{mult[i]:{align}{mult_width}}"
-            )
-            if i != size - 1:
-                data += "\n"
-
-        print(data)
 
     @classmethod
     def from_highest_hkl(cls, phase, hkl):
@@ -443,23 +437,10 @@ class ReciprocalLatticeVector(Vector3d):
             lattice=phase.structure.lattice, min_dspacing=min_dspacing
         )
         hkl = _get_indices_from_highest(highest_indices=highest_hkl)
-        hkl = np.round(hkl).astype(float)
         dspacing = 1 / phase.structure.lattice.rnorm(hkl)
         idx = dspacing >= min_dspacing
         hkl = hkl[idx]
         return cls(phase, hkl=hkl).unique()
-
-    def _as_miller(self):
-        """Return ``self`` as a ``Miller`` instance.
-
-        Returns
-        -------
-        orix.vector.Miller
-        """
-        if self.coordinate_format == "hkl":
-            return Miller(hkl=self.hkl, phase=self.phase)
-        else:
-            return Miller(hkil=self.hkil, phase=self.phase)
 
     @classmethod
     def _from_miller(cls, miller, coordinate_format):
@@ -475,10 +456,39 @@ class ReciprocalLatticeVector(Vector3d):
         -------
         ReciprocalLatticeVector
         """
-        if coordinate_format == "hkl":
-            return cls(miller.phase, hkl=miller.hkl)
-        else:
-            return cls(miller.phase, hkil=miller.hkil)
+        new = cls(miller.phase, xyz=miller.data)
+        new.coordinate_format = coordinate_format
+        return new
+
+    def _as_miller(self):
+        """Return ``self`` as a ``Miller`` instance.
+
+        Returns
+        -------
+        orix.vector.Miller
+        """
+        miller = Miller(xyz=self.data, phase=self.phase)
+        miller.coordinate_format = self.coordinate_format
+        return miller
+
+    def _compatible_with(self, other, raise_error=False):
+        """Whether ``self`` and ``other`` are the same (the same crystal
+        lattice and symmetry) with vectors in the same space.
+
+        Parameters
+        ----------
+        other : ReciprocalLatticeVector
+        raise_error : bool, optional
+            Whether to raise a ``ValueError`` if the instances are
+            incompatible (default is False).
+
+        Returns
+        -------
+        bool
+        """
+        miller1 = self._as_miller()
+        miller2 = other._as_miller()
+        return miller1._compatible_with(miller2, raise_error=raise_error)
 
     def _raise_if_no_point_group(self):
         """Raise ValueError if the phase attribute has no point group
@@ -493,3 +503,148 @@ class ReciprocalLatticeVector(Vector3d):
         """
         if self.phase.space_group is None:
             raise ValueError(f"The phase {self.phase} must have a space group set")
+
+    def _update_shapes(self):
+        """Update shapes of properties."""
+        self._theta = self._theta.reshape(self.shape)
+        self._structure_factor = self._structure_factor.reshape(self.shape)
+
+    # ---------- Overwritten Vector3d properties and methods --------- #
+
+    def angle_with(self, other, use_symmetry=False):
+        self._compatible_with(other, raise_error=True)
+        miller1 = self._as_miller()
+        miller2 = other._as_miller()
+        return miller1.angle_with(miller2, use_symmetry=use_symmetry)
+
+    def cross(self, other):
+        return self._as_miller().cross(other._as_miller())
+
+    def dot(self, other):
+        self._compatible_with(other, raise_error=True)
+        return super().dot(other)
+
+    def dot_outer(self, other):
+        self._compatible_with(other, raise_error=True)
+        return super().dot_outer(other)
+
+    def get_nearest(self, *args, **kwargs):
+        raise NotImplementedError("Use `orix.vector.Miller` instead.")
+
+    def in_fundamental_sector(self, symmetry=None):
+        raise NotImplementedError("Use `orix.vector.Miller` instead.")
+
+    def mean(self):
+        raise NotImplementedError("Use `orix.vector.Miller` instead.")
+
+    def rotate(self, *args, **kwargs):
+        raise NotImplementedError("Use `orix.vector.Miller` instead.")
+
+    @classmethod
+    def from_polar(cls, azimuth, polar, radial=1):
+        raise NotImplementedError("Use `orix.vector.Miller` instead.")
+
+    @classmethod
+    def xvector(cls):
+        raise NotImplementedError("Use `orix.vector.Miller` instead.")
+
+    @classmethod
+    def yvector(cls):
+        raise NotImplementedError("Use `orix.vector.Miller` instead.")
+
+    @classmethod
+    def zvector(cls):
+        raise NotImplementedError("Use `orix.vector.Miller` instead.")
+
+    # ---------- Overwritten Object3d properties and methods --------- #
+
+    @property
+    def unit(self):
+        """Unit vectors."""
+        miller = self._as_miller()
+        return self._from_miller(miller.unit, self.coordinate_format)
+
+    def flatten(self):
+        miller = self._as_miller()
+        new = self._from_miller(miller.flatten(), self.coordinate_format)
+        new._structure_factor = self._structure_factor.reshape(new.shape)
+        new._theta = self._theta.copy()
+        new._update_shapes()
+        return new
+
+    def reshape(self, *shape):
+        miller = self._as_miller()
+        new = self._from_miller(miller.reshape(*shape), self.coordinate_format)
+        new._structure_factor = self._structure_factor.copy()
+        new._theta = self._theta.copy()
+        new._update_shapes()
+        return new
+
+    def squeeze(self):
+        v = Vector3d(self.data).squeeze()
+        new = self.__class__(phase=self.phase, xyz=v.data)
+        new._coordinate_format = self.coordinate_format
+        new._structure_factor = self._structure_factor.copy()
+        new._theta = self._theta.copy()
+        new._update_shapes()
+        return new
+
+    def transpose(self, *axes):
+        miller = self._as_miller()
+        new = self._from_miller(miller.transpose(*axes), self.coordinate_format)
+        new._structure_factor = self._structure_factor.copy()
+        new._theta = self._theta.copy()
+        new._update_shapes()
+        return new
+
+    def unique(self, use_symmetry=False, return_index=False):
+        """Unique vectors in ``self``.
+
+        Parameters
+        ----------
+        use_symmetry : bool, optional
+            Whether to consider equivalent vectors to compute the unique
+            vectors. Default is ``False``.
+        return_index : bool, optional
+            Whether to return the indices of the (flattened) data where
+            the unique entries were found. Default is ``False``.
+
+        Returns
+        -------
+        ReciprocalLatticeVector
+            Flattened unique vectors.
+        idx : numpy.ndarray
+            Indices of the unique data in the (flattened) array.
+        """
+        kwargs = dict(use_symmetry=use_symmetry, return_index=True)
+        miller, idx = self._as_miller().unique(**kwargs)
+        idx = idx[::-1]
+
+        new_rlv = self._from_miller(miller, self.coordinate_format)
+        new_rlv._structure_factor = self.structure_factor.ravel()[idx]
+        new_rlv._theta = self.theta.ravel()[idx]
+
+        if return_index:
+            return new_rlv, idx
+        else:
+            return new_rlv
+
+    @classmethod
+    def empty(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def stack(cls, sequence):
+        # Check instance compatibility. A ValueError is raised in the
+        # loop if instances are incompatible.
+        sequence = tuple(sequence)  # Make iterable
+        if len(sequence) > 1:
+            s0 = sequence[0]
+            for s in sequence[1:]:
+                s0._compatible_with(s, raise_error=True)
+
+        v = Vector3d.stack(sequence)
+        new = cls(xyz=v.data, phase=sequence[0].phase)
+        new.coordinate_format = sequence[0].coordinate_format
+
+        return new
