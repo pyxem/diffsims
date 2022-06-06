@@ -99,8 +99,8 @@ class ReciprocalLatticeVector(Vector3d):
         self._structure_factor = np.full(self.shape, np.nan, dtype="complex128")
 
     def __getitem__(self, key):
-        miller_new = self._as_miller().__getitem__(key)
-        rlv_new = self._from_miller(miller_new, self.coordinate_format)
+        miller_new = self.to_miller().__getitem__(key)
+        rlv_new = self.from_miller(miller_new)
 
         if np.isnan(self.structure_factor).all():
             rlv_new._structure_factor = np.full(
@@ -298,7 +298,7 @@ class ReciprocalLatticeVector(Vector3d):
         self._theta = np.arcsin(0.5 * wavelength * self.gspacing)
 
     def deepcopy(self):
-        """Return a deepcopy of the instance."""
+        """Return a deepcopy of the vectors."""
         return deepcopy(self)
 
     def print_table(self):
@@ -380,7 +380,7 @@ class ReciprocalLatticeVector(Vector3d):
             Index into ``self`` for the symmetrically equivalent
             vectors. Returned if ``return_index=True``.
         """
-        out = self._as_miller().symmetrise(
+        out = self.to_miller().symmetrise(
             unique=True, return_multiplicity=return_multiplicity, return_index=True
         )
 
@@ -389,7 +389,7 @@ class ReciprocalLatticeVector(Vector3d):
         else:
             miller, idx = out
 
-        new_rlv = self._from_miller(miller, self.coordinate_format)
+        new_rlv = self.from_miller(miller)
         new_rlv._structure_factor = self.structure_factor.ravel()[idx]
         new_rlv._theta = self.theta.ravel()[idx]
 
@@ -406,7 +406,7 @@ class ReciprocalLatticeVector(Vector3d):
     @classmethod
     def from_highest_hkl(cls, phase, hkl):
         """Create a set of unique reciprocal lattice vectors from three
-        highest indices and a phase (crystal lattice and symmetry).
+        highest indices.
 
         Parameters
         ----------
@@ -443,33 +443,32 @@ class ReciprocalLatticeVector(Vector3d):
         return cls(phase, hkl=hkl).unique()
 
     @classmethod
-    def _from_miller(cls, miller, coordinate_format):
-        """Create a new instance from a ``Miller`` instance.
+    def from_miller(cls, miller):
+        r"""Create a new instance from a ``Miller`` instance.
 
         Parameters
         ----------
         miller : orix.vector.Miller
-        coordinate_format : str
-            Either ``"hkl"`` or ``"hkil"``.
+            Reciprocal lattice vectors :math:`(hk(i)l)`.
 
         Returns
         -------
         ReciprocalLatticeVector
         """
-        new = cls(miller.phase, xyz=miller.data)
-        new.coordinate_format = coordinate_format
-        return new
+        if miller.coordinate_format not in ["hkl", "hkil"]:
+            raise ValueError(
+                "`Miller` instance must have `coordinate_format` 'hkl' or 'hkil'"
+            )
+        return cls(miller.phase, **{miller.coordinate_format: miller.coordinates})
 
-    def _as_miller(self):
+    def to_miller(self):
         """Return ``self`` as a ``Miller`` instance.
 
         Returns
         -------
         orix.vector.Miller
         """
-        miller = Miller(xyz=self.data, phase=self.phase)
-        miller.coordinate_format = self.coordinate_format
-        return miller
+        return Miller(phase=self.phase, **{self.coordinate_format: self.coordinates})
 
     def _compatible_with(self, other, raise_error=False):
         """Whether ``self`` and ``other`` are the same (the same crystal
@@ -486,8 +485,8 @@ class ReciprocalLatticeVector(Vector3d):
         -------
         bool
         """
-        miller1 = self._as_miller()
-        miller2 = other._as_miller()
+        miller1 = self.to_miller()
+        miller2 = other.to_miller()
         return miller1._compatible_with(miller2, raise_error=raise_error)
 
     def _raise_if_no_point_group(self):
@@ -512,19 +511,83 @@ class ReciprocalLatticeVector(Vector3d):
     # ---------- Overwritten Vector3d properties and methods --------- #
 
     def angle_with(self, other, use_symmetry=False):
+        """Calculate angles between reciprocal lattice vectors, possibly
+        using symmetrically equivalent vectors to find the smallest
+        angle under symmetry.
+
+        Parameters
+        ----------
+        other : ReciprocalLatticeVector
+            Vectors of compatible shape to ``self``.
+        use_symmetry : bool, optional
+            Whether to consider equivalent vectors to find the smallest
+            angle under symmetry. Default is ``False``.
+
+        Returns
+        -------
+        numpy.ndarray
+            The angle between the vectors, in radians. If
+            ``use_symmetry=True``, the angles are the smallest under
+            symmetry.
+        """
         self._compatible_with(other, raise_error=True)
-        miller1 = self._as_miller()
-        miller2 = other._as_miller()
+        miller1 = self.to_miller()
+        miller2 = other.to_miller()
         return miller1.angle_with(miller2, use_symmetry=use_symmetry)
 
     def cross(self, other):
-        return self._as_miller().cross(other._as_miller())
+        r"""Cross product between reciprocal lattice vectors producing
+        zone axes :math:`[uvw]` or :math:`[UVTW]` in the direct lattice.
+
+        Parameters
+        ----------
+        other : ReciprocalLatticeVector
+            Vectors of compatible shape to ``self``.
+
+        Returns
+        -------
+        orix.vector.Miller
+            Direct lattice vector(s) :math:`[uvw]` or :math:`UVTW`,
+            depending on whether ``self.coordinate_format`` is ``hkl``
+            or ``hkil``, respectively.
+        """
+        miller = self.to_miller().cross(other.to_miller())
+        new_format = {"hkl": "uvw", "hkil": "UVTW"}
+        miller.coordinate_format = new_format[self.coordinate_format]
+        return miller
 
     def dot(self, other):
+        """Dot product of all reciprocal lattice vectors in ``self``
+        with other reciprocal lattice vectors.
+
+        Parameters
+        ----------
+        other : ReciprocalLatticeVector
+            Vectors of compatible shape to ``self``.
+
+        Returns
+        -------
+        numpy.ndarray
+        """
         self._compatible_with(other, raise_error=True)
         return super().dot(other)
 
     def dot_outer(self, other):
+        """Outer dot product of all reciprocal lattice vectors in
+        ``self`` with other reciprocal lattice vectors.
+
+        The dot product for every combination of vectors in ``self`` and
+        ``other`` is computed.
+
+        Parameters
+        ----------
+        other : ReciprocalLatticeVector
+            Vectors of compatible shape to ``self``.
+
+        Returns
+        -------
+        numpy.ndarray
+        """
         self._compatible_with(other, raise_error=True)
         return super().dot_outer(other)
 
@@ -560,27 +623,58 @@ class ReciprocalLatticeVector(Vector3d):
 
     @property
     def unit(self):
-        """Unit vectors."""
-        miller = self._as_miller()
-        return self._from_miller(miller.unit, self.coordinate_format)
+        """Unit reciprocal lattice vectors.
+
+        Returns
+        -------
+        ReciprocalLatticeVector
+        """
+        miller = self.to_miller()
+        return self.from_miller(miller.unit)
 
     def flatten(self):
-        miller = self._as_miller()
-        new = self._from_miller(miller.flatten(), self.coordinate_format)
+        """A new instance with these reciprocal lattice vectors in a
+        single column.
+
+        Returns
+        -------
+        ReciprocalLatticeVector
+        """
+        miller = self.to_miller()
+        new = self.from_miller(miller.flatten())
         new._structure_factor = self._structure_factor.reshape(new.shape)
         new._theta = self._theta.copy()
         new._update_shapes()
         return new
 
     def reshape(self, *shape):
-        miller = self._as_miller()
-        new = self._from_miller(miller.reshape(*shape), self.coordinate_format)
+        """A new instance with these reciprocal lattice vectors
+        reshaped.
+
+        Parameters
+        ----------
+        *shape : int
+            Multiple integers designating the new shape.
+
+        Returns
+        -------
+        ReciprocalLatticeVector
+        """
+        miller = self.to_miller()
+        new = self.from_miller(miller.reshape(*shape))
         new._structure_factor = self._structure_factor.copy()
         new._theta = self._theta.copy()
         new._update_shapes()
         return new
 
     def squeeze(self):
+        """A new instance with these reciprocal lattice vectors where
+        singleton dimensions are removed.
+
+        Returns
+        -------
+        ReciprocalLatticeVector
+        """
         v = Vector3d(self.data).squeeze()
         new = self.__class__(phase=self.phase, xyz=v.data)
         new._coordinate_format = self.coordinate_format
@@ -590,8 +684,25 @@ class ReciprocalLatticeVector(Vector3d):
         return new
 
     def transpose(self, *axes):
-        miller = self._as_miller()
-        new = self._from_miller(miller.transpose(*axes), self.coordinate_format)
+        """A new instance with the navigation shape of these reciprocal
+        lattice vectors transposed.
+
+        If ``self.ndim`` is originally 2, then order may be undefined.
+        In this case the first two dimensions will be transposed.
+
+        Parameters
+        ----------
+        *axes : int, optional
+            Transposed axes order. Only navigation axes need to be
+            defined. May be undefined if ``self`` only contains two
+            navigation dimensions.
+
+        Returns
+        -------
+        ReciprocalLatticeVector
+        """
+        miller = self.to_miller()
+        new = self.from_miller(miller.transpose(*axes))
         new._structure_factor = self._structure_factor.copy()
         new._theta = self._theta.copy()
         new._update_shapes()
@@ -617,10 +728,10 @@ class ReciprocalLatticeVector(Vector3d):
             Indices of the unique data in the (flattened) array.
         """
         kwargs = dict(use_symmetry=use_symmetry, return_index=True)
-        miller, idx = self._as_miller().unique(**kwargs)
+        miller, idx = self.to_miller().unique(**kwargs)
         idx = idx[::-1]
 
-        new_rlv = self._from_miller(miller, self.coordinate_format)
+        new_rlv = self.from_miller(miller)
         new_rlv._structure_factor = self.structure_factor.ravel()[idx]
         new_rlv._theta = self.theta.ravel()[idx]
 
@@ -635,6 +746,17 @@ class ReciprocalLatticeVector(Vector3d):
 
     @classmethod
     def stack(cls, sequence):
+        """A new instance from a sequence of reciprocal lattice vectors.
+
+        Parameters
+        ----------
+        sequence : iterable of ReciprocalLatticeVector
+            One or more sets of compatible reciprocal lattice vectors.
+
+        Returns
+        -------
+        ReciprocalLatticeVector
+        """
         # Check instance compatibility. A ValueError is raised in the
         # loop if instances are incompatible.
         sequence = tuple(sequence)  # Make iterable
