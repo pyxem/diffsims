@@ -25,7 +25,7 @@ from diffsims.generators.diffraction_generator import DiffractionGenerator
 
 @pytest.fixture
 def default_structure():
-    """An atomic structure represented using diffpy """
+    """An atomic structure represented using diffpy"""
     latt = Lattice(3, 3, 5, 90, 90, 120)
     atom = Atom(atype="Ni", xyz=[0, 0, 0], lattice=latt)
     hexagonal_structure = Structure(atoms=[atom], lattice=latt)
@@ -40,6 +40,7 @@ def default_simulator():
 
 @pytest.fixture
 def nickel_phase():
+    """Ni phase with space group 225 and a = 3.5236 Å."""
     return Phase(
         name="nickel",
         space_group=225,
@@ -52,6 +53,7 @@ def nickel_phase():
 
 @pytest.fixture
 def ferrite_phase():
+    """Ferrite phase with space group 229 and a = 2.8665 Å."""
     return Phase(
         name="ferrite",
         space_group=229,
@@ -67,7 +69,9 @@ def ferrite_phase():
 
 @pytest.fixture
 def silicon_carbide_phase():
-    """Silicon Carbide 4H polytype (hexagonal, space group 186)."""
+    """Silicon Carbide 4H polytype phase with space group 186 and
+    a = b = 3.073 Å and c = 10.053 Å.
+    """
     return Phase(
         space_group=186,
         structure=Structure(
@@ -79,4 +83,14 @@ def silicon_carbide_phase():
                 Atom(atype="C", xyz=[0.333, 0.667, 0.438]),
             ],
         ),
+    )
+
+
+@pytest.fixture
+def tetragonal_phase():
+    """Tetragonal phase with space group 4 and a = b = 0.5 Å and
+    c = 1 Å.
+    """
+    return Phase(
+        point_group=4, structure=Structure(lattice=Lattice(0.5, 0.5, 1, 90, 90, 90))
     )
