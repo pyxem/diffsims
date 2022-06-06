@@ -19,7 +19,7 @@
 from diffpy.structure import Atom, Lattice, Structure
 import numpy as np
 from orix.crystal_map import Phase
-from orix.vector import Vector3d
+from orix.vector import Miller, Vector3d
 import pytest
 
 from diffsims.crystallography import ReciprocalLatticeVector
@@ -339,6 +339,23 @@ class TestReciprocalLatticeVector:
         with pytest.raises(ValueError):
             rlv1.coordinate_format = "xyz"
 
+    def test_from_to_miller(self, nickel_phase):
+        miller1 = Miller(hkl=[1, 1, 1], phase=nickel_phase)
+        rlv1 = ReciprocalLatticeVector.from_miller(miller1)
+        assert np.allclose(miller1.coordinates, rlv1.coordinates)
+        assert miller1.coordinate_format == rlv1.coordinate_format
+
+        rlv1.coordinate_format = "hkil"
+        miller2 = rlv1.to_miller()
+        assert miller2.coordinate_format == rlv1.coordinate_format
+        assert np.allclose(miller2.coordinates, rlv1.coordinates)
+        assert rlv1._compatible_with(ReciprocalLatticeVector.from_miller(miller2))
+
+        miller3 = miller1.deepcopy()
+        miller3.coordinate_format = "uvw"
+        with pytest.raises(ValueError, match="`Miller` instance must have "):
+            _ = ReciprocalLatticeVector.from_miller(miller3)
+
 
 class TestOverwrittenObject3d:
     def setup_class(self):
@@ -432,14 +449,37 @@ class TestOverwrittenVector3d:
         rlv.calculate_structure_factor()
         self.vector = rlv
 
-    def test_angle_with(self):
-        pass
+    def test_angle_with(self, silicon_carbide_phase):
+        rlv1 = ReciprocalLatticeVector(silicon_carbide_phase, hkil=[1, 1, -2, 0])
+        rlv2 = ReciprocalLatticeVector(silicon_carbide_phase, hkil=[-1, -1, 2, 0])
+        assert np.isclose(rlv1.angle_with(rlv2), np.pi)
+        assert np.isclose(rlv1.angle_with(rlv2, use_symmetry=True), 0)
 
-    def test_cross(self):
-        pass
+    def test_cross(self, silicon_carbide_phase):
+        rlv1 = ReciprocalLatticeVector(silicon_carbide_phase, hkil=[1, -1, 0, 0])
+        rlv2 = ReciprocalLatticeVector(silicon_carbide_phase, hkil=[1, 0, -1, 0])
+        miller1 = rlv1.cross(rlv2)
+        assert isinstance(miller1, Miller)
+        assert miller1.coordinate_format == "UVTW"
+        assert np.allclose(miller1.round().coordinates, [0, 0, 0, 1])
 
-    def test_dot(self):
-        pass
+        rlv1.coordinate_format = "hkl"
+        rlv2.coordinate_format = "hkl"
+        miller2 = rlv1.cross(rlv2)
+        assert miller2.coordinate_format == "uvw"
+        assert np.allclose(miller2.round().coordinates, [0, 0, 1])
+
+    def test_dot(self, tetragonal_phase):
+        rlv1 = ReciprocalLatticeVector(tetragonal_phase, hkl=[1, 2, 0])
+        rlv2 = ReciprocalLatticeVector(tetragonal_phase, hkl=[3, 1, 1])
+        assert np.isclose(rlv1.dot(rlv2), 20)
+
+    def test_dot_outer(self, tetragonal_phase):
+        rlv1 = ReciprocalLatticeVector(tetragonal_phase, hkl=[[1, 2, 0], [1, 2, 0]])
+        rlv2 = ReciprocalLatticeVector(tetragonal_phase, hkl=[[3, 1, 1], [3, 1, 1]])
+        dp = rlv1.dot_outer(rlv2)
+        assert dp.shape == (2, 2)
+        assert np.allclose(dp, [[20, 20], [20, 20]])
 
     def test_get_nearest(self):
         with pytest.raises(NotImplementedError):
