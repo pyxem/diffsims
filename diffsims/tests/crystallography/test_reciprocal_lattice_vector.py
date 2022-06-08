@@ -435,8 +435,9 @@ class TestReciprocalLatticeVector:
         rlv3 = rlv[:2]
         rlv_unique = rlv3.unique(use_symmetry=True)
         rlv_symmetrised, mult = rlv_unique.symmetrise(return_multiplicity=True)
-        hkl = rlv3.hkl.reshape(-1, 3)
-        test_hkl = rlv_symmetrised.hkl.reshape(-1, 3)
+        hkl = rlv3.hkl.reshape(-1, 3).astype(np.float64)
+        test_hkl = rlv_symmetrised.hkl.reshape(-1, 3).astype(np.float64)
+        mult = mult.astype(np.int64)
         hkl_set_idx_nb = _get_set_per_hkl(hkl, test_hkl, mult)
         hkl_set_idx_py = _get_set_per_hkl.py_func(hkl, test_hkl, mult)
         assert np.allclose(hkl_set_idx_nb, hkl_set_idx_py)
