@@ -23,6 +23,9 @@ from diffsims.structure_factor import (
     get_atomic_scattering_parameters,
     get_element_id_from_string,
 )
+from diffsims.structure_factor.atomic_scattering_parameters import (
+    _get_string_from_element_id,
+)
 
 
 @pytest.mark.parametrize(
@@ -47,8 +50,8 @@ def test_get_atomic_scattering_parameters(element, unit, desired_parameters):
 def test_get_element_id_from_string():
     # fmt: off
     elements = [
-        "H", "he", "li", "be", "b", "c", "n", "o", "f", "ne", "na", "mg", "al",
-        "sI", "p", "s", "cl", "ar", "k", "ca", "sc", "ti", "v", "cr", "mn",
+        "h", "he", "li", "be", "b", "c", "n", "o", "f", "ne", "na", "mg", "al",
+        "si", "p", "s", "cl", "ar", "k", "ca", "sc", "ti", "v", "cr", "mn",
         "fe", "co", "ni", "cu", "zn", "ga", "ge", "as", "se", "br", "kr", "rb",
         "sr", "y", "zr", "nb", "mo", "tc", "ru", "rh", "pd", "ag", "cd", "in",
         "sn", "SB", "te", "i", "xe", "cs", "ba", "la", "ce", "pr", "nd", "pm",
@@ -62,3 +65,5 @@ def test_get_element_id_from_string():
     elements_id = np.arange(98) + 1
     for i, element in zip(elements_id, elements):
         assert get_element_id_from_string(element) == i
+        # The reverse
+        assert _get_string_from_element_id(i) == element.capitalize()
