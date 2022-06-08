@@ -43,11 +43,10 @@ from diffsims.utils.sim_utils import _get_kinematical_structure_factor
 
 
 class ReciprocalLatticeVector(Vector3d):
-    r"""Reciprocal lattice vector (or crystal plane normal, reflector,
-    :math:`g`, etc.) with Miller indices, length of the reciprocal
-    lattice vectors and other relevant diffraction parameters.
+    r"""Reciprocal lattice vectors :math:`(hkl)` for use in electron
+    diffraction analysis and simulation.
 
-    All lengths are assumed to be given in Ångströms.
+    All lengths are assumed to be given in Å or inverse Å.
 
     This class extends :class:`orix.vector.Vector3d` to reciprocal
     lattice vectors :math:`(hkl)` specifically for diffraction
@@ -56,50 +55,51 @@ class ReciprocalLatticeVector(Vector3d):
     indices both in reciprocal *and* direct space. It supports relevant
     methods also supported in `Miller`, like obtaining a set of vectors
     from a minimal interplanar spacing.
+
+    Create a set of reciprocal lattice vectors from :math:`(hkl)` or
+    :math:`(hkil)`.
+
+    The vectors are internally as cartesian coordinates in the ``data``
+    attribute.
+
+    Parameters
+    ----------
+    phase : orix.crystal_map.Phase
+        A phase with a crystal lattice and symmetry.
+    xyz : numpy.ndarray, list, or tuple, optional
+        Cartesian coordinates of indices of reciprocal lattice vector(s)
+        ``hkl``. Default is ``None``. This, ``hkl``, or ``hkil`` is
+        required.
+    hkl : numpy.ndarray, list, or tuple, optional
+        Indices of reciprocal lattice vector(s). Default is ``None``.
+        This, ``xyz``, or ``hkil`` is required.
+    hkil : numpy.ndarray, list, or tuple, optional
+        Indices of reciprocal lattice vector(s), often preferred over
+        ``hkl`` in trigonal and hexagonal lattices. Default is ``None``.
+        This, ``xyz``, or ``hkl`` is required.
+
+    Examples
+    --------
+    >>> from diffpy.structure import Atom, Lattice, Structure
+    >>> from orix.crystal_map import Phase
+    >>> from diffsims.crystallography import ReciprocalLatticeVector
+    >>> phase = Phase(
+    ...     "al",
+    ...     space_group=225,
+    ...     structure=Structure(
+    ...         lattice=Lattice(4.04, 4.04, 4.04, 90, 90, 90),
+    ...         atoms=[Atom("Al", [0, 0, 1])],
+    ...     ),
+    ... )
+    >>> rlv = ReciprocalLatticeVector(phase, hkl=[[1, 1, 1], [2, 0, 0]])
+    >>> rlv
+    ReciprocalLatticeVector (2,), al (m-3m)
+    [[1. 1. 1.]
+     [2. 0. 0.]]
+
     """
 
     def __init__(self, phase, xyz=None, hkl=None, hkil=None):
-        r"""Create a set of reciprocal lattice vectors from
-        :math:`(hkl)` or :math:`(hkil)`.
-
-        The vectors are internally as cartesian coordinates in the
-        ``data`` attribute.
-
-        Parameters
-        ----------
-        phase : orix.crystal_map.Phase
-            A phase with a crystal lattice and symmetry.
-        xyz : numpy.ndarray, list, or tuple, optional
-            Cartesian coordinates of indices of reciprocal lattice
-            vector(s) ``hkl``. Default is ``None``. This, ``hkl``, or
-            ``hkil`` is required.
-        hkl : numpy.ndarray, list, or tuple, optional
-            Indices of reciprocal lattice vector(s). Default is
-            ``None``. This, ``xyz``, or ``hkil`` is required.
-        hkil : numpy.ndarray, list, or tuple, optional
-            Indices of reciprocal lattice vector(s), often preferred
-            over ``hkl`` in trigonal and hexagonal lattices. Default is
-            ``None``. This, ``xyz``, or ``hkl`` is required.
-
-        Examples
-        --------
-        >>> from diffpy.structure import Atom, Lattice, Structure
-        >>> from orix.crystal_map import Phase
-        >>> from diffsims.crystallography import ReciprocalLatticeVector
-        >>> phase = Phase(
-        ...     "al",
-        ...     space_group=225,
-        ...     structure=Structure(
-        ...         lattice=Lattice(4.04, 4.04, 4.04, 90, 90, 90),
-        ...         atoms=[Atom("Al", [0, 0, 1])],
-        ...     ),
-        ... )
-        >>> rlv = ReciprocalLatticeVector(phase, hkl=[[1, 1, 1], [2, 0, 0]])
-        >>> rlv
-        ReciprocalLatticeVector (2,), al (m-3m)
-        [[1. 1. 1.]
-         [2. 0. 0.]]
-        """
         self.phase = phase
         self._raise_if_no_point_group()
 
@@ -160,7 +160,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -169,7 +169,9 @@ class ReciprocalLatticeVector(Vector3d):
         >>> rlv.hkl
         array([[1., 1., 1.],
                [2., 0., 0.]])
+
         """
+
         return _transform_space(self.data, "c", "r", self.phase.structure.lattice)
 
     @property
@@ -182,7 +184,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -191,7 +193,9 @@ class ReciprocalLatticeVector(Vector3d):
         >>> rlv.hkil
         array([[ 1.,  1., -2.,  1.],
                [ 2.,  0., -2.,  0.]])
+
         """
+
         return _hkl2hkil(self.hkl)
 
     @property
@@ -204,7 +208,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -212,7 +216,9 @@ class ReciprocalLatticeVector(Vector3d):
          [2. 0. 0.]]
         >>> rlv.h
         array([1., 2.])
+
         """
+
         return self.hkl[..., 0]
 
     @property
@@ -225,7 +231,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -233,7 +239,9 @@ class ReciprocalLatticeVector(Vector3d):
          [2. 0. 0.]]
         >>> rlv.k
         array([1., 0.])
+
         """
+
         return self.hkl[..., 1]
 
     @property
@@ -247,7 +255,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -255,7 +263,9 @@ class ReciprocalLatticeVector(Vector3d):
          [2. 0. 0.]]
         >>> rlv.i
         array([-2., -2.])
+
         """
+
         return self.hkil[..., 2]
 
     @property
@@ -269,7 +279,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -277,7 +287,9 @@ class ReciprocalLatticeVector(Vector3d):
          [2. 0. 0.]]
         >>> rlv.l
         array([1., 0.])
+
         """
+
         return self.hkl[..., 2]
 
     @property
@@ -290,7 +302,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -298,7 +310,9 @@ class ReciprocalLatticeVector(Vector3d):
          [2. 0. 0.]]
         >>> rlv.multiplicity
         array([8, 6])
+
         """
+
         mult = self.symmetrise(return_multiplicity=True)[1]
         return mult.reshape(self.shape)
 
@@ -312,7 +326,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -320,7 +334,9 @@ class ReciprocalLatticeVector(Vector3d):
          [2. 0. 0.]]
         >>> rlv.has_hexagonal_lattice
         False
+
         """
+
         return self.phase.is_hexagonal
 
     @property
@@ -333,7 +349,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -346,14 +362,18 @@ class ReciprocalLatticeVector(Vector3d):
         ReciprocalLatticeVector (2,), al (m-3m)
         [[ 1.  1. -2.  1.]
          [ 2.  0. -2.  0.]]
+
         """
+
         return self._coordinate_format
 
     @coordinate_format.setter
     def coordinate_format(self, value):
         """Set the vector coordinate format, either ``"hkl"``, or
         ``"hkil"``.
+
         """
+
         formats = ["hkl", "hkil"]
         if value not in formats:
             raise ValueError(f"Available coordinate formats are {formats}")
@@ -371,7 +391,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -384,7 +404,9 @@ class ReciprocalLatticeVector(Vector3d):
         >>> rlv.coordinates
         array([[ 1.,  1., -2.,  1.],
                [ 2.,  0., -2.,  0.]])
+
         """
+
         return self.__getattribute__(self.coordinate_format)
 
     @property
@@ -397,7 +419,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -413,7 +435,9 @@ class ReciprocalLatticeVector(Vector3d):
 
         >>> rlv.gspacing
         array([0.42872545, 0.4950495 ])
+
         """
+
         return self.phase.structure.lattice.rnorm(self.hkl)
 
     @property
@@ -426,7 +450,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -442,7 +466,9 @@ class ReciprocalLatticeVector(Vector3d):
 
         >>> rlv.dspacing
         array([2.33249509, 2.02      ])
+
         """
+
         return 1 / self.gspacing
 
     @property
@@ -455,7 +481,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -471,7 +497,9 @@ class ReciprocalLatticeVector(Vector3d):
 
         >>> rlv.scattering_parameter
         array([0.21436272, 0.24752475])
+
         """
+
         return 0.5 * self.gspacing
 
     @property
@@ -486,7 +514,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -513,7 +541,9 @@ class ReciprocalLatticeVector(Vector3d):
         >>> rlv.calculate_structure_factor()
         >>> rlv.structure_factor  # doctest: +SKIP
         array([8.46881663-1.55569638e-15j, 7.04777513-8.63103525e-16j])
+
         """
+
         return self._structure_factor
 
     @property
@@ -528,7 +558,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -543,7 +573,9 @@ class ReciprocalLatticeVector(Vector3d):
         >>> rlv.calculate_theta(20e3)
         >>> rlv.theta  # doctest: +SKIP
         array([0.0184036 , 0.02125105])
+
         """
+
         return self._theta
 
     @property
@@ -574,7 +606,9 @@ class ReciprocalLatticeVector(Vector3d):
         ... )
         >>> rlv.allowed
         array([False,  True])
+
         """
+
         self._raise_if_no_space_group()
 
         # Translational symmetry
@@ -619,7 +653,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -651,7 +685,9 @@ class ReciprocalLatticeVector(Vector3d):
         >>> rlv.calculate_structure_factor("lobato")
         >>> rlv.structure_factor  # doctest: +SKIP
         array([8.44934816-1.55212008e-15j, 7.0387957 -8.62003862e-16j])
+
         """
+
         # Compute one structure factor per set {hkl}
         hkl_sets = self.get_hkl_sets()
 
@@ -694,7 +730,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -707,7 +743,9 @@ class ReciprocalLatticeVector(Vector3d):
         >>> rlv.calculate_theta(200e3)
         >>> rlv.theta
         array([0.00537583, 0.00620749])
+
         """
+
         wavelength = 10 * get_refraction_corrected_wavelength(self.phase, voltage)
         self._theta = np.arcsin(0.5 * wavelength * self.gspacing)
 
@@ -717,7 +755,9 @@ class ReciprocalLatticeVector(Vector3d):
         Returns
         -------
         ReciprocalLatticeVector
+
         """
+
         return deepcopy(self)
 
     def get_hkl_sets(self):
@@ -735,7 +775,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -749,7 +789,9 @@ class ReciprocalLatticeVector(Vector3d):
         >>> rlv[hkl_sets[2, 0, 0]]
         ReciprocalLatticeVector (1,), al (m-3m)
         [[2. 0. 0.]]
+
         """
+
         # Determine the unique vectors {hkl} representing each set
         rlv_unique = self.unique(use_symmetry=True)
 
@@ -780,7 +822,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -796,7 +838,9 @@ class ReciprocalLatticeVector(Vector3d):
          h k l      d     |F|_hkl   |F|^2   |F|^2_rel   Mult
          1 1 1    2.332     8.5     71.7      100.0      8
          2 0 0    2.020     7.0     49.7       69.3      6
+
         """
+
         # Column alignment
         align = "^"  # right ">", left "<", or centered "^"
 
@@ -864,7 +908,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -878,7 +922,9 @@ class ReciprocalLatticeVector(Vector3d):
          Al   0.000000 0.500000 0.500000 1.0000,
          Al   0.500000 0.000000 0.500000 1.0000,
          Al   0.500000 0.500000 0.000000 1.0000]
+
         """
+
         self._raise_if_no_space_group()
 
         space_group = self.phase.space_group
@@ -917,7 +963,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -946,7 +992,9 @@ class ReciprocalLatticeVector(Vector3d):
         array([8, 6])
         >>> idx
         array([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1])
+
         """
+
         out = self.to_miller().symmetrise(
             unique=True, return_multiplicity=return_multiplicity, return_index=True
         )
@@ -1011,7 +1059,9 @@ class ReciprocalLatticeVector(Vector3d):
 
         >>> rlv.allowed.all()
         False
+
         """
+
         idx = _get_indices_from_highest(highest_indices=hkl)
         return cls(phase, hkl=idx).unique()
 
@@ -1064,7 +1114,9 @@ class ReciprocalLatticeVector(Vector3d):
         256
         >>> rlv.allowed.all()
         False
+
         """
+
         highest_hkl = _get_highest_hkl(
             lattice=phase.structure.lattice, min_dspacing=min_dspacing
         )
@@ -1115,7 +1167,9 @@ class ReciprocalLatticeVector(Vector3d):
         Miller (2,), point group m-3m, hkl
         [[1. 1. 1.]
          [2. 0. 0.]]
+
         """
+
         if miller.coordinate_format not in ["hkl", "hkil"]:
             raise ValueError(
                 "`Miller` instance must have `coordinate_format` 'hkl' or 'hkil'"
@@ -1129,13 +1183,9 @@ class ReciprocalLatticeVector(Vector3d):
         -------
         orix.vector.Miller
 
-        Returns
-        -------
-        ReciprocalLatticeVector
-
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -1145,7 +1195,9 @@ class ReciprocalLatticeVector(Vector3d):
         Miller (2,), point group m-3m, hkl
         [[1. 1. 1.]
          [2. 0. 0.]]
+
         """
+
         return Miller(phase=self.phase, **{self.coordinate_format: self.coordinates})
 
     def _compatible_with(self, other, raise_error=False):
@@ -1166,7 +1218,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         Examples
         --------
-        See :meth:`__init__` for the creation of ``rlv``
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
 
         >>> rlv
         ReciprocalLatticeVector (2,), al (m-3m)
@@ -1183,7 +1235,9 @@ class ReciprocalLatticeVector(Vector3d):
         >>> rlv._compatible_with(rlv2, raise_error=True)  # doctest: +SKIP
             raise ValueError(
         ValueError: The crystal lattices and symmetries must be the same, and the vector(s) must be in the same space
+
         """
+
         miller1 = self.to_miller()
         miller2 = other.to_miller()
         return miller1._compatible_with(miller2, raise_error=raise_error)
@@ -1191,19 +1245,24 @@ class ReciprocalLatticeVector(Vector3d):
     def _raise_if_no_point_group(self):
         """Raise ValueError if the phase attribute has no point group
         set.
+
         """
+
         if self.phase.point_group is None:
             raise ValueError(f"The phase {self.phase} must have a point group set")
 
     def _raise_if_no_space_group(self):
         """Raise ValueError if the phase attribute has no space group
         set.
+
         """
+
         if self.phase.space_group is None:
             raise ValueError(f"The phase {self.phase} must have a space group set")
 
     def _update_shapes(self):
         """Update shapes of properties."""
+
         self._theta = self._theta.reshape(self.shape)
         self._structure_factor = self._structure_factor.reshape(self.shape)
 
@@ -1228,7 +1287,9 @@ class ReciprocalLatticeVector(Vector3d):
             The angle between the vectors, in radians. If
             ``use_symmetry=True``, the angles are the smallest under
             symmetry.
+
         """
+
         self._compatible_with(other, raise_error=True)
         miller1 = self.to_miller()
         miller2 = other.to_miller()
@@ -1249,7 +1310,9 @@ class ReciprocalLatticeVector(Vector3d):
             Direct lattice vector(s) :math:`[uvw]` or :math:`UVTW`,
             depending on whether the vector's :attr:`coordinate_format`
             is ``hkl`` or ``hkil``, respectively.
+
         """
+
         miller = self.to_miller().cross(other.to_miller())
         new_format = {"hkl": "uvw", "hkil": "UVTW"}
         miller.coordinate_format = new_format[self.coordinate_format]
@@ -1267,7 +1330,9 @@ class ReciprocalLatticeVector(Vector3d):
         Returns
         -------
         numpy.ndarray
+
         """
+
         self._compatible_with(other, raise_error=True)
         return super().dot(other)
 
@@ -1286,7 +1351,9 @@ class ReciprocalLatticeVector(Vector3d):
         Returns
         -------
         numpy.ndarray
+
         """
+
         self._compatible_with(other, raise_error=True)
         return super().dot_outer(other)
 
@@ -1331,7 +1398,9 @@ class ReciprocalLatticeVector(Vector3d):
         Returns
         -------
         ReciprocalLatticeVector
+
         """
+
         miller = self.to_miller()
         return self.from_miller(miller.unit)
 
@@ -1345,7 +1414,9 @@ class ReciprocalLatticeVector(Vector3d):
         Returns
         -------
         ReciprocalLatticeVector
+
         """
+
         miller = self.to_miller()
         new = self.from_miller(miller.flatten())
         new._structure_factor = self._structure_factor.reshape(new.shape)
@@ -1365,7 +1436,9 @@ class ReciprocalLatticeVector(Vector3d):
         Returns
         -------
         ReciprocalLatticeVector
+
         """
+
         miller = self.to_miller()
         new = self.from_miller(miller.reshape(*shape))
         new._structure_factor = self._structure_factor.copy()
@@ -1380,7 +1453,9 @@ class ReciprocalLatticeVector(Vector3d):
         Returns
         -------
         ReciprocalLatticeVector
+
         """
+
         v = Vector3d(self.data).squeeze()
         new = self.__class__(phase=self.phase, xyz=v.data)
         new._coordinate_format = self.coordinate_format
@@ -1406,7 +1481,9 @@ class ReciprocalLatticeVector(Vector3d):
         Returns
         -------
         ReciprocalLatticeVector
+
         """
+
         miller = self.to_miller()
         new = self.from_miller(miller.transpose(*axes))
         new._structure_factor = self._structure_factor.copy()
@@ -1432,7 +1509,9 @@ class ReciprocalLatticeVector(Vector3d):
             Flattened unique vectors.
         idx : numpy.ndarray
             Indices of the unique data in the (flattened) array.
+
         """
+
         # TODO: Reduce floating point precision in orix!
         def miller_unique(miller, use_symmetry=False):
             v, idx = Vector3d(miller).unique(return_index=True)
@@ -1484,7 +1563,9 @@ class ReciprocalLatticeVector(Vector3d):
         Returns
         -------
         ReciprocalLatticeVector
+
         """
+
         # Check instance compatibility. A ValueError is raised in the
         # loop if instances are incompatible.
         sequence = tuple(sequence)  # Make iterable
@@ -1511,7 +1592,9 @@ def _atom_eq(atom1, atom2):
     Returns
     -------
     bool
+
     """
+
     return (
         atom1.element == atom2.element
         and np.allclose(atom1.xyz, atom2.xyz, atol=1e-7)
@@ -1535,7 +1618,9 @@ def _expand_unit_cell(space_group, structure):
     Returns
     -------
     new_structure : diffpy.structure.Structure
+
     """
+
     new_structure = Structure(lattice=structure.lattice)
 
     for atom in structure:
@@ -1584,7 +1669,9 @@ def _get_set_per_hkl(hkl, test_hkl, mult):
     -----
     This is a Numba function so care must be taken with the input
     arrays' shape and data type.
+
     """
+
     # Get the index of each hkl into test_hkl, done by floating point
     # comparison of each (h, k, l) with each (test h, test k, test l).
     # A match should always be found, since the sets of test_hkl were
