@@ -20,6 +20,7 @@ from diffpy.structure import Atom, Lattice, Structure
 from orix.crystal_map import Phase
 import pytest
 
+from diffsims.crystallography import ReciprocalLatticeVector
 from diffsims.generators.diffraction_generator import DiffractionGenerator
 
 
@@ -94,3 +95,17 @@ def tetragonal_phase():
     return Phase(
         point_group=4, structure=Structure(lattice=Lattice(0.5, 0.5, 1, 90, 90, 90))
     )
+
+
+@pytest.fixture(autouse=True)
+def add_reciprocal_lattice_vector_al(doctest_namespace):
+    phase = Phase(
+        "al",
+        space_group=225,
+        structure=Structure(
+            lattice=Lattice(4.04, 4.04, 4.04, 90, 90, 90),
+            atoms=[Atom("Al", [0, 0, 1])],
+        ),
+    )
+    rlv = ReciprocalLatticeVector(phase, hkl=[[1, 1, 1], [2, 0, 0]])
+    doctest_namespace["rlv"] = rlv
