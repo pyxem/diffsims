@@ -60,6 +60,11 @@ jobs:
       - name: Display package versions
         run: pip list
 
+      - name: Run docstring tests
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        continue-on-error: true
+        run: pytest --doctest-modules --ignore-glob=diffsims/tests/*
+
       - name: Run tests
         run: pytest --cov=diffsims --pyargs diffsims
 
