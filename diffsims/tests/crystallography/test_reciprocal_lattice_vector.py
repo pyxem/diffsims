@@ -23,6 +23,7 @@ from orix.vector import Miller, Vector3d
 import pytest
 
 from diffsims.crystallography import ReciprocalLatticeVector
+from diffsims.crystallography.reciprocal_lattice_vector import _get_set_per_hkl
 
 
 class TestReciprocalLatticeVector:
@@ -110,6 +111,7 @@ class TestReciprocalLatticeVector:
     def test_get_item(self, ferrite_phase):
         """Indexing gives desired vectors and properties carry over."""
         rlv = ReciprocalLatticeVector.from_min_dspacing(ferrite_phase, 1.5)
+        rlv.sanitise_phase()
         rlv.calculate_structure_factor()
         rlv.calculate_theta(voltage=20e3)
 
@@ -213,7 +215,7 @@ class TestReciprocalLatticeVector:
 
     @pytest.mark.parametrize(
         "voltage, hkl, desired_theta",
-        [(20e3, [1, 1, 1], 0.00259284), (200e3, [2, 0, 0], 0.00087484)],
+        [(20e3, [1, 1, 1], 0.0259313), (200e3, [2, 0, 0], 0.008748)],
     )
     def test_calculate_theta(self, ferrite_phase, voltage, hkl, desired_theta):
         """Bragg angle calculation gives desired value."""
@@ -254,14 +256,14 @@ class TestReciprocalLatticeVector:
         )
         assert np.allclose(rlv_sic.multiplicity, [1, 6])
 
-    def test_is_hexagonal(self, nickel_phase, silicon_carbide_phase):
+    def test_has_hexagonal_lattice(self, nickel_phase, silicon_carbide_phase):
         """Correct determination of which vector instance has an
-        hexagonal lattice.
+        hexagonal/tringonal lattice.
         """
         rlv_ni = ReciprocalLatticeVector(nickel_phase, hkl=[1, 1, 1])
         rlv_sic = ReciprocalLatticeVector(silicon_carbide_phase, hkl=[1, 1, 1])
-        assert not rlv_ni.is_hexagonal
-        assert rlv_sic.is_hexagonal
+        assert not rlv_ni.has_hexagonal_lattice
+        assert rlv_sic.has_hexagonal_lattice
 
     def test_symmetrise(self, nickel_phase):
         """Correct symmetrically equivalent vectors are obtained."""
@@ -285,17 +287,6 @@ class TestReciprocalLatticeVector:
         assert np.allclose(rlv4.hkl, rlv5.hkl)
         assert np.allclose(idx4, idx5)
 
-    def test_unique(self, nickel_phase):
-        """Correct unique vectors are obtained."""
-        rlv = ReciprocalLatticeVector(
-            nickel_phase, hkl=[[1, 1, 1], [-1, 1, 1], [2, 0, 0], [3, 1, 1]]
-        )
-        rlv2 = rlv.unique()
-        assert np.allclose(rlv.hkl, rlv2.hkl)
-        rlv3, idx3 = rlv.unique(use_symmetry=True, return_index=True)
-        assert np.allclose(rlv3.hkl, [[2, 0, 0], [1, 1, 1], [3, 1, 1]])
-        assert np.allclose(rlv[idx3].hkl, rlv3.hkl)
-
     def test_print_table(self, capsys, nickel_phase):
         """Correctly printed table with indices, structure factor values
         and multiplicity, per unique vector (family).
@@ -307,18 +298,19 @@ class TestReciprocalLatticeVector:
         rlv.print_table()
         captured = capsys.readouterr()
         assert captured.out == (
-            " h k l      d       I     |F|_hkl  I_Rel.   Mult \n"
-            " 1 1 1    2.034    nan      nan     nan      8   \n"
-            " 2 0 0    1.762    nan      nan     nan      6   \n"
+            " h k l      d     |F|_hkl   |F|^2   |F|^2_rel   Mult \n"
+            " 1 1 1    2.034     nan      nan       nan       8   \n"
+            " 2 0 0    1.762     nan      nan       nan       6   \n"
         )
 
+        rlv.sanitise_phase()
         rlv.calculate_structure_factor()
         rlv.print_table()
         captured = capsys.readouterr()
         assert captured.out == (
-            " h k l      d       I     |F|_hkl  I_Rel.   Mult \n"
-            " 1 1 1    2.034    8.7      3.0    100.0     8   \n"
-            " 2 0 0    1.762    6.8      2.6     77.3     6   \n"
+            " h k l      d     |F|_hkl   |F|^2   |F|^2_rel   Mult \n"
+            " 1 1 1    2.034    11.8     140.0     100.0      8   \n"
+            " 2 0 0    1.762    10.4     108.2      77.3      6   \n"
         )
 
     def test_coordinate_format(self, nickel_phase):
@@ -355,6 +347,99 @@ class TestReciprocalLatticeVector:
         miller3.coordinate_format = "uvw"
         with pytest.raises(ValueError, match="`Miller` instance must have "):
             _ = ReciprocalLatticeVector.from_miller(miller3)
+
+    def test_sanitise_phase(self, nickel_phase):
+        rlv = ReciprocalLatticeVector(nickel_phase, hkl=[[1, 1, 1], [2, 0, 0]])
+
+        assert len(rlv.phase.structure) == 1
+
+        rlv2 = rlv.deepcopy()
+        rlv2.sanitise_phase()
+        assert len(rlv.phase.structure) == 1
+        assert len(rlv2.phase.structure) == 4
+
+        rlv3 = rlv.deepcopy()
+        rlv3.phase.structure[0].element = 28
+        rlv3.sanitise_phase()
+        assert len(rlv3.phase.structure) == 4
+        assert rlv3.phase.structure[0].element == "Ni"
+
+    def test_get_hkl_sets(self, nickel_phase):
+        hkl = np.array(
+            [
+                [1, 1, 1],
+                [2, 0, 0],
+                [2, 2, 0],
+                [3, 1, 1],
+                [2, 2, 2],
+                [4, 0, 0],
+                [3, 3, 1],
+                [4, 2, 0],
+                [4, 2, 2],
+                [3, 3, 3],
+                [5, 1, 1],
+                [4, 4, 0],
+                [5, 3, 1],
+                [6, 0, 0],
+                [4, 4, 2],
+            ]
+        )
+        rlv = ReciprocalLatticeVector(nickel_phase, hkl=hkl)
+        assert rlv.size == 15
+        assert rlv.unique(use_symmetry=True).size == 15
+
+        hkl_sets = rlv.get_hkl_sets()
+
+        # Key and value type
+        keys = list(hkl_sets.keys())
+        values = list(hkl_sets.values())
+        assert isinstance(keys[0], tuple)
+        assert isinstance(values[0], tuple)
+        assert isinstance(values[0][0], np.ndarray)
+        assert len(hkl_sets) == 15
+
+        # Actual values and indexing into the vectors
+        order = [1, 5, 13, 2, 7, 11, 0, 3, 10, 6, 12, 4, 8, 14, 9]
+        for key, value in zip(hkl[order], order):
+            key_tuple = tuple(key)
+            assert np.allclose(hkl_sets[key_tuple][0], np.array([value]))
+            assert np.allclose(rlv[hkl_sets[key_tuple]].hkl, key)
+
+        # Test 2D navigation shape
+        rlv2 = rlv[:14].reshape(2, 7)
+        hkl_sets2 = rlv2.get_hkl_sets()
+
+        # Compare to previous sets
+        hkl_sets.pop((4, 4, 2))
+
+        # Compare keys
+        keys2 = list(hkl_sets2.keys())
+        assert np.allclose(list(hkl_sets.keys()), keys2)
+
+        # Value type
+        values2 = list(hkl_sets2.values())
+        assert len(values2[0]) == 2
+        assert isinstance(values2[0], tuple)
+        assert isinstance(values2[1][0], np.ndarray)
+
+        # Compare values
+        values3 = np.stack(list(hkl_sets.values())).ravel()
+        values3 = np.stack(np.unravel_index(values3, rlv2.shape))
+        assert np.allclose(values3, np.column_stack(values2))
+
+        # Index into the vectors with 2D navigation shape
+        for key, value in hkl_sets2.items():
+            assert np.allclose(rlv2[value].hkl, key)
+
+        # Cover Python function of (JIT compiled) Numba function
+        rlv3 = rlv[:2]
+        rlv_unique = rlv3.unique(use_symmetry=True)
+        rlv_symmetrised, mult = rlv_unique.symmetrise(return_multiplicity=True)
+        hkl = rlv3.hkl.reshape(-1, 3)
+        test_hkl = rlv_symmetrised.hkl.reshape(-1, 3)
+        hkl_set_idx_nb = _get_set_per_hkl(hkl, test_hkl, mult)
+        hkl_set_idx_py = _get_set_per_hkl.py_func(hkl, test_hkl, mult)
+        assert np.allclose(hkl_set_idx_nb, hkl_set_idx_py)
 
 
 class TestOverwrittenObject3d:
@@ -431,6 +516,17 @@ class TestOverwrittenObject3d:
         with pytest.raises(NotImplementedError):
             _ = ReciprocalLatticeVector.empty()
 
+    def test_unique(self, nickel_phase):
+        """Correct unique vectors are obtained."""
+        rlv = ReciprocalLatticeVector(
+            nickel_phase, hkl=[[1, 1, 1], [-1, 1, 1], [2, 0, 0], [3, 1, 1]]
+        )
+        rlv2 = rlv.unique()
+        assert np.allclose(rlv.hkl, rlv2.hkl)
+        rlv3, idx3 = rlv.unique(use_symmetry=True, return_index=True)
+        assert np.allclose(rlv3.hkl, [[2, 0, 0], [1, 1, 1], [3, 1, 1]])
+        assert np.allclose(rlv[idx3].hkl, rlv3.hkl)
+
 
 class TestOverwrittenVector3d:
     def setup_class(self):
@@ -446,6 +542,7 @@ class TestOverwrittenVector3d:
             hkl=[(1, 1, 1), (2, 0, 0), (2, 2, 0), (3, 1, 1), (2, 2, 2), (4, 0, 0)],
         )
         rlv.calculate_theta(20e3)
+        rlv.sanitise_phase()
         rlv.calculate_structure_factor()
         self.vector = rlv
 
@@ -501,6 +598,11 @@ class TestOverwrittenVector3d:
         with pytest.raises(NotImplementedError):
             _ = ReciprocalLatticeVector.from_polar(np.pi / 2, np.pi / 2)
 
+    def test_get_random_sample(self, tetragonal_phase):
+        rlv = ReciprocalLatticeVector(tetragonal_phase, hkl=[[1, 2, 0], [3, 1, 1]])
+        with pytest.raises(NotImplementedError):
+            _ = rlv.get_random_sample()
+
     def test_xvector(self):
         with pytest.raises(NotImplementedError):
             _ = ReciprocalLatticeVector.xvector()
@@ -512,3 +614,7 @@ class TestOverwrittenVector3d:
     def test_zvector(self):
         with pytest.raises(NotImplementedError):
             _ = ReciprocalLatticeVector.zvector()
+
+    def test_zero(self):
+        with pytest.raises(NotImplementedError):
+            _ = ReciprocalLatticeVector.zero((10,))
