@@ -43,6 +43,8 @@ ReciprocalLatticeVector
 
 .. currentmodule:: diffsims.crystallography.ReciprocalLatticeVector
 
+.. rubric:: Methods
+
 .. autosummary::
     angle_with
     calculate_structure_factor
