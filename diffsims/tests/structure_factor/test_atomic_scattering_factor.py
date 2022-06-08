@@ -47,11 +47,13 @@ def test_get_kinematical_atomic_scattering_factor(
 ):
     atom = Atom(atype=element, occupancy=occupancy, Uisoequiv=displacement_factor)
     factor1 = get_kinematical_atomic_scattering_factor(
-        atom=atom, scattering_parameter=scattering_parameter,
+        atom=atom,
+        scattering_parameter=scattering_parameter,
     )
     atom.element = ELEMENTS.index(element) + 1
     factor2 = get_kinematical_atomic_scattering_factor(
-        atom=atom, scattering_parameter=scattering_parameter,
+        atom=atom,
+        scattering_parameter=scattering_parameter,
     )
 
     assert np.allclose(factor1, desired_factor)
