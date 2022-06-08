@@ -208,7 +208,6 @@ def get_atomic_scattering_factors(g_hkl_sq, coeffs, scattering_params):
     -------
     scattering_factors : numpy.ndarray
         The calculated atomic scattering parameters.
-
     """
     g_sq_coeff_1 = np.outer(g_hkl_sq, coeffs[:, :, 1]).reshape(
         g_hkl_sq.shape + coeffs[:, :, 1].shape
@@ -251,6 +250,11 @@ def _get_kinematical_structure_factor(
     else:
         # Set all atomic scattering factors to 1
         atomic_scattering_factor = np.ones((gspacing_squared.shape[0], coeffs.shape[0]))
+
+    # Express the atom positions in the same reference frame as the
+    # Miller indices
+    mat = np.linalg.inv(np.dot(structure.lattice.stdbase, structure.lattice.recbase))
+    xyz = np.dot(xyz, mat)
 
     # Calculate the complex structure factor
     structure_factor = np.sum(
