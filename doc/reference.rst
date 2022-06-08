@@ -2,23 +2,95 @@
 API reference
 =============
 
-This reference manual details the public classes, modules and functions in diffsims as
-generated from their docstrings. Some of the docstrings contain examples.
+This reference manual details the public modules, classes, and functions in diffsims, as
+generated from their docstrings. Many of the docstrings contain examples. See the user
+guide for other ways to use diffsims.
 
 .. caution::
 
-    diffsims is in continuous development (alpha stage), so expect some breaking changes
-    with each release.
+    diffsims is in an alpha stage, so there may be breaking changes with each release.
+
+.. currentmodule:: diffsims
+
+The list of top modules:
+
+.. autosummary::
+
+    crystallography
+    generators
+    libraries
+    sims
+    structure_factor
+    utils
 
 ....
 
 crystallography
 ================
 
+.. currentmodule:: diffsims.crystallography
 .. automodule:: diffsims.crystallography
+
+.. autosummary::
+    ReciprocalLatticeVector
+    ReciprocalLatticePoint
+    get_equivalent_hkl
+    get_highest_hkl
+    get_hkl
+
+ReciprocalLatticeVector
+-----------------------
+
+.. currentmodule:: diffsims.crystallography.ReciprocalLatticeVector
+
+.. autosummary::
+    angle_with
+    calculate_structure_factor
+    calculate_theta
+    cross
+    deepcopy
+    dot
+    dot_outer
+    flatten
+    from_highest_hkl
+    from_min_dspacing
+    from_miller
+    get_hkl_sets
+    print_table
+    reshape
+    sanitise_phase
+    squeeze
+    stack
+    symmetrise
+    to_miller
+    transpose
+    unique
+
+.. currentmodule:: diffsims.crystallography
+
+.. autoclass:: ReciprocalLatticeVector
+    :members:  angle_with, calculate_structure_factor, calculate_theta, cross, deepcopy, dot, dot_outer, flatten, from_highest_hkl, from_min_dspacing, from_miller, get_hkl_sets, print_table, reshape, sanitise_phase, squeeze, stack, symmetrise, to_miller, transpose, unique
+    :undoc-members:
+    :show-inheritance:
+
+ReciprocalLatticePoint
+----------------------
+
+.. currentmodule:: diffsims.crystallography
+
+.. autoclass:: ReciprocalLatticePoint
     :members:
     :undoc-members:
     :show-inheritance:
+
+Functions
+---------
+
+.. currentmodule:: diffsims.crystallography
+
+.. autofunction:: get_equivalent_hkl
+.. autofunction:: get_highest_hkl
+.. autofunction:: get_hkl
 
 ....
 
