@@ -51,27 +51,31 @@ ReciprocalLatticeVector
     calculate_theta
     cross
     deepcopy
+    draw_circle
     dot
     dot_outer
     flatten
     from_highest_hkl
     from_min_dspacing
     from_miller
+    get_circle
     get_hkl_sets
     print_table
     reshape
     sanitise_phase
+    scatter
     squeeze
     stack
     symmetrise
     to_miller
+    to_polar
     transpose
     unique
 
 .. currentmodule:: diffsims.crystallography
 
 .. autoclass:: ReciprocalLatticeVector
-    :members:  angle_with, calculate_structure_factor, calculate_theta, cross, deepcopy, dot, dot_outer, flatten, from_highest_hkl, from_min_dspacing, from_miller, get_hkl_sets, print_table, reshape, sanitise_phase, squeeze, stack, symmetrise, to_miller, transpose, unique
+    :members: allowed, angle_with, azimuth, calculate_structure_factor, calculate_theta, coordinates, coordinate_format, cross, data, deepcopy, dim, dot, dot_outer, draw_circle, dspacing, flatten, from_highest_hkl, from_min_dspacing, from_miller, get_circle, get_hkl_sets, gspacing, has_hexagonal_lattice, hkl, hkil, h, k, i, l, multiplicity, ndim, polar, print_table, radial, reshape, sanitise_phase, scattering_parameter, scatter, shape, size, squeeze, stack, structure_factor, symmetrise, theta, to_miller, to_polar, transpose, unique, unit, x, xyz, y, z
     :undoc-members:
     :show-inheritance:
 
