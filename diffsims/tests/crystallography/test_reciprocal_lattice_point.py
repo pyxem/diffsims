@@ -29,7 +29,8 @@ class TestReciprocalLatticePoint:
         "hkl", [[[1, 1, 1], [2, 0, 0]], np.array([[1, 1, 1], [2, 0, 0]])]
     )
     def test_init_rlp(self, nickel_phase, hkl):
-        rlp = ReciprocalLatticePoint(phase=nickel_phase, hkl=hkl)
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint(phase=nickel_phase, hkl=hkl)
         assert rlp.phase.name == nickel_phase.name
         assert isinstance(rlp.hkl, Vector3d)
         assert rlp.structure_factor[0] is None
@@ -42,12 +43,13 @@ class TestReciprocalLatticePoint:
 
     @pytest.mark.parametrize("min_dspacing, desired_size", [(2, 9), (1, 19), (0.5, 83)])
     def test_init_from_min_dspacing(self, ferrite_phase, min_dspacing, desired_size):
-        assert (
-            ReciprocalLatticePoint.from_min_dspacing(
-                phase=ferrite_phase, min_dspacing=min_dspacing
-            ).size
-            == desired_size
-        )
+        with pytest.warns(np.VisibleDeprecationWarning):
+            assert (
+                ReciprocalLatticePoint.from_min_dspacing(
+                    phase=ferrite_phase, min_dspacing=min_dspacing
+                ).size
+                == desired_size
+            )
 
     @pytest.mark.parametrize(
         "highest_hkl, desired_highest_hkl, desired_lowest_hkl, desired_size",
@@ -65,15 +67,19 @@ class TestReciprocalLatticePoint:
         desired_lowest_hkl,
         desired_size,
     ):
-        rlp = ReciprocalLatticePoint.from_highest_hkl(
-            phase=silicon_carbide_phase, highest_hkl=highest_hkl
-        )
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint.from_highest_hkl(
+                phase=silicon_carbide_phase, highest_hkl=highest_hkl
+            )
         assert np.allclose(rlp[0].hkl.data, desired_highest_hkl)
         assert np.allclose(rlp[-1].hkl.data, desired_lowest_hkl)
         assert rlp.size == desired_size
 
     def test_repr(self, ferrite_phase):
-        rlp = ReciprocalLatticePoint.from_min_dspacing(ferrite_phase, min_dspacing=2)
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint.from_min_dspacing(
+                ferrite_phase, min_dspacing=2
+            )
         assert repr(rlp) == (
             f"ReciprocalLatticePoint (9,)\n"
             f"Phase: ferrite (m-3m)\n"
@@ -82,9 +88,10 @@ class TestReciprocalLatticePoint:
         )
 
     def test_get_item(self, ferrite_phase):
-        rlp = ReciprocalLatticePoint.from_min_dspacing(
-            phase=ferrite_phase, min_dspacing=1.5
-        )
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint.from_min_dspacing(
+                phase=ferrite_phase, min_dspacing=1.5
+            )
         rlp.calculate_structure_factor()
         rlp.calculate_theta(voltage=20e3)
 
@@ -103,45 +110,49 @@ class TestReciprocalLatticePoint:
         )
 
     def test_get_hkl(self, silicon_carbide_phase):
-        rlp = ReciprocalLatticePoint.from_min_dspacing(
-            silicon_carbide_phase, min_dspacing=3
-        )
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint.from_min_dspacing(
+                silicon_carbide_phase, min_dspacing=3
+            )
         assert np.allclose(rlp.h, [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0])
         assert np.allclose(rlp.k, [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0])
         assert np.allclose(rlp.l, [4, 3, 2, 1, 0, 4, 3, 2, 0, 4, 3, 2])
 
     def test_multiplicity(self, nickel_phase, silicon_carbide_phase):
-        assert np.allclose(
-            ReciprocalLatticePoint.from_min_dspacing(
-                phase=nickel_phase, min_dspacing=1
-            ).multiplicity,
-            # fmt: off
-            np.array([
-                8, 24, 24, 24, 12, 24, 48, 48, 24, 24, 48, 24, 24, 24, 6, 8, 24,
-                24, 12, 24, 48, 24, 24, 24,  6,  8, 24, 12, 24, 24,  6,  8, 12, 6
-            ])
-            # fmt: on
-        )
-        assert np.allclose(
-            ReciprocalLatticePoint.from_min_dspacing(
-                phase=silicon_carbide_phase, min_dspacing=1
-            ).multiplicity,
-            # fmt: off
-            np.array([
-                12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
-                12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 6,
-                6, 6, 6, 6, 6, 6, 6, 6, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
-                12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 6, 6, 6, 6, 6, 6, 6, 6, 6, 12,
-                12, 12, 12, 12, 12, 12, 12, 12, 12, 6, 6, 6, 6, 6, 6, 6, 6, 6, 1, 1,
-                1, 1, 1, 1, 1, 1
-            ])
-            # fmt: on
-        )
+        with pytest.warns(np.VisibleDeprecationWarning):
+            assert np.allclose(
+                ReciprocalLatticePoint.from_min_dspacing(
+                    phase=nickel_phase, min_dspacing=1
+                ).multiplicity,
+                # fmt: off
+                np.array([
+                    8, 24, 24, 24, 12, 24, 48, 48, 24, 24, 48, 24, 24, 24, 6, 8, 24,
+                    24, 12, 24, 48, 24, 24, 24,  6,  8, 24, 12, 24, 24,  6,  8, 12, 6
+                ])
+                # fmt: on
+            )
+        with pytest.warns(np.VisibleDeprecationWarning):
+            assert np.allclose(
+                ReciprocalLatticePoint.from_min_dspacing(
+                    phase=silicon_carbide_phase, min_dspacing=1
+                ).multiplicity,
+                # fmt: off
+                np.array([
+                    12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+                    12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 6,
+                    6, 6, 6, 6, 6, 6, 6, 6, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+                    12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+                    12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+                    1, 1, 1, 1, 1, 1, 1, 1
+                ])
+                # fmt: on
+            )
 
     def test_gspacing_dspacing_scattering_parameter(self, ferrite_phase):
-        rlp = ReciprocalLatticePoint.from_min_dspacing(
-            phase=ferrite_phase, min_dspacing=2
-        )
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint.from_min_dspacing(
+                phase=ferrite_phase, min_dspacing=2
+            )
         # fmt: off
         assert np.allclose(
             rlp.gspacing,
@@ -178,7 +189,8 @@ class TestReciprocalLatticePoint:
         ],
     )
     def test_allowed(self, space_group, hkl, centering, desired_allowed):
-        rlp = ReciprocalLatticePoint(phase=Phase(space_group=space_group), hkl=hkl)
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint(phase=Phase(space_group=space_group), hkl=hkl)
         assert rlp.phase.space_group.short_name[0] == centering
         assert np.allclose(rlp.allowed, desired_allowed)
 
@@ -188,47 +200,51 @@ class TestReciprocalLatticePoint:
         """
         phase = Phase(space_group=15)
         phase.space_group.short_name = "B"
-        rlp = ReciprocalLatticePoint(
-            phase=phase, hkl=[[1, 2, 2], [1, 1, -1], [1, 1, 2]]
-        )
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint(
+                phase=phase, hkl=[[1, 2, 2], [1, 1, -1], [1, 1, 2]]
+            )
         assert np.allclose(rlp.allowed, [False, True, False])
 
     def test_allowed_raises(self, silicon_carbide_phase):
         with pytest.raises(NotImplementedError):
-            _ = ReciprocalLatticePoint.from_min_dspacing(
-                phase=silicon_carbide_phase, min_dspacing=1
-            ).allowed
+            with pytest.warns(np.VisibleDeprecationWarning):
+                _ = ReciprocalLatticePoint.from_min_dspacing(
+                    phase=silicon_carbide_phase, min_dspacing=1
+                ).allowed
 
     def test_unique(self, ferrite_phase):
         hkl = [[-1, -1, -1], [1, 1, 1], [1, 0, 0], [0, 0, 1]]
-        rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=hkl)
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=hkl)
         assert isinstance(rlp.unique(), ReciprocalLatticePoint)
         assert np.allclose(rlp.unique(use_symmetry=False).hkl.data, hkl)
-        assert np.allclose(
-            rlp.unique(use_symmetry=True).hkl.data, [[1, 1, 1], [1, 0, 0]]
-        )
+        assert np.allclose(rlp.unique().hkl.data, [[1, 1, 1], [1, 0, 0]])
 
     def test_symmetrise(self):
-        assert np.allclose(
-            ReciprocalLatticePoint(phase=Phase(space_group=225), hkl=[1, 1, 1])
-            .symmetrise()
-            .hkl.data,
-            np.array(
-                [
-                    [1, 1, 1],
-                    [-1, 1, 1],
-                    [-1, -1, 1],
-                    [1, -1, 1],
-                    [1, -1, -1],
-                    [1, 1, -1],
-                    [-1, 1, -1],
-                    [-1, -1, -1],
-                ]
-            ),
-        )
-        rlp2, multiplicity = ReciprocalLatticePoint(
-            phase=Phase(space_group=186), hkl=[2, 2, 0]
-        ).symmetrise(return_multiplicity=True)
+        with pytest.warns(np.VisibleDeprecationWarning):
+            assert np.allclose(
+                ReciprocalLatticePoint(phase=Phase(space_group=225), hkl=[1, 1, 1])
+                .symmetrise()
+                .hkl.data,
+                np.array(
+                    [
+                        [1, 1, 1],
+                        [-1, 1, 1],
+                        [-1, -1, 1],
+                        [1, -1, 1],
+                        [1, -1, -1],
+                        [1, 1, -1],
+                        [-1, 1, -1],
+                        [-1, -1, -1],
+                    ]
+                ),
+            )
+
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp2, multiplicity = ReciprocalLatticePoint(
+                phase=Phase(space_group=186), hkl=[2, 2, 0]
+            ).symmetrise(return_multiplicity=True)
         assert multiplicity == 12
         assert np.allclose(
             rlp2.hkl.data,
@@ -247,9 +263,11 @@ class TestReciprocalLatticePoint:
                 [-2, 0, 0],
             ],
         )
-        rlp3 = ReciprocalLatticePoint(
-            phase=Phase(space_group=186), hkl=[2, 2, 0]
-        ).symmetrise(antipodal=False)
+
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp3 = ReciprocalLatticePoint(
+                phase=Phase(space_group=186), hkl=[2, 2, 0]
+            ).symmetrise(antipodal=False)
         assert np.allclose(
             rlp3.hkl.data,
             [[2, 2, 0], [-2, 0, 0], [0, -2, 0], [-2, -2, 0], [2, 0, 0], [0, 2, 0]],
@@ -266,12 +284,14 @@ class TestReciprocalLatticePoint:
     def test_calculate_structure_factor(
         self, ferrite_phase, method, voltage, hkl, desired_factor
     ):
-        rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=hkl)
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=hkl)
         rlp.calculate_structure_factor(method=method, voltage=voltage)
         assert np.allclose(rlp.structure_factor, desired_factor)
 
     def test_calculate_structure_factor_raises(self, ferrite_phase):
-        rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=[1, 0, 0])
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=[1, 0, 0])
         with pytest.raises(ValueError, match="method=man must be among"):
             rlp.calculate_structure_factor(method="man")
         with pytest.raises(ValueError, match="'voltage' parameter must be set when"):
@@ -282,12 +302,14 @@ class TestReciprocalLatticePoint:
         [(20e3, [1, 1, 1], 0.00259284), (200e3, [2, 0, 0], 0.00087484)],
     )
     def test_calculate_theta(self, ferrite_phase, voltage, hkl, desired_theta):
-        rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=hkl)
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=hkl)
         rlp.calculate_theta(voltage=voltage)
         assert np.allclose(rlp.theta, desired_theta)
 
     def test_one_point(self, ferrite_phase):
-        rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=[1, 1, 0])
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint(phase=ferrite_phase, hkl=[1, 1, 0])
 
         assert rlp.size == 1
         assert np.allclose(rlp.allowed, True)
@@ -295,11 +317,13 @@ class TestReciprocalLatticePoint:
     def test_init_without_point_group_raises(self):
         phase = Phase()
         with pytest.raises(ValueError, match=f"The phase {phase} must have a"):
-            _ = ReciprocalLatticePoint(phase=phase, hkl=[1, 1, 1])
+            with pytest.warns(np.VisibleDeprecationWarning):
+                _ = ReciprocalLatticePoint(phase=phase, hkl=[1, 1, 1])
 
     def test_get_allowed_without_space_group_raises(self):
         phase = Phase(point_group="432")
-        rlp = ReciprocalLatticePoint(phase=phase, hkl=[1, 1, 1])
+        with pytest.warns(np.VisibleDeprecationWarning):
+            rlp = ReciprocalLatticePoint(phase=phase, hkl=[1, 1, 1])
 
         with pytest.raises(ValueError, match=f"The phase {phase} must have a"):
             _ = rlp.allowed
