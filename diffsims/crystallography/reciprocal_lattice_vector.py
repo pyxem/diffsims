@@ -56,50 +56,6 @@ class ReciprocalLatticeVector(Vector3d):
     indices both in reciprocal *and* direct space. It supports relevant
     methods also supported in `Miller`, like obtaining a set of vectors
     from a minimal interplanar spacing.
-
-    Methods
-    -------
-    angle_with
-    calculate_structure_factor
-    calculate_theta
-    cross
-    deepcopy
-    dot
-    dot_outer
-    flatten
-    from_highest_hkl
-    from_miller
-    from_min_dspacing
-    get_hkl_sets
-    print_table
-    reshape
-    sanitise_phase
-    squeeze
-    stack
-    symmetrise
-    to_miller
-    transpose
-    unique
-
-    Properties
-    ----------
-    allowed
-    coordinate_format
-    coordinates
-    dspacing
-    gspacing
-    hkl
-    hkil
-    h
-    k
-    i
-    is_hexagonal
-    l
-    multiplicity
-    scattering_parameter
-    structure_factor
-    theta
-    unit
     """
 
     def __init__(self, phase, xyz=None, hkl=None, hkil=None):
@@ -658,8 +614,8 @@ class ReciprocalLatticeVector(Vector3d):
         Parameters
         ----------
         scattering_params : str
-            Which atomic scattering factors to use, either "xtables"
-            (default) or "lobato".
+            Which atomic scattering factors to use, either ``"xtables"``
+            (default) or ``"lobato"``.
 
         Examples
         --------
@@ -803,8 +759,9 @@ class ReciprocalLatticeVector(Vector3d):
 
         # Find the set for each vector. A Numba function is called,
         # requiring two 2D arrays and one 1D array of float64
-        hkl = self.hkl.reshape(-1, 3)
-        test_hkl = rlv_symmetrised.hkl.reshape(-1, 3)
+        hkl = self.hkl.reshape(-1, 3).astype(np.float64)
+        test_hkl = rlv_symmetrised.hkl.reshape(-1, 3).astype(np.float64)
+        mult = mult.astype(np.int64)
         hkl_set_idx = _get_set_per_hkl(hkl, test_hkl, mult)
 
         # Generate dictionary of {hkl} and the indices of vectors in
