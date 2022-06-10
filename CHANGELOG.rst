@@ -17,6 +17,8 @@ Added
   next to the diffraction spots.
 - Option to use None for ``scattering_params`` which ignores atomic scattering.
 - Python 3.10 support.
+- Class ``ReciprocalLatticeVector`` for handling generation, handling and plotting of
+  vectors. This class replaces ``ReciprocalLatticePoint``, which is deprecated.
 
 Changed
 -------
@@ -25,6 +27,11 @@ Changed
   6/mmm.
 - Loosened the angle tolerance in ``DiffractionLibrary.get_library_entry()`` from
   ``1e-5`` to ``1e-2``.
+
+Deprecated
+----------
+- Class ``ReciprocalLatticePoint`` is deprecated and will be removed in v0.6. Use
+  ``ReciprocalLatticeVector`` instead.
 
 2021-04-16 - version 0.4.2
 ==========================

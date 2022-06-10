@@ -46,11 +46,15 @@ def get_kinematical_atomic_scattering_factor(atom, scattering_parameter):
         Scattering factor for this atom on this plane.
     """
     # Get the atomic scattering parameters
-    element_id = get_element_id_from_string(atom.element)
+    element = atom.element
+    if isinstance(element, str):
+        element_id = get_element_id_from_string(element)
+    else:
+        element_id = int(element)
     a, b = get_atomic_scattering_parameters(element_id)
 
     # Get the scattering parameter squared
-    s2 = scattering_parameter ** 2
+    s2 = scattering_parameter**2
 
     # Get the atomic scattering factor
     f = element_id - (41.78214 * s2 * np.sum(a * np.exp(-b * s2)))
@@ -89,11 +93,15 @@ def get_doyleturner_atomic_scattering_factor(
         Scattering factor for this atom on this plane.
     """
     # Get the atomic scattering parameters
-    element_id = get_element_id_from_string(atom.element)
+    element = atom.element
+    if isinstance(element, str):
+        element_id = get_element_id_from_string(element)
+    else:
+        element_id = int(element)
     a, b = get_atomic_scattering_parameters(element_id)
 
     # Get the scattering parameter squared
-    s2 = scattering_parameter ** 2
+    s2 = scattering_parameter**2
 
     # Get the atomic scattering factor
     f = (47.87801 / unit_cell_volume) * np.sum(a * np.exp(-b * s2))

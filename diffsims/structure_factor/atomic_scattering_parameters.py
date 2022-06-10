@@ -190,8 +190,8 @@ def get_atomic_scattering_parameters(element, unit=None):
 
 
 def get_element_id_from_string(element_str):
-    """Get periodic element ID for elements Z = 1-98 from one-two letter
-    string.
+    r"""Get periodic element ID for elements :math:`Z` = 1-98 from
+    one-two letter string.
 
     Parameters
     ----------
@@ -206,3 +206,22 @@ def get_element_id_from_string(element_str):
     element2periodic = dict(zip(ELEMENTS[:N_ELEMENTS], np.arange(1, N_ELEMENTS)))
     element_id = element2periodic[element_str.lower()]
     return element_id
+
+
+def _get_string_from_element_id(element_id):
+    r"""Get one-two letter string for a periodic element ID :math:`Z`
+    within 1-98.
+
+    Parameters
+    ----------
+    element_id : int
+        Integer ID in the periodic table of elements.
+
+    Returns
+    -------
+    element_str : str
+        One-two letter string :math:`Z`.
+    """
+    periodic2element = dict(zip(np.arange(1, N_ELEMENTS), ELEMENTS[:N_ELEMENTS]))
+    element_str = periodic2element[element_id].capitalize()
+    return element_str

@@ -18,6 +18,7 @@
 
 from collections import defaultdict
 from itertools import product
+from warnings import warn
 
 import numpy as np
 from orix.vector import Vector3d
@@ -33,9 +34,15 @@ _FLOAT_EPS = np.finfo(float).eps  # Used to round values below 1e-16 to zero
 
 
 class ReciprocalLatticePoint:
-    """Reciprocal lattice point (or crystal plane, reflector, g, etc.)
-    with Miller indices, length of the reciprocal lattice vectors and
-    other relevant structure_factor parameters.
+    """*[Deprecated]* Reciprocal lattice point (or crystal plane,
+    reflector, g, etc.) with Miller indices, length of the reciprocal
+    lattice vectors and other relevant structure_factor parameters.
+
+    Notes
+    -----
+    Deprecated since version 0.5: Class ``ReciprocalLatticePoint`` is
+    deprecated and will be removed in version 0.6. Use
+    :class:`~diffsims.crystallography.ReciprocalLatticeVector` instead.
     """
 
     def __init__(self, phase, hkl):
@@ -50,7 +57,17 @@ class ReciprocalLatticePoint:
             point group describing the allowed symmetry operations.
         hkl : orix.vector.Vector3d, np.ndarray, list, or tuple
             Miller indices.
+
         """
+
+        warn(
+            message=(
+                "Class `ReciprocalLatticePoint` is deprecated and will be removed in "
+                "version 0.6. Use `ReciprocalLatticeVector` instead."
+            ),
+            category=np.VisibleDeprecationWarning,
+        )
+
         self.phase = phase
         self._raise_if_no_point_group()
         self._hkl = Vector3d(hkl)

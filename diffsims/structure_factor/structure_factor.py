@@ -166,12 +166,12 @@ def get_doyleturner_structure_factor(
             structure_factor += f * np.exp(-arg * 1j)
 
     # Relativistic correction factor of wavelength
-    gamma_relcor = 1 + (2 * e * 0.5 * voltage / rest_mass / (c ** 2))
+    gamma_relcor = 1 + (2 * e * 0.5 * voltage / rest_mass / (c**2))
     # Mean inner potential
     v_mod = abs(structure_factor) * gamma_relcor
     v_phase = np.arctan2(structure_factor.imag, structure_factor.real)
     v_g = v_mod * np.exp(v_phase * 1j)
-    pre = 2 * (rest_mass * e / h ** 2) * 1e-18
+    pre = 2 * (rest_mass * e / h**2) * 1e-18
     structure_factor = (pre * v_g).real
 
     if return_parameters:
@@ -194,7 +194,7 @@ def get_refraction_corrected_wavelength(phase, voltage):
 
     Parameters
     ----------
-    phase : orix.crystal_map.phase_list.Phase
+    phase : orix.crystal_map.Phase
         A phase container with a crystal structure and a space and point
         group describing the allowed symmetry operations.
     voltage : float
@@ -207,10 +207,10 @@ def get_refraction_corrected_wavelength(phase, voltage):
         Ångströms.
     """
     temp1 = 1e9 * h / np.sqrt(2 * rest_mass * e)
-    temp2 = e * 0.5 * voltage / rest_mass / (c ** 2)
+    temp2 = e * 0.5 * voltage / rest_mass / (c**2)
 
-    # Relativistic correction factor (known as gamma). (This is used by EMsoft but not
-    # here, for now.)
+    # Relativistic correction factor (known as gamma). (This is used by
+    # EMsoft but not here, for now.)
     # gamma_relcor = 1 + (2 * temp2)
 
     # Relativistic acceleration voltage
@@ -226,7 +226,8 @@ def get_refraction_corrected_wavelength(phase, voltage):
     psi_hat += v_mod
     wavelength = temp1 / np.sqrt(psi_hat)
 
-    # Interaction constant sigma (this is used by EMsoft but not here, for now)
+    # Interaction constant sigma (this is used by EMsoft but not here,
+    # for now)
     # sigma = 1e-18 * (2 * np.pi * rest_mass * gamma_relcor * e * wavelength) / h ** 2
 
     return wavelength
