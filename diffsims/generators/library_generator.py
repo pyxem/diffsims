@@ -107,43 +107,9 @@ class DiffractionLibraryGenerator:
             shape_factor_width = max_excitation_error
         # Iterate through phases in library.
         for phase_name in structure_library.struct_lib.keys():
-            phase_diffraction_library = dict()
             structure = structure_library.struct_lib[phase_name][0]
             orientations = structure_library.struct_lib[phase_name][1]
 
-            num_orientations = len(orientations)
-            simulations = np.empty(num_orientations, dtype="object")
-            pixel_coords = np.empty(num_orientations, dtype="object")
-            intensities = np.empty(num_orientations, dtype="object")
-            # Iterate through orientations of each phase.
-            for i, orientation in enumerate(tqdm(orientations, leave=False)):
-                simulation = diffractor.calculate_ed_data(
-                    structure,
-                    reciprocal_radius,
-                    rotation=orientation,
-                    with_direct_beam=with_direct_beam,
-                    max_excitation_error=max_excitation_error,
-                    shape_factor_width=shape_factor_width,
-                    debye_waller_factors=debye_waller_factors,
-                )
-
-                # Calibrate simulation
-                simulation.calibration = calibration
-                pixel_coordinates = np.rint(
-                    simulation.calibrated_coordinates[:, :2] + half_shape
-                ).astype(int)
-
-                # Construct diffraction simulation library
-                simulations[i] = simulation
-                pixel_coords[i] = pixel_coordinates
-                intensities[i] = simulation.intensities
-
-            diffraction_library[phase_name] = {
-                "simulations": simulations,
-                "orientations": orientations,
-                "pixel_coords": pixel_coords,
-                "intensities": intensities,
-            }
         # Pass attributes to diffraction library from structure library.
         diffraction_library.identifiers = structure_library.identifiers
         diffraction_library.structures = structure_library.structures

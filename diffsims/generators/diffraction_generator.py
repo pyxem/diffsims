@@ -18,16 +18,19 @@
 
 """Electron diffraction pattern simulation."""
 
+from typing import Tuple, Mapping, Sequence
+
 import numpy as np
 from scipy.integrate import quad
 from transforms3d.euler import euler2mat
+from diffpy.structure.structure import Structure
 
 from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.sims.diffraction_simulation import ProfileSimulation
 from diffsims.utils.sim_utils import (
     get_electron_wavelength,
     get_kinematical_intensities,
-    get_points_in_sphere,
+    ReciprocalSpaceSample,
     is_lattice_hexagonal,
     get_intensities_params,
 )
@@ -190,43 +193,134 @@ class DiffractionGenerator(object):
                 "implementations.".format(scattering_params)
             )
 
-    def calculate_ed_data(
+    def calculate_diffraction_patterns(
         self,
-        structure,
-        reciprocal_radius,
-        rotation=(0, 0, 0),
+        structure: Structure,
+        reciprocal_radius: float,
+        orientations: np.ndarray,
         with_direct_beam=True,
         max_excitation_error=1e-2,
         shape_factor_width=None,
-        debye_waller_factors={},
-    ):
+        debye_waller_factors: Mapping[str, float] = None,
+        workers: float = 1,
+    ) -> Mapping[str, np.ndarray]:
         """Calculates the Electron Diffraction data for a structure.
 
         Parameters
         ----------
-        structure : diffpy.structure.structure.Structure
+        structure
             The structure for which to derive the diffraction pattern.
-            Note that the structure must be rotated to the appropriate
-            orientation and that testing is conducted on unit cells
-            (rather than supercells).
-        reciprocal_radius : float
+        reciprocal_radius
             The maximum radius of the sphere of reciprocal space to
             sample, in reciprocal Angstroms.
-        rotation : tuple
-            Euler angles, in degrees, in the rzxz convention. Default is
-            (0, 0, 0) which aligns 'z' with the electron beam.
-        with_direct_beam : bool
+        orientations
+            (N, 3) shaped array of Euler angles, in degrees, in the rzxz convention.
+        with_direct_beam
             If True, the direct beam is included in the simulated
             diffraction pattern. If False, it is not.
-        max_excitation_error : float
+        max_excitation_error
             The cut-off for geometric excitation error in the z-direction
             in units of reciprocal Angstroms. Spots with a larger distance
             from the Ewald sphere are removed from the pattern.
             Related to the extinction distance and roungly equal to 1/thickness.
-        shape_factor_width : float
+        shape_factor_width
             Determines the width of the reciprocal rel-rod, for fine-grained
             control. If not set will be set equal to max_excitation_error.
-        debye_waller_factors : dict of str:value pairs
+        debye_waller_factors
+            Maps element names to their temperature-dependent Debye-Waller factors.
+
+        Returns
+        -------
+        diffsims.sims.diffraction_simulation.DiffractionSimulation
+
+        """
+        if debye_waller_factors is None:
+            debye_waller_factors = {}
+
+        num_orientations = len(orientations)
+        simulations = np.empty(num_orientations, dtype="object")
+        pixel_coords = np.empty(num_orientations, dtype="object")
+        intensities = np.empty(num_orientations, dtype="object")
+
+        # Obtain crystallographic reciprocal lattice points within `reciprocal_radius` and
+        # g-vector magnitudes for intensity calculations.
+        real_lattice = structure.lattice
+        reciprocal_lattice = real_lattice.reciprocal()
+        reciprocal_space_sample = ReciprocalSpaceSample.from_radius(
+            reciprocal_lattice, reciprocal_radius
+        )
+
+        for i, orientation in enumerate(tqdm(orientations)):
+            simulation = self._calculate_individual_pattern(
+                structure,
+                point_grid=reciprocal_space_sample,
+                rotation=orientation,
+                with_direct_beam=with_direct_beam,
+                max_excitation_error=max_excitation_error,
+                shape_factor_width=shape_factor_width,
+                debye_waller_factors=debye_waller_factors,
+            )
+
+            # Calibrate simulation
+            simulation.calibration = calibration
+            pixel_coordinates = np.rint(
+                simulation.calibrated_coordinates[:, :2] + half_shape
+            ).astype(int)
+
+            # Construct diffraction simulation library
+            simulations[i] = simulation
+            pixel_coords[i] = pixel_coordinates
+            intensities[i] = simulation.intensities
+
+        return {
+            "simulations": simulations,
+            "orientations": orientations,
+            "pixel_coords": pixel_coords,
+            "intensities": intensities,
+        }
+
+    def _calculate_individual_pattern(
+        self,
+    ) -> DiffractionSimulation:
+        pass
+
+    def calculate_ed_data(
+        self,
+        structure: Structure,
+        reciprocal_radius: float,
+        rotation: Tuple[float, float, float] = (0., 0., 0.),
+        with_direct_beam: bool = True,
+        max_excitation_error: float = 1e-2,
+        shape_factor_width: float = None,
+        debye_waller_factors: Mapping[str, float] = None,
+    ) -> DiffractionSimulation:
+        """Calculates the Electron Diffraction data for a structure.
+
+        Parameters
+        ----------
+        structure
+            The structure for which to derive the diffraction pattern.
+            Note that the structure must be rotated to the appropriate
+            orientation and that testing is conducted on unit cells
+            (rather than supercells).
+        reciprocal_radius
+            The maximum radius of the sphere of reciprocal space to
+            sample, in reciprocal Angstroms.
+        rotation
+            Euler angles, in degrees, in the rzxz convention. Default is
+            (0, 0, 0) which aligns 'z' with the electron beam.
+        with_direct_beam
+            If True, the direct beam is included in the simulated
+            diffraction pattern. If False, it is not.
+        max_excitation_error
+            The cut-off for geometric excitation error in the z-direction
+            in units of reciprocal Angstroms. Spots with a larger distance
+            from the Ewald sphere are removed from the pattern.
+            Related to the extinction distance and roungly equal to 1/thickness.
+        shape_factor_width
+            Determines the width of the reciprocal rel-rod, for fine-grained
+            control. If not set will be set equal to max_excitation_error.
+        debye_waller_factors
             Maps element names to their temperature-dependent Debye-Waller factors.
 
         Returns
@@ -234,15 +328,18 @@ class DiffractionGenerator(object):
         diffsims.sims.diffraction_simulation.DiffractionSimulation
             The data associated with this structure and diffraction setup.
         """
+        if debye_waller_factors is None:
+            debye_waller_factors = {}
+
         # Specify variables used in calculation
         wavelength = self.wavelength
-        latt = structure.lattice
+        real_lattice = structure.lattice
 
         # Obtain crystallographic reciprocal lattice points within `reciprocal_radius` and
         # g-vector magnitudes for intensity calculations.
-        recip_latt = latt.reciprocal()
+        reciprocal_lattice = real_lattice.reciprocal()
         g_indices, cartesian_coordinates, g_hkls = get_points_in_sphere(
-            recip_latt, reciprocal_radius
+            reciprocal_lattice, reciprocal_radius
         )
 
         ai, aj, ak = (
@@ -365,9 +462,9 @@ class DiffractionGenerator(object):
 
         # Obtain crystallographic reciprocal lattice points within range
         recip_latt = latt.reciprocal()
-        spot_indices, _, spot_distances = get_points_in_sphere(
-            recip_latt, reciprocal_radius
-        )
+        sampled_space = ReciprocalSpaceSample.from_radius(recip_latt, reciprocal_radius)
+        spot_indices = sampled_space.spot_indices
+        spot_distances = sampled_space.spot_distances
 
         ##spot_indicies is a numpy.array of the hkls allowd in the recip radius
         g_indices, multiplicities, g_hkls = get_intensities_params(
