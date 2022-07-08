@@ -18,6 +18,9 @@
 
 import math
 
+from orix.vector import Vector3d
+from orix.quaternion import Rotation
+
 import numpy as np
 
 

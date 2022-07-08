@@ -16,111 +16,28 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+from typing import Sequence, Optional
+from dataclasses import dataclass
 import pickle
 
 import numpy as np
+from diffpy.structure import Structure
+
+from diffsims.generators.diffraction_generator import DiffractionGenerator
 
 
-__all__ = [
-    "DiffractionLibrary",
-    "load_DiffractionLibrary",
-]
-
-
-def load_DiffractionLibrary(filename, safety=False):
-    """Loads a previously saved diffraction library.
-
-    Parameters
-    ----------
-    filename : str
-        The location of the file to be loaded.
-    safety : bool
-        Unpickling is risky, this variable requires you to acknowledge
-        this. Default is False.
-
-    Returns
-    -------
-    DiffractionLibrary
-        Previously saved Library.
-
-    See Also
-    --------
-    DiffractionLibrary.pickle_library
-
-    """
-    if safety:
-        with open(filename, "rb") as handle:
-            return pickle.load(handle)
-    else:
-        raise RuntimeError(
-            "Unpickling is risky, turn safety to True if you trust the author of this "
-            "content"
-        )
-
-
-def _get_library_entry_from_angles(library, phase, angles):
-    """Finds an element that is orientation within 1e-2 of that
-    specified.
-
-    This is necessary because of floating point round off / hashability.
-    If multiple entries satisfy the above criterion a random (the first
-    hit) selection is made.
-
-    Parameters
-    ----------
-    library : DiffractionLibrary
-        The library to be searched.
-    phase : str
-        The phase of interest.
-    angles : tuple
-        The orientation of interest as a tuple of Euler angles in
-        degrees, following the Bunge convention [z, x, z].
-
-    Returns
-    -------
-    orientation_index : int
-        Index of the given orientation.
-
-    """
-
-    phase_entry = library[phase]
-    for orientation_index, orientation in enumerate(phase_entry["orientations"]):
-        if np.sum(np.abs(np.subtract(orientation, angles))) < 1e-2:
-            return orientation_index
-
-    # We haven't found a suitable key
-    raise ValueError(
-        "It appears that no library entry lies with 1e-2 of the target angle"
-    )
-
-
-class DiffractionLibrary(dict):
+@dataclass
+class DiffractionLibrary:
     """Maps crystal structure (phase) and orientation to simulated diffraction
     data.
-
-    Attributes
-    ----------
-    identifiers : list of strings/ints
-        A list of phase identifiers referring to different atomic structures.
-    structures : list of diffpy.structure.Structure objects.
-        A list of diffpy.structure.Structure objects describing the atomic
-        structure associated with each phase in the library.
-    diffraction_generator : DiffractionGenerator
-        Diffraction generator used to generate this library.
-    reciprocal_radius : float
-        Maximum g-vector magnitude for peaks in the library.
-    with_direct_beam : bool
-        Whether the direct beam included in the library or not.
-
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.identifiers = None
-        self.structures = None
-        self.diffraction_generator = None
-        self.reciprocal_radius = 0.0
-        self.with_direct_beam = False
+    identifiers: Optional[Sequence[str]] = None
+    structures: Optional[Sequence[Structure]] = None
+    diffraction_generator: Optional[DiffractionGenerator] = None
+    reciprocal_radius: float = 0.0
+    with_direct_beam: bool = False
 
     def get_library_entry(self, phase=None, angle=None):
         """Extracts a single DiffractionLibrary entry.
@@ -131,7 +48,7 @@ class DiffractionLibrary(dict):
             Key for the phase of interest. If unspecified the choice is random.
         angle : tuple
             The orientation of interest as a tuple of Euler angles following the
-            Bunge convention [z, x, z] in degrees. If unspecified the choise is
+            Bunge convention [z, x, z] in degrees. If unspecified the choice is
             random (the first hit).
 
         Returns
@@ -144,7 +61,7 @@ class DiffractionLibrary(dict):
         if phase is not None:
             phase_entry = self[phase]
             if angle is not None:
-                orientation_index = _get_library_entry_from_angles(self, phase, angle)
+                orientation_index = self._get_library_entry_from_angles(self, phase, angle)
             else:
                 orientation_index = 0
         elif angle is not None:
@@ -162,7 +79,7 @@ class DiffractionLibrary(dict):
             ),
         }
 
-    def pickle_library(self, filename):
+    def save(self, filename: str) -> None:
         """Saves a diffraction library in the pickle format.
 
         Parameters
@@ -172,8 +89,79 @@ class DiffractionLibrary(dict):
 
         See Also
         --------
-        load_DiffractionLibrary()
+        DiffractionLibrary.load
 
         """
         with open(filename, "wb") as handle:
             pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    @classmethod
+    def load(
+        cls,
+        filename: str,
+        safety: bool = False
+    ) -> DiffractionLibrary:
+        """Loads a previously saved diffraction library.
+
+        Parameters
+        ----------
+        filename
+            The location of the file to be loaded.
+        safety
+            Unpickling is risky, this variable requires you to acknowledge
+            this. Default is False.
+
+        Returns
+        -------
+        DiffractionLibrary
+            Previously saved Library.
+
+        See Also
+        --------
+        DiffractionLibrary.save
+
+        """
+        if safety:
+            with open(filename, "rb") as handle:
+                return pickle.load(handle)
+        else:
+            raise RuntimeError(
+                "Unpickling is risky, turn safety to True if you trust the author of this "
+                "content"
+            )
+
+    @classmethod
+    def _get_library_entry_from_angles(cls, phase, angles):
+        """Finds an element that is orientation within 1e-2 of that
+        specified.
+
+        This is necessary because of floating point round off / hashability.
+        If multiple entries satisfy the above criterion a random (the first
+        hit) selection is made.
+
+        Parameters
+        ----------
+        library : DiffractionLibrary
+            The library to be searched.
+        phase : str
+            The phase of interest.
+        angles : tuple
+            The orientation of interest as a tuple of Euler angles in
+            degrees, following the Bunge convention [z, x, z].
+
+        Returns
+        -------
+        orientation_index : int
+            Index of the given orientation.
+
+        """
+
+        phase_entry = library[phase]
+        for orientation_index, orientation in enumerate(phase_entry["orientations"]):
+            if np.sum(np.abs(np.subtract(orientation, angles))) < 1e-2:
+                return orientation_index
+
+        # We haven't found a suitable key
+        raise ValueError(
+            "It appears that no library entry lies with 1e-2 of the target angle"
+        )

@@ -20,12 +20,16 @@
 """
 
 import numpy as np
+from typing import Tuple, Optional, Mapping
 from tqdm import tqdm
+from dataclasses import dataclass, field
 
 from diffsims.libraries.diffraction_library import DiffractionLibrary
 from diffsims.libraries.vector_library import DiffractionVectorLibrary
+from diffsims.libraries.structure_library import StructureLibrary
+from diffsims.generators import DiffractionGenerator
 
-from diffsims.utils.sim_utils import get_points_in_sphere
+from diffsims.utils.sim_utils import ReciprocalSpaceSample
 from diffsims.utils.vector_utils import get_angle_cartesian_vec
 
 
@@ -35,66 +39,63 @@ __all__ = [
 ]
 
 
+@dataclass
 class DiffractionLibraryGenerator:
     """Computes a library of electron diffraction patterns for specified atomic
     structures and orientations.
+
+    Parameters
+    ----------
+    electron_diffraction_calculator
+        The calculator used to simulate diffraction patterns.
+    structure_library
+        Dictionary of structures and associated orientations for which
+        electron diffraction is to be simulated.
+    reciprocal_radius
+        The maximum g-vector magnitude to be included in the simulations.
+    with_direct_beam
+        Include the direct beam in the library.
+    max_excitation_error
+        The extinction distance for reflections, in reciprocal Angstroms.
+    shape_factor_width
+        Determines the width of the shape functions of the reflections in
+        Angstroms. If not set is equal to max_excitation_error.
+    debye_waller_factors : dict of str:value pairs
+        Maps element names to their temperature-dependent Debye-Waller factors.
+    calibration
+        The calibration of experimental data to be correlated with the
+        library, in reciprocal Angstroms per pixel.
+    half_shape
+        The half shape of the target patterns in pixels, for 144x144 use
+        (72,72) etc.
     """
 
-    def __init__(self, electron_diffraction_calculator):
-        """Initialises the generator with a diffraction calculator.
+    electron_diffraction_calculator: DiffractionGenerator
+    structure_library: StructureLibrary
+    reciprocal_radius: float
+    with_direct_beam: bool = True
+    max_excitation_error: float = 1e-2
+    shape_factor_width: Optional[float] = None
+    debye_waller_factors: Optional[Mapping[str, float]] = None
+    calibration: Optional[float] = None
+    half_shape: Optional[Tuple[int, int]] = None
 
-        Parameters
-        ----------
-        electron_diffraction_calculator : :class:`DiffractionGenerator`
-            The calculator used to simulate diffraction patterns.
-        """
-        self.electron_diffraction_calculator = electron_diffraction_calculator
+    def __post_init__(self):
+        if self.shape_factor_width is None:
+            self.shape_factor_width = self.max_excitation_error
+        if self.debye_waller_factors is None:
+            self.debye_waller_factors = {}
 
-    def get_diffraction_library(
-        self,
-        structure_library,
-        calibration,
-        reciprocal_radius,
-        half_shape,
-        with_direct_beam=True,
-        max_excitation_error=1e-2,
-        shape_factor_width=None,
-        debye_waller_factors={},
-    ):
+    def calculate_library(self) -> DiffractionLibrary:
         """Calculates a dictionary of diffraction data for a library of crystal
         structures and orientations.
 
         Each structure in the structure library is rotated to each associated
         orientation and the diffraction pattern is calculated each time.
 
-        Angles must be in the Euler representation (Z,X,Z) and in degrees
-
-        Parameters
-        ----------
-        structure_library : difffsims:StructureLibrary Object
-            Dictionary of structures and associated orientations for which
-            electron diffraction is to be simulated.
-        calibration : float
-            The calibration of experimental data to be correlated with the
-            library, in reciprocal Angstroms per pixel.
-        reciprocal_radius : float
-            The maximum g-vector magnitude to be included in the simulations.
-        half_shape : tuple
-            The half shape of the target patterns, for 144x144 use (72,72) etc
-        with_direct_beam : bool
-            Include the direct beam in the library.
-        max_excitation_error : float
-            The extinction distance for reflections, in reciprocal
-            Angstroms.
-        shape_factor_width : float
-            Determines the width of the shape functions of the reflections in
-            Angstroms. If not set is equal to max_excitation_error.
-        debye_waller_factors : dict of str:value pairs
-            Maps element names to their temperature-dependent Debye-Waller factors.
-
         Returns
         -------
-        diffraction_library : :class:`DiffractionLibrary`
+        DiffractionLibrary
             Mapping of crystal structure and orientation to diffraction data
             objects.
 
@@ -103,8 +104,6 @@ class DiffractionLibraryGenerator:
         diffraction_library = DiffractionLibrary()
         # The electron diffraction calculator to do simulations
         diffractor = self.electron_diffraction_calculator
-        if shape_factor_width is None:
-            shape_factor_width = max_excitation_error
         # Iterate through phases in library.
         for phase_name in structure_library.struct_lib.keys():
             structure = structure_library.struct_lib[phase_name][0]

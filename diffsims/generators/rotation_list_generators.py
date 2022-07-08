@@ -19,19 +19,17 @@
 """Provides users with a range of gridding functions."""
 
 import numpy as np
+from typing import Mapping, Optional
 
 from orix.sampling.sample_generators import get_sample_fundamental, get_sample_local
 from orix.quaternion.rotation import Rotation
 from orix.vector.neo_euler import AxAngle
+from orix.quaternion import Symmetry, symmetry
+from orix.sampling import sample_S2
+from orix.vector import Vector3d
 
 from diffsims.utils.sim_utils import uvtw_to_uvw
-from diffsims.generators.sphere_mesh_generators import (
-    get_uv_sphere_mesh_vertices,
-    get_cube_mesh_vertices,
-    get_icosahedral_mesh_vertices,
-    get_random_sphere_vertices,
-    beam_directions_grid_to_euler,
-)
+from diffsims.utils.orientation_utils import ConstrainedRotation
 
 
 __all__ = [
@@ -42,18 +40,19 @@ __all__ = [
     "get_local_grid",
 ]
 
+# for all other systems, determine it from the triangle vertices
 # Corners determined by requiring a complete coverage of the pole figure. The pole
 # figures are plotted with MTEX without implying any crystal symmetry. The plotted
 # orientations are obtained by converting vectors returned by get_beam_directions_grid()
 # into Euler angles using the procedure by GitHub user @din14970 described here:
 # https://github.com/pyxem/orix/issues/125#issuecomment-698956290.
-crystal_system_dictionary = {
-    "cubic": [(0, 0, 1), (1, 1, 1), (1, 0, 1)],
-    "hexagonal": [(0, 0, 0, 1), (9, 1, -10, 0), (2, -1, -1, 0)],
-    "trigonal": [(0, 0, 0, 1), (-2, 1, 1, 0), (-1, 2, -1, 0)],
-    "tetragonal": [(0, 0, 1), (1, 0, 0), (1, 1, 0)],
-    "orthorhombic": [(0, 0, 1), (-1, 0, 0), (0, 1, 0)],
-    "monoclinic": [(0, -1, 0), (0, 0, 1), (0, 1, 0)],
+_CRYSTAL_SYSTEM_DICTIONARY = {
+    "cubic": ((0, 0, 1), (1, 1, 1), (1, 0, 1)),
+    "hexagonal": ((0, 0, 0, 1), (9, 1, -10, 0), (2, -1, -1, 0)),
+    "trigonal": ((0, 0, 0, 1), (-2, 1, 1, 0), (-1, 2, -1, 0)),
+    "tetragonal": ((0, 0, 1), (1, 0, 0), (1, 1, 0)),
+    "orthorhombic": ((0, 0, 1), (-1, 0, 0), (0, 1, 0)),
+    "monoclinic": ((0, -1, 0), (0, 0, 1), (0, 1, 0)),
 }
 
 
@@ -175,95 +174,50 @@ def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 
     return rotation_list
 
 
-def get_beam_directions_grid(crystal_system, resolution, mesh="spherified_cube_edge"):
-    """Produces an array of beam directions, within the stereographic
-    triangle of the relevant crystal system. The way the array is
-    constructed is based on different methods of meshing the sphere
-    [Cajaravelli2015]_ and can be specified through the `mesh` argument.
+def get_reduced_fundamental_zone_grid(
+    resolution: float,
+    mesh: str = None,
+    point_group: Symmetry = None,
+) -> ConstrainedRotation:
+    """Produces orientations to align various crystallographic directions with
+    the z-axis, with the constraint that the first Euler angle phi_1=0.
+    The crystallographic directions sample the fundamental zone, representing
+    the smallest region of symmetrically unique directions of the relevant
+    crystal system or point group.
 
     Parameters
     ----------
-    crystal_system : str
-        Allowed are: 'cubic','hexagonal','trigonal','tetragonal',
-        'orthorhombic','monoclinic','triclinic'
-    resolution : float
-        An angle in degrees representing the worst-case angular
-        distance to a first nearest neighbor grid point.
-    mesh : str
-        Type of meshing of the sphere that defines how the grid is
-        created. Options are: uv_sphere, normalized_cube,
-        spherified_cube_corner (default), spherified_cube_edge,
-        icosahedral, random.
+    resolution
+        An angle in degrees representing the maximum angular distance to a
+        first nearest neighbor grid point.
+    mesh
+        Type of meshing of the sphere that defines how the grid is created. See
+        orix.sampling.sample_S2 for all the options. A suitable default is
+        chosen depending on the crystal system.
+    point_group
+        Symmetry operations that determines the unique directions. Defaults to
+        no symmetry, which means sampling all 3D unit vectors.
 
     Returns
     -------
-    rotation_list : list of tuples
+    ConstrainedRotation
+        (N, 3) array representing Euler angles for the different orientations
     """
-    if mesh == "uv_sphere":
-        points_in_cartesians = get_uv_sphere_mesh_vertices(resolution)
-    elif mesh == "spherified_cube_corner":
-        points_in_cartesians = get_cube_mesh_vertices(
-            resolution, grid_type="spherified_corner"
-        )
-    elif mesh == "icosahedral":
-        points_in_cartesians = get_icosahedral_mesh_vertices(resolution)
+    if point_group is None:
+        point_group = symmetry.C1
 
-    elif mesh == "normalized_cube" or mesh == "spherified_cube_edge":
-        # special case: hexagon is a very small slice and 001 point can
-        # be isolated. Hence we increase resolution to ensure minimum angle.
-        if crystal_system == "hexagonal":
-            resolution = resolution / np.sqrt(2)
+    if mesh is None:
+        s2_auto_sampling_map = {
+            "triclinic": "icosahedral",
+            "monoclinic": "icosahedral",
+            "orthorhombic": "spherified_cube_edge",
+            "tetragonal": "spherified_cube_edge",
+            "cubic": "spherified_cube_edge",
+            "trigonal": "hexagonal",
+            "hexagonal": "hexagonal",
+        }
+        mesh = s2_auto_sampling_map[point_group.system]
 
-        if mesh == "normalized_cube":
-            points_in_cartesians = get_cube_mesh_vertices(
-                resolution, grid_type="normalized"
-            )
-        else:
-            points_in_cartesians = get_cube_mesh_vertices(
-                resolution, grid_type="spherified_edge"
-            )
-    elif mesh == "random":
-        points_in_cartesians = get_random_sphere_vertices(resolution)
-    else:
-        raise NotImplementedError(
-            f"The mesh {mesh} is not recognized. "
-            f"Please use: uv_sphere, normalized_cube, "
-            f"spherified_cube_edge, "
-            f"spherified_cube_corner, icosahedral, random"
-        )
-
-    # crop to stereographic triangle which depends on crystal system
-    epsilon = -1e-13
-    if crystal_system == "triclinic":
-        return beam_directions_grid_to_euler(points_in_cartesians)
-    if crystal_system == "monoclinic":
-        points_in_cartesian = points_in_cartesians[
-            np.dot(np.array([0, 0, 1]), points_in_cartesians.T) >= epsilon
-        ]
-        points_in_cartesian = points_in_cartesians[
-            np.dot(np.array([1, 0, 0]), points_in_cartesians.T) >= epsilon
-        ]
-        return beam_directions_grid_to_euler(points_in_cartesian)
-
-    # for all other systems, determine it from the triangle vertices
-    corners = crystal_system_dictionary[crystal_system]
-    a, b, c = corners[0], corners[1], corners[2]
-    if len(a) == 4:
-        a, b, c = uvtw_to_uvw(a), uvtw_to_uvw(b), uvtw_to_uvw(c)
-
-    # eliminates those points that lie outside of the stereographic triangle
-    points_in_cartesians = points_in_cartesians[
-        np.dot(np.cross(a, b), c) * np.dot(np.cross(a, b), points_in_cartesians.T)
-        >= epsilon
-    ]
-    points_in_cartesians = points_in_cartesians[
-        np.dot(np.cross(b, c), a) * np.dot(np.cross(b, c), points_in_cartesians.T)
-        >= epsilon
-    ]
-    points_in_cartesians = points_in_cartesians[
-        np.dot(np.cross(c, a), b) * np.dot(np.cross(c, a), points_in_cartesians.T)
-        >= epsilon
-    ]
-
-    angle_grid = beam_directions_grid_to_euler(points_in_cartesians)
-    return angle_grid
+    s2_sample: Vector3d = sample_S2(resolution, method=mesh)
+    fundamental: Vector3d = s2_sample[s2_sample <= point_group.fundamental_sector]
+    return ConstrainedRotation.from_vector(fundamental)

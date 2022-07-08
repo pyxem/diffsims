@@ -24,27 +24,41 @@ from diffsims.generators.sphere_mesh_generators import (
     get_icosahedral_mesh_vertices,
     get_random_sphere_vertices,
     beam_directions_grid_to_euler,
-    _normalize_vectors,
-    _get_first_nearest_neighbors,
-    _get_angles_between_nn_gridpoints,
-    _get_max_grid_angle,
 )
 
 
+@pytest.mark.parametrize(
+    "method",
+    [
+        get_uv_sphere_mesh_vertices,
+        get_cube_mesh_vertices,
+        get_icosahedral_mesh_vertices,
+        get_random_sphere_vertices,
+    ]
+)
+def test_sampling_methods(method):
+    vectors = method(5)
+    assert isinstance(vectors, np.ndarray)
+    assert vectors.ndim == 2
+    assert vectors.shape[1] == 3
 
 
+def test_random_sphere_mesh():
+    resolution = 5
+    vectors = get_random_sphere_vertices(resolution)
+    assert isinstance(vectors, np.ndarray)
+    assert vectors.shape[1] == 3
+    assert vectors.ndim == 2
 
 
 def test_vectors_to_euler():
-    grid = _normalize_vectors(
-        np.array(
-            [
-                [1, 0, 0],
-                [0, 1, 0],
-                [0, 1, 1],
-                [1, 0, 1],
-            ]
-        )
+    grid = np.array(
+        [
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 1, 1],
+            [1, 0, 1],
+        ]
     )
     ang = np.array(
         [
