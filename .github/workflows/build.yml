@@ -1,6 +1,17 @@
 name: build
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+  workflow_dispatch:
+    workflow: '*'
+
+env:
+  MPLBACKEND: agg
 
 jobs:
   # Make sure all necessary files will be included in a release
@@ -8,9 +19,9 @@ jobs:
     name: check manifest
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
 
       - name: Install dependencies
         run: pip install manifix
@@ -19,11 +30,9 @@ jobs:
         run: python setup.py manifix
 
   build-with-pip:
-    name: ${{ matrix.os }}-py${{ matrix.python-version }}${{ matrix.label }}
+    name: ${{ matrix.os }}-py${{ matrix.python-version }}${{ matrix.LABEL }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
-    env:
-      MPLBACKEND: agg
     strategy:
       fail-fast: false
       matrix:
@@ -31,46 +40,48 @@ jobs:
         python-version: [3.9, '3.10']
         include:
           # Oldest supported version of main dependencies on Python 3.6
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             python-version: 3.6
             OLDEST_SUPPORTED_VERSION: true
             DEPENDENCIES: diffpy.structure==3.0.0 matplotlib==3.3 numpy==1.17 orix==0.9.0 scipy==1.0 tqdm==4.9
             LABEL: -oldest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Display Python and pip versions
-        run: |
-          python -V
-          pip -V
-
       - name: Install dependencies and package
         shell: bash
-        run: pip install -U -e .'[tests]'
+        run: |
+          pip install -U -e .'[tests]'
 
       - name: Install oldest supported version
         if: ${{ matrix.OLDEST_SUPPORTED_VERSION }}
-        run: pip install ${{ matrix.DEPENDENCIES }}
+        run: |
+          pip install ${{ matrix.DEPENDENCIES }}
 
-      - name: Display package versions
-        run: pip list
+      - name: Display Python, pip and package versions
+        run: |
+          python -V
+          pip -V
+          pip list
 
       - name: Run docstring tests
         if: ${{ matrix.os == 'ubuntu-latest' }}
         continue-on-error: true
-        run: pytest --doctest-modules --ignore-glob=diffsims/tests/*
+        run: |
+          pytest --doctest-modules --doctest-continue-on-failure --ignore-glob=diffsims/tests/*
 
       - name: Run tests
-        run: pytest --cov=diffsims --pyargs diffsims
+        run: pytest -n 2 --cov=diffsims --pyargs diffsims
 
       - name: Generate line coverage
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: coverage report --show-missing
+        run: |
+          coverage report --show-missing
 
       - name: Upload coverage to Coveralls
         if: ${{ matrix.os == 'ubuntu-latest' }}
