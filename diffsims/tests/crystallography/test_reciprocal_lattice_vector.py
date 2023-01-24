@@ -213,6 +213,15 @@ class TestReciprocalLatticeVector:
         with pytest.raises(ValueError):
             _ = rlv.allowed
 
+    def test_allowed_decimals(self, nickel_phase):
+        """Rounding of Miller indices gives expected allowed vectors."""
+        rlv = ReciprocalLatticeVector.from_min_dspacing(nickel_phase)
+        rlv.sanitise_phase()
+        rlv.calculate_structure_factor()
+        structure_factor = abs(rlv.structure_factor)
+        rlv = rlv[structure_factor > 0.4 * structure_factor.max()]
+        assert all(rlv.allowed)
+
     @pytest.mark.parametrize(
         "voltage, hkl, desired_theta",
         [(20e3, [1, 1, 1], 0.0259313), (200e3, [2, 0, 0], 0.008748)],
