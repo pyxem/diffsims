@@ -143,7 +143,7 @@ def get_cube_mesh_vertices(resolution, grid_type="spherified_corner"):
     References
     ----------
     .. [Cajaravelli2015] O. S. Cajaravelli, "Four Ways to Create a Mesh for a Sphere,"
-        https://medium.com/game-dev-daily/four-ways-to-create-a-mesh-for-a-sphere-d7956b825db4.
+        https://medium.com/@oscarsc/four-ways-to-create-a-mesh-for-a-sphere-d7956b825db4.
     """
     # the angle between 001 and 011
     max_angle = np.deg2rad(45)
@@ -385,8 +385,7 @@ def get_icosahedral_mesh_vertices(resolution):
 
     References
     ----------
-    .. [Meshzoo] The `meshzoo.sphere` module,
-        https://github.com/nschloe/meshzoo/blob/master/meshzoo/sphere.py.
+    .. [Meshzoo] The `meshzoo.sphere` module.
     """
     t = (1.0 + np.sqrt(5.0)) / 2.0
     corners = np.array(
