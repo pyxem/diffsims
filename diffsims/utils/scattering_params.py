@@ -22,7 +22,7 @@ Scattering Paramaters as Tabulated in
 ISBN 978-1-4419-6532-5
 Pages 253-260 Appendix C
 
-This transcription comes from scikit-ued (MIT license) - https://pypi.python.org/pypi/scikit-ued
+This transcription comes from scikit-ued (MIT license) - https://pypi.org/project/scikit-ued/
 """
 
 import numpy as np

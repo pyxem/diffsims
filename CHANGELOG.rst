@@ -76,7 +76,7 @@ Fixed
 
 Added
 -----
-- API reference documentation via Read The Docs: https://diffsims.readthedocs.io
+- API reference documentation via Read The Docs: https://diffsims.readthedocs.io/en/latest/
 - New module: `sphere_mesh_generators`
 - New module: `detector_functions`
 - New module: `ring_pattern_utils`
