@@ -22,7 +22,7 @@ this guide boils down to using that platform well. so visit the following link a
 around the code, issues, and pull requests (PRs): `diffsims
 on GitHub <https://github.com/pyxem/diffsims>`_.
 
-It's probably also worth visiting the `GitHub guides <https://guides.github.com>`_ to
+It's probably also worth visiting the `GitHub guides <https://docs.github.com/en>`_ to
 get a feel for the terminology.
 
 In brief, to give you a hint on the terminology to search for, the contribution pattern
@@ -70,7 +70,7 @@ Git is an open source "version control" system that enables you to can separate 
 modifications to the code into many versions (called branches) and switch between them
 easily. Later you can choose which version you want to have integrated into diffsims.
 
-You can learn all about Git `here <http://www.git-scm.com/about>`_!
+You can learn all about Git `here <https://www.git-scm.com/about>`_!
 
 The most important thing is to separate your contributions so that each branch is a
 small advancement on the "master" code or on another branch.
@@ -80,7 +80,7 @@ Get the style right
 
 diffsims closely follows the Style Guide for Python Code - these are just some rules for
 consistency that you can read all about in the `Python Style Guide
-<https://www.python.org/dev/peps/pep-0008/>`_.
+<https://peps.python.org/pep-0008/>`_.
 
 Please run the latest version of
 `black <https://black.readthedocs.io/en/stable/the_black_code_style/index.html>`_ on
@@ -89,18 +89,18 @@ your newly added and modified files prior to each PR.
 Run and write tests
 -------------------
 
-All functionality in diffsims is tested via the `pytest <https://docs.pytest.org>`_
-framework. The tests reside in the ``diffsims.tests`` module. Tests are short functions
-that call functions in diffsims and compare resulting output values with known answers.
-Good tests should depend on as few other features as possible so that when they break we
-know exactly what caused it.
+All functionality in diffsims is tested via the `pytest
+<https://docs.pytest.org/en/stable/>`_ framework. The tests reside in the
+``diffsims.tests`` module. Tests are short functions that call functions in diffsims and
+compare resulting output values with known answers. Good tests should depend on as few
+other features as possible so that when they break we know exactly what caused it.
 
 Install necessary dependencies to run the tests::
 
    pip install --editable .[tests]
 
-Some useful `fixtures <https://docs.pytest.org/en/latest/fixture.html>`_ are available
-in the ``conftest.py`` file.
+Some useful `fixtures <https://docs.pytest.org/en/latest/explanation/fixtures.html>`_
+are available in the ``conftest.py`` file.
 
 To run the tests::
 
@@ -122,16 +122,15 @@ Useful hints on testing:
 - ``@pytest.mark.parametrize()`` is a convenient decorator to test several parameters of
   the same function without having to write to much repetitive code, which is often
   error-prone. See `pytest documentation for more details
-  <http://doc.pytest.org/en/latest/parametrize.html>`_.
+  <https://doc.pytest.org/en/latest/how-to/parametrize.html>`_.
 
 Build and write documentation
 -----------------------------
 
 Docstrings -- written at the start of a function -- give essential information about how
 it should be used, such as which arguments can be passed to it and what the syntax
-should be. The docstrings follow the `NumPy specification
-<https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>`_,
-as shown in `this example <https://github.com/numpy/numpy/blob/master/doc/example.py>`_.
+should be. The docstrings mostly follow the `numpydoc
+<https://numpydoc.readthedocs.io/en/latest/format.html>`_ standard.
 
 We use `Sphinx <https://www.sphinx-doc.org/en/master>`_ for documenting functionality.
 Install necessary dependencies to build the documentation::
