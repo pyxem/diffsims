@@ -59,8 +59,8 @@ class ReciprocalLatticeVector(Vector3d):
     Create a set of reciprocal lattice vectors from :math:`(hkl)` or
     :math:`(hkil)`.
 
-    The vectors are internally as cartesian coordinates in the ``data``
-    attribute.
+    The vectors are stored internally as cartesian coordinates in
+    :attr:`data`.
 
     Parameters
     ----------
@@ -583,6 +583,8 @@ class ReciprocalLatticeVector(Vector3d):
         """Return whether vectors diffract according to diffraction
         selection rules assuming kinematic scattering theory.
 
+        Integer vectors are assumed.
+
         Returns
         -------
         allowed : numpy.ndarray
@@ -614,20 +616,22 @@ class ReciprocalLatticeVector(Vector3d):
         # Translational symmetry
         centering = self.phase.space_group.short_name[0]
 
+        hkl = self.hkl.round().astype(int).reshape(-1, 3)
+
         if centering == "A":  # Centred on A faces only
-            return np.isclose(np.mod(self.k + self.l, 2), 0)
+            return np.isclose(np.mod(hkl[:, 1] + hkl[:, 2], 2), 0)
         elif centering == "B":  # Centred on B faces only
-            return np.isclose(np.mod(self.h + self.l, 2), 0)
+            return np.isclose(np.mod(hkl[:, 0] + hkl[:, 2], 2), 0)
         elif centering == "C":  # Centred on C faces only
-            return np.isclose(np.mod(self.h + self.k, 2), 0)
+            return np.isclose(np.mod(hkl[:, 0] + hkl[:, 1], 2), 0)
         elif centering == "F":  # Face-centred, hkl all odd/even
-            selection = np.sum(np.mod(self.hkl, 2), axis=-1)
+            selection = np.sum(np.mod(hkl, 2), axis=-1)
             return np.array([i not in [1, 2] for i in selection], dtype=bool)
         elif centering == "I":  # Body-centred, h + k + l = 2n (even)
-            return np.isclose(np.mod(np.sum(self.hkl, axis=-1), 2), 0)
+            return np.isclose(np.mod(np.sum(hkl, axis=-1), 2), 0)
         elif centering in ["R", "H"]:  # Rhombohedral obverse
             # Consider Rhombohedral reverse?
-            return np.isclose(np.mod(-self.h + self.k + self.l, 3), 0)
+            return np.isclose(np.mod(-hkl[:, 0] + hkl[:, 1] + hkl[:, 2], 3), 0)
         elif centering == "P":  # Primitive
             if self.has_hexagonal_lattice:
                 # TODO: See rules in e.g.
