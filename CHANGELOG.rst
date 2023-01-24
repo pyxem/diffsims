@@ -8,6 +8,15 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0>`_
 and this project adheres to `Semantic Versioning
 <https://semver.org/spec/v2.0.0.html>`_.
 
+2023-01-25 - version 0.5.1
+==========================
+
+Fixed
+-----
+- ``ReciprocalLatticeVector.allowed`` rounds indices (hkl) internally to ensure correct
+  selection of which vectors are allowed or not given a lattice centering. Integer
+  indices are assumed.
+
 2022-06-10 - version 0.5.0
 ==========================
 
