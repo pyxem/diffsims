@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2021 The diffsims developers
+# Copyright 2017-2023 The diffsims developers
 #
 # This file is part of diffsims.
 #
