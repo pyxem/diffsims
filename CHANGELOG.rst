@@ -17,6 +17,10 @@ Fixed
   selection of which vectors are allowed or not given a lattice centering. Integer
   indices are assumed.
 
+Deprecated
+----------
+- Support for Python 3.6 is deprecated and will be removed in v0.6.
+
 2022-06-10 - version 0.5.0
 ==========================
 
