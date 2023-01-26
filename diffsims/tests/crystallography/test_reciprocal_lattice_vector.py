@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2021 The diffsims developers
+# Copyright 2017-2023 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -212,6 +212,15 @@ class TestReciprocalLatticeVector:
         rlv.phase.space_group.short_name = "D"
         with pytest.raises(ValueError):
             _ = rlv.allowed
+
+    def test_allowed_decimals(self, nickel_phase):
+        """Rounding of Miller indices gives expected allowed vectors."""
+        rlv = ReciprocalLatticeVector.from_min_dspacing(nickel_phase)
+        rlv.sanitise_phase()
+        rlv.calculate_structure_factor()
+        structure_factor = abs(rlv.structure_factor)
+        rlv = rlv[structure_factor > 0.4 * structure_factor.max()]
+        assert all(rlv.allowed)
 
     @pytest.mark.parametrize(
         "voltage, hkl, desired_theta",

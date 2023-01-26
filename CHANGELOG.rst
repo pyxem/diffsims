@@ -8,6 +8,19 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0>`_
 and this project adheres to `Semantic Versioning
 <https://semver.org/spec/v2.0.0.html>`_.
 
+2023-01-25 - version 0.5.1
+==========================
+
+Fixed
+-----
+- ``ReciprocalLatticeVector.allowed`` rounds indices (hkl) internally to ensure correct
+  selection of which vectors are allowed or not given a lattice centering. Integer
+  indices are assumed.
+
+Deprecated
+----------
+- Support for Python 3.6 is deprecated and will be removed in v0.6.
+
 2022-06-10 - version 0.5.0
 ==========================
 
@@ -67,7 +80,7 @@ Fixed
 
 Added
 -----
-- API reference documentation via Read The Docs: https://diffsims.readthedocs.io
+- API reference documentation via Read The Docs: https://diffsims.readthedocs.io/en/latest/
 - New module: `sphere_mesh_generators`
 - New module: `detector_functions`
 - New module: `ring_pattern_utils`

@@ -9,8 +9,8 @@
 .. |docs| image:: https://readthedocs.org/projects/diffsims/badge/?version=latest
 .. _docs: https://diffsims.readthedocs.io/en/latest
 
-.. |pypi_version| image:: http://img.shields.io/pypi/v/diffsims.svg?style=flat
-.. _pypi_version: https://pypi.python.org/pypi/diffsims
+.. |pypi_version| image:: https://img.shields.io/pypi/v/diffsims.svg?style=flat
+.. _pypi_version: https://pypi.org/project/diffsims/
 
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
 .. _black: https://github.com/psf/black
@@ -23,7 +23,7 @@ diffsims is an open-source Python library for simulating diffraction.
 If simulations performed using diffsims form a part of published work please
 cite the DOI at the top of this page. You can find demos in the `diffsims-demos
 <https://github.com/pyxem/diffsims-demos>`_ repository. See the `documentation
-<https://diffsims.readthedocs.io>`_ for installation instructions, the API reference,
-the changelog and more.
+<https://diffsims.readthedocs.io/en/latest/>`_ for installation instructions, the API
+reference, the changelog and more.
 
 diffsims is released under the GPL v3 license.

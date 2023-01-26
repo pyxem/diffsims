@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2022 The diffsims developers
+# Copyright 2017-2023 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -24,13 +24,25 @@ exec(open("diffsims/release_info.py").read())  # grab version info
 # Projects with optional features for building the documentation and running
 # tests. From setuptools:
 # https://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies
+# fmt: off
 extra_feature_requirements = {
-    "doc": ["furo", "sphinx >= 3.0.2"],
-    "tests": ["pytest >= 5.4", "pytest-cov >= 2.8.1", "coverage >= 5.0"],
+    "doc": [
+        "furo",
+        "sphinx         >= 3.0.2"
+    ],
+    "tests": [
+        "pytest         >= 5.4",
+        "pytest-cov     >= 2.8.1",
+        "pytest-xdist",
+        "coverage       >= 5.0"
+    ],
 }
-extra_feature_requirements["dev"] = ["black >= 19.3b0", "pre-commit >= 1.16"] + list(
-    chain(*list(extra_feature_requirements.values()))
-)
+extra_feature_requirements["dev"] = [
+    "black              >= 19.3b0",
+    "manifix",
+    "pre-commit         >= 1.16"
+] + list(chain(*list(extra_feature_requirements.values())))
+# fmt: on
 
 setup(
     name=name,
