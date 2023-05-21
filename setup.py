@@ -27,20 +27,20 @@ exec(open("diffsims/release_info.py").read())  # grab version info
 # fmt: off
 extra_feature_requirements = {
     "doc": [
-        "furo",
-        "sphinx         >= 3.0.2"
+        "pydata-sphinx-theme",
+        "sphinx                 >= 3.0.2"
     ],
     "tests": [
-        "pytest         >= 5.4",
-        "pytest-cov     >= 2.8.1",
+        "coverage               >= 5.0",
+        "pytest                 >= 5.4",
+        "pytest-cov             >= 2.8.1",
         "pytest-xdist",
-        "coverage       >= 5.0"
     ],
 }
 extra_feature_requirements["dev"] = [
-    "black              >= 19.3b0",
+    "black                      >= 23.1",
     "manifix",
-    "pre-commit         >= 1.16"
+    "pre-commit                 >= 1.16"
 ] + list(chain(*list(extra_feature_requirements.values())))
 # fmt: on
 
