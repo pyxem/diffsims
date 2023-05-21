@@ -16,9 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Provides users with a range of gridding functions
-"""
+"""Provides users with a range of gridding functions."""
 
 import numpy as np
 
@@ -36,6 +34,14 @@ from diffsims.generators.sphere_mesh_generators import (
 )
 
 
+__all__ = [
+    "get_beam_directions_grid",
+    "get_fundamental_zone_grid",
+    "get_grid_around_beam_direction",
+    "get_list_from_orix",
+    "get_local_grid",
+]
+
 # Corners determined by requiring a complete coverage of the pole figure. The pole
 # figures are plotted with MTEX without implying any crystal symmetry. The plotted
 # orientations are obtained by converting vectors returned by get_beam_directions_grid()
@@ -52,8 +58,7 @@ crystal_system_dictionary = {
 
 
 def get_list_from_orix(grid, rounding=2):
-    """
-    Converts an orix sample to a rotation list
+    """Converts an orix sample to a rotation list.
 
     Parameters
     ----------

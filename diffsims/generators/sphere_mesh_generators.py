@@ -23,6 +23,15 @@ from itertools import product
 from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
 
 
+__all__ = [
+    "beam_directions_grid_to_euler",
+    "get_cube_mesh_vertices",
+    "get_icosahedral_mesh_vertices",
+    "get_random_sphere_vertices",
+    "get_uv_sphere_mesh_vertices",
+]
+
+
 def _normalize_vectors(vectors):
     """
     Helper function which returns a list of vectors normalized to length 1 from

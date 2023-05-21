@@ -16,9 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utils for converting lists of atoms to a discretised volume
+"""Utils for converting lists of atoms to a discretised volume."""
 
-"""
+from math import (
+    sqrt as c_sqrt,
+    exp as c_exp,
+    erf as c_erf,
+    ceil,
+    cos as c_cos,
+    sin as c_sin,
+    floor,
+)
 
 from numpy import (
     unique,
@@ -36,22 +44,20 @@ from numpy import (
     exp,
     prod,
 )
-from diffsims.utils.generic_utils import get_grid
 from psutil import virtual_memory
 import numba
-from .generic_utils import _CUDA, cuda
+
+from diffsims.utils.generic_utils import get_grid, _CUDA, cuda
+
+__all__ = [
+    "do_binning",
+    "get_atoms",
+    "get_discretisation",
+    "rebin",
+    "ATOMIC_SCATTERING_PARAMS_PENG",
+]
 
 c_abs = abs
-from math import (
-    sqrt as c_sqrt,
-    exp as c_exp,
-    erf as c_erf,
-    ceil,
-    cos as c_cos,
-    sin as c_sin,
-    floor,
-)
-
 FTYPE, CTYPE = "f8", "c16"
 c_FTYPE = numba.float64 if FTYPE[1] == "8" else numba.float32
 

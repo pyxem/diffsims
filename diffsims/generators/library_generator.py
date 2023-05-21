@@ -29,6 +29,12 @@ from diffsims.utils.sim_utils import get_points_in_sphere
 from diffsims.utils.vector_utils import get_angle_cartesian_vec
 
 
+__all__ = [
+    "DiffractionLibraryGenerator",
+    "VectorLibraryGenerator",
+]
+
+
 class DiffractionLibraryGenerator:
     """Computes a library of electron diffraction patterns for specified atomic
     structures and orientations.

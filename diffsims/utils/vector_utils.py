@@ -16,8 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-import numpy as np
 import math
+
+import numpy as np
+
+
+__all__ = [
+    "get_angle_cartesian",
+    "get_angle_cartesian_vec",
+    "vectorised_spherical_polars_to_cartesians",
+]
 
 
 def get_angle_cartesian_vec(a, b):

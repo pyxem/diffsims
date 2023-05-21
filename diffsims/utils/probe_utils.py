@@ -21,12 +21,18 @@ Created on 5 Nov 2019
 
 @author: Rob Tovey
 """
-from diffsims.utils.fourier_transform import get_DFT, from_recip
-from diffsims.utils.generic_utils import to_mesh
 import numba
 from math import sqrt as c_sqrt
 from numpy import empty, maximum, sqrt, arange, pi, linspace, ones
 from scipy.special import jv
+
+from diffsims.utils.fourier_transform import get_DFT, from_recip
+from diffsims.utils.generic_utils import to_mesh
+
+__all__ = [
+    "BesselProbe",
+    "ProbeFunction",
+]
 
 
 class ProbeFunction:

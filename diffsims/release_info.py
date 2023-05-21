@@ -1,7 +1,7 @@
 name = "diffsims"
 version = "0.5.1"
 author = "Duncan Johnstone, Phillip Crout"
-copyright = "Copyright 2017-2022, The diffsims developers"
+copyright = "Copyright 2017-2023, The diffsims developers"
 # Initial committer first, then listed by line additions
 credits = [
     "Duncan Johnstone",

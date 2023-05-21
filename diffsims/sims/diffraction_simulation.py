@@ -15,12 +15,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
+import copy
 
 import matplotlib.pyplot as plt
 import numpy as np
+
 from diffsims.pattern.detector_functions import add_shot_and_point_spread
 from diffsims.utils import mask_utils
-import copy
+
+
+__all__ = [
+    "DiffractionSimulation",
+    "ProfileSimulation",
+]
 
 
 class DiffractionSimulation:

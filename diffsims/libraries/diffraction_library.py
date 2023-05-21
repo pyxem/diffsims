@@ -21,6 +21,12 @@ import pickle
 import numpy as np
 
 
+__all__ = [
+    "DiffractionLibrary",
+    "load_DiffractionLibrary",
+]
+
+
 def load_DiffractionLibrary(filename, safety=False):
     """Loads a previously saved diffraction library.
 
