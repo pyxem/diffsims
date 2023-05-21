@@ -28,7 +28,8 @@ exec(open("diffsims/release_info.py").read())  # grab version info
 extra_feature_requirements = {
     "doc": [
         "pydata-sphinx-theme",
-        "sphinx                 >= 3.0.2"
+        "sphinx                 >= 3.0.2",
+        "sphinx-design",
     ],
     "tests": [
         "coverage               >= 5.0",

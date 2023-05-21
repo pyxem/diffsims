@@ -42,9 +42,10 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.linkcode",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
-    "sphinx.ext.linkcode",
+    "sphinx_design",
 ]
 
 # Create links to references within diffsims' documentation to these packages
@@ -150,3 +151,14 @@ def linkcode_resolve(domain, info):
             return pre_link + "v%s/%s%s" % (__version__, fn, linespec)
     else:
         return None
+
+
+# sphinx.ext.autodoc
+# ------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
+autosummary_ignore_module_all = False
+autosummary_imported_members = True
+autodoc_typehints_format = "short"
+autodoc_default_options = {
+    "show-inheritance": True,
+}
