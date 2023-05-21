@@ -352,7 +352,7 @@ def fftshift_phase(x):
 
 
 # Coverage: Numba code does not register when code is run
-@numba.jit(nopython=True, parallel=True, fastmath=True)
+@numba.njit(parallel=True, fastmath=True)
 def __fftshift_phase1(x):  # pragma: no cover
     sz = x.shape[0] // 2
     for i in numba.prange(sz):
@@ -360,7 +360,7 @@ def __fftshift_phase1(x):  # pragma: no cover
 
 
 # Coverage: Numba code does not register when code is run
-@numba.jit(nopython=True, parallel=True, fastmath=True)
+@numba.njit(parallel=True, fastmath=True)
 def __fftshift_phase2(x):  # pragma: no cover
     for i in numba.prange(x.shape[0]):
         start = (i + 1) % 2
@@ -369,7 +369,7 @@ def __fftshift_phase2(x):  # pragma: no cover
 
 
 # Coverage: Numba code does not register when code is run
-@numba.jit(nopython=True, parallel=True, fastmath=True)
+@numba.njit(parallel=True, fastmath=True)
 def __fftshift_phase3(x):  # pragma: no cover
     for i in numba.prange(x.shape[0]):
         for j in range(x.shape[1]):
@@ -401,7 +401,7 @@ def fast_abs(x, y=None):
 
 
 # Coverage: Numba code does not register when code is run
-@numba.jit(nopython=True, parallel=True, fastmath=True)
+@numba.njit(parallel=True, fastmath=True)
 def __fast_abs(x, y):  # pragma: no cover
     for i in numba.prange(x.size):
         y[i] = abs(x[i])
@@ -560,7 +560,7 @@ def get_DFT(X=None, Y=None):
     xmin = [x.item(0) for x in X]
 
     # Coverage: Numba code does not register when code is run
-    @numba.jit(nopython=True, parallel=True, fastmath=True)
+    @numba.njit(parallel=True, fastmath=True)
     def apply_phase_3D(x, f0, f1, f2):  # pragma: no cover
         for i0 in numba.prange(x.shape[0]):
             F0 = f0[i0]
