@@ -8,6 +8,13 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0>`_
 and this project adheres to `Semantic Versioning
 <https://semver.org/spec/v2.0.0.html>`_.
 
+2023-05-22 - version 0.5.2
+==========================
+
+Fixed
+-----
+- Always use no-python mode to silence Numba deprecation warnings.
+
 2023-01-25 - version 0.5.1
 ==========================
 

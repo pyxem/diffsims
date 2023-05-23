@@ -138,7 +138,7 @@ def get_atoms(Z, returnFunc=True, dtype=FTYPE):
 
 
 # Coverage: Numba code does not register when code is run
-@numba.jit(fastmath=True, nopython=True)
+@numba.njit(fastmath=True)
 def __linear_interp(x, i, arr):  # pragma: no cover
     # First order Lagrange interpolation: x_0=0, x_1=1
     # L_0(x) = (x-x_1)/(x_0-x_1) = 1-x
@@ -147,7 +147,7 @@ def __linear_interp(x, i, arr):  # pragma: no cover
 
 
 # Coverage: Numba code does not register when code is run
-@numba.jit(fastmath=True, nopython=True)
+@numba.njit(fastmath=True)
 def __quadratic_interp(x, i, arr):  # pragma: no cover
     # Second order Lagrange interpolation: x_0=-1, x_1=0, x_2=1
     # L_0(x) = (x-x_1)*(x-x_2)/(x_0-x_1)/(x_0-x_2) = x*(x-1)/-1/-2 = x(x-1)/2
@@ -160,7 +160,7 @@ def __quadratic_interp(x, i, arr):  # pragma: no cover
 
 
 # Coverage: Numba code does not register when code is run
-@numba.jit(fastmath=True, nopython=True)
+@numba.njit(fastmath=True)
 def __atom_pw_cpu(x0, x1, x2, pc, h):  # pragma: no cover
     n = x0 * x0 + x1 * x1 + x2 * x2
     if n >= h[0]:
@@ -174,7 +174,7 @@ def __atom_pw_cpu(x0, x1, x2, pc, h):  # pragma: no cover
 
 
 # Coverage: Numba code does not register when code is run
-@numba.jit(fastmath=True, nopython=True)
+@numba.njit(fastmath=True)
 def __atom_av_cpu(x0, x1, x2, pc, h):  # pragma: no cover
     x0, x1, x2 = c_abs(x0), c_abs(x1), c_abs(x2)
     if x0 > h[0, 0] or x1 > h[0, 1] or x2 > h[0, 2]:
@@ -245,7 +245,7 @@ if _CUDA:  # pragma: no cover
 # Binning list of atoms into a grid for efficiency
 ##########
 # Coverage: Numba code does not register when code is run
-@numba.jit(cache=True)
+@numba.njit(cache=True)
 def __countbins(x0, x1, x2, loc, r, s, Len, MAX):  # pragma: no cover
     for j0 in range(loc.shape[0]):
         bin0 = int((loc[j0, 0] - x0) / r[0])
@@ -260,7 +260,7 @@ def __countbins(x0, x1, x2, loc, r, s, Len, MAX):  # pragma: no cover
 
 
 # Coverage: Numba code does not register when code is run
-@numba.jit(cache=True)
+@numba.njit(cache=True)
 def __rebin(x0, x1, x2, loc, sublist, r, s, Len):  # pragma: no cover
     for j0 in range(loc.shape[0]):
         bin0 = int((loc[j0, 0] - x0) / r[0])
@@ -404,7 +404,7 @@ def do_binning(x, loc, Rmax, d, GPU):
 # Discretise whole crystal
 ##########
 # Coverage: Numba code does not register when code is run
-@numba.jit(parallel=True, fastmath=True, nopython=True)
+@numba.njit(parallel=True, fastmath=True)
 def __density3D_pw_cpu(
     x0, x1, x2, xmin, loc, sublist, r, a, d, B, precomp, h, out
 ):  # pragma: no cover
@@ -436,7 +436,7 @@ def __density3D_pw_cpu(
 
 
 # Coverage: Numba code does not register when code is run
-@numba.jit(parallel=True, fastmath=True, nopython=True)
+@numba.njit(parallel=True, fastmath=True)
 def __density3D_av_cpu(
     x0, x1, x2, xmin, loc, sublist, r, a, d, B, precomp, h, out
 ):  # pragma: no cover
@@ -468,7 +468,7 @@ def __density3D_av_cpu(
 
 
 # Coverage: Numba code does not register when code is run
-@numba.jit(parallel=True, fastmath=True, nopython=True)
+@numba.njit(parallel=True, fastmath=True)
 def __FT3D_pw_cpu(x0, x1, x2, loc, a, b, d, B, precomp, h, out):  # pragma: no cover
     X0 = x0
     for i1 in numba.prange(x1.size):
@@ -486,7 +486,7 @@ def __FT3D_pw_cpu(x0, x1, x2, loc, a, b, d, B, precomp, h, out):  # pragma: no c
 
 
 # Coverage: Numba code does not register when code is run
-@numba.jit(parallel=True, fastmath=True, nopython=True)
+@numba.njit(parallel=True, fastmath=True)
 def __FT3D_av_cpu(x0, x1, x2, loc, a, b, d, B, precomp, h, out):  # pragma: no cover
     X0 = x0
     for i1 in numba.prange(x1.size):
