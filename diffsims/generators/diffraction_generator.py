@@ -42,6 +42,11 @@ from diffsims.utils.shape_factor_models import (
 )
 
 
+__all__ = [
+    "AtomicDiffractionGenerator",
+    "DiffractionGenerator",
+]
+
 _shape_factor_model_mapping = {
     "linear": linear,
     "atanc": atanc,

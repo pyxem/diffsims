@@ -26,7 +26,15 @@ Generic tools for all areas of code.
 from numpy import isscalar, zeros, array
 import numba
 
-# Coverage: Cuda code is not tested by travis
+
+__all__ = [
+    "GLOBAL_BOOL",
+    "get_grid",
+    "to_mesh",
+]
+
+
+# Coverage: Cuda code is not tested
 try:  # pragma: no cover
     from numba import cuda
 

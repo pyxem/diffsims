@@ -15,7 +15,6 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-docs/build/
 docs/Makefile
 develop-eggs/
 dist/
@@ -69,10 +68,8 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
-doc/_build/
 doc/build/
-doc/source/_autosummary/
+doc/reference/generated/
 
 # PyBuilder
 target/

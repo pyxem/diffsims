@@ -19,6 +19,17 @@
 import numpy as np
 
 
+__all__ = [
+    "atanc",
+    "binary",
+    "linear",
+    "lorentzian",
+    "lorentzian_precession",
+    "sin2c",
+    "sinc",
+]
+
+
 def binary(excitation_error, max_excitation_error):
     """
     Returns a unit intensity for all reflections

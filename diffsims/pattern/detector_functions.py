@@ -22,6 +22,18 @@ from numpy.random import default_rng
 from scipy import ndimage as ndi
 
 
+__all__ = [
+    "add_dead_pixels",
+    "add_detector_offset",
+    "add_gaussian_noise",
+    "add_gaussian_point_spread",
+    "add_linear_detector_gain",
+    "add_shot_noise",
+    "add_shot_and_point_spread",
+    "constrain_to_dynamic_range",
+]
+
+
 def constrain_to_dynamic_range(pattern, detector_max=None):
     """Force the values within pattern to lie between [0,detector_max]
 

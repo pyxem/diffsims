@@ -19,6 +19,12 @@
 import pickle
 
 
+__all__ = [
+    "DiffractionVectorLibrary",
+    "load_VectorLibrary",
+]
+
+
 def load_VectorLibrary(filename, safety=False):
     """Loads a previously saved vectorlibrary.
 

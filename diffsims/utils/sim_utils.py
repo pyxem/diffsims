@@ -27,6 +27,32 @@ from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from diffsims.utils.lobato_scattering_params import ATOMIC_SCATTERING_PARAMS_LOBATO
 
 
+__all__ = [
+    "acceleration_voltage_to_relativistic_mass",
+    "acceleration_voltage_to_velocity",
+    "acceleration_voltage_to_wavelength",
+    "beta_to_bst",
+    "bst_to_beta",
+    "diffraction_scattering_angle",
+    "et_to_beta",
+    "get_atomic_scattering_factors",
+    "get_electron_wavelength",
+    "get_holz_angle",
+    "get_intensities_params",
+    "get_interaction_constant",
+    "get_kinematical_intensities",
+    "get_points_in_sphere",
+    "get_scattering_params_dict",
+    "get_unique_families",
+    "get_vectorized_list_for_atomic_scattering_factors",
+    "is_lattice_hexagonal",
+    "scattering_angle_to_lattice_parameter",
+    "simulate_kinematic_scattering",
+    "tesla_to_am",
+    "uvtw_to_uvw",
+]
+
+
 def get_electron_wavelength(accelerating_voltage):
     """Calculates the (relativistic) electron wavelength in Angstroms
     for a given accelerating voltage in kV.

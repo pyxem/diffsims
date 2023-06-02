@@ -42,9 +42,10 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.linkcode",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
-    "sphinx.ext.linkcode",
+    "sphinx_design",
 ]
 
 # Create links to references within diffsims' documentation to these packages
@@ -65,18 +66,28 @@ templates_path = ["_templates"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-
-# -- Options for HTML output -------------------------------------------------
-
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
-html_theme = "furo"
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
+# HTML theming: pydata-sphinx-theme
+# https://pydata-sphinx-theme.readthedocs.io
+html_theme = "pydata_sphinx_theme"
+html_theme_options = {
+    "github_url": "https://github.com/pyxem/diffsims",
+    "header_links_before_dropdown": 6,
+    "logo": {"alt_text": project, "text": project},
+    "navigation_with_keys": False,
+    "show_toc_level": 2,
+    "use_edit_page_button": True,
+}
+html_context = {
+    "github_user": "pyxem",
+    "github_repo": "diffsims",
+    "github_version": "main",
+    "doc_path": "doc",
+}
 html_static_path = ["_static"]
+
+# Logo
+html_logo = "_static/pyxem_logo.png"
+html_favicon = "_static/pyxem_logo.png"
 
 # Syntax highlighting
 pygments_style = "friendly"
@@ -85,8 +96,7 @@ pygments_style = "friendly"
 def linkcode_resolve(domain, info):
     """Determine the URL corresponding to Python object.
 
-    This is taken from SciPy's conf.py:
-    https://github.com/scipy/scipy/blob/develop/doc/source/conf.py.
+    This is taken from SciPy's Sphinx configuration file.
     """
     if domain != "py":
         return None
@@ -136,8 +146,19 @@ def linkcode_resolve(domain, info):
         if m:
             return pre_link + "%s/%s%s" % (m.group(1), fn, linespec)
         elif "dev" in __version__:
-            return pre_link + "develop/%s%s" % (fn, linespec)
+            return pre_link + "main/%s%s" % (fn, linespec)
         else:
             return pre_link + "v%s/%s%s" % (__version__, fn, linespec)
     else:
         return None
+
+
+# sphinx.ext.autodoc
+# ------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
+autosummary_ignore_module_all = False
+autosummary_imported_members = True
+autodoc_typehints_format = "short"
+autodoc_default_options = {
+    "show-inheritance": True,
+}
