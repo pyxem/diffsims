@@ -2,7 +2,6 @@
 
 
 #### Progress of the PR
-
 - [ ] [Docstrings for all functions](https://github.com/numpy/numpy/blob/master/doc/example.py)
 - [ ] Unit tests with pytest for all lines
 - [ ] Clean code style by [running black](https://diffsims.readthedocs.io/en/latest/contributing.html#get-the-style-right)
