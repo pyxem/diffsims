@@ -12,6 +12,7 @@ Unreleased
 
 Added
 -----
+- Explicit support for Python 3.11.
 
 Changed
 -------
@@ -22,6 +23,7 @@ Deprecated
 
 Removed
 -------
+- Removed support for Python 3.6, leaving 3.7 as the oldest supported version.
 
 Fixed
 -----

@@ -24,10 +24,12 @@ jobs:
       - uses: actions/setup-python@v4
 
       - name: Install dependencies
-        run: pip install manifix
+        run: |
+          pip install manifix
 
       - name: Check MANIFEST.in file
-        run: python setup.py manifix
+        run: |
+          python setup.py manifix
 
   build-with-pip:
     name: ${{ matrix.os }}-py${{ matrix.python-version }}${{ matrix.LABEL }}
@@ -37,13 +39,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: [3.9, '3.10']
+        python-version: ['3.10', '3.11']
         include:
-          # Oldest supported version of main dependencies on Python 3.6
-          - os: ubuntu-20.04
-            python-version: 3.6
+          # Oldest supported version of main dependencies
+          - os: ubuntu-latest
+            python-version: 3.7
             OLDEST_SUPPORTED_VERSION: true
-            DEPENDENCIES: diffpy.structure==3.0.0 matplotlib==3.3 numpy==1.17 orix==0.9.0 scipy==1.0 tqdm==4.9
+            DEPENDENCIES: diffpy.structure==3.0.0 matplotlib==3.3 numpy==1.17 orix==0.9.0 scipy==1.1 tqdm==4.9
             LABEL: -oldest
     steps:
       - uses: actions/checkout@v3
@@ -76,7 +78,8 @@ jobs:
           pytest --doctest-modules --doctest-continue-on-failure --ignore-glob=diffsims/tests/*
 
       - name: Run tests
-        run: pytest -n 2 --cov=diffsims --pyargs diffsims
+        run: |
+          pytest -n 2 --cov=diffsims --pyargs diffsims
 
       - name: Generate line coverage
         if: ${{ matrix.os == 'ubuntu-latest' }}

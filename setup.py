@@ -56,11 +56,11 @@ setup(
     long_description=open("README.rst").read(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
         (
@@ -81,7 +81,7 @@ setup(
         "numpy              >= 1.17",
         "orix               >= 0.9",
         "psutil",
-        "scipy              >= 1.0",
+        "scipy              >= 1.1",
         "tqdm               >= 4.9",
         "transforms3d",
     ],
