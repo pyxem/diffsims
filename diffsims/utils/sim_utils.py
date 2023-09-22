@@ -18,7 +18,6 @@
 
 import collections
 import math
-from functools import lru_cache
 
 import diffpy.structure
 import numpy as np
