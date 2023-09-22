@@ -18,6 +18,7 @@
 
 import collections
 import math
+from functools import lru_cache
 
 import diffpy.structure
 import numpy as np
@@ -447,21 +448,28 @@ def get_points_in_sphere(reciprocal_lattice, reciprocal_radius):
         Distance of reciprocal lattice points in sphere from the origin.
     """
     a, b, c = reciprocal_lattice.a, reciprocal_lattice.b, reciprocal_lattice.c
-    h_max = np.floor(reciprocal_radius / a)
-    k_max = np.floor(reciprocal_radius / b)
-    l_max = np.floor(reciprocal_radius / c)
-    from itertools import product
+    h_max = int(np.floor(reciprocal_radius / a))
+    k_max = int(np.floor(reciprocal_radius / b))
+    l_max = int(np.floor(reciprocal_radius / c))
 
-    h_list = np.arange(-h_max, h_max + 1)  # arange has a non-inclusive endpoint
-    k_list = np.arange(-k_max, k_max + 1)
-    l_list = np.arange(-l_max, l_max + 1)
-    potential_points = np.asarray(list(product(h_list, k_list, l_list)))
-    in_sphere = (
-        np.abs(reciprocal_lattice.dist(potential_points, [0, 0, 0])) < reciprocal_radius
-    )
-    spot_indices = potential_points[in_sphere]
-    cartesian_coordinates = reciprocal_lattice.cartesian(spot_indices)
-    spot_distances = reciprocal_lattice.dist(spot_indices, [0, 0, 0])
+    limit = reciprocal_radius**2
+    h_list, k_list, l_list = np.ogrid[-h_max:h_max + 1, -k_max:k_max + 1, -l_max:l_max + 1]
+    full_shape = (2*h_max + 1, 2*k_max + 1, 2*l_max + 1)
+    
+    h_vec = h_list[..., np.newaxis] * reciprocal_lattice.base[0]
+    k_vec = k_list[..., np.newaxis] * reciprocal_lattice.base[1]
+    l_vec = l_list[..., np.newaxis] * reciprocal_lattice.base[2]
+    
+    vec = h_vec + k_vec + l_vec
+    norm2 = np.sum(vec**2, axis=-1)
+    select = norm2 < limit
+    h_select = np.broadcast_to(h_list, full_shape)[select]
+    k_select = np.broadcast_to(k_list, full_shape)[select]
+    l_select = np.broadcast_to(l_list, full_shape)[select]
+    spot_indices = np.stack((h_select, k_select, l_select), axis=-1)
+    
+    cartesian_coordinates = vec[select]
+    spot_distances = np.sqrt(norm2[select])
 
     return spot_indices, cartesian_coordinates, spot_distances
 
