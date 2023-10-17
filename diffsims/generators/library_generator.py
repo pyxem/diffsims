@@ -27,7 +27,7 @@ from dataclasses import dataclass, field
 from diffsims.libraries.diffraction_library import DiffractionLibrary
 from diffsims.libraries.vector_library import DiffractionVectorLibrary
 from diffsims.libraries.structure_library import StructureLibrary
-from diffsims.generators import DiffractionGenerator
+from diffsims.generators.diffraction_generator import DiffractionGenerator
 
 from diffsims.utils.sim_utils import ReciprocalSpaceSample
 from diffsims.utils.vector_utils import get_angle_cartesian_vec

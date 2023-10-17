@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import numpy as np
+import matplotlib.pyplot as plt
+
 from orix.quaternion import Rotation
-from orix.vector import Vector3d
+from orix.vector.vector3d import Vector3d
+from orix.projections import StereographicProjection
 
 
 class ConstrainedRotation(Rotation):
@@ -51,3 +54,47 @@ class ConstrainedRotation(Rotation):
     ) -> np.ndarray:
         vector = self.corresponding_beam_direction
         return self._vectors_to_euler_angles(vector)
+
+    def to_stereographic(self,
+                         pole: int = -1) -> tuple[np.ndarray, np.ndarray]:
+        """Convert the rotation to a stereographic projection along some
+        pole direction.
+
+        Parameters
+        ----------
+        pole
+            The pole of the stereographic projection
+        """
+        s = StereographicProjection(pole=pole)
+        rot_reg_test = self * Vector3d.zvector()
+        x, y = s.vector2xy(rot_reg_test)
+        return x, y
+
+    def plot(self,
+             ax: plt.Axes = None,
+             pole: int = -1,
+             **kwargs,
+             ):
+        """Plot the stereographic projection of the rotation
+
+        Parameters
+        ----------
+        ax
+            The axis to plot on. If None, a new figure is created.
+        pole
+            The pole of the stereographic projection
+        kwargs
+            Additional keyword arguments to pass to ax.scatter
+
+        """
+        x, y = self.to_stereographic(pole=pole)
+        if ax is None:
+            fig, ax = plt.subplots()
+        ax.scatter(x, y, **kwargs)
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        max_v = np.max([xlim[1], ylim[1]])
+        min_v = np.min([xlim[0], ylim[0]])
+        ax.set_xlim((min_v, max_v))
+        ax.set_ylim((min_v, max_v))
+
