@@ -1,96 +1,76 @@
-from __future__ import annotations
-from abc import ABC, abstractmethod, abstractclassmethod
-from typing import Union, NamedTuple, Callable, Type, Any, Optional, Mapping
-from functools import partial
-from enum import Enum
-
-import diffpy
-from diffpy.structure import Structure as DiffpyStructure
-
-try:
-    from ase import Atoms as ASEStructure
-    from ase.io import read as ase_read
-except ImportError:
-    ASEStructure = None
-    ase_read = None
+from orix.crystal_map import Phase
+from diffsims.utils.sampling_utils import get_reduced_fundamental_zone_grid
+from diffsims.utils.sampling_utils import generate_zap_rotations
+from diffsims.crystallography import ReciprocalLatticeVector
 
 
-AtomStructure = Union[DiffpyStructure, ASEStructure]
+class CrystalPhase(Phase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._radius = 0
+        self._reciprocal_space_lattice = None
 
+    def zap_rotations(self,
+                      density: str = "3"):
+        """
+        Returns a list of rotations that can be used to generate ZAP diffraction
+        patterns.
 
-class StructureBackend(ABC):
-    @abstractclassmethod
-    def structure_type(cls) -> Type[AtomStructure]:
-        pass
+        Parameters
+        ----------
+        density
+            The density of directions to use. Options are '3' or '7' referring to
+            3 for only the corners of the fundamental zone or 7 for the corners,
+            midpoints and centroids.
+        """
 
-    @abstractclassmethod
-    def load_from_file(cls, filename: str, **kwargs: Any) -> AtomStructure:
-        pass
+        return generate_zap_rotations(self,
+                                   density=density)
 
+    def constrained_rotation(self,
+                             resolution: float = 1.0,
+                             mesh: str = None,):
+        """
+        Returns all rotations for some crystal structure reduced to only the unique rotations
+        by symmetry.
 
-class DiffpyBackend(StructureBackend):
+        Parameters
+        ----------
+        resolution : float
+            The resolution of the grid (degrees).
+        mesh : str
+            The mesh type to use. Options are 'cuboctahedron', 'icosahedron', 'octahedron',
 
-    @classmethod
-    def structure_type(cls) -> Type[DiffpyStructure]:
-        return DiffpyStructure
+        """
 
-    @classmethod
-    def load_from_file(cls, filename: str, **kwargs: Any) -> DiffpyStructure:
-        return diffpy.structure.loadStructure(filename, **kwargs)
+        return get_reduced_fundamental_zone_grid(resolution,
+                                                 mesh,
+                                                 self.point_group)
 
+    def reciprocal_lattice_vectors(self,
+                                   reciprocal_radius: float = 10):
+        """
+        Returns the reciprocal space lattice vectors for a given radius for the structure.
 
-class ASEBackend(StructureBackend):
+        This is a cached property, so the first time it is called it will be slow, but
+        subsequent calls will be fast.
 
-    @classmethod
-    def structure_type(cls) -> Type[ASEStructure]:
-        if ASEStructure:
-            return ASEStructure
+        Parameters
+        ----------
+        reciprocal_radius
+            The radius of the sphere in reciprocal space (units of reciprocal
+            Angstroms) within which reciprocal lattice points are returned
+        """
+        if reciprocal_radius >= self._radius:
+            # recalculate to a higher radius
+            # this could be more efficient if we just calculated only the new points
+            self._radius = reciprocal_radius
+            self._reciprocal_lattice_vectors = ReciprocalLatticeVector.from_min_dspacing(self,
+                                                                                      1/reciprocal_radius)
+            return self._reciprocal_lattice_vectors
         else:
-            return cls._handle_missing_ase()
-
-    @classmethod
-    def load_from_file(
-        cls,
-        filename: str,
-        **kwargs: Any,
-    ) -> Optional[DiffpyStructure]:
-        if ase_read:
-            return ase_read(filename, **kwargs)
-        else:
-            return cls._handle_missing_ase()
-
-    @classmethod
-    def _handle_missing_ase(cls):
-        raise ImportError("ASE was not found, please install with pip")
+            # return the existing lattice sliced to the radius
+            in_sphere = self._reciprocal_lattice_vectors.gspacing <= reciprocal_radius
+            return self._reciprocal_lattice_vectors[in_sphere]
 
 
-class Structure:
-
-    _backends: Mapping[str, Type[StructureBackend]] = {
-        "diffpy": DiffpyBackend,
-        "ase": ASEBackend,
-    }
-
-    def __str__(self):
-        return self.backend.__str__()
-
-    def __init__(self, structure: AtomStructure):
-        self.__structure = structure
-
-    @property
-    def backend(self) -> AtomStructure:
-        return self.__structure
-
-    @classmethod
-    def from_file(
-        cls,
-        file_path: str,
-        backend: str = "diffpy",
-        **kwargs: Any,
-    ) -> Structure:
-        structure_backend = cls._backends[backend]
-        atomic_structure = structure_backend.load_from_file(
-            filename=file_path,
-            **kwargs,
-        )
-        return cls(atomic_structure)

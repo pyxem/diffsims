@@ -17,6 +17,7 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 from collections import defaultdict
+from functools import cached_property
 from copy import deepcopy
 
 from diffpy.structure.symmetryutilities import expandPosition
@@ -409,7 +410,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         return self.__getattribute__(self.coordinate_format)
 
-    @property
+    @cached_property
     def gspacing(self):
         r"""Reciprocal lattice vector spacing :math:`g`.
 
