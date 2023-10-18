@@ -23,7 +23,6 @@ from diffsims.generators.rotation_list_generators import (
     get_local_grid,
     get_grid_around_beam_direction,
     get_fundamental_zone_grid,
-    get_beam_directions_grid,
 )
 
 

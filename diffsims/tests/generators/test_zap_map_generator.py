@@ -20,7 +20,7 @@ import pytest
 
 import diffpy.structure
 import numpy as np
-from diffsims.generators.zap_map_generator import (
+from diffsims.utils.sampling_utils import (
     get_rotation_from_z_to_direction,
     generate_zap_map,
 )

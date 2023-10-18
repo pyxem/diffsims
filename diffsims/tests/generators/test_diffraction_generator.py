@@ -26,6 +26,8 @@ from diffsims.generators.diffraction_generator import (
     _shape_factor_precession,
 )
 import diffpy.structure
+
+from diffsims.crystallography.structures import CrystalPhase
 from diffsims.utils.shape_factor_models import linear, binary, sin2c, atanc, lorentzian
 
 
@@ -85,11 +87,17 @@ def make_structure(lattice_parameter=None):
                 atype="Si", xyz=[x + 0.25, y + 0.25, z + 0.25], lattice=latt
             )
         )  # Motif part B
-    return diffpy.structure.Structure(atoms=atom_list, lattice=latt)
+
+    structure = diffpy.structure.Structure(atoms=atom_list, lattice=latt)
+    return CrystalPhase(structure=structure, space_group=227)
 
 
 @pytest.fixture()
 def local_structure():
+    return make_structure().structure
+
+@pytest.fixture()
+def local_phase():
     return make_structure()
 
 
@@ -133,36 +141,36 @@ class TestDiffractionCalculator:
         assert diffraction_calculator.approximate_precession == True
         assert diffraction_calculator.minimum_intensity == 1e-20
 
-    def test_matching_results(self, diffraction_calculator, local_structure):
+    def test_matching_results(self, diffraction_calculator, local_phase):
         diffraction = diffraction_calculator.calculate_ed_data(
-            local_structure, reciprocal_radius=5.0
+            local_phase, reciprocal_radius=5.0
         )
         assert len(diffraction.indices) == len(diffraction.coordinates)
         assert len(diffraction.coordinates) == len(diffraction.intensities)
 
     def test_precession_simple(
-        self, diffraction_calculator_precession_simple, local_structure
+        self, diffraction_calculator_precession_simple, local_phase
     ):
         diffraction = diffraction_calculator_precession_simple.calculate_ed_data(
-            local_structure,
+            local_phase,
             reciprocal_radius=5.0,
         )
         assert len(diffraction.indices) == len(diffraction.coordinates)
         assert len(diffraction.coordinates) == len(diffraction.intensities)
 
     def test_precession_full(
-        self, diffraction_calculator_precession_full, local_structure
+        self, diffraction_calculator_precession_full, local_phase
     ):
         diffraction = diffraction_calculator_precession_full.calculate_ed_data(
-            local_structure,
+            local_phase,
             reciprocal_radius=5.0,
         )
         assert len(diffraction.indices) == len(diffraction.coordinates)
         assert len(diffraction.coordinates) == len(diffraction.intensities)
 
-    def test_custom_shape_func(self, diffraction_calculator_custom, local_structure):
+    def test_custom_shape_func(self, diffraction_calculator_custom, local_phase):
         diffraction = diffraction_calculator_custom.calculate_ed_data(
-            local_structure,
+            local_phase,
             reciprocal_radius=5.0,
         )
         assert len(diffraction.indices) == len(diffraction.coordinates)
@@ -173,10 +181,10 @@ class TestDiffractionCalculator:
         silicon = make_structure(5)
         big_silicon = make_structure(10)
         diffraction = diffraction_calculator.calculate_ed_data(
-            structure=silicon, reciprocal_radius=5.0
+            phase=silicon, reciprocal_radius=5.0
         )
         big_diffraction = diffraction_calculator.calculate_ed_data(
-            structure=big_silicon, reciprocal_radius=5.0
+            phase=big_silicon, reciprocal_radius=5.0
         )
         indices = [tuple(i) for i in diffraction.indices]
         big_indices = [tuple(i) for i in big_diffraction.indices]
@@ -186,10 +194,10 @@ class TestDiffractionCalculator:
         big_coordinates = big_diffraction.coordinates[big_indices.index((2, 2, 0))]
         assert np.allclose(coordinates, big_coordinates * 2)
 
-    def test_appropriate_intensities(self, diffraction_calculator, local_structure):
+    def test_appropriate_intensities(self, diffraction_calculator, local_phase):
         """Tests the central beam is strongest."""
         diffraction = diffraction_calculator.calculate_ed_data(
-            local_structure, reciprocal_radius=5.0
+            local_phase, reciprocal_radius=5.0
         )
         indices = [tuple(i) for i in diffraction.indices]
         central_beam = indices.index((0, 0, 0))
@@ -198,33 +206,36 @@ class TestDiffractionCalculator:
         )
         assert np.all(smaller)
 
-    def test_shape_factor_strings(self, diffraction_calculator, local_structure):
-        _ = diffraction_calculator.calculate_ed_data(local_structure, 2)
+    def test_shape_factor_strings(self, diffraction_calculator, local_phase):
+        _ = diffraction_calculator.calculate_ed_data(local_phase, 2)
 
-    def test_shape_factor_custom(self, diffraction_calculator, local_structure):
+    def test_shape_factor_custom(self, diffraction_calculator, local_phase):
 
         t1 = diffraction_calculator.calculate_ed_data(
-            local_structure, 2, max_excitation_error=0.02
+            local_phase, 2, max_excitation_error=0.02
         )
         t2 = diffraction_calculator.calculate_ed_data(
-            local_structure, 2, max_excitation_error=0.4
+            local_phase, 2, max_excitation_error=0.4
         )
 
         # softly makes sure the two sims are different
         assert np.sum(t1.intensities) != np.sum(t2.intensities)
 
-    def test_calculate_profile_class(self, local_structure, diffraction_calculator):
+    def test_calculate_profile_class(self, local_phase, diffraction_calculator):
         # tests the non-hexagonal (cubic) case
         profile = diffraction_calculator.calculate_profile_data(
-            local_structure, reciprocal_radius=1.0
+            local_phase, reciprocal_radius=1.0
         )
         assert isinstance(profile, ProfileSimulation)
 
         latt = diffpy.structure.lattice.Lattice(3, 3, 5, 90, 90, 120)
         atom = diffpy.structure.atom.Atom(atype="Ni", xyz=[0, 0, 0], lattice=latt)
         hexagonal_structure = diffpy.structure.Structure(atoms=[atom], lattice=latt)
+
+        phase = CrystalPhase(structure=hexagonal_structure, space_group=194)
+
         hexagonal_profile = diffraction_calculator.calculate_profile_data(
-            structure=hexagonal_structure, reciprocal_radius=1.0
+            phase=phase, reciprocal_radius=1.0
         )
         assert isinstance(hexagonal_profile, ProfileSimulation)
 

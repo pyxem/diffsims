@@ -26,7 +26,6 @@ from diffsims.utils.sim_utils import (
     get_interaction_constant,
     get_unique_families,
     get_kinematical_intensities,
-    get_points_in_sphere,
     simulate_kinematic_scattering,
     uvtw_to_uvw,
     get_holz_angle,

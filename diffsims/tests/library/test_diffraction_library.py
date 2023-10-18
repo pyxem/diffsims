@@ -23,7 +23,6 @@ import pytest
 
 from diffsims.generators.diffraction_generator import DiffractionGenerator
 from diffsims.generators.library_generator import DiffractionLibraryGenerator
-from diffsims.libraries.diffraction_library import load_DiffractionLibrary
 from diffsims.libraries.structure_library import StructureLibrary
 from diffsims.sims.diffraction_simulation import DiffractionSimulation
 
@@ -31,12 +30,15 @@ from diffsims.sims.diffraction_simulation import DiffractionSimulation
 @pytest.fixture
 def get_library(default_structure):
     diffraction_calculator = DiffractionGenerator(300.0)
-    dfl = DiffractionLibraryGenerator(diffraction_calculator)
     structure_library = StructureLibrary(
         ["Phase"], [default_structure], [np.array([(0, 0, 0), (0, 0.2, 0)])]
     )
 
-    return dfl.get_diffraction_library(structure_library, 0.017, 2.4, (72, 72))
+    dfl = DiffractionLibraryGenerator(diffraction_calculator,
+                                      structure_library=structure_library,
+                                      reciprocal_radius=2.4)
+
+    return dfl.calculate_library()
 
 
 def test_get_library_entry_assertionless(get_library):

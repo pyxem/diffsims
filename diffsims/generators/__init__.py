@@ -23,13 +23,9 @@ rotations.
 from diffsims.generators import (
     diffraction_generator,
     library_generator,
-    rotation_list_generators,
-    zap_map_generator,
 )
 
 __all__ = [
     "diffraction_generator",
     "library_generator",
-    "rotation_list_generators",
-    "zap_map_generator",
 ]
