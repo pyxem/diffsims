@@ -16,9 +16,69 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+from orix.quaternion import symmetry
+from orix.sampling import sample_S2
+from orix.vector import Vector3d
+from orix.quaternion.symmetry import Symmetry
+
+from diffsims.rotations import ConstrainedRotation
+
+
+def get_reduced_fundamental_zone_grid(
+    resolution: float,
+    mesh: str = None,
+    point_group: Symmetry = None,
+) -> ConstrainedRotation:
+    """Produces orientations to align various crystallographic directions with
+    the z-axis, with the constraint that the first Euler angle phi_1=0.
+    The crystallographic directions sample the fundamental zone, representing
+    the smallest region of symmetrically unique directions of the relevant
+    crystal system or point group.
+
+    Parameters
+    ----------
+    resolution
+        An angle in degrees representing the maximum angular distance to a
+        first nearest neighbor grid point.
+    mesh
+        Type of meshing of the sphere that defines how the grid is created. See
+        orix.sampling.sample_S2 for all the options. A suitable default is
+        chosen depending on the crystal system.
+    point_group
+        Symmetry operations that determines the unique directions. Defaults to
+        no symmetry, which means sampling all 3D unit vectors.
+
+    Returns
+    -------
+    ConstrainedRotation
+        (N, 3) array representing Euler angles for the different orientations
+    """
+    if point_group is None:
+        point_group = symmetry.C1
+
+    if mesh is None:
+        s2_auto_sampling_map = {
+            "triclinic": "icosahedral",
+            "monoclinic": "icosahedral",
+            "orthorhombic": "spherified_cube_edge",
+            "tetragonal": "spherified_cube_edge",
+            "cubic": "spherified_cube_edge",
+            "trigonal": "hexagonal",
+            "hexagonal": "hexagonal",
+        }
+        mesh = s2_auto_sampling_map[point_group.system]
+
+    s2_sample: Vector3d = sample_S2(resolution, method=mesh)
+    fundamental: Vector3d = s2_sample[s2_sample <= point_group.fundamental_sector]
+    return ConstrainedRotation.from_vector(fundamental)
+
+
+
+
+
 import numpy as np
 from transforms3d.euler import axangle2euler
-
+from orix.quaternion.rotation import Rotation
 
 __all__ = [
     "corners_to_centroid_and_edge_centers",
@@ -172,6 +232,18 @@ def generate_zap_map(
     >>>     plt.imshow(pattern.get_diffraction_pattern(),vmax=0.02)
     """
 
+    direction_list = generate_zap_rotations(density, system)
+
+    zap_dictionary = generate_directional_simulations(
+        structure, simulator, direction_list, **kwargs
+    )
+
+    return zap_dictionary
+
+def generate_zap_rotations(structure, density, system):
+    """
+    Generates a list of rotations for a ZAP map
+    """
     corners_dict = {
         "cubic": [(0, 0, 1), (1, 0, 1), (1, 1, 1)],
         "hexagonal": [(0, 0, 1), (2, 1, 0), (1, 1, 0)],
@@ -186,8 +258,7 @@ def generate_zap_map(
     elif density == "7":
         direction_list = corners_to_centroid_and_edge_centers(corners_dict[system])
 
-    zap_dictionary = generate_directional_simulations(
-        structure, simulator, direction_list, **kwargs
-    )
+    rotations = [get_rotation_from_z_to_direction(structure, d) for d in direction_list]
 
-    return zap_dictionary
+    Rotation.from_neo_euler(rotations)
+    return rotations

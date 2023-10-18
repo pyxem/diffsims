@@ -24,12 +24,7 @@ from typing import Mapping, Optional
 from orix.sampling.sample_generators import get_sample_fundamental, get_sample_local
 from orix.quaternion.rotation import Rotation
 from orix.vector.neo_euler import AxAngle
-from orix.quaternion import Symmetry, symmetry
-from orix.sampling import sample_S2
-from orix.vector import Vector3d
 
-from diffsims.utils.sim_utils import uvtw_to_uvw
-from diffsims.utils.orientation_utils import ConstrainedRotation
 
 
 __all__ = [
@@ -174,50 +169,3 @@ def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 
     return rotation_list
 
 
-def get_reduced_fundamental_zone_grid(
-    resolution: float,
-    mesh: str = None,
-    point_group: Symmetry = None,
-) -> ConstrainedRotation:
-    """Produces orientations to align various crystallographic directions with
-    the z-axis, with the constraint that the first Euler angle phi_1=0.
-    The crystallographic directions sample the fundamental zone, representing
-    the smallest region of symmetrically unique directions of the relevant
-    crystal system or point group.
-
-    Parameters
-    ----------
-    resolution
-        An angle in degrees representing the maximum angular distance to a
-        first nearest neighbor grid point.
-    mesh
-        Type of meshing of the sphere that defines how the grid is created. See
-        orix.sampling.sample_S2 for all the options. A suitable default is
-        chosen depending on the crystal system.
-    point_group
-        Symmetry operations that determines the unique directions. Defaults to
-        no symmetry, which means sampling all 3D unit vectors.
-
-    Returns
-    -------
-    ConstrainedRotation
-        (N, 3) array representing Euler angles for the different orientations
-    """
-    if point_group is None:
-        point_group = symmetry.C1
-
-    if mesh is None:
-        s2_auto_sampling_map = {
-            "triclinic": "icosahedral",
-            "monoclinic": "icosahedral",
-            "orthorhombic": "spherified_cube_edge",
-            "tetragonal": "spherified_cube_edge",
-            "cubic": "spherified_cube_edge",
-            "trigonal": "hexagonal",
-            "hexagonal": "hexagonal",
-        }
-        mesh = s2_auto_sampling_map[point_group.system]
-
-    s2_sample: Vector3d = sample_S2(resolution, method=mesh)
-    fundamental: Vector3d = s2_sample[s2_sample <= point_group.fundamental_sector]
-    return ConstrainedRotation.from_vector(fundamental)

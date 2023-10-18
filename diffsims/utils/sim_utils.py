@@ -18,12 +18,10 @@
 
 from __future__ import annotations
 from typing import Tuple, NamedTuple, TypeVar, Sequence, Union
-from functools import cached_property
 import collections
 import math
 
 import diffpy.structure
-from diffpy.structure import Lattice
 import numpy as np
 from scipy.constants import h, m_e, e, c, pi, mu_0
 
@@ -428,108 +426,6 @@ def simulate_kinematic_scattering(
     intensity = (scattering * scattering.conjugate()).real
 
     return intensity
-
-
-class ReciprocalSpaceSample:
-
-    def __init__(
-        self,
-        reciprocal_lattice: Lattice,
-        spot_indices: np.ndarray,
-    ):
-        self.__lattice = reciprocal_lattice
-        self.__spot_indices = spot_indices
-
-    @property
-    def lattice(self) -> Lattice:
-        return self.__lattice
-
-    @property
-    def spot_indices(self) -> np.ndarray:
-        return self.__spot_indices
-
-    @cached_property
-    def cartesian_coordinates(self) -> np.ndarray:
-        return self.lattice.cartesian(self.spot_indices)
-
-    @cached_property
-    def spot_distances(self) -> np.ndarray:
-        return self.lattice.dist(self.spot_indices, [0, 0, 0])
-
-    def __getitem__(self, sliced: Union[_T, np.ndarray]) -> ReciprocalSpaceSample:
-        return ReciprocalSpaceSample(self.lattice, self.spot_indices[sliced])
-
-    @classmethod
-    def from_radius(
-        cls,
-        reciprocal_lattice: Lattice,
-        reciprocal_radius: float,
-    ) -> ReciprocalSpaceSample:
-        """Finds all reciprocal lattice points inside a given reciprocal sphere.
-        Utilised within the DiffractionGenerator.
-
-        Parameters
-        ----------
-        reciprocal_lattice : diffpy.Structure.Lattice
-            The reciprocal crystal lattice for the structure of interest.
-        reciprocal_radius  : float
-            The radius of the sphere in reciprocal space (units of reciprocal
-            Angstroms) within which reciprocal lattice points are returned.
-
-        Returns
-        -------
-        spot_indices : numpy.array
-            Miller indices of reciprocal lattice points in sphere.
-        cartesian_coordinates : numpy.array
-            Cartesian coordinates of reciprocal lattice points in sphere.
-        spot_distances : numpy.array
-            Distance of reciprocal lattice points in sphere from the origin.
-        """
-        n = cls._determine_minimum_repetitions(reciprocal_radius, reciprocal_lattice)
-        coordinate_grid = np.mgrid[-n:n+1, -n:n+1, -n:n+1].T.reshape(-1, 3)
-        surrounding_grid = cls(reciprocal_radius, coordinate_grid)
-        in_sphere = surrounding_grid.spot_distances < reciprocal_radius
-        return surrounding_grid[in_sphere]
-
-    @classmethod
-    def _determine_minimum_repetitions(
-        cls,
-        distance: float,
-        reciprocal_lattice: Lattice,
-    ) -> int:
-        """Returns the minimum number of cell repetitions to fill a distance"""
-        vertices = np.array([
-            [-1, -1, -1],
-            [-1, -1,  0],
-            [-1, -1,  1],
-            [-1,  0, -1],
-            [-1,  0,  0],
-            [-1,  0,  1],
-            [-1,  1, -1],
-            [-1,  1,  0],
-            [-1,  1,  1],
-            [0, -1, -1],
-            [0, -1,  0],
-            [0, -1,  1],
-            [0,  0, -1],
-            [0,  0,  1],
-            [0,  1, -1],
-            [0,  1,  0],
-            [0,  1,  1],
-            [1, -1, -1],
-            [1, -1,  0],
-            [1, -1,  1],
-            [1,  0, -1],
-            [1,  0,  0],
-            [1,  0,  1],
-            [1,  1, -1],
-            [1,  1,  0],
-            [1,  1,  1]]
-        )
-        lengths = np.abs(reciprocal_lattice.dist(vertices, [0, 0, 0]))
-        min_length = np.min(lengths)
-        return int(np.ceil(distance / min_length))
-
 
 def is_lattice_hexagonal(latt):
     """Determines if a diffpy lattice is hexagonal or trigonal.
