@@ -19,12 +19,12 @@
 from __future__ import annotations
 from typing import Sequence, NamedTuple, Mapping
 
-from diffpy.structure import Structure
+from diffsims.crystallography import CrystalPhase
 from orix.quaternion import Rotation
 
 
 class StructureData(NamedTuple):
-    structure: Structure
+    phase: CrystalPhase
     orientations: Rotation
 
 
@@ -36,33 +36,37 @@ class StructureLibrary:
     def __init__(
         self,
         names: Sequence[str] = None,
-        structures: Sequence[Structure] = None,
+        phases: Sequence[CrystalPhase] = None,
         orientations: Sequence[Rotation] = None,
     ):
         if names is None:
             names = []
-        if structures is None:
-            structures = []
+        if phases is None:
+            phases = []
         if orientations is None:
             orientations = []
-        if (len(names) != len(structures)) or (len(names) != len(orientations)):
+        if (len(names) != len(phases)) or (len(names) != len(orientations)):
             raise ValueError("All sequences must be of the same length")
 
         self.__data = dict()
-        for name, structure, orientation in zip(names, structures, orientations):
-            phase_info = StructureData(structure, orientation)
+        for name, phase, orientation in zip(names, phases, orientations):
+            phase_info = StructureData(phase, orientation)
             self.__data[name] = phase_info
 
     def __getitem__(self, name: str) -> StructureData:
         return self.__data[name]
 
-    def add_structure(
+    @property
+    def keys(self):
+        return self.__data.keys
+
+    def add_phase(
         self,
         name: str,
-        structure: Structure,
+        phase: CrystalPhase,
         orientations: Rotation,
     ) -> None:
-        self.__data[name] = StructureData(structure, orientations)
+        self.__data[name] = StructureData(phase, orientations)
 
     @property
     def phases(self) -> Sequence[str]:
@@ -76,14 +80,14 @@ class StructureLibrary:
         }
 
     @property
-    def structures(self) -> Mapping[str, Structure]:
+    def phases(self) -> Mapping[str, CrystalPhase]:
         return {
-            phase: self.__data[phase].structure
+            phase: self.__data[phase].phase
             for phase in self.phases
         }
 
-    def get_structure(self, name: str) -> Structure:
-        return self.__data[name].structure
+    def get_crystal(self, name: str) -> CrystalPhase:
+        return self.__data[name].phase
 
     def get_orientations(self, name: str) -> Rotation:
         return self.__data[name].orientations

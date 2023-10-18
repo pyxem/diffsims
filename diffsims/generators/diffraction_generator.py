@@ -18,21 +18,21 @@
 
 """Electron diffraction pattern simulation."""
 
-from typing import Tuple, Mapping, Sequence
+from typing import Tuple, Mapping, Sequence, Union
 
 import numpy as np
 from scipy.integrate import quad
 from transforms3d.euler import euler2mat
 from diffpy.structure.structure import Structure
+from orix.quaternion.rotation import Rotation
 
+from diffsims.crystallography import CrystalPhase
 from diffsims.sims.diffraction_simulation import DiffractionSimulation
 from diffsims.sims.diffraction_simulation import ProfileSimulation
 from diffsims.utils.sim_utils import (
     get_electron_wavelength,
     get_kinematical_intensities,
-    ReciprocalSpaceSample,
     is_lattice_hexagonal,
-    get_intensities_params,
 )
 from diffsims.utils.fourier_transform import from_recip
 from diffsims.utils.shape_factor_models import (
@@ -286,9 +286,9 @@ class DiffractionGenerator(object):
 
     def calculate_ed_data(
         self,
-        structure: Structure,
+        phase: CrystalPhase,
         reciprocal_radius: float,
-        rotation: Tuple[float, float, float] = (0., 0., 0.),
+        rotation: Union[Tuple[float, float, float], Rotation] = (0., 0., 0.),
         with_direct_beam: bool = True,
         max_excitation_error: float = 1e-2,
         shape_factor_width: float = None,
@@ -298,7 +298,7 @@ class DiffractionGenerator(object):
 
         Parameters
         ----------
-        structure
+        phase
             The structure for which to derive the diffraction pattern.
             Note that the structure must be rotated to the appropriate
             orientation and that testing is conducted on unit cells
@@ -333,23 +333,32 @@ class DiffractionGenerator(object):
 
         # Specify variables used in calculation
         wavelength = self.wavelength
-        real_lattice = structure.lattice
-
         # Obtain crystallographic reciprocal lattice points within `reciprocal_radius` and
         # g-vector magnitudes for intensity calculations.
-        reciprocal_lattice = real_lattice.reciprocal()
-        g_indices, cartesian_coordinates, g_hkls = get_points_in_sphere(
-            reciprocal_lattice, reciprocal_radius
+
+        recip_vectors = phase.reciprocal_lattice_vectors(
+            reciprocal_radius=reciprocal_radius
         )
 
-        ai, aj, ak = (
-            np.deg2rad(rotation[0]),
-            np.deg2rad(rotation[1]),
-            np.deg2rad(rotation[2]),
-        )
-        R = euler2mat(ai, aj, ak, axes="rzxz")
-        cartesian_coordinates = np.matmul(R, cartesian_coordinates.T).T
+        if isinstance(rotation, (list, tuple)):
+            ai, aj, ak = (
+                np.deg2rad(rotation[0]),
+                np.deg2rad(rotation[1]),
+                np.deg2rad(rotation[2]),
+            )
 
+            R = euler2mat(ai, aj, ak, axes="rzxz")
+        elif isinstance(rotation, Rotation):
+            R = rotation.to_matrix()[0]
+        else:
+            raise ValueError(
+                "Rotation must be a tuple of Euler angles or a Rotation object."
+            )
+        cartesian_coordinates = np.matmul(R, recip_vectors.data.T).T
+        if with_direct_beam:
+            cartesian_coordinates = np.vstack(
+                (cartesian_coordinates, np.zeros(3))
+            )
         # Identify the excitation errors of candidate points
         r_sphere = 1 / wavelength
         r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
@@ -377,6 +386,11 @@ class DiffractionGenerator(object):
         intersection_coordinates = cartesian_coordinates[intersection]
         excitation_error = excitation_error[intersection]
         r_spot = r_spot[intersection]
+        g_indices = recip_vectors.hkl
+        g_hkls = recip_vectors.gspacing
+        if with_direct_beam:
+            g_indices = np.vstack((g_indices, np.zeros(3)))
+            g_hkls = np.hstack((g_hkls, [0]))
         g_indices = g_indices[intersection]
         g_hkls = g_hkls[intersection]
 
@@ -407,7 +421,7 @@ class DiffractionGenerator(object):
                 )
         # Calculate diffracted intensities based on a kinematical model.
         intensities = get_kinematical_intensities(
-            structure,
+            phase.structure,
             g_indices,
             g_hkls,
             prefactor=shape_factor,
@@ -430,10 +444,10 @@ class DiffractionGenerator(object):
 
     def calculate_profile_data(
         self,
-        structure,
-        reciprocal_radius=1.0,
-        minimum_intensity=1e-3,
-        debye_waller_factors={},
+        phase: CrystalPhase,
+        reciprocal_radius: float=1.0,
+        minimum_intensity: float=1e-3,
+        debye_waller_factors: dict = {},
     ):
         """Calculates a one dimensional diffraction profile for a
         structure.
@@ -458,21 +472,22 @@ class DiffractionGenerator(object):
             experimental conditions.
         """
         wavelength = self.wavelength
-        latt = structure.lattice
+        latt = phase.structure.lattice
 
         # Obtain crystallographic reciprocal lattice points within range
-        recip_latt = latt.reciprocal()
-        sampled_space = ReciprocalSpaceSample.from_radius(recip_latt, reciprocal_radius)
-        spot_indices = sampled_space.spot_indices
-        spot_distances = sampled_space.spot_distances
-
-        ##spot_indicies is a numpy.array of the hkls allowd in the recip radius
-        g_indices, multiplicities, g_hkls = get_intensities_params(
-            recip_latt, reciprocal_radius
+        recip_vectors = phase.reciprocal_lattice_vectors(
+            reciprocal_radius=reciprocal_radius
         )
+        if not recip_vectors.has_hexagonal_lattice:
+            recip_vectors = recip_vectors[recip_vectors.allowed]
+        recip_vectors = recip_vectors.unique(use_symmetry=True).symmetrise()
+        recip_vectors = recip_vectors.unique()
+        multiplicities = recip_vectors.multiplicity
+        g_indices = recip_vectors.hkl
+        g_hkls = recip_vectors.gspacing
 
         i_hkl = get_kinematical_intensities(
-            structure,
+            phase.structure,
             g_indices,
             np.asarray(g_hkls),
             prefactor=multiplicities,

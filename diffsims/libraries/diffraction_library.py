@@ -17,27 +17,96 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from typing import Sequence, Optional
+from typing import Sequence, NamedTuple
 from dataclasses import dataclass
 import pickle
 
 import numpy as np
-from diffpy.structure import Structure
+from orix.quaternion import Rotation
 
+from diffsims.crystallography import CrystalPhase
 from diffsims.generators.diffraction_generator import DiffractionGenerator
+from diffsims.libraries.structure_library import StructureData
+from diffsims.sims.diffraction_simulation import DiffractionSimulation
 
 
-@dataclass
+class PhaseData(NamedTuple):
+    phase: CrystalPhase
+    orientations: Rotation
+    simulations: Sequence[DiffractionSimulation]
+    pixel_coords: np.array
+    intensities: np.array
+
+
 class DiffractionLibrary:
     """Maps crystal structure (phase) and orientation to simulated diffraction
     data.
     """
 
-    identifiers: Optional[Sequence[str]] = None
-    structures: Optional[Sequence[Structure]] = None
-    diffraction_generator: Optional[DiffractionGenerator] = None
-    reciprocal_radius: float = 0.0
-    with_direct_beam: bool = False
+    def __init__(
+        self,
+        names: Sequence[str] = None,
+        phases: Sequence[CrystalPhase] = None,
+        orientations: Sequence[Rotation] = None,
+        simulations: Sequence[Sequence[DiffractionSimulation]] = None,
+        pixel_coords: Sequence[np.array] = None,
+        intensities: Sequence[np.array] = None,
+        generator: DiffractionGenerator = None,
+    ):
+        if names is None:
+            names = []
+        if phases is None:
+            phases = []
+        if orientations is None:
+            orientations = []
+        if simulations is None:
+            simulations = []
+        if pixel_coords is None:
+            pixel_coords = []
+        if intensities is None:
+            intensities = []
+
+        not_equal_len = np.any(
+            [
+                len(names) != len(seq)
+                for seq in zip(
+                    phases, orientations, simulations, pixel_coords, intensities
+                )
+            ]
+        )
+        if not_equal_len:
+            raise ValueError("All sequences must be of the same length")
+
+        self.__data = dict()
+        for name, phase, orientation, simulation, pixel_coord, intensity in zip(
+            names, phases, orientations, simulations, pixel_coords, intensities
+        ):
+            phase_info = PhaseData(phase, orientation, simulation, pixel_coord, intensity)
+            self.__data[name] = phase_info
+
+        self.generator = generator
+
+    @property
+    def keys(self):
+        return self.__data.keys
+
+    def __getitem__(self, name: str) -> PhaseData:
+        return self.__data[name]
+
+    def add_phase(
+        self,
+        name: str,
+        phase: CrystalPhase,
+        orientations: Rotation,
+        simulations: Sequence[DiffractionSimulation],
+        pixel_coords: np.array,
+        intensities: np.array,
+    ) -> None:
+        self.__data[name] = PhaseData(phase,
+                                      orientations,
+                                      simulations,
+                                      pixel_coords,
+                                      intensities)
 
     def get_library_entry(self, phase=None, angle=None):
         """Extracts a single DiffractionLibrary entry.
@@ -61,7 +130,9 @@ class DiffractionLibrary:
         if phase is not None:
             phase_entry = self[phase]
             if angle is not None:
-                orientation_index = self._get_library_entry_from_angles(self, phase, angle)
+                orientation_index = self._get_library_entry_from_angles(
+                    self, phase, angle
+                )
             else:
                 orientation_index = 0
         elif angle is not None:
@@ -96,11 +167,7 @@ class DiffractionLibrary:
             pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     @classmethod
-    def load(
-        cls,
-        filename: str,
-        safety: bool = False
-    ) -> DiffractionLibrary:
+    def load(cls, filename: str, safety: bool = False) -> DiffractionLibrary:
         """Loads a previously saved diffraction library.
 
         Parameters
