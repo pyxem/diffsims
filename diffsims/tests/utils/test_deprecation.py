@@ -72,6 +72,26 @@ class TestDeprecationWarning:
             f"   {desired_msg}"
         )
 
+    def test_deprecation_not_function(self):
+        @deprecated(since=0.7, alternative="bar", removal=0.8, alternative_is_function=False)
+        def foo(n):
+            return n + 1
+
+        with pytest.warns(np.VisibleDeprecationWarning) as record:
+            assert foo(4) == 5
+        desired_msg = (
+            "Function `foo()` is deprecated and will be removed in version 0.8. Use "
+            "`bar` instead."
+        )
+        assert str(record[0].message) == desired_msg
+        assert foo.__doc__ == (
+            "[*Deprecated*] \n"
+            "\nNotes\n-----\n"
+            ".. deprecated:: 0.7\n"
+            f"   {desired_msg}"
+        )
+
+
 
 class TestDeprecateArgument:
     def test_deprecate_argument(self):
