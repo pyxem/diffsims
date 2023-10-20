@@ -13,6 +13,7 @@ Unreleased
 Added
 -----
 - Explicit support for Python 3.11.
+- Added deprecation tools for deprecating functions and arguments.
 - Added Pre-Commit for code formatting.
 
 
