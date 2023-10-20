@@ -29,7 +29,6 @@ from diffsims.structure_factor.structure_factor import (
     get_refraction_corrected_wavelength,
 )
 
-
 _FLOAT_EPS = np.finfo(float).eps  # Used to round values below 1e-16 to zero
 
 
