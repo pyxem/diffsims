@@ -27,7 +27,7 @@ from diffsims.libraries.vector_library import DiffractionVectorLibrary
 
 from diffsims.utils.sim_utils import get_points_in_sphere
 from diffsims.utils.vector_utils import get_angle_cartesian_vec
-
+from diffsims.utils._deprecated import deprecated
 
 __all__ = [
     "DiffractionLibraryGenerator",
@@ -39,7 +39,7 @@ class DiffractionLibraryGenerator:
     """Computes a library of electron diffraction patterns for specified atomic
     structures and orientations.
     """
-
+    @deprecated(since="0.6.0", alternative="Diffsims.generators.SimulationGenerator")
     def __init__(self, electron_diffraction_calculator):
         """Initialises the generator with a diffraction calculator.
 

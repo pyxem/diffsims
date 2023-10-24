@@ -41,6 +41,7 @@ from diffsims.utils.shape_factor_models import (
     lorentzian_precession,
 )
 
+from diffsims.utils._deprecated import deprecated
 
 __all__ = [
     "AtomicDiffractionGenerator",
@@ -153,6 +154,9 @@ class DiffractionGenerator(object):
     `custom shape_factor_model` is used.
     """
 
+    @deprecated(since="0.6.0",
+                removal="0.7.0",
+                alternative="diffsims.generators.simulation_generator.SimulationGenerator")
     def __init__(
         self,
         accelerating_voltage,
