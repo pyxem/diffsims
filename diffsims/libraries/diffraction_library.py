@@ -17,13 +17,20 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import pickle
+from typing import NamedTuple, Sequence, Set
 
 import numpy as np
 
+from orix.quaternion import Rotation
+from orix.crystal_map import Phase
 
+from diffsims.sims.diffraction_simulation import DiffractionSimulation
+from diffsims.generators.diffraction_generator import DiffractionGenerator
 __all__ = [
     "DiffractionLibrary",
     "load_DiffractionLibrary",
+    "SimulationLibrary",
+    "SimulationLibraries",
 ]
 
 
@@ -84,7 +91,8 @@ def _get_library_entry_from_angles(library, phase, angles):
     """
 
     phase_entry = library[phase]
-    for orientation_index, orientation in enumerate(phase_entry["orientations"]):
+    orientations = phase_entry["orientations"].to_euler(degrees=True)
+    for orientation_index, orientation in enumerate(orientations):
         if np.sum(np.abs(np.subtract(orientation, angles))) < 1e-2:
             return orientation_index
 
@@ -92,6 +100,57 @@ def _get_library_entry_from_angles(library, phase, angles):
     raise ValueError(
         "It appears that no library entry lies with 1e-2 of the target angle"
     )
+
+
+class SimulationLibrary(NamedTuple):
+    phase: Phase
+    rotations: Rotation
+    diffraction_generator: DiffractionGenerator
+    simulations: Sequence[DiffractionSimulation]
+    str_rotations: Sequence[str] = None
+
+    def __repr__(self):
+        return (f"DiffractionPhaseLibrary(phase={self.phase.name},"
+                f" No. Rotations={self.__len__()})")
+
+    def __post_init__(self):
+        if len(self.rotations) != len(self.simulations):
+            raise ValueError("Number of rotations and simulations must be the same")
+        if self.str_rotations is not None and len(self.rotations) != len(self.str_rotations):
+            raise ValueError("Number of rotations and str_rotations must be the same")
+
+    def __len__(self):
+        return len(self.rotations)
+
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            item = self.str_rotations.index(item)
+        return SimulationLibrary(self.phase,
+                                 self.rotations[item],
+                                 self.simulations[item]
+                                )
+
+    def get_library_entry(self,
+                          rotation: Rotation,
+                          angle_cutoff: float = 1e-2) -> 'DiffractionPhaseLibrary':
+        angles = self.rotations.angle_with(rotation)
+        is_in_range = np.sum(np.abs(angles), axis=1) < angle_cutoff
+        return self[is_in_range]
+
+
+class SimulationLibraries(dict):
+    """
+    A dictionary containing all the structures and their associated rotations
+    """
+
+    def __init__(self, libraries: Sequence[SimulationLibrary]):
+        super().__init__()
+        for library in libraries:
+            self[library.phase.name] = library
+
+    def __repr__(self):
+        return f"DiffractionLibrary<Phases:{list(self.keys())}>)"
+
 
 
 class DiffractionLibrary(dict):
@@ -127,11 +186,11 @@ class DiffractionLibrary(dict):
 
         Parameters
         ----------
-        phase : str
+        phase : str or int
             Key for the phase of interest. If unspecified the choice is random.
         angle : tuple
             The orientation of interest as a tuple of Euler angles following the
-            Bunge convention [z, x, z] in degrees. If unspecified the choise is
+            Bunge convention [z, x, z] in degrees. If unspecified the choice is
             random (the first hit).
 
         Returns
@@ -141,6 +200,8 @@ class DiffractionLibrary(dict):
             phase and orientation with associated properties.
 
         """
+        if isinstance(phase, int):
+            phase = list(self.keys())[phase]
         if phase is not None:
             phase_entry = self[phase]
             if angle is not None:
@@ -156,7 +217,6 @@ class DiffractionLibrary(dict):
         return {
             "Sim": phase_entry["simulations"][orientation_index],
             "intensities": phase_entry["intensities"][orientation_index],
-            "pixel_coords": phase_entry["pixel_coords"][orientation_index],
             "pattern_norm": np.linalg.norm(
                 phase_entry["intensities"][orientation_index]
             ),

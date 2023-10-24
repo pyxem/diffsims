@@ -122,6 +122,7 @@ class ReciprocalLatticeVector(Vector3d):
 
         self._theta = np.full(self.shape, np.nan)
         self._structure_factor = np.full(self.shape, np.nan, dtype="complex128")
+        self._intensity = np.full(self.shape, np.nan)
 
     def __getitem__(self, key):
         miller_new = self.to_miller().__getitem__(key)
@@ -138,6 +139,15 @@ class ReciprocalLatticeVector(Vector3d):
             rlv_new._theta = np.full(rlv_new.shape, np.nan)
         else:
             rlv_new._theta = self.theta[key]
+
+        if np.isnan(self.intensity).all():
+            rlv_new._intensity = np.full(rlv_new.shape, np.nan)
+        else:
+            slic = self.intensity[key]
+            if not hasattr(slic, "__len__"):
+                slic = np.array([slic, ])
+            rlv_new._intensity = slic
+
 
         return rlv_new
 
@@ -501,6 +511,23 @@ class ReciprocalLatticeVector(Vector3d):
         """
 
         return 0.5 * self.gspacing
+
+    @property
+    def intensity(self):
+        return self._intensity
+
+    @intensity.setter
+    def intensity(self, value):
+        if not hasattr(value, "__len__"):
+            value = np.array([value, ] * self.size)
+        if len(value) != self.size:
+            raise ValueError("Length of intensity array must match number of vectors")
+        self._intensity = np.array(value)
+
+    def rotate_from_matrix(self, rotation_matrix):
+        return ReciprocalLatticeVector(phase=self.phase,
+                                       xyz=np.matmul(rotation_matrix,
+                                                     self.data.T).T)
 
     @property
     def structure_factor(self):
@@ -1070,7 +1097,7 @@ class ReciprocalLatticeVector(Vector3d):
         return cls(phase, hkl=idx).unique()
 
     @classmethod
-    def from_min_dspacing(cls, phase, min_dspacing=0.7):
+    def from_min_dspacing(cls, phase, min_dspacing=0.7, include_zero_beam=False):
         """Create a set of unique reciprocal lattice vectors with a
         a direct space interplanar spacing greater than a lower
         threshold.
@@ -1128,6 +1155,8 @@ class ReciprocalLatticeVector(Vector3d):
         dspacing = 1 / phase.structure.lattice.rnorm(hkl)
         idx = dspacing >= min_dspacing
         hkl = hkl[idx]
+        if include_zero_beam:
+            hkl = np.vstack((hkl, np.zeros(3, dtype=int)))
         return cls(phase, hkl=hkl).unique()
 
     @classmethod
