@@ -21,7 +21,7 @@
 from diffsims.libraries import (
     diffraction_library,
     structure_library,
-    vector_library,
+    vector_library
 )
 
 __all__ = [
