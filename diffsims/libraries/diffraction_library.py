@@ -91,8 +91,7 @@ def _get_library_entry_from_angles(library, phase, angles):
     """
 
     phase_entry = library[phase]
-    orientations = phase_entry["orientations"].to_euler(degrees=True)
-    for orientation_index, orientation in enumerate(orientations):
+    for orientation_index, orientation in enumerate(phase_entry["orientations"]):
         if np.sum(np.abs(np.subtract(orientation, angles))) < 1e-2:
             return orientation_index
 
