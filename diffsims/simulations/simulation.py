@@ -117,6 +117,18 @@ class DiffractionSimulation:
             )
         self._calibration = calibration
 
+    def get_polar_coordinates(self, real=True):
+        """Returns the polar coordinates of the diffraction pattern
+        """
+        x = self.coordinates.data[:, 0]
+        y = self.coordinates.data[:, 1]
+        if not real:
+            x = x / self.calibration[0]
+            y = y / self.calibration[1]
+        r = np.sqrt(x**2 + y**2)
+        theta = np.arctan2(y, x)
+        return r, theta
+
     @property
     def direct_beam_mask(self):
         """ndarray : If `with_direct_beam` is True, returns a True array for all
@@ -416,6 +428,7 @@ class DiffractionSimulation:
                 ax.set_xlabel("pixels")
                 ax.set_ylabel("pixels")
         return ax, sp
+
 
 
 class ProfileSimulation:
