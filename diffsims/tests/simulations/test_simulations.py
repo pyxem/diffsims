@@ -23,7 +23,7 @@ from diffpy.structure import Structure, Atom, Lattice
 from orix.crystal_map import Phase
 
 from diffsims.crystallography import ReciprocalLatticeVector
-from diffsims.simulations.simulation import DiffractionSimulation
+from diffsims.simulations.simulation import DiffractionSimulation, ProfileSimulation
 
 @pytest.fixture
 def profile_simulation():
@@ -76,7 +76,7 @@ def profile_simulation():
 
 
 def test_plot_profile_simulation(profile_simulation):
-    profile_simulation.get_plot()
+    profile_simulation.plot()
 
 
 class TestDiffractionSimulation:
