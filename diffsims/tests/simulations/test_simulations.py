@@ -283,6 +283,18 @@ class TestDiffractionSimulation:
         assert mask.shape[0] == 20
         assert mask.shape[1] == 10
 
+    def test_polar_coordinates(self, al_phase):
+        vect = ReciprocalLatticeVector(phase=al_phase,
+                                       xyz=np.asarray([[1, 1, 0]]))
+        vect.intensity = np.ones(1)
+        short_sim = DiffractionSimulation(vect, calibration=[0.5, 0.5])
+        r, t = short_sim.get_polar_coordinates(real=True)
+        assert r == [1.4142135623730951, ]
+        assert t == [0.7853981633974483, ]
+        r, t = short_sim.get_polar_coordinates(real=False)
+        assert r == [np.sqrt(8), ]
+        assert t == [0.7853981633974483, ]
+
     @pytest.mark.parametrize("units_in", ["pixel", "real"])
     def test_plot_method(self,al_phase, units_in):
         vect = ReciprocalLatticeVector(phase=al_phase, xyz=np.asarray(
