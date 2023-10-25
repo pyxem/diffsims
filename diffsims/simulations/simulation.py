@@ -66,13 +66,17 @@ class DiffractionSimulation:
     def deepcopy(self):
         return copy.deepcopy(self)
 
-    def append(self,
-               vectors: ReciprocalLatticeVector):
+    def append(self, vectors: ReciprocalLatticeVector):
         new_data = copy.deepcopy(self)
-        new_coords = np.concatenate((new_data._coordinates.data, vectors._coordinates.data), axis=0)
-        new_data._coordinates = ReciprocalLatticeVector(phase=self._coordinates.phase, xyz=new_coords)
-        new_data._coordinates.intensity = np.concatenate((self._coordinates.intensity,
-                                                          vectors._coordinates.intensity))
+        new_coords = np.concatenate(
+            (new_data._coordinates.data, vectors._coordinates.data), axis=0
+        )
+        new_data._coordinates = ReciprocalLatticeVector(
+            phase=self._coordinates.phase, xyz=new_coords
+        )
+        new_data._coordinates.intensity = np.concatenate(
+            (self._coordinates.intensity, vectors._coordinates.intensity)
+        )
         return new_data
 
     @property
@@ -86,7 +90,9 @@ class DiffractionSimulation:
     @property
     def pixel_coordinates(self):
         half_shape = np.array(self.shape) / 2
-        pixel_coordinates = np.rint(self.calibrated_coordinates[:, :2] + half_shape).astype(int)
+        pixel_coordinates = np.rint(
+            self.calibrated_coordinates[:, :2] + half_shape
+        ).astype(int)
         return pixel_coordinates
 
     @property
@@ -119,7 +125,7 @@ class DiffractionSimulation:
         if self.with_direct_beam:
             return np.ones_like(self._coordinates.intensity, dtype=bool)
         else:
-            mask = np.any(self._coordinates.data!=0, axis=1)
+            mask = np.any(self._coordinates.data != 0, axis=1)
             return mask
 
     @property
@@ -153,7 +159,7 @@ class DiffractionSimulation:
         y = transformed_coords.data[:, 1]
         mirrored_factor = -1 if mirrored else 1
         theta = mirrored_factor * np.arctan2(y, x) + np.deg2rad(angle)
-        rd = np.sqrt(x ** 2 + y ** 2)
+        rd = np.sqrt(x**2 + y**2)
         transformed_coords[:, 0] = rd * np.cos(theta) + cx
         transformed_coords[:, 1] = rd * np.sin(theta) + cy
         new_sim._coordinates = transformed_coords
@@ -310,7 +316,7 @@ class DiffractionSimulation:
         show_labels=False,
         label_offset=(0, 0),
         label_formatting={},
-        min_label_intensity=.1,
+        min_label_intensity=0.1,
         ax=None,
         **kwargs,
     ):
@@ -389,7 +395,6 @@ class DiffractionSimulation:
                 label_formatting["va"] = "center"
             for miller, coordinate, inten in zip(millers, coords, self.intensities):
                 if inten > min_label_intensity:
-
                     label = "("
                     for index in miller:
                         if index < 0:
@@ -404,7 +409,7 @@ class DiffractionSimulation:
                         label,
                         **label_formatting,
                     )
-            if units =="real":
+            if units == "real":
                 ax.set_xlabel(r"$\AA^{-1}$")
                 ax.set_ylabel(r"$\AA^{-1}$")
             else:

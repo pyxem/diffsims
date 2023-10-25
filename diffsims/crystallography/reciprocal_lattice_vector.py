@@ -145,9 +145,12 @@ class ReciprocalLatticeVector(Vector3d):
         else:
             slic = self.intensity[key]
             if not hasattr(slic, "__len__"):
-                slic = np.array([slic, ])
+                slic = np.array(
+                    [
+                        slic,
+                    ]
+                )
             rlv_new._intensity = slic
-
 
         return rlv_new
 
@@ -519,15 +522,20 @@ class ReciprocalLatticeVector(Vector3d):
     @intensity.setter
     def intensity(self, value):
         if not hasattr(value, "__len__"):
-            value = np.array([value, ] * self.size)
+            value = np.array(
+                [
+                    value,
+                ]
+                * self.size
+            )
         if len(value) != self.size:
             raise ValueError("Length of intensity array must match number of vectors")
         self._intensity = np.array(value)
 
     def rotate_from_matrix(self, rotation_matrix):
-        return ReciprocalLatticeVector(phase=self.phase,
-                                       xyz=np.matmul(rotation_matrix,
-                                                     self.data.T).T)
+        return ReciprocalLatticeVector(
+            phase=self.phase, xyz=np.matmul(rotation_matrix, self.data.T).T
+        )
 
     @property
     def structure_factor(self):
