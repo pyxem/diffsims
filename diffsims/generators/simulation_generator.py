@@ -15,7 +15,7 @@ from diffsims.utils.shape_factor_models import (
     sinc,
     sin2c,
     lorentzian_precession,
-    _shape_factor_precession
+    _shape_factor_precession,
 )
 
 from diffsims.utils.sim_utils import (
@@ -74,8 +74,7 @@ class SimulationGenerator:
     def calculate_ed_data(
         self,
         phase: Phase,
-        rotation: Rotation = Rotation.from_euler((0, 0, 0),
-                                                 degrees=True),
+        rotation: Rotation = Rotation.from_euler((0, 0, 0), degrees=True),
         reciprocal_radius: float = 1.0,
         with_direct_beam: bool = True,
         max_excitation_error: float = 1e-2,
@@ -122,9 +121,11 @@ class SimulationGenerator:
             debye_waller_factors = {}
         # Specify variables used in calculation
         wavelength = self.wavelength
-        recip = ReciprocalLatticeVector.from_min_dspacing(phase,
-                                                          min_dspacing=1 / reciprocal_radius,
-                                                          include_zero_beam=with_direct_beam)
+        recip = ReciprocalLatticeVector.from_min_dspacing(
+            phase,
+            min_dspacing=1 / reciprocal_radius,
+            include_zero_beam=with_direct_beam,
+        )
 
         # Rotate using all the rotations in the list
         vectors = []
@@ -135,7 +136,7 @@ class SimulationGenerator:
             r_spot = np.sqrt(np.sum(np.square(rotated_vectors.data[:, :2]), axis=1))
             z_spot = rotated_vectors.data[:, 2]
 
-            z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
+            z_sphere = -np.sqrt(r_sphere**2 - r_spot**2) + r_sphere
             excitation_error = z_sphere - z_spot
 
             # determine the pre-selection reflections
@@ -147,10 +148,11 @@ class SimulationGenerator:
                 P_z = r_sphere * np.cos(np.deg2rad(self.precession_angle))
                 P_t = r_sphere * np.sin(np.deg2rad(self.precession_angle))
                 # the extremes of the ewald sphere
-                z_surf_up = P_z - np.sqrt(r_sphere ** 2 - (r_spot + P_t) ** 2)
-                z_surf_do = P_z - np.sqrt(r_sphere ** 2 - (r_spot - P_t) ** 2)
+                z_surf_up = P_z - np.sqrt(r_sphere**2 - (r_spot + P_t) ** 2)
+                z_surf_do = P_z - np.sqrt(r_sphere**2 - (r_spot - P_t) ** 2)
                 intersection = (z_spot - max_excitation_error <= z_surf_up) & (
-                        z_spot + max_excitation_error >= z_surf_do)
+                    z_spot + max_excitation_error >= z_surf_do
+                )
 
             # select these reflections
             intersected_vectors = rotated_vectors[intersection]
@@ -198,17 +200,19 @@ class SimulationGenerator:
             intersected_vectors = intersected_vectors[peak_mask]
             intersected_vectors.intensity = intensities
 
-            sim = DiffractionSimulation(coordinates=intersected_vectors,
-                                        with_direct_beam=with_direct_beam,)
+            sim = DiffractionSimulation(
+                coordinates=intersected_vectors,
+                with_direct_beam=with_direct_beam,
+            )
             vectors.append(sim)
 
-        lib = SimulationLibrary(phase=phase,
-                                rotations=rotation,
-                                diffraction_generator=self,
-                                simulations=vectors,
-                                )
+        lib = SimulationLibrary(
+            phase=phase,
+            rotations=rotation,
+            diffraction_generator=self,
+            simulations=vectors,
+        )
         return lib
-
 
     def calculate_profile_data(
         self,
@@ -242,16 +246,16 @@ class SimulationGenerator:
         latt = phase.structure.lattice
 
         # Obtain crystallographic reciprocal lattice points within range
-        vectors = ReciprocalLatticeVector.from_min_dspacing(phase,
-                                                            min_dspacing=1 / reciprocal_radius,
-                                                            )
+        vectors = ReciprocalLatticeVector.from_min_dspacing(
+            phase,
+            min_dspacing=1 / reciprocal_radius,
+        )
 
         unique_vectors = vectors.unique(use_symmetry=True).symmetrise()
 
         multiplicity = unique_vectors.multiplicity
         g_indices = unique_vectors.hkl
         g_hkls = unique_vectors.gspacing
-
 
         i_hkl = get_kinematical_intensities(
             phase.structure,
