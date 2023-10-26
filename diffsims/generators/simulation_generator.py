@@ -1,13 +1,11 @@
-from typing import Sequence, Union
 import numpy as np
-import matplotlib.pyplot as plt
 
 from orix.quaternion import Rotation
 from orix.crystal_map import Phase
 
 from diffsims.crystallography import ReciprocalLatticeVector
 from diffsims.simulations.simulation import DiffractionSimulation, ProfileSimulation
-from diffsims.libraries.diffraction_library import SimulationLibrary
+from diffsims.libraries.simulation_library import SimulationLibrary
 from diffsims.utils.shape_factor_models import (
     linear,
     atanc,
