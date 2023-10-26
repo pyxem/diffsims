@@ -125,8 +125,8 @@ class ReciprocalLatticeVector(Vector3d):
         self._intensity = np.full(self.shape, np.nan)
 
     def __getitem__(self, key):
-        miller_new = self.to_miller().__getitem__(key)
-        rlv_new = self.from_miller(miller_new)
+        new_data = self.data[key]
+        rlv_new = self.__class__(self.phase, xyz=new_data)
 
         if np.isnan(self.structure_factor).all():
             rlv_new._structure_factor = np.full(
