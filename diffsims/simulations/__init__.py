@@ -1,1 +1,1 @@
-from diffsims.simulations.simulation import DiffractionSimulation
+from diffsims.simulations.simulation import Simulation

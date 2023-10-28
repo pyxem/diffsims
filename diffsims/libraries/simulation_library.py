@@ -1,20 +1,23 @@
-from typing import NamedTuple, Sequence
+from typing import NamedTuple, Sequence, TYPE_CHECKING
 
 from orix.quaternion import Rotation
 from orix.crystal_map import Phase
 from orix.vector import Vector3d
 import numpy as np
 
-from diffsims.sims.diffraction_simulation import DiffractionSimulation
-from diffsims.generators.diffraction_generator import DiffractionGenerator
+from diffsims.simulations.simulation import Simulation as DiffractionSimulation
+
+if TYPE_CHECKING:
+    from diffsims.generators.simulation_generator import SimulationGenerator
 
 
 class SimulationLibrary(NamedTuple):
-    phase: Phase
-    rotations: Rotation
-    diffraction_generator: DiffractionGenerator
+    phase: Sequence[Phase]
+    rotations: Sequence[Rotation]
+    diffraction_generator: "SimulationGenerator"
     simulations: Sequence[DiffractionSimulation]
     str_rotations: Sequence[str] = None
+    calibration: float = None
 
     def __repr__(self):
         return (
@@ -48,8 +51,7 @@ class SimulationLibrary(NamedTuple):
         is_in_range = np.sum(np.abs(angles), axis=1) < angle_cutoff
         return self[is_in_range]
 
-    def rotations_to_vectors(self,
-                             beam_direction: Vector3d = None) -> Vector3d:
+    def rotations_to_vectors(self, beam_direction: Vector3d = None) -> Vector3d:
         """Converts the rotations to vectors
 
         Parameters
@@ -62,9 +64,11 @@ class SimulationLibrary(NamedTuple):
         vectors = self.rotations * beam_direction
         return vectors
 
-    def plot_rotations(self,
-                       beam_direction: Vector3d = None,
-                       **kwargs):
+    def max_num_spots(self):
+        """Returns the maximum number of spots in the library"""
+        return max([i.intensities.shape[0] for i in self.simulations])
+
+    def plot_rotations(self, beam_direction: Vector3d = None, **kwargs):
         """Plots all the diffraction patterns in the library
 
         Parameters
@@ -74,6 +78,24 @@ class SimulationLibrary(NamedTuple):
         """
         vectors = self.rotations_to_vectors(beam_direction)
         vectors.scatter(**kwargs)
+
+    def polar_flatten_simulations(self):
+        """Flatten the simulations into arrays of shape (n_simulations, max(num_diffraction_spots))
+        for the polar coordinates (r,theta, intensity) of the diffraction spots
+        """
+        max_num_spots = self.max_num_spots()
+
+        r = np.zeros((len(self), max_num_spots))
+        theta = np.zeros((len(self), max_num_spots))
+        intensity = np.zeros((len(self), max_num_spots))
+
+        for i, sim in enumerate(self.simulations):
+            (
+                r[i, : sim.intensities.shape[0]],
+                theta[i, : sim.intensities.shape[0]],
+            ) = sim.get_polar_coordinates()
+            intensity[i, : sim.intensities.shape[0]] = sim.intensities
+        return r, theta, intensity
 
 
 class SimulationLibraries(dict):

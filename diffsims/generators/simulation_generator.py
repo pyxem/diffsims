@@ -1,10 +1,11 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from orix.quaternion import Rotation
 from orix.crystal_map import Phase
 
 from diffsims.crystallography import ReciprocalLatticeVector
-from diffsims.simulations.simulation import DiffractionSimulation, ProfileSimulation
+from diffsims.simulations.simulation import Simulation, ProfileSimulation
 from diffsims.libraries.simulation_library import SimulationLibrary
 from diffsims.utils.shape_factor_models import (
     linear,
@@ -68,6 +69,10 @@ class SimulationGenerator:
                 "See documentation for available "
                 "implementations.".format(scattering_params)
             )
+
+    def plot_ewald_sphere(self, ax=None):
+        if ax is None:
+            fig, ax = plt.subplots()
 
     def calculate_ed_data(
         self,

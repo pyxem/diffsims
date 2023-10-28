@@ -23,7 +23,8 @@ from diffpy.structure import Structure, Atom, Lattice
 from orix.crystal_map import Phase
 
 from diffsims.crystallography import ReciprocalLatticeVector
-from diffsims.simulations.simulation import DiffractionSimulation, ProfileSimulation
+from diffsims.simulations.simulation import Simulation, ProfileSimulation
+
 
 @pytest.fixture
 def profile_simulation():
@@ -87,26 +88,24 @@ class TestDiffractionSimulation:
             space_group=225,
             structure=Structure(
                 atoms=[Atom("al", [0, 0, 0])],
-                lattice=Lattice(0.405, 0.405, 0.405, 90, 90, 90)
-            )
+                lattice=Lattice(0.405, 0.405, 0.405, 90, 90, 90),
+            ),
         )
         return p
 
     @pytest.fixture
     def diffraction_simulation(self, al_phase):
-        vector = ReciprocalLatticeVector(phase=al_phase,
-                                         xyz=np.array([[0, 0, 0],
-                                                       [1, 2, 3],
-                                                       [3, 4, 5]]))
+        vector = ReciprocalLatticeVector(
+            phase=al_phase, xyz=np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]])
+        )
 
         return DiffractionSimulation(vector)
 
     @pytest.fixture
     def diffraction_simulation_calibrated(self, al_phase):
-        vector = ReciprocalLatticeVector(phase=al_phase,
-                                         xyz=np.array([[0, 0, 0],
-                                                       [1, 2, 3],
-                                                       [3, 4, 5]]))
+        vector = ReciprocalLatticeVector(
+            phase=al_phase, xyz=np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]])
+        )
 
         return DiffractionSimulation(vector, calibration=0.5)
 
@@ -133,10 +132,7 @@ class TestDiffractionSimulation:
         assert np.allclose(
             sim.coordinates.data,
             np.array(
-                [[1., 2., 3.],
-                 [3., 4., 5.],
-                 [1., 2., 3.],
-                 [3., 4., 5.]]
+                [[1.0, 2.0, 3.0], [3.0, 4.0, 5.0], [1.0, 2.0, 3.0], [3.0, 4.0, 5.0]]
             ),
         )
         assert sim.size == 4
@@ -152,7 +148,9 @@ class TestDiffractionSimulation:
     def test_coordinates_setter(self, diffraction_simulation):
         starting_coords = diffraction_simulation.coordinates[-1]
         diffraction_simulation.coordinates = diffraction_simulation.coordinates[-1]
-        assert np.allclose(diffraction_simulation.coordinates.data, starting_coords.data)
+        assert np.allclose(
+            diffraction_simulation.coordinates.data, starting_coords.data
+        )
         diffraction_simulation.with_direct_beam = True
 
     def test_intensities_setter(self, diffraction_simulation):
@@ -194,9 +192,10 @@ class TestDiffractionSimulation:
         ],
     )
     def test_direct_beam_mask(self, al_phase, coordinates, with_direct_beam, expected):
-        vect =ReciprocalLatticeVector(phase=al_phase, xyz=coordinates)
-        diffraction_simulation = DiffractionSimulation(vect,
-                                                       with_direct_beam=with_direct_beam)
+        vect = ReciprocalLatticeVector(phase=al_phase, xyz=coordinates)
+        diffraction_simulation = DiffractionSimulation(
+            vect, with_direct_beam=with_direct_beam
+        )
         diffraction_simulation.with_direct_beam = with_direct_beam
         mask = diffraction_simulation.direct_beam_mask
         assert np.all(mask == expected)
@@ -233,7 +232,7 @@ class TestDiffractionSimulation:
         offset,
         expected,
     ):
-        vect =ReciprocalLatticeVector(phase=al_phase, xyz=coordinates)
+        vect = ReciprocalLatticeVector(phase=al_phase, xyz=coordinates)
         diffraction_simulation = DiffractionSimulation(vect)
         diffraction_simulation.calibration = calibration
         diffraction_simulation.offset = offset
@@ -256,17 +255,16 @@ class TestDiffractionSimulation:
 
     def test_rotate_shift_coordinates(self, diffraction_simulation):
         rot = diffraction_simulation.rotate_shift_coordinates(90)
-        assert np.allclose(rot.coordinates.data, np.array([[-2, 1, 3], [-4, 3, 5]])
-        )
+        assert np.allclose(rot.coordinates.data, np.array([[-2, 1, 3], [-4, 3, 5]]))
 
     def test_assertion_free_get_diffraction_pattern(self, al_phase):
-        vect =ReciprocalLatticeVector(phase=al_phase, xyz=np.array([[0.3, 1.2, 0]]))
+        vect = ReciprocalLatticeVector(phase=al_phase, xyz=np.array([[0.3, 1.2, 0]]))
         vect.intensity = np.ones(1)
         short_sim = DiffractionSimulation(vect, calibration=[1, 2])
 
         z = short_sim.get_diffraction_pattern()
 
-        vect =ReciprocalLatticeVector(phase=al_phase, xyz=np.asarray([[0.3, 1000, 0]]))
+        vect = ReciprocalLatticeVector(phase=al_phase, xyz=np.asarray([[0.3, 1000, 0]]))
         vect.intensity = np.ones(1)
         empty_sim = DiffractionSimulation(vect, calibration=[1, 2])
 
@@ -284,26 +282,36 @@ class TestDiffractionSimulation:
         assert mask.shape[1] == 10
 
     def test_polar_coordinates(self, al_phase):
-        vect = ReciprocalLatticeVector(phase=al_phase,
-                                       xyz=np.asarray([[1, 1, 0]]))
+        vect = ReciprocalLatticeVector(phase=al_phase, xyz=np.asarray([[1, 1, 0]]))
         vect.intensity = np.ones(1)
         short_sim = DiffractionSimulation(vect, calibration=[0.5, 0.5])
         r, t = short_sim.get_polar_coordinates(real=True)
-        assert r == [1.4142135623730951, ]
-        assert t == [0.7853981633974483, ]
+        assert r == [
+            1.4142135623730951,
+        ]
+        assert t == [
+            0.7853981633974483,
+        ]
         r, t = short_sim.get_polar_coordinates(real=False)
-        assert r == [np.sqrt(8), ]
-        assert t == [0.7853981633974483, ]
+        assert r == [
+            np.sqrt(8),
+        ]
+        assert t == [
+            0.7853981633974483,
+        ]
 
     @pytest.mark.parametrize("units_in", ["pixel", "real"])
-    def test_plot_method(self,al_phase, units_in):
-        vect = ReciprocalLatticeVector(phase=al_phase, xyz=np.asarray(
+    def test_plot_method(self, al_phase, units_in):
+        vect = ReciprocalLatticeVector(
+            phase=al_phase,
+            xyz=np.asarray(
                 [
                     [0.3, 1.2, 0],
                     [-2, 3, 0],
                     [2.1, 3.4, 0],
                 ]
-            ),)
+            ),
+        )
         vect.intensity = np.array([3.0, 5.0, 2.0])
         short_sim = DiffractionSimulation(coordinates=vect, calibration=[1, 2])
         ax, sp = short_sim.plot(units=units_in, show_labels=True)

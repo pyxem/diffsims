@@ -1,25 +1,101 @@
+from typing import Union, Sequence, TYPE_CHECKING
 import copy
 
 import numpy as np
 import matplotlib.pyplot as plt
+from orix.crystal_map import Phase
+from orix.quaternion import Rotation
 
 from diffsims.crystallography.reciprocal_lattice_vector import ReciprocalLatticeVector
 from diffsims.pattern.detector_functions import add_shot_and_point_spread
 from diffsims.utils import mask_utils
 
+if TYPE_CHECKING:
+    from diffsims.generators.simulation_generator import SimulationGenerator
 
-class DiffractionSimulation:
-    """Holds the result of a kinematic diffraction pattern simulation.
+
+class PhaseGetter:
+    """A class for getting the phases of a simulation library.
 
     Parameters
     ----------
-    coordinates : array-like, shape [n_points, 2]
+    phases : Sequence[Phase]
+        The phases in the library.
+    """
+
+    def __init__(self, simulation):
+        self.simulation = simulation
+
+    def __getitem__(self, item):
+        all_phases = self.simulation.phases
+        if isinstance(all_phases, Phase):
+            raise ValueError("Only one phase in the simulation")
+        elif isinstance(item, str):
+            ind = [phase.name for phase in all_phases].index(item)
+        elif isinstance(item, (int, slice)):
+            ind = item
+        else:
+            raise ValueError("Item must be a string or integer")
+        new_coords = self.simulation.coordinates[ind]
+        new_rotations = self.simulation.rotations[ind]
+        new_phases = all_phases[ind]
+        return Simulation(
+            phases=new_phases,
+            coordinates=new_coords,
+            rotations=new_rotations,
+            simulation_generator=self.simulation.simulation_generator,
+            calibration=self.simulation.calibration,
+            offset=self.simulation.offset,
+            with_direct_beam=self.simulation.with_direct_beam,
+            shape=self.simulation.shape,
+        )
+
+
+class RotationGetter:
+    """A class for getting a Rotation of a simulation library.
+
+    Parameters
+    ----------
+    phases : Sequence[Phase]
+        The phases in the library.
+    """
+
+    def __init__(self, simulation):
+        self.simulation = simulation
+
+    def __getitem__(self, item):
+        all_phases = self.simulation.phases
+        if isinstance(self.simulation.coordinates, ReciprocalLatticeVector):
+            raise ValueError("Only one rotation in the simulation")
+        elif isinstance(all_phases, Phase):  # only one phase in the simulation
+            coords = self.simulation.coordinates[item]
+            phases = self.simulation.phases
+            rotations = self.simulation.rotations[item]
+        else:  # multiple phases in the simulation
+            coords = [c[item] for c in self.simulation.coordinates]
+            phases = self.simulation.phases
+            rotations = [rot[item] for rot in self.simulation.rotations]
+        return Simulation(
+            phases=phases,
+            coordinates=coords,
+            rotations=rotations,
+            simulation_generator=self.simulation.simulation_generator,
+            calibration=self.simulation.calibration,
+            offset=self.simulation.offset,
+            with_direct_beam=self.simulation.with_direct_beam,
+            shape=self.simulation.shape,
+        )
+
+
+class Simulation:
+    """Holds the result of a kinematic diffraction simulation for some phase
+    and rotation.
+
+    Parameters
+    ----------
+    coordinates : ragged ndarray, shape [n_points]
         The x-y coordinates of points in reciprocal space.
-    indices : array-like, shape [n_points, 3]
-        The indices of the reciprocal lattice points that intersect the
-        Ewald sphere.
-    intensities : array-like, shape [n_points, ]
-        The intensity of the reciprocal lattice points.
+
     calibration : float or tuple of float, optional
         The x- and y-scales of the pattern, with respect to the original
         reciprocal angstrom coordinates.
@@ -30,20 +106,58 @@ class DiffractionSimulation:
 
     def __init__(
         self,
-        coordinates: ReciprocalLatticeVector,
-        calibration=None,
-        offset=(0.0, 0.0),
-        with_direct_beam=False,
-        shape=(512, 512),
+        phases: Sequence[Phase],
+        coordinates: Union[
+            Sequence[ReciprocalLatticeVector],
+            Sequence[Sequence[ReciprocalLatticeVector]],
+        ],
+        rotations: Union[Rotation, Sequence[Rotation]],
+        simulation_generator: "SimulationGenerator",
+        calibration: Sequence[float] = (0.1, 0.1),
+        offset: Sequence[float] = (0.0, 0.0),
+        with_direct_beam: bool = False,
+        shape: Sequence[int] = (512, 512),
     ):
         """Initializes the DiffractionSimulation object with data values for
         the coordinates, indices, intensities, calibration and offset.
         """
-        self._coordinates = coordinates
-        self.shape = shape
+        # Basic data
+        if not isinstance(phases, Phase):
+            phases = np.array(phases)
+        if not isinstance(rotations, Rotation):
+            rotations = np.array(rotations)
+        if not isinstance(coordinates, ReciprocalLatticeVector):
+            coordinates = np.array(coordinates, dtype=object)
+        self.phases = phases
+        self.rotations = rotations
+        self.coordinates = coordinates
+        self.simulation_generator = simulation_generator
+
+        # Data for integrating with real data from a detector
         self.calibration = calibration
+        self.shape = shape
         self.offset = np.array(offset)
         self.with_direct_beam = with_direct_beam
+
+        # for interactive plotting and iterating through the Simulations
+        self.phase_index = 0
+        self.rotation_index = 0
+
+        # for slicing a simulation
+        self.iphase = PhaseGetter(self)
+        self.irot = RotationGetter(self)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.rotation_index <= len(self.coordinates[self.phase_index]) - 1:
+            self.rotation_index += 1
+        elif self.phase_index <= len(self.phase) - 1:
+            self.phase_index += 1
+        else:
+            raise StopIteration
+        return self.coordinates[self.phase_index][self.rotation_index]
 
     def __len__(self):
         return self.coordinates.shape[0]
@@ -118,8 +232,7 @@ class DiffractionSimulation:
         self._calibration = calibration
 
     def get_polar_coordinates(self, real=True):
-        """Returns the polar coordinates of the diffraction pattern
-        """
+        """Returns the polar coordinates of the diffraction pattern"""
         x = self.coordinates.data[:, 0]
         y = self.coordinates.data[:, 1]
         if not real:
@@ -140,32 +253,16 @@ class DiffractionSimulation:
             mask = np.any(self._coordinates.data != 0, axis=1)
             return mask
 
-    @property
-    def coordinates(self):
-        """ndarray : The coordinates of all unmasked points."""
-        return self._coordinates[self.direct_beam_mask]
-
-    @coordinates.setter
-    def coordinates(self, coordinates):
-        self._coordinates = coordinates
-
-    @property
-    def intensities(self):
-        return self.coordinates.intensity
-
-    @intensities.setter
-    def intensities(self, intensities):
-        self._coordinates.intensity = intensities
-        print(self.coordinates.intensity)
-
     def _get_transformed_coordinates(
         self, angle, center=(0, 0), mirrored=False, units="real"
     ):
         """Translate, rotate or mirror the pattern spot coordinates"""
+
+        coords = self.get_current_coordinates()
+
         if units != "real":
             center = np.array(center) / self.calibration
-        new_sim = self.deepcopy()
-        transformed_coords = new_sim.coordinates
+        transformed_coords = coords
         cx, cy = center
         x = transformed_coords.data[:, 0]
         y = transformed_coords.data[:, 1]
@@ -174,8 +271,7 @@ class DiffractionSimulation:
         rd = np.sqrt(x**2 + y**2)
         transformed_coords[:, 0] = rd * np.cos(theta) + cx
         transformed_coords[:, 1] = rd * np.sin(theta) + cy
-        new_sim._coordinates = transformed_coords
-        return new_sim
+        return transformed_coords
 
     def rotate_shift_coordinates(self, angle, center=(0, 0), mirrored=False):
         """
@@ -318,6 +414,48 @@ class DiffractionSimulation:
             pattern = add_shot_and_point_spread(pattern.T, sigma, shot_noise=False)
         return np.divide(pattern, np.max(pattern))
 
+    @property
+    def num_phases(self):
+        """Returns the number of phases in the simulation"""
+        if hasattr(self.phases, "__len__"):
+            return len(self.phases)
+        else:
+            return 0
+
+    @property
+    def num_vectors(self):
+        num_phases = self.num_phases
+        if isinstance(self.coordinates, ReciprocalLatticeVector):
+            return 0
+        elif hasattr(self.coordinates, "__len__") and num_phases == 0:
+            return (len(self.coordinates),)
+        else:  # hasattr(self.coordinates, "__len__") and num_phases>0:
+            return tuple(
+                [len(c) if hasattr(c, "__len__") else 0 for c in self.coordinates]
+            )
+
+    @property
+    def has_multiple_phases(self):
+        """Returns True if the simulation has multiple phases"""
+        return self.num_phases > 1
+
+    @property
+    def has_multiple_vectors(self):
+        """Returns True if the simulation has multiple vectors"""
+        if isinstance(self.coordinates, ReciprocalLatticeVector):
+            return False
+        else:
+            return True
+
+    def get_current_coordinates(self):
+        """Returns the coordinates of the current phase and rotation"""
+        if self.has_multiple_phases:
+            return self.coordinates[self.phase_index][self.rotation_index]
+        elif not self.has_multiple_phases and self.has_multiple_vectors:
+            return self.coordinates[self.rotation_index]
+        else:
+            return self.coordinates
+
     def plot(
         self,
         size_factor=1,
@@ -378,14 +516,14 @@ class DiffractionSimulation:
             in_plane_angle, direct_beam_position, mirrored, units=units
         )
         sp = ax.scatter(
-            coords.coordinates.data[:, 0],
-            coords.coordinates.data[:, 1],
-            s=size_factor * np.sqrt(self.intensities),
+            coords.data[:, 0],
+            coords.data[:, 1],
+            s=size_factor * np.sqrt(coords.intensity),
             **kwargs,
         )
 
         if show_labels:
-            millers = self.coordinates.hkl.astype(np.int16)
+            millers = coords.hkl.astype(np.int16)
             # only label the points inside the axes
             xlim = ax.get_xlim()
             ylim = ax.get_ylim()
@@ -428,7 +566,6 @@ class DiffractionSimulation:
                 ax.set_xlabel("pixels")
                 ax.set_ylabel("pixels")
         return ax, sp
-
 
 
 class ProfileSimulation:
