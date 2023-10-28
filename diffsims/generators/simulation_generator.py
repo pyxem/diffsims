@@ -1,12 +1,11 @@
+from typing import Union, Sequence
 import numpy as np
-import matplotlib.pyplot as plt
 
 from orix.quaternion import Rotation
 from orix.crystal_map import Phase
 
 from diffsims.crystallography import ReciprocalLatticeVector
 from diffsims.simulations.simulation import Simulation, ProfileSimulation
-from diffsims.libraries.simulation_library import SimulationLibrary
 from diffsims.utils.shape_factor_models import (
     linear,
     atanc,
@@ -72,8 +71,10 @@ class SimulationGenerator:
 
     def calculate_ed_data(
         self,
-        phase: Phase,
-        rotation: Rotation = Rotation.from_euler((0, 0, 0), degrees=True),
+        phase: Union[Phase, Sequence[Phase]],
+        rotation: Union[Rotation, Sequence[Rotation]] = Rotation.from_euler(
+            (0, 0, 0), degrees=True
+        ),
         reciprocal_radius: float = 1.0,
         with_direct_beam: bool = True,
         max_excitation_error: float = 1e-2,
@@ -84,18 +85,13 @@ class SimulationGenerator:
 
         Parameters
         ----------
-        phases:
-            The phase for which to derive the diffraction pattern.
-        structure : diffpy.structure.structure.Structure
-            The structure for which to derive the diffraction pattern.
-            Note that the structure must be rotated to the appropriate
-            orientation and that testing is conducted on unit cells
-            (rather than supercells).
+        phase:
+            The phase(s) for which to derive the diffraction pattern.
         reciprocal_radius : float
             The maximum radius of the sphere of reciprocal space to
             sample, in reciprocal Angstroms.
         rotation
-            The Rotation object to apply to the structure and then
+            The Rotation object(s) to apply to the structure and then
             calculate the diffraction pattern.
         with_direct_beam : bool
             If True, the direct beam is included in the simulated
