@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from orix.crystal_map import Phase
 from orix.quaternion import Rotation
+from orix.vector import Vector3d
 
 from diffsims.crystallography.reciprocal_lattice_vector import ReciprocalLatticeVector
 from diffsims.pattern.detector_functions import add_shot_and_point_spread
@@ -117,6 +118,7 @@ class Simulation:
         offset: Sequence[float] = (0.0, 0.0),
         with_direct_beam: bool = False,
         shape: Sequence[int] = (512, 512),
+        reciporical_radius: float = 1.0,
     ):
         """Initializes the DiffractionSimulation object with data values for
         the coordinates, indices, intensities, calibration and offset.
@@ -128,10 +130,12 @@ class Simulation:
             rotations = np.array(rotations)
         if not isinstance(coordinates, ReciprocalLatticeVector):
             coordinates = np.array(coordinates, dtype=object)
+
         self.phases = phases
         self.rotations = rotations
         self.coordinates = coordinates
         self.simulation_generator = simulation_generator
+        self.reciporical_radius = reciporical_radius
 
         # Data for integrating with real data from a detector
         self.calibration = calibration
@@ -142,6 +146,8 @@ class Simulation:
         # for interactive plotting and iterating through the Simulations
         self.phase_index = 0
         self.rotation_index = 0
+        self._rot_plot = None
+        self._diff_plot = None
 
         # for slicing a simulation
         self.iphase = PhaseGetter(self)
@@ -272,6 +278,13 @@ class Simulation:
         transformed_coords[:, 0] = rd * np.cos(theta) + cx
         transformed_coords[:, 1] = rd * np.sin(theta) + cy
         return transformed_coords
+
+    @property
+    def current_phase(self):
+        if self.has_multiple_phases:
+            return self.phases[self.phase_index]
+        else:
+            return self.phases
 
     def rotate_shift_coordinates(self, angle, center=(0, 0), mirrored=False):
         """
@@ -456,6 +469,26 @@ class Simulation:
         else:
             return self.coordinates
 
+    def plot_rotations(self, beam_direction: Vector3d = Vector3d.zvector()):
+        """Plots the rotations of the current phase in stereographic projection"""
+        if self.has_multiple_phases:
+            rots = self.rotations[self.phase_index]
+        else:
+            rots = self.rotations
+        vect_rot = rots * beam_direction
+        facecolor = ["k"] * rots.size
+        facecolor[self.rotation_index] = "r"  # highlight the current rotation
+        fig = vect_rot.scatter(
+            grid=True,
+            facecolor=facecolor,
+            return_figure=True,
+        )
+        pointer = vect_rot[self.rotation_index]
+        _plot = fig.axes[0]
+        _plot.scatter(pointer.data[0][0], pointer.data[0][1], color="r")
+        _plot = fig.axes[0]
+        _plot.set_title("Rotations" + self.current_phase.name)
+
     def plot(
         self,
         size_factor=1,
@@ -465,7 +498,7 @@ class Simulation:
         units="real",
         show_labels=False,
         label_offset=(0, 0),
-        label_formatting={},
+        label_formatting=None,
         min_label_intensity=0.1,
         ax=None,
         **kwargs,
@@ -507,6 +540,8 @@ class Simulation:
         -----
         spot size scales with the square root of the intensity.
         """
+        if label_formatting is None:
+            label_formatting = {}
         if direct_beam_position is None:
             direct_beam_position = (0, 0)
         if ax is None:
@@ -521,6 +556,8 @@ class Simulation:
             s=size_factor * np.sqrt(coords.intensity),
             **kwargs,
         )
+        ax.set_xlim(-self.reciporical_radius, self.reciporical_radius)
+        ax.set_ylim(-self.reciporical_radius, self.reciporical_radius)
 
         if show_labels:
             millers = coords.hkl.astype(np.int16)

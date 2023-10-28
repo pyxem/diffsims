@@ -21,9 +21,11 @@ import pytest
 
 from diffpy.structure import Structure, Atom, Lattice
 from orix.crystal_map import Phase
+from orix.quaternion import Rotation
 
 from diffsims.crystallography import ReciprocalLatticeVector
 from diffsims.simulations.simulation import Simulation, ProfileSimulation
+from diffsims.generators.simulation_generator import SimulationGenerator
 
 
 @pytest.fixture
@@ -99,7 +101,12 @@ class TestDiffractionSimulation:
             phase=al_phase, xyz=np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]])
         )
 
-        return DiffractionSimulation(vector)
+        return Simulation(
+            phases=al_phase,
+            rotations=Rotation.from_axes_angles([0, 0, 1], angles=0),
+            coordinates=vector,
+            simulation_generator=SimulationGenerator(300),
+        )
 
     @pytest.fixture
     def diffraction_simulation_calibrated(self, al_phase):
@@ -107,59 +114,24 @@ class TestDiffractionSimulation:
             phase=al_phase, xyz=np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]])
         )
 
-        return DiffractionSimulation(vector, calibration=0.5)
+        return Simulation(
+            phases=al_phase,
+            rotations=Rotation.from_axes_angles([0, 0, 1], angles=0),
+            coordinates=vector,
+            simulation_generator=SimulationGenerator(300),
+            calibration=0.5,
+        )
 
     def test_init(self, diffraction_simulation):
         assert np.allclose(
-            diffraction_simulation.coordinates.data, np.array([[1, 2, 3], [3, 4, 5]])
+            diffraction_simulation.coordinates.data,
+            np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]]),
         )
-        assert diffraction_simulation.coordinates.hkl.shape == (2, 3)
+        assert diffraction_simulation.coordinates.hkl.shape == (3, 3)
         assert np.isnan(diffraction_simulation.coordinates.intensity).all()
-        assert diffraction_simulation.coordinates.intensity.shape == (2,)
-        assert diffraction_simulation.calibration is None
-        assert len(diffraction_simulation) == 2
-
-    def test_single_spot(self, al_phase):
-        rlv = ReciprocalLatticeVector(phase=al_phase, xyz=np.array([[1, 2, 3]]))
-        assert DiffractionSimulation(rlv).coordinates.data.shape == (1, 3)
-
-    def test_get_item(self, diffraction_simulation):
-        assert diffraction_simulation[1].coordinates.data.shape == (1, 3)
-        assert diffraction_simulation[0:2].coordinates.data.shape == (2, 3)
-
-    def test_append(self, diffraction_simulation):
-        sim = diffraction_simulation.append(diffraction_simulation)
-        assert np.allclose(
-            sim.coordinates.data,
-            np.array(
-                [[1.0, 2.0, 3.0], [3.0, 4.0, 5.0], [1.0, 2.0, 3.0], [3.0, 4.0, 5.0]]
-            ),
-        )
-        assert sim.size == 4
-
-    def test_indices_setter_getter(self, diffraction_simulation):
-        indices = np.array([[1, 2, 3], [2, 3, 4], [3, 4, 5]])
-        diffraction_simulation.indices = indices[-1]
-        assert np.allclose(diffraction_simulation.indices, indices[-1])
-        diffraction_simulation.with_direct_beam = True
-        diffraction_simulation.indices = indices
-        assert np.allclose(diffraction_simulation.indices, indices)
-
-    def test_coordinates_setter(self, diffraction_simulation):
-        starting_coords = diffraction_simulation.coordinates[-1]
-        diffraction_simulation.coordinates = diffraction_simulation.coordinates[-1]
-        assert np.allclose(
-            diffraction_simulation.coordinates.data, starting_coords.data
-        )
-        diffraction_simulation.with_direct_beam = True
-
-    def test_intensities_setter(self, diffraction_simulation):
-        ints = np.array([1, 2, 3])
-        diffraction_simulation.intensities = ints[-1]
-        assert np.allclose(diffraction_simulation.intensities, ints[-1])
-        diffraction_simulation.with_direct_beam = True
-        diffraction_simulation.intensities = ints
-        assert np.allclose(diffraction_simulation.intensities, ints)
+        assert diffraction_simulation.coordinates.intensity.shape == (3,)
+        assert np.allclose(diffraction_simulation.calibration, np.array([0.1, 0.1]))
+        assert len(diffraction_simulation) == 3
 
     @pytest.mark.parametrize(
         "calibration, expected",
@@ -174,31 +146,6 @@ class TestDiffractionSimulation:
     def test_calibration(self, diffraction_simulation, calibration, expected):
         diffraction_simulation.calibration = calibration
         assert np.allclose(diffraction_simulation.calibration, expected)
-
-    @pytest.mark.parametrize(
-        "coordinates, with_direct_beam, expected",
-        [
-            (
-                np.array([[-1, 0, 0], [0, 0, 0], [1, 0, 0]]),
-                False,
-                np.array([True, False, True]),
-            ),
-            (
-                np.array([[-1, 0, 0], [0, 0, 0], [1, 0, 0]]),
-                True,
-                np.array([True, True, True]),
-            ),
-            (np.array([[-1, 0, 0], [1, 0, 0]]), False, np.array([True, True])),
-        ],
-    )
-    def test_direct_beam_mask(self, al_phase, coordinates, with_direct_beam, expected):
-        vect = ReciprocalLatticeVector(phase=al_phase, xyz=coordinates)
-        diffraction_simulation = DiffractionSimulation(
-            vect, with_direct_beam=with_direct_beam
-        )
-        diffraction_simulation.with_direct_beam = with_direct_beam
-        mask = diffraction_simulation.direct_beam_mask
-        assert np.all(mask == expected)
 
     @pytest.mark.parametrize(
         "coordinates, calibration, offset, expected",

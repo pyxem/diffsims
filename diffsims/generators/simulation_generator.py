@@ -171,6 +171,7 @@ class SimulationGenerator:
             coordinates=vectors,
             rotations=rotation,
             simulation_generator=self,
+            reciporical_radius=reciprocal_radius,
         )
         return sim
 

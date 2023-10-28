@@ -171,3 +171,6 @@ class TestMultiPhaseMultiSimulation:
 
     def test_plot(self, multi_simulation):
         multi_simulation.plot()
+
+    def test_plot_rotation(self, multi_simulation):
+        multi_simulation.plot_rotations()
