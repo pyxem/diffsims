@@ -141,7 +141,7 @@ class TestDiffractionCalculator:
         diffraction = diffraction_calculator.calculate_ed_data(
             local_structure, reciprocal_radius=5.0
         )
-        assert diffraction.simulations[0].coordinates.size == 72
+        assert diffraction.coordinates.size == 72
 
     def test_precession_simple(
         self, diffraction_calculator_precession_simple, local_structure
@@ -150,7 +150,7 @@ class TestDiffractionCalculator:
             local_structure,
             reciprocal_radius=5.0,
         )
-        assert diffraction.simulations[0].coordinates.size == 252
+        assert diffraction.coordinates.size == 252
 
     def test_precession_full(
         self, diffraction_calculator_precession_full, local_structure
@@ -159,14 +159,14 @@ class TestDiffractionCalculator:
             local_structure,
             reciprocal_radius=5.0,
         )
-        assert diffraction.simulations[0].coordinates.size == 252
+        assert diffraction.coordinates.size == 252
 
     def test_custom_shape_func(self, diffraction_calculator_custom, local_structure):
         diffraction = diffraction_calculator_custom.calculate_ed_data(
             local_structure,
             reciprocal_radius=5.0,
         )
-        assert diffraction.simulations[0].coordinates.size == 52
+        assert diffraction.coordinates.size == 52
 
     def test_appropriate_scaling(self, diffraction_calculator: SimulationGenerator):
         """Tests that doubling the unit cell halves the pattern spacing."""
@@ -178,14 +178,12 @@ class TestDiffractionCalculator:
         big_diffraction = diffraction_calculator.calculate_ed_data(
             phase=big_silicon, reciprocal_radius=5.0
         )
-        indices = [tuple(i) for i in diffraction.simulations[0].coordinates.hkl]
-        big_indices = [tuple(i) for i in big_diffraction.simulations[0].coordinates.hkl]
+        indices = [tuple(i) for i in diffraction.coordinates.hkl]
+        big_indices = [tuple(i) for i in big_diffraction.coordinates.hkl]
         assert (2, 2, 0) in indices
         assert (2, 2, 0) in big_indices
-        coordinates = diffraction.simulations[0].coordinates[indices.index((2, 2, 0))]
-        big_coordinates = big_diffraction.simulations[0].coordinates[
-            big_indices.index((2, 2, 0))
-        ]
+        coordinates = diffraction.coordinates[indices.index((2, 2, 0))]
+        big_coordinates = big_diffraction.coordinates[big_indices.index((2, 2, 0))]
         assert np.allclose(coordinates.data, big_coordinates.data * 2)
 
     def test_appropriate_intensities(self, diffraction_calculator, local_structure):
@@ -193,15 +191,12 @@ class TestDiffractionCalculator:
         diffraction = diffraction_calculator.calculate_ed_data(
             local_structure, reciprocal_radius=0.5, with_direct_beam=False
         )  # direct beam doesn't work
-        indices = [
-            tuple(np.round(i).astype(int))
-            for i in diffraction.simulations[0].coordinates.hkl
-        ]
+        indices = [tuple(np.round(i).astype(int)) for i in diffraction.coordinates.hkl]
         central_beam = indices.index((0, 1, 0))
 
         smaller = np.greater_equal(
-            diffraction.simulations[0].intensities[central_beam],
-            diffraction.simulations[0].intensities,
+            diffraction.coordinates.intensity[central_beam],
+            diffraction.coordinates.intensity,
         )
         assert np.all(smaller)
 
@@ -219,9 +214,7 @@ class TestDiffractionCalculator:
         )
 
         # softly makes sure the two sims are different
-        assert np.sum(t1.simulations[0].intensities) != np.sum(
-            t2.simulations[0].intensities
-        )
+        assert np.sum(t1.coordinates.intensity) != np.sum(t2.coordinates.intensity)
 
     def test_calculate_profile_class(self, local_structure, diffraction_calculator):
         # tests the non-hexagonal (cubic) case

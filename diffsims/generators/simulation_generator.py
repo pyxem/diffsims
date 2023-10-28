@@ -70,10 +70,6 @@ class SimulationGenerator:
                 "implementations.".format(scattering_params)
             )
 
-    def plot_ewald_sphere(self, ax=None):
-        if ax is None:
-            fig, ax = plt.subplots()
-
     def calculate_ed_data(
         self,
         phase: Phase,
@@ -120,102 +116,132 @@ class SimulationGenerator:
         diffsims.sims.diffraction_simulation.DiffractionSimulation
             The data associated with this structure and diffraction setup.
         """
+        if isinstance(phase, Phase):
+            phase = [phase]
+        if isinstance(rotation, Rotation):
+            rotation = [rotation]
         if debye_waller_factors is None:
             debye_waller_factors = {}
         # Specify variables used in calculation
         wavelength = self.wavelength
-        recip = ReciprocalLatticeVector.from_min_dspacing(
-            phase,
-            min_dspacing=1 / reciprocal_radius,
-            include_zero_beam=with_direct_beam,
-        )
 
         # Rotate using all the rotations in the list
         vectors = []
-        for rot in rotation.to_matrix():
-            rotated_vectors = recip.rotate_from_matrix(rot)
-            # Identify the excitation errors of all points (distance from point to Ewald sphere)
-            r_sphere = 1 / wavelength
-            r_spot = np.sqrt(np.sum(np.square(rotated_vectors.data[:, :2]), axis=1))
-            z_spot = rotated_vectors.data[:, 2]
-
-            z_sphere = -np.sqrt(r_sphere**2 - r_spot**2) + r_sphere
-            excitation_error = z_sphere - z_spot
-
-            # determine the pre-selection reflections
-            if self.precession_angle == 0:
-                intersection = np.abs(excitation_error) < max_excitation_error
-            else:
-                # only consider points that intersect the ewald sphere at some point
-                # the center point of the sphere
-                P_z = r_sphere * np.cos(np.deg2rad(self.precession_angle))
-                P_t = r_sphere * np.sin(np.deg2rad(self.precession_angle))
-                # the extremes of the ewald sphere
-                z_surf_up = P_z - np.sqrt(r_sphere**2 - (r_spot + P_t) ** 2)
-                z_surf_do = P_z - np.sqrt(r_sphere**2 - (r_spot - P_t) ** 2)
-                intersection = (z_spot - max_excitation_error <= z_surf_up) & (
-                    z_spot + max_excitation_error >= z_surf_do
+        for p, rotate in zip(phase, rotation):
+            recip = ReciprocalLatticeVector.from_min_dspacing(
+                p,
+                min_dspacing=1 / reciprocal_radius,
+                include_zero_beam=with_direct_beam,
+            )
+            phase_vectors = []
+            for rot in rotate.to_matrix():
+                # Calculate the reciprocal lattice vectors that intersect the Ewald sphere.
+                intersected_vectors, shape_factor = self.get_intersecting_reflections(
+                    recip,
+                    rot,
+                    wavelength,
+                    max_excitation_error,
+                    shape_factor_width=shape_factor_width,
                 )
 
-            # select these reflections
-            intersected_vectors = rotated_vectors[intersection]
-            excitation_error = excitation_error[intersection]
-            r_spot = r_spot[intersection]
-
-            if shape_factor_width is None:
-                shape_factor_width = max_excitation_error
-            # select and evaluate shape factor model
-            if self.precession_angle == 0:
-                # calculate shape factor
-                shape_factor = self.shape_factor_model(
-                    excitation_error, shape_factor_width, **self.shape_factor_kwargs
+                # Calculate diffracted intensities based on a kinematic model.
+                intensities = get_kinematical_intensities(
+                    p.structure,
+                    intersected_vectors.hkl,
+                    intersected_vectors.gspacing,
+                    prefactor=shape_factor,
+                    scattering_params=self.scattering_params,
+                    debye_waller_factors=debye_waller_factors,
                 )
-            else:
-                if self.approximate_precession:
-                    shape_factor = lorentzian_precession(
-                        excitation_error,
-                        shape_factor_width,
-                        r_spot,
-                        np.deg2rad(self.precession_angle),
-                    )
-                else:
-                    shape_factor = _shape_factor_precession(
-                        excitation_error,
-                        r_spot,
-                        np.deg2rad(self.precession_angle),
-                        self.shape_factor_model,
-                        shape_factor_width,
-                        **self.shape_factor_kwargs,
-                    )
-            # Calculate diffracted intensities based on a kinematic model.
-            intensities = get_kinematical_intensities(
-                phase.structure,
-                intersected_vectors.hkl,
-                intersected_vectors.gspacing,
-                prefactor=shape_factor,
-                scattering_params=self.scattering_params,
-                debye_waller_factors=debye_waller_factors,
-            )
 
-            # Threshold peaks included in simulation as factor of maximum intensity.
-            peak_mask = intensities > np.max(intensities) * self.minimum_intensity
-            intensities = intensities[peak_mask]
-            intersected_vectors = intersected_vectors[peak_mask]
-            intersected_vectors.intensity = intensities
+                # Threshold peaks included in simulation as factor of maximum intensity.
+                peak_mask = intensities > np.max(intensities) * self.minimum_intensity
+                intensities = intensities[peak_mask]
+                intersected_vectors = intersected_vectors[peak_mask]
+                intersected_vectors.intensity = intensities
+                phase_vectors.append(intersected_vectors)
+            vectors.append(phase_vectors)
 
-            sim = DiffractionSimulation(
-                coordinates=intersected_vectors,
-                with_direct_beam=with_direct_beam,
-            )
-            vectors.append(sim)
+        if len(phase) == 1:
+            vectors = vectors[0]
+            phase = phase[0]
+            rotation = rotation[0]
+        if rotation.size == 1:
+            vectors = vectors[0]
 
-        lib = SimulationLibrary(
-            phase=phase,
+        # Create a simulation object
+        sim = Simulation(
+            phases=phase,
+            coordinates=vectors,
             rotations=rotation,
-            diffraction_generator=self,
-            simulations=vectors,
+            simulation_generator=self,
         )
-        return lib
+        return sim
+
+    def get_intersecting_reflections(
+        self,
+        recip: ReciprocalLatticeVector,
+        rot: np.ndarray,
+        wavelength: float,
+        max_excitation_error: float,
+        shape_factor_width: float = None,
+    ):
+        """Calculates the reciprocal lattice vectors that intersect the Ewald sphere."""
+        rotated_vectors = recip.rotate_from_matrix(rot)
+        # Identify the excitation errors of all points (distance from point to Ewald sphere)
+        r_sphere = 1 / wavelength
+        r_spot = np.sqrt(np.sum(np.square(rotated_vectors.data[:, :2]), axis=1))
+        z_spot = rotated_vectors.data[:, 2]
+
+        z_sphere = -np.sqrt(r_sphere**2 - r_spot**2) + r_sphere
+        excitation_error = z_sphere - z_spot
+
+        # determine the pre-selection reflections
+        if self.precession_angle == 0:
+            intersection = np.abs(excitation_error) < max_excitation_error
+        else:
+            # only consider points that intersect the ewald sphere at some point
+            # the center point of the sphere
+            P_z = r_sphere * np.cos(np.deg2rad(self.precession_angle))
+            P_t = r_sphere * np.sin(np.deg2rad(self.precession_angle))
+            # the extremes of the ewald sphere
+            z_surf_up = P_z - np.sqrt(r_sphere**2 - (r_spot + P_t) ** 2)
+            z_surf_do = P_z - np.sqrt(r_sphere**2 - (r_spot - P_t) ** 2)
+            intersection = (z_spot - max_excitation_error <= z_surf_up) & (
+                z_spot + max_excitation_error >= z_surf_do
+            )
+
+        # select these reflections
+        intersected_vectors = rotated_vectors[intersection]
+        excitation_error = excitation_error[intersection]
+        r_spot = r_spot[intersection]
+
+        if shape_factor_width is None:
+            shape_factor_width = max_excitation_error
+        # select and evaluate shape factor model
+        if self.precession_angle == 0:
+            # calculate shape factor
+            shape_factor = self.shape_factor_model(
+                excitation_error, shape_factor_width, **self.shape_factor_kwargs
+            )
+        else:
+            if self.approximate_precession:
+                shape_factor = lorentzian_precession(
+                    excitation_error,
+                    shape_factor_width,
+                    r_spot,
+                    np.deg2rad(self.precession_angle),
+                )
+            else:
+                shape_factor = _shape_factor_precession(
+                    excitation_error,
+                    r_spot,
+                    np.deg2rad(self.precession_angle),
+                    self.shape_factor_model,
+                    shape_factor_width,
+                    **self.shape_factor_kwargs,
+                )
+        return intersected_vectors, shape_factor
 
     def calculate_profile_data(
         self,
