@@ -28,6 +28,10 @@ rot = Rotation.from_axes_angles(
 )  # 45 degree rotation around x-axis
 sim = gen.calculate_ed_data(phase=p, rotation=rot)
 
-sim.simulations[0].plot()  # plot the first (and only) diffraction pattern
+sim.plot()  # plot the first (and only) diffraction pattern
+
+# %%
+
+sim.coordinates  # coordinates of the first (and only) diffraction pattern
 
 # %%
