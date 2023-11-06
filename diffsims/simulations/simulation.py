@@ -365,6 +365,35 @@ class Simulation:
         )
         return mask
 
+    def polar_flatten_simulations(self):
+        """Flattens the simulations into polar coordinates for use in template matching.
+
+        The resulting arrays are of shape (n_simulations, n_spots) where n_spots is the
+        maximum number of spots in any simulation.
+
+
+        Returns
+        -------
+        r_templates, theta_templates, intensities_templates
+        """
+
+        flattened_vectors = [sim.data for sim in self]
+        flattened_intensity = [sim.intensity for sim in self]
+        max_num_spots = max([len(v) for v in flattened_vectors])
+
+        r_templates = np.zeros((len(flattened_vectors), max_num_spots))
+        theta_templates = np.zeros((len(flattened_vectors), max_num_spots))
+        intensities_templates = np.zeros((len(flattened_vectors), max_num_spots))
+
+        for i, (v, i_v) in enumerate(zip(flattened_vectors, flattened_intensity)):
+            r, t, _ = v.to_polar()
+            r_templates[i, : len(r)] = r
+            theta_templates[i, : len(t)] = t
+            intensities_templates[i, : len(i_v)] = i_v
+
+        r, t = self.get_polar_coordinates()
+        return r, t, intensities_templates
+
     def get_diffraction_pattern(
         self,
         shape=None,
@@ -625,7 +654,7 @@ class ProfileSimulation:
         self.intensities = intensities
         self.hkls = hkls
 
-    def plot(self, annotate_peaks=True, with_labels=True, fontsize=12):
+    def plot(self, annotate_peaks=True, with_labels=True, fontsize=12, ax=None):
         """Plots the diffraction profile simulation for the
            calculate_profile_data method in DiffractionGenerator.
 
@@ -638,8 +667,8 @@ class ProfileSimulation:
         fontsize : integer
             Fontsize for peak labels.
         """
-
-        ax = plt.gca()
+        if ax is None:
+            fig, ax = plt.subplots()
         for g, i, hkls in zip(self.magnitudes, self.intensities, self.hkls):
             label = hkls
             ax.plot([g, g], [0, i], color="k", linewidth=3, label=label)

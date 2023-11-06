@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
-
+from typing import Tuple
 from collections import defaultdict
 from copy import deepcopy
 
@@ -1216,6 +1216,54 @@ class ReciprocalLatticeVector(Vector3d):
                 "`Miller` instance must have `coordinate_format` 'hkl' or 'hkil'"
             )
         return cls(miller.phase, **{miller.coordinate_format: miller.coordinates})
+
+    def to_polar(
+        self, degrees: bool = False
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Convert the vectors to polar coordinates.
+
+        Parameters
+        ----------
+        degrees : bool, optional
+            Whether to return angles in degrees (default is False).
+
+        Returns
+        -------
+        r : numpy.ndarray
+            Length of the vectors.
+        theta : numpy.ndarray
+            Polar angle of the vectors.
+        phi : numpy.ndarray
+            Azimuthal angle of the vectors.
+
+        Examples
+        --------
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
+
+        >>> rlv
+        ReciprocalLatticeVector (2,), al (m-3m)
+        [[1. 1. 1.]
+         [2. 0. 0.]]
+        >>> r, theta, phi = rlv.to_polar()
+        >>> r
+        array([1.73205081, 2.        ])
+        >>> theta
+        array([0.95531662, 0.        ])
+        >>> phi
+        array([0., 0.])
+
+        """
+
+        x = self.data[:, 0]
+        y = self.data[:, 1]
+        z = self.data[:, 2]
+
+        r = np.sqrt(x**2 + y**2)
+        theta = np.arctan2(y, x)
+
+        if degrees:
+            theta = np.rad2deg(theta)
+        return r, theta, z
 
     def to_miller(self):
         """Return the vectors as a ``Miller`` instance.
