@@ -21,6 +21,7 @@ import pickle
 import numpy as np
 
 from diffsims.generators.diffraction_generator import DiffractionGenerator
+from diffsims.utils._deprecated import deprecated
 
 __all__ = [
     "DiffractionLibrary",
@@ -115,6 +116,12 @@ class DiffractionLibrary(dict):
 
     """
 
+    @deprecated(
+        since="0.6.0",
+        alternative="diffsims.generators.simulation_generator.SimulationGenerator",
+        alternative_is_function=False,
+        removal="0.8.0",
+    )
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.identifiers = None
