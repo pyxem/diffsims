@@ -168,6 +168,7 @@ class TestMultiPhaseMultiSimulation:
         assert isinstance(sliced_sim.phases, np.ndarray)
         assert sliced_sim.rotations.size == 2
         assert sliced_sim.num_vectors == (2, 2)
+        sliced_sim.plot()
 
     def test_plot(self, multi_simulation):
         multi_simulation.plot()

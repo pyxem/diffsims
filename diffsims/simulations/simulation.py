@@ -1,4 +1,4 @@
-from typing import Union, Sequence, TYPE_CHECKING
+from typing import Union, Sequence, TYPE_CHECKING, Any
 import copy
 
 import numpy as np
@@ -172,11 +172,11 @@ class Simulation:
     def size(self):
         return self.__len__()
 
-    def __getitem__(self, sliced):
+    def __getitem__(self, sliced: Any):
         """Sliced is any valid numpy slice that does not change the number of
         dimensions or number of columns"""
         coords = self.coordinates[sliced]
-        return DiffractionSimulation(
+        return Simulation(
             coords,
             calibration=self.calibration,
             offset=self.offset,
@@ -222,7 +222,7 @@ class Simulation:
         return self._calibration
 
     @calibration.setter
-    def calibration(self, calibration):
+    def calibration(self, calibration: Union[float, Sequence[float]]):
         if calibration is None:
             pass
         elif np.all(np.equal(calibration, 0)):
@@ -237,30 +237,12 @@ class Simulation:
             )
         self._calibration = calibration
 
-    def get_polar_coordinates(self, real=True):
-        """Returns the polar coordinates of the diffraction pattern"""
-        x = self.coordinates.data[:, 0]
-        y = self.coordinates.data[:, 1]
-        if not real:
-            x = x / self.calibration[0]
-            y = y / self.calibration[1]
-        r = np.sqrt(x**2 + y**2)
-        theta = np.arctan2(y, x)
-        return r, theta
-
-    @property
-    def direct_beam_mask(self):
-        """ndarray : If `with_direct_beam` is True, returns a True array for all
-        points. If `with_direct_beam` is False, returns a True array with False
-        in the position of the direct beam."""
-        if self.with_direct_beam:
-            return np.ones_like(self._coordinates.intensity, dtype=bool)
-        else:
-            mask = np.any(self._coordinates.data != 0, axis=1)
-            return mask
-
     def _get_transformed_coordinates(
-        self, angle, center=(0, 0), mirrored=False, units="real"
+        self,
+        angle: float,
+        center: Sequence = (0, 0),
+        mirrored: bool = False,
+        units: str = "real",
     ):
         """Translate, rotate or mirror the pattern spot coordinates"""
 
@@ -286,18 +268,19 @@ class Simulation:
         else:
             return self.phases
 
-    def rotate_shift_coordinates(self, angle, center=(0, 0), mirrored=False):
-        """
-        Rotate, flip or shift patterns in-plane
+    def rotate_shift_coordinates(
+        self, angle: float, center: Sequence = (0, 0), mirrored: bool = False
+    ):
+        """Rotate, flip or shift patterns in-plane
 
         Parameters
         ----------
-        angle: float
+        angle
             In plane rotation angle in degrees
-        center: 2-tuple of floats
+        center
             Center coordinate of the patterns
-        mirrored: bool
-            Mirror across the x axis
+        mirrored
+            Mirror across the x-axis
         """
         coords_new = self._get_transformed_coordinates(
             angle, center, mirrored, units="real"
@@ -306,9 +289,9 @@ class Simulation:
 
     def get_as_mask(
         self,
-        shape,
-        radius=6.0,
-        negative=True,
+        shape: Sequence[int],
+        radius: float = 6.0,
+        negative: bool = False,
         radius_function=None,
         direct_beam_position=None,
         in_plane_angle=0,
@@ -391,8 +374,7 @@ class Simulation:
             theta_templates[i, : len(t)] = t
             intensities_templates[i, : len(i_v)] = i_v
 
-        r, t = self.get_polar_coordinates()
-        return r, t, intensities_templates
+        return r_templates, theta_templates, intensities_templates
 
     def get_diffraction_pattern(
         self,
@@ -529,6 +511,7 @@ class Simulation:
         label_offset=(0, 0),
         label_formatting=None,
         min_label_intensity=0.1,
+        include_direct_beam=True,
         ax=None,
         **kwargs,
     ):
@@ -556,6 +539,10 @@ class Simulation:
         label_formatting : dict, optional
             keyword arguments passed to `ax.text` for drawing the labels. Does
             nothing if `show_labels` is False.
+        min_label_intensity : float, optional
+            minimum intensity for a spot to be labelled
+        include_direct_beam : bool, optional
+            whether to include the direct beam in the plot
         ax : matplotlib Axes, optional
             axes on which to draw the pattern. If `None`, a new axis is created
         **kwargs :
@@ -579,10 +566,17 @@ class Simulation:
         coords = self._get_transformed_coordinates(
             in_plane_angle, direct_beam_position, mirrored, units=units
         )
+        if include_direct_beam:
+            spots = coords.data[:, :2]
+            spots = np.concatenate((spots, np.array([direct_beam_position])))
+            intensity = np.concatenate((coords.intensity, np.array([1])))
+        else:
+            spots = coords.data.data[:, :2]
+            intensity = coords.intensity
         sp = ax.scatter(
-            coords.data[:, 0],
-            coords.data[:, 1],
-            s=size_factor * np.sqrt(coords.intensity),
+            spots[:, 0],
+            spots[:, 1],
+            s=size_factor * np.sqrt(intensity),
             **kwargs,
         )
         ax.set_xlim(-self.reciporical_radius, self.reciporical_radius)
