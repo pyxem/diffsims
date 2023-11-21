@@ -58,12 +58,6 @@ def diffraction_calculator_custom():
     return SimulationGenerator(300, shape_factor_model=local_excite, t=0.2)
 
 
-@pytest.fixture(params=[(1, 3), (1,), (False,)])
-def precessed(request):
-    var = request.param
-    return var if len(var) - 1 else var[0]
-
-
 def make_phase(lattice_parameter=None):
     """
     We construct an Fd-3m silicon (with lattice parameter 5.431 as a default)
@@ -93,15 +87,6 @@ def make_phase(lattice_parameter=None):
 @pytest.fixture()
 def local_structure():
     return make_phase()
-
-
-def probe(x, out=None, scale=None):
-    if hasattr(x, "shape"):
-        return (abs(x[..., 0]) < 6) * (abs(x[..., 1]) < 6)
-    else:
-        v = abs(x[0].reshape(-1, 1, 1)) < 6
-        v = v * abs(x[1].reshape(1, -1, 1)) < 6
-        return v + 0 * x[2].reshape(1, 1, -1)
 
 
 @pytest.mark.parametrize("model", [binary, linear, atanc, sin2c, lorentzian])

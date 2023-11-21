@@ -82,19 +82,20 @@ def test_plot_profile_simulation(profile_simulation):
     profile_simulation.plot()
 
 
-class TestDiffractionSimulation:
-    @pytest.fixture
-    def al_phase(self):
-        p = Phase(
-            name="al",
-            space_group=225,
-            structure=Structure(
-                atoms=[Atom("al", [0, 0, 0])],
-                lattice=Lattice(0.405, 0.405, 0.405, 90, 90, 90),
-            ),
-        )
-        return p
+@pytest.fixture(scope="module")
+def al_phase():
+    p = Phase(
+        name="al",
+        space_group=225,
+        structure=Structure(
+            atoms=[Atom("al", [0, 0, 0])],
+            lattice=Lattice(0.405, 0.405, 0.405, 90, 90, 90),
+        ),
+    )
+    return p
 
+
+class TestDiffractionSimulation:
     @pytest.fixture
     def diffraction_simulation(self, al_phase):
         vector = ReciprocalLatticeVector(
@@ -108,20 +109,6 @@ class TestDiffractionSimulation:
             simulation_generator=SimulationGenerator(300),
         )
 
-    @pytest.fixture
-    def diffraction_simulation_calibrated(self, al_phase):
-        vector = ReciprocalLatticeVector(
-            phase=al_phase, xyz=np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]])
-        )
-
-        return Simulation(
-            phases=al_phase,
-            rotations=Rotation.from_axes_angles([0, 0, 1], angles=0),
-            coordinates=vector,
-            simulation_generator=SimulationGenerator(300),
-            calibration=0.5,
-        )
-
     def test_init(self, diffraction_simulation):
         assert np.allclose(
             diffraction_simulation.coordinates.data,
@@ -131,7 +118,7 @@ class TestDiffractionSimulation:
         assert np.isnan(diffraction_simulation.coordinates.intensity).all()
         assert diffraction_simulation.coordinates.intensity.shape == (3,)
         assert np.allclose(diffraction_simulation.calibration, np.array([0.1, 0.1]))
-        assert len(diffraction_simulation) == 3
+        assert diffraction_simulation.coordinates.size == 3
 
     @pytest.mark.parametrize(
         "calibration, expected",
@@ -189,3 +176,40 @@ class TestDiffractionSimulation:
         diffraction_simulation.calibration = calibration
         diffraction_simulation.offset = offset
         assert np.allclose(diffraction_simulation.calibrated_coordinates, expected)
+
+    def test_irot(self, diffraction_simulation):
+        with pytest.raises(ValueError):
+            diffraction_simulation.irot[0]
+
+    def test_iphase(self, diffraction_simulation):
+        with pytest.raises(ValueError):
+            diffraction_simulation.iphase[0]
+
+
+class TestMultiRotationSimulation:
+    @pytest.fixture(scope="class")
+    def diffraction_simulation(self, al_phase):
+        vector = ReciprocalLatticeVector(
+            phase=al_phase, xyz=np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]])
+        )
+
+        return Simulation(
+            phases=al_phase,
+            rotations=Rotation.from_axes_angles([0, 0, 1], angles=[0, 45]),
+            coordinates=[vector, vector],
+            simulation_generator=SimulationGenerator(300),
+        )
+
+    def test_init(self, diffraction_simulation):
+        for sim in diffraction_simulation:
+            assert isinstance(sim, Simulation)
+
+    def test_irot(self, diffraction_simulation):
+        assert isinstance(diffraction_simulation.irot[0], Simulation)
+        assert diffraction_simulation.irot[0].rotations == Rotation.from_axes_angles(
+            [0, 0, 1], angles=0
+        )
+        assert isinstance(diffraction_simulation.irot[1], Simulation)
+        assert diffraction_simulation.irot[1].rotations == Rotation.from_axes_angles(
+            [0, 0, 1], angles=45
+        )

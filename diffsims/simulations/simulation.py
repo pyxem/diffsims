@@ -11,7 +11,7 @@ from diffsims.crystallography.reciprocal_lattice_vector import ReciprocalLattice
 from diffsims.pattern.detector_functions import add_shot_and_point_spread
 from diffsims.utils import mask_utils
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from diffsims.generators.simulation_generator import SimulationGenerator
 
 
@@ -157,47 +157,28 @@ class Simulation:
         return self
 
     def __next__(self):
-        if self.rotation_index <= len(self.coordinates[self.phase_index]) - 1:
-            self.rotation_index += 1
-        elif self.phase_index <= len(self.phase) - 1:
-            self.phase_index += 1
+        if self.has_multiple_phases:
+            coords = self.coordinates[self.phase_index]
         else:
+            coords = self.coordinates
+        if self.has_multiple_vectors:
+            coords = coords[self.rotation_index]
+        else:
+            coords = coords
+        if self.has_multiple_vectors:
+            self.rotation_index += 1
+            if self.rotation_index >= coords.size:
+                self.rotation_index = 0
+                self.phase_index += 1
+        else:
+            self.phase_index += 1
+        if self.phase_index >= self.num_phases:
+            self.phase_index = 0
             raise StopIteration
-        return self.coordinates[self.phase_index][self.rotation_index]
-
-    def __len__(self):
-        return self.coordinates.shape[0]
-
-    @property
-    def size(self):
-        return self.__len__()
-
-    def __getitem__(self, sliced: Any):
-        """Sliced is any valid numpy slice that does not change the number of
-        dimensions or number of columns"""
-        coords = self.coordinates[sliced]
-        return Simulation(
-            coords,
-            calibration=self.calibration,
-            offset=self.offset,
-            with_direct_beam=self.with_direct_beam,
-        )
+        return coords
 
     def deepcopy(self):
         return copy.deepcopy(self)
-
-    def append(self, vectors: ReciprocalLatticeVector):
-        new_data = copy.deepcopy(self)
-        new_coords = np.concatenate(
-            (new_data._coordinates.data, vectors._coordinates.data), axis=0
-        )
-        new_data._coordinates = ReciprocalLatticeVector(
-            phase=self._coordinates.phase, xyz=new_coords
-        )
-        new_data._coordinates.intensity = np.concatenate(
-            (self._coordinates.intensity, vectors._coordinates.intensity)
-        )
-        return new_data
 
     @property
     def calibrated_coordinates(self):
