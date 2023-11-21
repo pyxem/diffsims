@@ -149,8 +149,6 @@ class DiffractionLibrary(dict):
             phase and orientation with associated properties.
 
         """
-        if isinstance(phase, int):
-            phase = list(self.keys())[phase]
         if phase is not None:
             phase_entry = self[phase]
             if angle is not None:
@@ -166,6 +164,7 @@ class DiffractionLibrary(dict):
         return {
             "Sim": phase_entry["simulations"][orientation_index],
             "intensities": phase_entry["intensities"][orientation_index],
+            "pixel_coords": phase_entry["pixel_coords"][orientation_index],
             "pattern_norm": np.linalg.norm(
                 phase_entry["intensities"][orientation_index]
             ),
