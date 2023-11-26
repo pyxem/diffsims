@@ -66,7 +66,7 @@ class RotationGetter:
 
     def __getitem__(self, item):
         all_phases = self.simulation.phases
-        if isinstance(self.simulation.coordinates, ReciprocalLatticeVector):
+        if self.simulation.current_size == 1:
             raise ValueError("Only one rotation in the simulation")
         elif isinstance(all_phases, Phase):  # only one phase in the simulation
             coords = self.simulation.coordinates[item]
@@ -157,25 +157,31 @@ class Simulation:
         return self
 
     def __next__(self):
-        if self.has_multiple_phases:
-            coords = self.coordinates[self.phase_index]
-        else:
-            coords = self.coordinates
-        if self.has_multiple_vectors:
-            coords = coords[self.rotation_index]
-        else:
-            coords = coords
-        if self.has_multiple_vectors:
-            self.rotation_index += 1
-            if self.rotation_index >= coords.size:
-                self.rotation_index = 0
-                self.phase_index += 1
-        else:
-            self.phase_index += 1
-        if self.phase_index >= self.num_phases:
+        if self.phase_index == self.num_phases:
             self.phase_index = 0
             raise StopIteration
-        return coords
+        else:
+            if self.has_multiple_phases:
+                coords = self.coordinates[self.phase_index]
+            else:
+                coords = self.coordinates
+            if self.has_multiple_vectors:
+                coords = coords[self.rotation_index]
+            else:
+                coords = coords
+            if self.rotation_index + 1 == self.current_size:
+                self.rotation_index = 0
+                self.phase_index += 1
+            else:
+                self.rotation_index += 1
+            return coords
+
+    @property
+    def current_size(self):
+        if self.has_multiple_phases:
+            return self.coordinates[self.phase_index].size
+        else:
+            return self.coordinates.size
 
     def deepcopy(self):
         return copy.deepcopy(self)
@@ -425,13 +431,13 @@ class Simulation:
         if hasattr(self.phases, "__len__"):
             return len(self.phases)
         else:
-            return 0
+            return 1
 
     @property
     def num_vectors(self):
         num_phases = self.num_phases
         if isinstance(self.coordinates, ReciprocalLatticeVector):
-            return 0
+            return len(self.coordinates)
         elif hasattr(self.coordinates, "__len__") and num_phases == 0:
             return (len(self.coordinates),)
         else:  # hasattr(self.coordinates, "__len__") and num_phases>0:
@@ -447,10 +453,7 @@ class Simulation:
     @property
     def has_multiple_vectors(self):
         """Returns True if the simulation has multiple vectors"""
-        if isinstance(self.coordinates, ReciprocalLatticeVector):
-            return False
-        else:
-            return True
+        return self.coordinates.size > 1
 
     def get_current_coordinates(self):
         """Returns the coordinates of the current phase and rotation"""

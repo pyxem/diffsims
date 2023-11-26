@@ -99,7 +99,12 @@ class TestDiffractionSimulation:
     @pytest.fixture
     def diffraction_simulation(self, al_phase):
         vector = ReciprocalLatticeVector(
-            phase=al_phase, xyz=np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]])
+            phase=al_phase,
+            xyz=np.array(
+                [
+                    [0, 0, 0],
+                ]
+            ),
         )
 
         return Simulation(
@@ -112,13 +117,17 @@ class TestDiffractionSimulation:
     def test_init(self, diffraction_simulation):
         assert np.allclose(
             diffraction_simulation.coordinates.data,
-            np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]]),
+            np.array(
+                [
+                    [0, 0, 0],
+                ]
+            ),
         )
-        assert diffraction_simulation.coordinates.hkl.shape == (3, 3)
+        assert diffraction_simulation.coordinates.hkl.shape == (1, 3)
         assert np.isnan(diffraction_simulation.coordinates.intensity).all()
-        assert diffraction_simulation.coordinates.intensity.shape == (3,)
+        assert diffraction_simulation.coordinates.intensity.shape == (1,)
         assert np.allclose(diffraction_simulation.calibration, np.array([0.1, 0.1]))
-        assert diffraction_simulation.coordinates.size == 3
+        assert diffraction_simulation.coordinates.size == 1
 
     @pytest.mark.parametrize(
         "calibration, expected",
@@ -185,6 +194,13 @@ class TestDiffractionSimulation:
         with pytest.raises(ValueError):
             diffraction_simulation.iphase[0]
 
+    def test_iter(self, diffraction_simulation):
+        count = 0
+        for sim in diffraction_simulation:
+            count += 1
+            assert isinstance(sim, ReciprocalLatticeVector)
+        assert count == 1
+
 
 class TestMultiRotationSimulation:
     @pytest.fixture(scope="class")
@@ -195,14 +211,10 @@ class TestMultiRotationSimulation:
 
         return Simulation(
             phases=al_phase,
-            rotations=Rotation.from_axes_angles([0, 0, 1], angles=[0, 45]),
-            coordinates=[vector, vector],
+            rotations=Rotation.from_axes_angles([0, 0, 1], angles=[0, 45, 60]),
+            coordinates=vector,
             simulation_generator=SimulationGenerator(300),
         )
-
-    def test_init(self, diffraction_simulation):
-        for sim in diffraction_simulation:
-            assert isinstance(sim, Simulation)
 
     def test_irot(self, diffraction_simulation):
         assert isinstance(diffraction_simulation.irot[0], Simulation)
@@ -213,3 +225,62 @@ class TestMultiRotationSimulation:
         assert diffraction_simulation.irot[1].rotations == Rotation.from_axes_angles(
             [0, 0, 1], angles=45
         )
+
+    def test_iter(self, diffraction_simulation):
+        diffraction_simulation.phase_index = 0
+        diffraction_simulation.rotation_index = 0
+        count = 0
+        for sim in diffraction_simulation:
+            count += 1
+            assert isinstance(sim, ReciprocalLatticeVector)
+        assert count == 3
+
+
+class TestMultiPhaseMultiRotationSimulation:
+    @pytest.fixture(scope="class")
+    def diffraction_simulation(self, al_phase):
+        vector = ReciprocalLatticeVector(
+            phase=al_phase, xyz=np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]])
+        )
+        al_phase2 = al_phase.deepcopy()
+        al_phase2.name = "al2"
+        al_phase.name = "al1"
+
+        return Simulation(
+            phases=[al_phase, al_phase2],
+            rotations=[
+                Rotation.from_axes_angles([0, 0, 1], angles=[0, 45, 60]),
+                Rotation.from_axes_angles([0, 0, 1], angles=[0, 45, 60]),
+            ],
+            coordinates=[vector, vector],
+            simulation_generator=SimulationGenerator(300),
+        )
+
+    def test_iphase(self, diffraction_simulation):
+        assert isinstance(diffraction_simulation.iphase[0], Simulation)
+        assert diffraction_simulation.iphase[0].current_phase.name == "al1"
+        assert diffraction_simulation.iphase["al1"].current_phase.name == "al1"
+        assert isinstance(diffraction_simulation.iphase[0].phases, Phase)
+
+        assert isinstance(diffraction_simulation.iphase[1], Simulation)
+        assert diffraction_simulation.iphase[1].current_phase.name == "al2"
+        assert diffraction_simulation.iphase["al2"].current_phase.name == "al2"
+
+    def test_irot(self, diffraction_simulation):
+        assert isinstance(diffraction_simulation.irot[0], Simulation)
+        assert diffraction_simulation.iphase[0].irot[
+            0
+        ].rotations == Rotation.from_axes_angles([0, 0, 1], angles=0)
+        assert isinstance(diffraction_simulation.irot[1], Simulation)
+        assert diffraction_simulation.iphase[0].irot[
+            1
+        ].rotations == Rotation.from_axes_angles([0, 0, 1], angles=45)
+
+    def test_iter(self, diffraction_simulation):
+        diffraction_simulation.phase_index = 0
+        diffraction_simulation.rotation_index = 0
+        count = 0
+        for sim in diffraction_simulation:
+            count += 1
+            assert isinstance(sim, ReciprocalLatticeVector)
+        assert count == 6
