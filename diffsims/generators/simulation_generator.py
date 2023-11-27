@@ -5,7 +5,7 @@ from orix.quaternion import Rotation
 from orix.crystal_map import Phase
 
 from diffsims.crystallography import ReciprocalLatticeVector
-from diffsims.simulations.simulation import Simulation, ProfileSimulation
+from diffsims.simulations.simulation import Simulation
 from diffsims.utils.shape_factor_models import (
     linear,
     atanc,
@@ -162,8 +162,8 @@ class SimulationGenerator:
             vectors = vectors[0]
             phase = phase[0]
             rotation = rotation[0]
-        if rotation.size == 1:
-            vectors = vectors[0]
+            if rotation.size == 1:
+                vectors = vectors[0]
 
         # Create a simulation object
         sim = Simulation(
@@ -171,7 +171,7 @@ class SimulationGenerator:
             coordinates=vectors,
             rotations=rotation,
             simulation_generator=self,
-            reciporical_radius=reciprocal_radius,
+            reciprocal_radius=reciprocal_radius,
         )
         return sim
 
@@ -239,87 +239,3 @@ class SimulationGenerator:
                     **self.shape_factor_kwargs,
                 )
         return intersected_vectors, shape_factor
-
-    def calculate_profile_data(
-        self,
-        phase: Phase,
-        reciprocal_radius: float = 1.0,
-        minimum_intensity: float = 1e-3,
-        debye_waller_factors: dict = None,
-    ):
-        """Calculates a one dimensional diffraction profile for a
-        structure.
-
-        Parameters
-        ----------
-        structure : diffpy.structure.structure.Structure
-            The structure for which to calculate the diffraction profile.
-        reciprocal_radius : float
-            The maximum radius of the sphere of reciprocal space to
-            sample, in reciprocal angstroms.
-        minimum_intensity : float
-            The minimum intensity required for a diffraction peak to be
-            considered real. Deals with numerical precision issues.
-        debye_waller_factors : dict of str:value pairs
-            Maps element names to their temperature-dependent Debye-Waller factors.
-
-        Returns
-        -------
-        diffsims.sims.diffraction_simulation.ProfileSimulation
-            The diffraction profile corresponding to this structure and
-            experimental conditions.
-        """
-        latt = phase.structure.lattice
-
-        # Obtain crystallographic reciprocal lattice points within range
-        vectors = ReciprocalLatticeVector.from_min_dspacing(
-            phase,
-            min_dspacing=1 / reciprocal_radius,
-        )
-
-        unique_vectors = vectors.unique(use_symmetry=True).symmetrise()
-
-        multiplicity = unique_vectors.multiplicity
-        g_indices = unique_vectors.hkl
-        g_hkls = unique_vectors.gspacing
-
-        i_hkl = get_kinematical_intensities(
-            phase.structure,
-            g_indices,
-            np.asarray(g_hkls),
-            prefactor=multiplicity,
-            scattering_params=self.scattering_params,
-            debye_waller_factors=debye_waller_factors,
-        )
-
-        if is_lattice_hexagonal(latt):
-            # Use Miller-Bravais indices for hexagonal lattices.
-            g_indices = (
-                g_indices[0],
-                g_indices[1],
-                -g_indices[0] - g_indices[1],
-                g_indices[2],
-            )
-
-        hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in g_indices]
-
-        peaks = {}
-        for l, i, g in zip(hkls_labels, i_hkl, g_hkls):
-            peaks[l] = [i, g]
-
-        # Scale intensities so that the max intensity is 100.
-
-        max_intensity = max([v[0] for v in peaks.values()])
-        x = []
-        y = []
-        hkls = []
-        for k in peaks.keys():
-            v = peaks[k]
-            if v[0] / max_intensity * 100 > minimum_intensity and (k != "000"):
-                x.append(v[1])
-                y.append(v[0])
-                hkls.append(k)
-
-        y = np.asarray(y) / max(y) * 100
-
-        return ProfileSimulation(x, y, hkls)

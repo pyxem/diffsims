@@ -45,10 +45,6 @@ class PhaseGetter:
             coordinates=new_coords,
             rotations=new_rotations,
             simulation_generator=self.simulation.simulation_generator,
-            calibration=self.simulation.calibration,
-            offset=self.simulation.offset,
-            with_direct_beam=self.simulation.with_direct_beam,
-            shape=self.simulation.shape,
         )
 
 
@@ -81,10 +77,6 @@ class RotationGetter:
             coordinates=coords,
             rotations=rotations,
             simulation_generator=self.simulation.simulation_generator,
-            calibration=self.simulation.calibration,
-            offset=self.simulation.offset,
-            with_direct_beam=self.simulation.with_direct_beam,
-            shape=self.simulation.shape,
         )
 
 
@@ -114,40 +106,70 @@ class Simulation:
         ],
         rotations: Union[Rotation, Sequence[Rotation]],
         simulation_generator: "SimulationGenerator",
-        calibration: Sequence[float] = (0.1, 0.1),
-        offset: Sequence[float] = (0.0, 0.0),
-        with_direct_beam: bool = False,
-        shape: Sequence[int] = (512, 512),
-        reciporical_radius: float = 1.0,
+        reciprocal_radius: float = 1.0,
     ):
         """Initializes the DiffractionSimulation object with data values for
         the coordinates, indices, intensities, calibration and offset.
+
+        Parameters
+        ----------
+        coordinates
+            The list of ReciprocalLatticeVector objects for each phase and rotation. If there
+            are multiple phases, then this should be a list of lists of ReciprocalLatticeVector objects.
+            If there is only one phase, then this should be a list of ReciprocalLatticeVector objects.
+        rotations
+            The list of Rotation objects for each phase. If there are multiple phases, then this should
+            be a list of Rotation objects. If there is only one phase, then this should be a single
+            Rotation object.
+        phases
+            The list of Phase objects for each phase. If there is only one phase, then this should be
+            a single Phase object.
+        simulation_generator
+            The SimulationGenerator object used to generate the diffraction patterns.
+
         """
         # Basic data
-        if not isinstance(phases, Phase):
-            phases = np.array(phases)
-        if not isinstance(rotations, Rotation):
-            rotations = np.array(rotations)
-        if not isinstance(coordinates, ReciprocalLatticeVector):
+        if isinstance(rotations, Rotation) and rotations.size == 1:
+            if not isinstance(coordinates, ReciprocalLatticeVector):
+                raise ValueError(
+                    "If there is only one rotation, then the coordinates must be a ReciprocalLatticeVector object"
+                )
+        elif isinstance(rotations, Rotation):
             coordinates = np.array(coordinates, dtype=object)
+            if coordinates.size != rotations.size:
+                raise ValueError(
+                    f"The number of rotations: {rotations.size} must match the number of "
+                    f"coordinates {coordinates.size}"
+                )
+        else:  # iterable of Rotation
+            rotations = np.array(rotations, dtype=object)
+            coordinates = np.array(coordinates, dtype=object)
+            if len(coordinates.shape) != 2:
+                coordinates = coordinates[:, np.newaxis]
+            phases = np.array(phases)
+            if rotations.size != phases.size:
+                raise ValueError(
+                    f"The number of rotations: {rotations.size} must match the number of "
+                    f"phases {phases.size}"
+                )
 
+            for r, c in zip(rotations, coordinates):
+                if r.size != c.size:
+                    raise ValueError(
+                        f"The number of rotations: {r.size} must match the number of "
+                        f"coordinates {c.shape[0]}"
+                    )
         self.phases = phases
         self.rotations = rotations
         self.coordinates = coordinates
         self.simulation_generator = simulation_generator
-        self.reciporical_radius = reciporical_radius
-
-        # Data for integrating with real data from a detector
-        self.calibration = calibration
-        self.shape = shape
-        self.offset = np.array(offset)
-        self.with_direct_beam = with_direct_beam
 
         # for interactive plotting and iterating through the Simulations
         self.phase_index = 0
         self.rotation_index = 0
         self._rot_plot = None
         self._diff_plot = None
+        self.reciporical_radius = reciprocal_radius
 
         # for slicing a simulation
         self.iphase = PhaseGetter(self)
@@ -179,50 +201,12 @@ class Simulation:
     @property
     def current_size(self):
         if self.has_multiple_phases:
-            return self.coordinates[self.phase_index].size
+            return self.rotations[self.phase_index].size
         else:
-            return self.coordinates.size
+            return self.rotations.size
 
     def deepcopy(self):
         return copy.deepcopy(self)
-
-    @property
-    def calibrated_coordinates(self):
-        """ndarray : Coordinates converted into pixel space."""
-        if self.calibration is not None:
-            return (self.coordinates.data[:, :2] + self.offset) / self.calibration
-        else:
-            raise Exception("Pixel calibration is not set!")
-
-    @property
-    def pixel_coordinates(self):
-        half_shape = np.array(self.shape) / 2
-        pixel_coordinates = np.rint(
-            self.calibrated_coordinates[:, :2] + half_shape
-        ).astype(int)
-        return pixel_coordinates
-
-    @property
-    def calibration(self):
-        """tuple of float : The x- and y-scales of the pattern, with respect to
-        the original reciprocal angstrom coordinates."""
-        return self._calibration
-
-    @calibration.setter
-    def calibration(self, calibration: Union[float, Sequence[float]]):
-        if calibration is None:
-            pass
-        elif np.all(np.equal(calibration, 0)):
-            raise ValueError("`calibration` cannot be zero.")
-        elif isinstance(calibration, float) or isinstance(calibration, int):
-            calibration = np.array((calibration, calibration))
-        elif len(calibration) == 2:
-            calibration = np.array(calibration)
-        else:
-            raise ValueError(
-                "`calibration` must be a float or length-2" "tuple of floats."
-            )
-        self._calibration = calibration
 
     def _get_transformed_coordinates(
         self,
@@ -230,13 +214,15 @@ class Simulation:
         center: Sequence = (0, 0),
         mirrored: bool = False,
         units: str = "real",
+        calibration: float = None,
     ):
         """Translate, rotate or mirror the pattern spot coordinates"""
 
         coords = self.get_current_coordinates()
 
         if units != "real":
-            center = np.array(center) / self.calibration
+            center = np.array(center)
+            coords.data = coords.data / calibration
         transformed_coords = coords
         cx, cy = center
         x = transformed_coords.data[:, 0]
@@ -274,70 +260,8 @@ class Simulation:
         )
         return coords_new
 
-    def get_as_mask(
-        self,
-        shape: Sequence[int],
-        radius: float = 6.0,
-        negative: bool = False,
-        radius_function=None,
-        direct_beam_position=None,
-        in_plane_angle=0,
-        mirrored=False,
-        *args,
-        **kwargs,
-    ):
-        """
-        Return the diffraction pattern as a binary mask of type
-        bool
-
-        Parameters
-        ----------
-        shape: 2-tuple of ints
-            Shape of the output mask (width, height)
-        radius: float or array, optional
-            Radii of the spots in pixels. An array may be supplied
-            of the same length as the number of spots.
-        negative: bool, optional
-            Whether the spots are masked (True) or everything
-            else is masked (False)
-        radius_function: Callable, optional
-            Calculate the radius as a function of the spot intensity,
-            for example np.sqrt. args and kwargs supplied to this method
-            are passed to this function. Will override radius.
-        direct_beam_position: 2-tuple of ints, optional
-            The (x,y) coordinate in pixels of the direct beam. Defaults to
-            the center of the image.
-        in_plane_angle: float, optional
-            In plane rotation of the pattern in degrees
-        mirrored: bool, optional
-            Whether the pattern should be flipped over the x-axis,
-            corresponding to the inverted orientation
-
-        Returns
-        -------
-        mask: numpy.ndarray
-            Boolean mask of the diffraction pattern
-        """
-        r = radius
-        if direct_beam_position is None:
-            direct_beam_position = (shape[1] // 2, shape[0] // 2)
-        point_coordinates_shifted = self._get_transformed_coordinates(
-            in_plane_angle,
-            center=direct_beam_position,
-            mirrored=mirrored,
-            units="pixels",
-        )
-        if radius_function is not None:
-            r = radius_function(self.intensities, *args, **kwargs)
-        mask = mask_utils.create_mask(shape, fill=negative)
-        mask_utils.add_circles_to_mask(
-            mask, point_coordinates_shifted.coordinates.data, r, fill=not negative
-        )
-        return mask
-
     def polar_flatten_simulations(self):
         """Flattens the simulations into polar coordinates for use in template matching.
-
         The resulting arrays are of shape (n_simulations, n_spots) where n_spots is the
         maximum number of spots in any simulation.
 
@@ -347,19 +271,18 @@ class Simulation:
         r_templates, theta_templates, intensities_templates
         """
 
-        flattened_vectors = [sim.data for sim in self]
-        flattened_intensity = [sim.intensity for sim in self]
-        max_num_spots = max([len(v) for v in flattened_vectors])
+        flattened_vectors = [sim for sim in self]
+        max_num_spots = max([v.size for v in flattened_vectors])
 
         r_templates = np.zeros((len(flattened_vectors), max_num_spots))
         theta_templates = np.zeros((len(flattened_vectors), max_num_spots))
         intensities_templates = np.zeros((len(flattened_vectors), max_num_spots))
 
-        for i, (v, i_v) in enumerate(zip(flattened_vectors, flattened_intensity)):
+        for i, v in enumerate(flattened_vectors):
             r, t, _ = v.to_polar()
             r_templates[i, : len(r)] = r
             theta_templates[i, : len(t)] = t
-            intensities_templates[i, : len(i_v)] = i_v
+            intensities_templates[i, : len(v.intensity)] = v.intensity
 
         return r_templates, theta_templates, intensities_templates
 
@@ -369,6 +292,7 @@ class Simulation:
         sigma=10,
         direct_beam_position=None,
         in_plane_angle=0,
+        calibration=0.01,
         mirrored=False,
     ):
         """Returns the diffraction data as a numpy array with
@@ -399,23 +323,26 @@ class Simulation:
         -----
         If don't know the exact calibration of your diffraction signal using 1e-2
         produces reasonably good patterns when the lattice parameters are on
-        the order of 0.5nm and a the default size and sigma are used.
+        the order of 0.5nm and the default size and sigma are used.
         """
-        if shape is None:
-            shape = self.shape
         if direct_beam_position is None:
             direct_beam_position = (shape[1] // 2, shape[0] // 2)
-        tranformed = self._get_transformed_coordinates(
-            in_plane_angle, direct_beam_position, mirrored, units="pixel"
+        transformed = self._get_transformed_coordinates(
+            in_plane_angle,
+            direct_beam_position,
+            mirrored,
+            units="pixel",
+            calibration=calibration,
         )
         in_frame = (
-            (tranformed.coordinates.data[:, 0] >= 0)
-            & (tranformed.coordinates.data[:, 0] < shape[1])
-            & (tranformed.coordinates.data[:, 1] >= 0)
-            & (tranformed.coordinates.data[:, 1] < shape[0])
+            (transformed.data[:, 0] >= 0)
+            & (transformed.data[:, 0] < shape[1])
+            & (transformed.data[:, 1] >= 0)
+            & (transformed.data[:, 1] < shape[0])
         )
-        spot_coords = tranformed.coordinates.data[in_frame].astype(int)
-        spot_intens = self.intensities[in_frame]
+        spot_coords = transformed.data[in_frame].astype(int)
+
+        spot_intens = transformed.intensity[in_frame]
         pattern = np.zeros(shape)
         # checks that we have some spots
         if spot_intens.shape[0] == 0:
@@ -434,18 +361,6 @@ class Simulation:
             return 1
 
     @property
-    def num_vectors(self):
-        num_phases = self.num_phases
-        if isinstance(self.coordinates, ReciprocalLatticeVector):
-            return len(self.coordinates)
-        elif hasattr(self.coordinates, "__len__") and num_phases == 0:
-            return (len(self.coordinates),)
-        else:  # hasattr(self.coordinates, "__len__") and num_phases>0:
-            return tuple(
-                [len(c) if hasattr(c, "__len__") else 0 for c in self.coordinates]
-            )
-
-    @property
     def has_multiple_phases(self):
         """Returns True if the simulation has multiple phases"""
         return self.num_phases > 1
@@ -458,11 +373,13 @@ class Simulation:
     def get_current_coordinates(self):
         """Returns the coordinates of the current phase and rotation"""
         if self.has_multiple_phases:
-            return self.coordinates[self.phase_index][self.rotation_index]
+            return copy.deepcopy(
+                self.coordinates[self.phase_index][self.rotation_index]
+            )
         elif not self.has_multiple_phases and self.has_multiple_vectors:
-            return self.coordinates[self.rotation_index]
+            return copy.deepcopy(self.coordinates[self.rotation_index])
         else:
-            return self.coordinates
+            return copy.deepcopy(self.coordinates)
 
     def plot_rotations(self, beam_direction: Vector3d = Vector3d.zvector()):
         """Plots the rotations of the current phase in stereographic projection"""
@@ -496,6 +413,7 @@ class Simulation:
         label_formatting=None,
         min_label_intensity=0.1,
         include_direct_beam=True,
+        calibration=0.1,
         ax=None,
         **kwargs,
     ):
@@ -548,14 +466,18 @@ class Simulation:
             _, ax = plt.subplots()
             ax.set_aspect("equal")
         coords = self._get_transformed_coordinates(
-            in_plane_angle, direct_beam_position, mirrored, units=units
+            in_plane_angle,
+            direct_beam_position,
+            mirrored,
+            units=units,
+            calibration=calibration,
         )
         if include_direct_beam:
             spots = coords.data[:, :2]
             spots = np.concatenate((spots, np.array([direct_beam_position])))
             intensity = np.concatenate((coords.intensity, np.array([1])))
         else:
-            spots = coords.data.data[:, :2]
+            spots = coords.data[:, :2]
             intensity = coords.intensity
         sp = ax.scatter(
             spots[:, 0],
@@ -572,13 +494,13 @@ class Simulation:
             xlim = ax.get_xlim()
             ylim = ax.get_ylim()
             condition = (
-                (coords.coordinates.data[:, 0] > min(xlim))
-                & (coords.coordinates.data[:, 0] < max(xlim))
-                & (coords.coordinates.data[:, 1] > min(ylim))
-                & (coords.coordinates.data[:, 1] < max(ylim))
+                (coords.data[:, 0] > min(xlim))
+                & (coords.data[:, 0] < max(xlim))
+                & (coords.data[:, 1] > min(ylim))
+                & (coords.data[:, 1] < max(ylim))
             )
             millers = millers[condition]
-            coords = coords.coordinates.data[condition]
+            coords = coords.data[condition]
             # default alignment options
             if (
                 "ha" not in label_offset
@@ -587,8 +509,8 @@ class Simulation:
                 label_formatting["ha"] = "center"
             if "va" not in label_offset and "verticalalignment" not in label_formatting:
                 label_formatting["va"] = "center"
-            for miller, coordinate, inten in zip(millers, coords, self.intensities):
-                if inten > min_label_intensity:
+            for miller, coordinate, inten in zip(millers, coords, intensity):
+                if np.isnan(inten) or inten > min_label_intensity:
                     label = "("
                     for index in miller:
                         if index < 0:
@@ -610,51 +532,3 @@ class Simulation:
                 ax.set_xlabel("pixels")
                 ax.set_ylabel("pixels")
         return ax, sp
-
-
-class ProfileSimulation:
-    """Holds the result of a given kinematic simulation of a diffraction
-    profile.
-
-    Parameters
-    ----------
-    magnitudes : array-like, shape [n_peaks, 1]
-        Magnitudes of scattering vectors.
-    intensities : array-like, shape [n_peaks, 1]
-        The kinematic intensity of the diffraction peaks.
-    hkls : [{(h, k, l): mult}] {(h, k, l): mult} is a dict of Miller
-        indices for all diffracted lattice facets contributing to each
-        intensity.
-    """
-
-    def __init__(self, magnitudes, intensities, hkls):
-        self.magnitudes = magnitudes
-        self.intensities = intensities
-        self.hkls = hkls
-
-    def plot(self, annotate_peaks=True, with_labels=True, fontsize=12, ax=None):
-        """Plots the diffraction profile simulation for the
-           calculate_profile_data method in DiffractionGenerator.
-
-        Parameters
-        ----------
-        annotate_peaks : boolean
-            If True, peaks are annotaed with hkl information.
-        with_labels : boolean
-            If True, xlabels and ylabels are added to the plot.
-        fontsize : integer
-            Fontsize for peak labels.
-        """
-        if ax is None:
-            fig, ax = plt.subplots()
-        for g, i, hkls in zip(self.magnitudes, self.intensities, self.hkls):
-            label = hkls
-            ax.plot([g, g], [0, i], color="k", linewidth=3, label=label)
-            if annotate_peaks:
-                ax.annotate(label, xy=[g, i], xytext=[g, i], fontsize=fontsize)
-
-            if with_labels:
-                ax.set_xlabel("A ($^{-1}$)")
-                ax.set_ylabel("Intensities (scaled)")
-
-        return plt

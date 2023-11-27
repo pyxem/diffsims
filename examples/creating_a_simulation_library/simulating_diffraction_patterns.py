@@ -5,6 +5,7 @@
 from orix.crystal_map import Phase
 from orix.quaternion import Rotation
 from diffpy.structure import Atom, Lattice, Structure
+import matplotlib.pyplot as plt
 
 from diffsims.generators.simulation_generator import SimulationGenerator
 
@@ -28,7 +29,7 @@ rot = Rotation.from_axes_angles(
 )  # 45 degree rotation around x-axis
 sim = gen.calculate_ed_data(phase=p, rotation=rot)
 
-sim.plot()  # plot the first (and only) diffraction pattern
+sim.plot(show_labels=True)  # plot the first (and only) diffraction pattern
 
 # %%
 
@@ -46,11 +47,11 @@ rot = Rotation.from_axes_angles(
 )  # 45 degree rotation around x-axis
 sim = gen.calculate_ed_data(phase=p, rotation=rot)
 
-sim.plot()  # plot the first diffraction pattern
+sim.plot(show_labels=True)  # plot the first diffraction pattern
 
 # %%
 
-sim.irot[3].plot()  # plot the fourth(45 degrees) diffraction pattern
+sim.irot[3].plot(show_labels=True)  # plot the fourth(45 degrees) diffraction pattern
 # %%
 
 sim.coordinates  # coordinates of all the diffraction patterns
@@ -67,10 +68,24 @@ rot = Rotation.from_axes_angles(
 )  # 45 degree rotation around x-axis
 sim = gen.calculate_ed_data(phase=[p, p2], rotation=[rot, rot])
 
-sim.plot()  # plot the first diffraction pattern
+sim.plot(
+    include_direct_beam=True, show_labels=True, min_label_intensity=0.1
+)  # plot the first diffraction pattern
 
 # %%
 
-sim.iphase["al_2"].irot[3].plot()  # plot the fourth(45 degrees) diffraction pattern
+sim.iphase["al_2"].irot[3].plot(
+    show_labels=True, min_label_intensity=0.1
+)  # plot the fourth(45 degrees) diffraction pattern
 
-sim.coordinates  # coordinates of all the diffraction patterns
+
+# ===================================
+# Plotting a Real Diffraction Pattern
+# ===================================
+dp = sim.get_diffraction_pattern(
+    shape=(512, 512),
+    calibration=0.01,
+)
+plt.figure()
+plt.imshow(dp)
+# %%

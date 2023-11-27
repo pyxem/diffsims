@@ -23,7 +23,6 @@ import diffpy.structure
 from orix.crystal_map import Phase
 
 from diffsims.generators.simulation_generator import SimulationGenerator
-from diffsims.simulations.simulation import ProfileSimulation
 from diffsims.utils.shape_factor_models import (
     linear,
     binary,
@@ -200,22 +199,6 @@ class TestDiffractionCalculator:
 
         # softly makes sure the two sims are different
         assert np.sum(t1.coordinates.intensity) != np.sum(t2.coordinates.intensity)
-
-    def test_calculate_profile_class(self, local_structure, diffraction_calculator):
-        # tests the non-hexagonal (cubic) case
-        profile = diffraction_calculator.calculate_profile_data(
-            local_structure, reciprocal_radius=1.0
-        )
-        assert isinstance(profile, ProfileSimulation)
-
-        latt = diffpy.structure.lattice.Lattice(3, 3, 5, 90, 90, 120)
-        atom = diffpy.structure.atom.Atom(atype="Ni", xyz=[0, 0, 0], lattice=latt)
-        hexagonal_structure = diffpy.structure.Structure(atoms=[atom], lattice=latt)
-        phase = Phase(structure=hexagonal_structure, space_group=194)
-        hexagonal_profile = diffraction_calculator.calculate_profile_data(
-            phase=phase, reciprocal_radius=1.0
-        )
-        assert isinstance(hexagonal_profile, ProfileSimulation)
 
 
 @pytest.mark.parametrize("scattering_param", ["lobato", "xtables"])
