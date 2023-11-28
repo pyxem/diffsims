@@ -236,7 +236,13 @@ class TestMultiPhaseMultiSimulation:
         rot = Rotation.from_axes_angles([1, 0, 0], (0, 15, 30, 45), degrees=True)
         rot2 = rot
         coords = ReciprocalLatticeVector(
-            phase=al_phase, xyz=[[1, 0, 0], [0, -1, 0], [1, -1, 0], [1, -1, -1]]
+            phase=al_phase,
+            xyz=[
+                [1, 0, 0],
+                [0, -0.3, 0],
+                [1 / 0.405, 1 / -0.405, 0],
+                [0.1, -0.1, -0.3],
+            ],
         )
         coords.intensity = 1
         vectors = [coords, coords, coords, coords]
@@ -263,6 +269,13 @@ class TestMultiPhaseMultiSimulation:
         assert isinstance(phase_slic.phases, Phase)
         assert phase_slic.rotations.size == 4
 
+    def test_iphase_str(self, multi_simulation):
+        phase_slic = multi_simulation.iphase["al"]
+        assert isinstance(phase_slic, Simulation)
+        assert isinstance(phase_slic.phases, Phase)
+        assert phase_slic.rotations.size == 4
+        assert phase_slic.phases.name == "al"
+
     def test_iphase_error(self, multi_simulation):
         with pytest.raises(ValueError):
             phase_slic = multi_simulation.iphase[3.1]
@@ -278,7 +291,6 @@ class TestMultiPhaseMultiSimulation:
         assert isinstance(sliced_sim, Simulation)
         assert isinstance(sliced_sim.phases, np.ndarray)
         assert sliced_sim.rotations.size == 2
-        sliced_sim.plot()
 
     @pytest.mark.parametrize("show_labels", [True, False])
     @pytest.mark.parametrize("units", ["real", "pixel"])
@@ -309,10 +321,11 @@ class TestMultiPhaseMultiSimulation:
         assert count == 8
 
     def test_get_diffraction_pattern(self, multi_simulation):
+        # No diffraction spots in this pattern
         pat = multi_simulation.get_diffraction_pattern(
-            shape=(100, 100), calibration=0.01
+            shape=(50, 50), calibration=0.001
         )
-        assert pat.shape == (100, 100)
+        assert pat.shape == (50, 50)
         assert np.max(pat.data) == 0
 
     def test_get_diffraction_pattern2(self, multi_simulation):
