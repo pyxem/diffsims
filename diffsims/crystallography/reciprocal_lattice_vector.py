@@ -182,7 +182,6 @@ class ReciprocalLatticeVector(Vector3d):
         >>> rlv.hkl
         array([[1., 1., 1.],
                [2., 0., 0.]])
-
         """
 
         return _transform_space(self.data, "c", "r", self.phase.structure.lattice)
