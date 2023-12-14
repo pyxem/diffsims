@@ -100,19 +100,8 @@ class RotationGetter:
 
 class Simulation:
     """Holds the result of a kinematic diffraction simulation for some phase
-    and rotation.
-
-    Parameters
-    ----------
-    coordinates : ragged ndarray, shape [n_points]
-        The x-y coordinates of points in reciprocal space.
-
-    calibration : float or tuple of float, optional
-        The x- and y-scales of the pattern, with respect to the original
-        reciprocal angstrom coordinates.
-    offset : tuple of float, optional
-        The x-y offset of the pattern in reciprocal angstroms. Defaults to
-        zero in each direction.
+    and rotation. This class is iterable and can be used to iterate through
+    simulations of different phases and rotations.
     """
 
     def __init__(
@@ -218,6 +207,7 @@ class Simulation:
 
     @property
     def current_size(self):
+        """Returns the number of rotations in the current phase"""
         if self.has_multiple_phases:
             return self.rotations[self.phase_index].size
         else:
