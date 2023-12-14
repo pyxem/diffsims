@@ -50,6 +50,10 @@ _shape_factor_model_mapping = {
 
 
 class SimulationGenerator:
+    """
+    A class for generating kinematic diffraction simulations.
+    """
+
     def __init__(
         self,
         accelerating_voltage: float = 200,
@@ -99,30 +103,31 @@ class SimulationGenerator:
         shape_factor_width: float = None,
         debye_waller_factors: dict = None,
     ):
-        """Calculates the Electron Diffraction data for a structure.
+        """Calculates the diffraction pattern for one or more phases given a list
+        of rotations for each phase.
 
         Parameters
         ----------
         phase:
             The phase(s) for which to derive the diffraction pattern.
-        reciprocal_radius : float
+        reciprocal_radius
             The maximum radius of the sphere of reciprocal space to
             sample, in reciprocal Angstroms.
         rotation
             The Rotation object(s) to apply to the structure and then
             calculate the diffraction pattern.
-        with_direct_beam : bool
+        with_direct_beam
             If True, the direct beam is included in the simulated
             diffraction pattern. If False, it is not.
-        max_excitation_error : float
+        max_excitation_error
             The cut-off for geometric excitation error in the z-direction
             in units of reciprocal Angstroms. Spots with a larger distance
             from the Ewald sphere are removed from the pattern.
             Related to the extinction distance and roungly equal to 1/thickness.
-        shape_factor_width : float
+        shape_factor_width
             Determines the width of the reciprocal rel-rod, for fine-grained
             control. If not set will be set equal to max_excitation_error.
-        debye_waller_factors : dict of str:value pairs
+        debye_waller_factors
             Maps element names to their temperature-dependent Debye-Waller factors.
 
         Returns
@@ -201,7 +206,25 @@ class SimulationGenerator:
         max_excitation_error: float,
         shape_factor_width: float = None,
     ):
-        """Calculates the reciprocal lattice vectors that intersect the Ewald sphere."""
+        """Calculates the reciprocal lattice vectors that intersect the Ewald sphere.
+
+        Parameters
+        ----------
+        recip
+            The reciprocal lattice vectors to rotate.
+        rot
+            The rotation matrix to apply to the reciprocal lattice vectors.
+        wavelength
+            The wavelength of the electrons in Angstroms.
+        max_excitation_error
+            The cut-off for geometric excitation error in the z-direction
+            in units of reciprocal Angstroms. Spots with a larger distance
+            from the Ewald sphere are removed from the pattern.
+            Related to the extinction distance and roungly equal to 1/thickness.
+        shape_factor_width
+            Determines the width of the reciprocal rel-rod, for fine-grained
+            control. If not set will be set equal to max_excitation_error.
+        """
         rotated_vectors = recip.rotate_from_matrix(rot)
         # Identify the excitation errors of all points (distance from point to Ewald sphere)
         r_sphere = 1 / wavelength
