@@ -59,7 +59,8 @@ sim.coordinates  # coordinates of all the diffraction patterns
 # ============================================================
 # Simulating Multiple Rotations for Multiple Phases
 # ============================================================
-p2 = p.deepcopy()
+
+p2 = p.deepcopy()  # copy the phase
 
 p2.name = "al_2"
 
