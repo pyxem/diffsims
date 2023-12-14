@@ -1,3 +1,21 @@
+# -*- coding: utf-8 -*-
+# Copyright 2017-2023 The diffsims developers
+#
+# This file is part of diffsims.
+#
+# diffsims is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# diffsims is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
+
 import warnings
 
 import numpy as np
@@ -73,7 +91,9 @@ class TestDeprecationWarning:
         )
 
     def test_deprecation_not_function(self):
-        @deprecated(since=0.7, alternative="bar", removal=0.8, alternative_is_function=False)
+        @deprecated(
+            since=0.7, alternative="bar", removal=0.8, alternative_is_function=False
+        )
         def foo(n):
             return n + 1
 
@@ -90,7 +110,6 @@ class TestDeprecationWarning:
             ".. deprecated:: 0.7\n"
             f"   {desired_msg}"
         )
-
 
 
 class TestDeprecateArgument:
