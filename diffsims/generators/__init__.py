@@ -26,6 +26,7 @@ from diffsims.generators import (
     rotation_list_generators,
     sphere_mesh_generators,
     zap_map_generator,
+    simulation_generator,
 )
 
 __all__ = [
@@ -33,5 +34,6 @@ __all__ = [
     "library_generator",
     "rotation_list_generators",
     "sphere_mesh_generators",
+    "simulation_generator",
     "zap_map_generator",
 ]
