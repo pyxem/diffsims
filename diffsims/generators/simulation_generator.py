@@ -23,7 +23,6 @@ from orix.quaternion import Rotation
 from orix.crystal_map import Phase
 
 from diffsims.crystallography import ReciprocalLatticeVector
-from diffsims.simulations.simulation import Simulation
 from diffsims.utils.shape_factor_models import (
     linear,
     atanc,
@@ -38,6 +37,8 @@ from diffsims.utils.sim_utils import (
     get_electron_wavelength,
     get_kinematical_intensities,
     is_lattice_hexagonal,
+    get_points_in_sphere,
+    get_intensities_params,
 )
 
 _shape_factor_model_mapping = {
@@ -47,6 +48,8 @@ _shape_factor_model_mapping = {
     "sin2c": sin2c,
     "lorentzian": lorentzian,
 }
+
+from diffsims.simulations import Simulation1D, Simulation
 
 
 class SimulationGenerator:
@@ -197,6 +200,89 @@ class SimulationGenerator:
             reciprocal_radius=reciprocal_radius,
         )
         return sim
+
+    def calculate_diffraction1d(
+        self,
+        phase: Phase,
+        reciprocal_radius: float = 1.0,
+        minimum_intensity: float = 1e-3,
+        debye_waller_factors: dict = None,
+    ):
+        """Calculates the 1-D profile of the diffraction pattern for one phases.
+
+        This is useful for plotting the diffracting reflections for some phases.
+
+        Parameters
+        ----------
+        phase:
+            The phase for which to derive the diffraction pattern.
+        reciprocal_radius
+            The maximum radius of the sphere of reciprocal space to
+            sample, in reciprocal Angstroms.
+        minimum_intensity
+            The minimum intensity of a reflection to be included in the profile.
+        debye_waller_factors
+            Maps element names to their temperature-dependent Debye-Waller factors.
+        """
+        latt = phase.structure.lattice
+
+        # Obtain crystallographic reciprocal lattice points within range
+        recip_latt = latt.reciprocal()
+        spot_indices, _, spot_distances = get_points_in_sphere(
+            recip_latt, reciprocal_radius
+        )
+
+        ##spot_indicies is a numpy.array of the hkls allowd in the recip radius
+        g_indices, multiplicities, g_hkls = get_intensities_params(
+            recip_latt, reciprocal_radius
+        )
+
+        i_hkl = get_kinematical_intensities(
+            phase.structure,
+            g_indices,
+            np.asarray(g_hkls),
+            prefactor=multiplicities,
+            scattering_params=self.scattering_params,
+            debye_waller_factors=debye_waller_factors,
+        )
+
+        if is_lattice_hexagonal(latt):
+            # Use Miller-Bravais indices for hexagonal lattices.
+            g_indices = (
+                g_indices[0],
+                g_indices[1],
+                -g_indices[0] - g_indices[1],
+                g_indices[2],
+            )
+
+        hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in g_indices]
+
+        peaks = {}
+        for l, i, g in zip(hkls_labels, i_hkl, g_hkls):
+            peaks[l] = [i, g]
+
+        # Scale intensities so that the max intensity is 100.
+
+        max_intensity = max([v[0] for v in peaks.values()])
+        reciporical_spacing = []
+        intensities = []
+        hkls = []
+        for k in peaks.keys():
+            v = peaks[k]
+            if v[0] / max_intensity * 100 > minimum_intensity and (k != "000"):
+                reciporical_spacing.append(v[1])
+                intensities.append(v[0])
+                hkls.append(k)
+
+        intensities = np.asarray(intensities) / max(intensities) * 100
+
+        return Simulation1D(
+            phase=phase,
+            reciprocal_spacing=reciporical_spacing,
+            intensities=intensities,
+            hkl=hkls,
+            reciprocal_radius=reciprocal_radius,
+        )
 
     def get_intersecting_reflections(
         self,

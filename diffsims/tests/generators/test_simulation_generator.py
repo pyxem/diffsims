@@ -31,6 +31,7 @@ from diffsims.utils.shape_factor_models import (
     lorentzian,
     _shape_factor_precession,
 )
+from diffsims.simulations import Simulation1D
 
 
 @pytest.fixture(params=[(300)])
@@ -196,9 +197,14 @@ class TestDiffractionCalculator:
         t2 = diffraction_calculator.calculate_ed_data(
             local_structure, max_excitation_error=0.4
         )
-
         # softly makes sure the two sims are different
         assert np.sum(t1.coordinates.intensity) != np.sum(t2.coordinates.intensity)
+
+    def test_simulate_1d(self):
+        generator = SimulationGenerator(300)
+        phase = make_phase()
+        sim = generator.calculate_diffraction1d(phase, 0.5)
+        assert isinstance(sim, Simulation1D)
 
 
 @pytest.mark.parametrize("scattering_param", ["lobato", "xtables"])
