@@ -17,3 +17,4 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 from diffsims.simulations.simulation import Simulation
+from diffsims.simulations.simulation1d import Simulation1D
