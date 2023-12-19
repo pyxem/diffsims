@@ -367,7 +367,7 @@ def simulate_kinematic_scattering(
     accelerating_voltage : float
         Accelerating voltage in keV.
     simulation_size : int
-        Simulation size, n, specifies the n x n array size for
+        Simulation2D size, n, specifies the n x n array size for
         the simulation calculation.
     max_k : float
         Maximum scattering vector magnitude in reciprocal angstroms.

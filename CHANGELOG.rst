@@ -19,6 +19,8 @@ Added
 - Added new class :class:`diffsims.generators.simulations.Simulation` for storing results
   from a :class:`diffsims.generators.simulation_generator.SimulationGenerator`.
 - Added Pre-Commit for code formatting.
+- Added new class :class:`diffsims.simulations.Simulation1D` for storing the results of a
+  1D simulation.
 
 Changed
 -------

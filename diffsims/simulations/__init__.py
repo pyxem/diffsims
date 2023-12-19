@@ -16,5 +16,5 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-from diffsims.simulations.simulation import Simulation
+from diffsims.simulations.simulation2d import Simulation2D
 from diffsims.simulations.simulation1d import Simulation1D

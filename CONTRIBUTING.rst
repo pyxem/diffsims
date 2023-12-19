@@ -131,11 +131,9 @@ Useful hints on testing:
 
 Deprecations
 ------------
-We attempt to adhere to semantic versioning as best we can. This means that as little,
-ideally no, functionality should break between minor releases. Deprecation warnings
-are raised whenever possible and feasible for functions/methods/properties/arguments,
-so that users get a heads-up one (minor) release before something is removed or changes,
-with a possible alternative to be used.
+'This project attempts to adhere to (pre 1.0.0) semantic versioning and ideally no functionality
+should be broken between minor releases. Deprecation warnings are raised to give user a full minor
+release cycle to adjust their code before a breaking change is implemented.'
 
 The decorator should be placed right above the object signature to be deprecated::
 
