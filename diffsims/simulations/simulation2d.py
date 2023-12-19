@@ -58,7 +58,7 @@ class PhaseGetter:
         new_coords = self.simulation.coordinates[ind]
         new_rotations = self.simulation.rotations[ind]
         new_phases = all_phases[ind]
-        return Simulation(
+        return Simulation2D(
             phases=new_phases,
             coordinates=new_coords,
             rotations=new_rotations,
@@ -90,7 +90,7 @@ class RotationGetter:
             coords = [c[item] for c in self.simulation.coordinates]
             phases = self.simulation.phases
             rotations = [rot[item] for rot in self.simulation.rotations]
-        return Simulation(
+        return Simulation2D(
             phases=phases,
             coordinates=coords,
             rotations=rotations,
@@ -98,7 +98,7 @@ class RotationGetter:
         )
 
 
-class Simulation:
+class Simulation2D:
     """Holds the result of a kinematic diffraction simulation for some phase
     and rotation. This class is iterable and can be used to iterate through
     simulations of different phases and rotations.

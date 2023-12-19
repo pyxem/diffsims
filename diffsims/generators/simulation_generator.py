@@ -49,7 +49,7 @@ _shape_factor_model_mapping = {
     "lorentzian": lorentzian,
 }
 
-from diffsims.simulations import Simulation1D, Simulation
+from diffsims.simulations import Simulation1D, Simulation2D
 
 
 class SimulationGenerator:
@@ -192,7 +192,7 @@ class SimulationGenerator:
                 vectors = vectors[0]
 
         # Create a simulation object
-        sim = Simulation(
+        sim = Simulation2D(
             phases=phase,
             coordinates=vectors,
             rotations=rotation,

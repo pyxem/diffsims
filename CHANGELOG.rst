@@ -18,6 +18,8 @@ Added
   generating kinemetic diffraction from a phase and a set of reflections.
 - Added new class :class:`diffsims.generators.simulations.Simulation` for storing results
   from a :class:`diffsims.generators.simulation_generator.SimulationGenerator`.
+- Added new class :class:`diffsims.simulations.Simulation1D` for storing the results of a
+  1D simulation.
 
 Changed
 -------

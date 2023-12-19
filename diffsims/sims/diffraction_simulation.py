@@ -53,7 +53,7 @@ class DiffractionSimulation:
 
     @deprecated(
         since="0.6.0",
-        alternative="diffsims.simulation.Simulation",
+        alternative="diffsims.simulation.Simulation2D",
         alternative_is_function=False,
         removal="0.8.0",
     )
