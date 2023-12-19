@@ -32,6 +32,7 @@ from diffsims.utils.shape_factor_models import (
     _shape_factor_precession,
 )
 from diffsims.simulations import Simulation1D
+from diffsims.utils.sim_utils import is_lattice_hexagonal
 
 
 @pytest.fixture(params=[(300)])
@@ -200,11 +201,29 @@ class TestDiffractionCalculator:
         # softly makes sure the two sims are different
         assert np.sum(t1.coordinates.intensity) != np.sum(t2.coordinates.intensity)
 
-    def test_simulate_1d(self):
+    @pytest.mark.parametrize("is_hex", [True, False])
+    def test_simulate_1d(self, is_hex):
         generator = SimulationGenerator(300)
         phase = make_phase()
+        if is_hex:
+            phase.structure.lattice.a = phase.structure.lattice.b
+            phase.structure.lattice.alpha = 90
+            phase.structure.lattice.beta = 90
+            phase.structure.lattice.gamma = 120
+            assert is_lattice_hexagonal(phase.structure.lattice)
+        else:
+            assert not is_lattice_hexagonal(phase.structure.lattice)
         sim = generator.calculate_diffraction1d(phase, 0.5)
         assert isinstance(sim, Simulation1D)
+
+        assert len(sim.intensities) == len(sim.reciprocal_spacing)
+        assert len(sim.intensities) == len(sim.hkl)
+        for h in sim.hkl:
+            h = h.replace("-", "")
+            if is_hex:
+                assert len(h) == 4
+            else:
+                assert len(h) == 3
 
 
 @pytest.mark.parametrize("scattering_param", ["lobato", "xtables"])

@@ -248,12 +248,14 @@ class SimulationGenerator:
 
         if is_lattice_hexagonal(latt):
             # Use Miller-Bravais indices for hexagonal lattices.
-            g_indices = (
-                g_indices[0],
-                g_indices[1],
-                -g_indices[0] - g_indices[1],
-                g_indices[2],
-            )
+            g_indices = np.array(
+                [
+                    g_indices[:, 0],
+                    g_indices[:, 1],
+                    g_indices[:, 0] - g_indices[:, 1],
+                    g_indices[:, 2],
+                ]
+            ).T
 
         hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in g_indices]
 
