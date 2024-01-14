@@ -29,6 +29,7 @@ class TestSingleSimulation:
     @pytest.fixture
     def simulation1d(self):
         al_phase = make_phase()
+        al_phase.name = "Al"
         hkls = np.array(["100", "110", "111"])
         magnitudes = np.array([1, 2, 3])
         inten = np.array([1, 2, 3])
@@ -58,3 +59,11 @@ class TestSingleSimulation:
         if ax == "new":
             fig, ax = plt.subplots()
         fig = simulation1d.plot(annotate_peaks=annotate, ax=ax, with_labels=with_labels)
+
+    def test_repr(self, simulation1d):
+        assert simulation1d.__repr__() == "Simulation1D(name: Al, wavelength: 0.025)"
+
+    def test_theta(self, simulation1d):
+        np.testing.assert_almost_equal(
+            simulation1d.theta, np.array([0.02499479, 0.0499584, 0.07485985])
+        )
