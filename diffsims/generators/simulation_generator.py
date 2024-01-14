@@ -57,6 +57,13 @@ class SimulationGenerator:
     A class for generating kinematic diffraction simulations.
     """
 
+    def __repr__(self):
+        return (
+            f"SimulationGenerator(accelerating_voltage={self.accelerating_voltage}, "
+            f"scattering_params={self.scattering_params}, "
+            f"approximate_precession={self.approximate_precession})"
+        )
+
     def __init__(
         self,
         accelerating_voltage: float = 200,
@@ -67,7 +74,7 @@ class SimulationGenerator:
         minimum_intensity: float = 1e-20,
         **kwargs,
     ):
-        self.wavelength = get_electron_wavelength(accelerating_voltage)
+        self.accelerating_voltage = accelerating_voltage
         self.precession_angle = np.abs(precession_angle)
         self.approximate_precession = approximate_precession
         if isinstance(shape_factor_model, str):
@@ -93,6 +100,10 @@ class SimulationGenerator:
                 "See documentation for available "
                 "implementations.".format(scattering_params)
             )
+
+    @property
+    def wavelength(self):
+        return get_electron_wavelength(self.accelerating_voltage)
 
     def calculate_ed_data(
         self,
@@ -126,7 +137,7 @@ class SimulationGenerator:
             The cut-off for geometric excitation error in the z-direction
             in units of reciprocal Angstroms. Spots with a larger distance
             from the Ewald sphere are removed from the pattern.
-            Related to the extinction distance and roungly equal to 1/thickness.
+            Related to the extinction distance and roughly equal to 1/thickness.
         shape_factor_width
             Determines the width of the reciprocal rel-rod, for fine-grained
             control. If not set will be set equal to max_excitation_error.
@@ -158,25 +169,30 @@ class SimulationGenerator:
             phase_vectors = []
             for rot in rotate.to_matrix():
                 # Calculate the reciprocal lattice vectors that intersect the Ewald sphere.
-                intersected_vectors, shape_factor = self.get_intersecting_reflections(
+                (
+                    intersected_vectors,
+                    hkl,
+                    shape_factor,
+                ) = self.get_intersecting_reflections(
                     recip,
                     rot,
                     wavelength,
                     max_excitation_error,
                     shape_factor_width=shape_factor_width,
+                    with_direct_beam=with_direct_beam,
                 )
 
                 # Calculate diffracted intensities based on a kinematic model.
                 intensities = get_kinematical_intensities(
                     p.structure,
-                    intersected_vectors.hkl,
+                    hkl,
                     intersected_vectors.gspacing,
                     prefactor=shape_factor,
                     scattering_params=self.scattering_params,
                     debye_waller_factors=debye_waller_factors,
                 )
 
-                # Threshold peaks included in simulation as factor of maximum intensity.
+                # Threshold peaks included in simulation as factor of zero beam intensity.
                 peak_mask = intensities > np.max(intensities) * self.minimum_intensity
                 intensities = intensities[peak_mask]
                 intersected_vectors = intersected_vectors[peak_mask]
@@ -232,7 +248,7 @@ class SimulationGenerator:
             recip_latt, reciprocal_radius
         )
 
-        ##spot_indicies is a numpy.array of the hkls allowd in the recip radius
+        ##spot_indicies is a numpy.array of the hkls allowed in the recip radius
         g_indices, multiplicities, g_hkls = get_intensities_params(
             recip_latt, reciprocal_radius
         )
@@ -284,6 +300,7 @@ class SimulationGenerator:
             intensities=intensities,
             hkl=hkls,
             reciprocal_radius=reciprocal_radius,
+            wavelength=self.wavelength,
         )
 
     def get_intersecting_reflections(
@@ -293,6 +310,7 @@ class SimulationGenerator:
         wavelength: float,
         max_excitation_error: float,
         shape_factor_width: float = None,
+        with_direct_beam: bool = True,
     ):
         """Calculates the reciprocal lattice vectors that intersect the Ewald sphere.
 
@@ -313,11 +331,18 @@ class SimulationGenerator:
             Determines the width of the reciprocal rel-rod, for fine-grained
             control. If not set will be set equal to max_excitation_error.
         """
+        initial_hkl = recip.hkl
         rotated_vectors = recip.rotate_from_matrix(rot)
+
+        if with_direct_beam:
+            rotated_vectors = np.vstack([rotated_vectors.data, [0, 0, 0]])
+            initial_hkl = np.vstack([initial_hkl, [0, 0, 0]])
+        else:
+            rotated_vectors = rotated_vectors.data
         # Identify the excitation errors of all points (distance from point to Ewald sphere)
         r_sphere = 1 / wavelength
-        r_spot = np.sqrt(np.sum(np.square(rotated_vectors.data[:, :2]), axis=1))
-        z_spot = rotated_vectors.data[:, 2]
+        r_spot = np.sqrt(np.sum(np.square(rotated_vectors[:, :2]), axis=1))
+        z_spot = rotated_vectors[:, 2]
 
         z_sphere = -np.sqrt(r_sphere**2 - r_spot**2) + r_sphere
         excitation_error = z_sphere - z_spot
@@ -339,8 +364,12 @@ class SimulationGenerator:
 
         # select these reflections
         intersected_vectors = rotated_vectors[intersection]
+        intersected_vectors = ReciprocalLatticeVector(
+            phase=recip.phase, xyz=intersected_vectors
+        )
         excitation_error = excitation_error[intersection]
         r_spot = r_spot[intersection]
+        hkl = initial_hkl[intersection]
 
         if shape_factor_width is None:
             shape_factor_width = max_excitation_error
@@ -367,4 +396,4 @@ class SimulationGenerator:
                     shape_factor_width,
                     **self.shape_factor_kwargs,
                 )
-        return intersected_vectors, shape_factor
+        return intersected_vectors, hkl, shape_factor

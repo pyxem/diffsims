@@ -16,17 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Union, Sequence, TYPE_CHECKING, Any
-import copy
+from typing import TYPE_CHECKING
 
 import numpy as np
 import matplotlib.pyplot as plt
 from orix.crystal_map import Phase
-from orix.quaternion import Rotation
-from orix.vector import Vector3d
-
-from diffsims.crystallography.reciprocal_lattice_vector import ReciprocalLatticeVector
-from diffsims.pattern.detector_functions import add_shot_and_point_spread
+from diffsims.utils.sim_utils import get_electron_wavelength
 
 # to avoid circular imports
 if TYPE_CHECKING:  # pragma: no cover
@@ -43,6 +38,7 @@ class Simulation1D:
         intensities: np.ndarray,
         hkl: np.ndarray,
         reciprocal_radius: float,
+        wavelength: float,
     ):
         """Initializes the DiffractionSimulation object with data values for
         the coordinates, indices, intensities, calibration and offset.
@@ -52,19 +48,29 @@ class Simulation1D:
         phase
             The phase of the simulation
         reciprocal_spacing
-            The spacing of the reciprocal lattice vectors
+            The spacing of the reciprocal lattice vectors in A^-1
         intensities
             The intensities of the diffraction spots
         hkl
             The hkl indices of the diffraction spots
         reciprocal_radius
             The radius which the reciprocal lattice spacings are plotted out to
+        wavelength
+            The wavelength of the beam in A^-1
         """
         self.phase = phase
         self.reciprocal_spacing = reciprocal_spacing
         self.intensities = intensities
         self.hkl = hkl
         self.reciprocal_radius = reciprocal_radius
+        self.wavelength = wavelength
+
+    def __repr__(self):
+        return f"Simulation1D(name: {self.phase.name}, wavelength: {self.wavelength})"
+
+    @property
+    def theta(self):
+        return np.arctan2(np.array(self.reciprocal_spacing), 1 / self.wavelength)
 
     def plot(self, ax=None, annotate_peaks=False, fontsize=12, with_labels=True):
         """Plots the 1D diffraction pattern,"""

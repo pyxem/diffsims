@@ -194,7 +194,7 @@ class Simulation2D:
                 coords = self.coordinates[self.phase_index]
             else:
                 coords = self.coordinates
-            if self.has_multiple_vectors:
+            if self.has_multiple_rotations:
                 coords = coords[self.rotation_index]
             else:
                 coords = coords
@@ -374,9 +374,9 @@ class Simulation2D:
         return self.num_phases > 1
 
     @property
-    def has_multiple_vectors(self):
-        """Returns True if the simulation has multiple vectors"""
-        return self.coordinates.size > 1
+    def has_multiple_rotations(self):
+        """Returns True if the simulation has multiple rotations"""
+        return self.rotations.size > 1
 
     def get_current_coordinates(self):
         """Returns the coordinates of the current phase and rotation"""
@@ -384,7 +384,7 @@ class Simulation2D:
             return copy.deepcopy(
                 self.coordinates[self.phase_index][self.rotation_index]
             )
-        elif not self.has_multiple_phases and self.has_multiple_vectors:
+        elif not self.has_multiple_phases and self.has_multiple_rotations:
             return copy.deepcopy(self.coordinates[self.rotation_index])
         else:
             return copy.deepcopy(self.coordinates)
