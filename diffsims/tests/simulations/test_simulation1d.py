@@ -40,6 +40,7 @@ class TestSingleSimulation:
             reciprocal_spacing=magnitudes,
             intensities=inten,
             reciprocal_radius=recip,
+            wavelength=0.025,
         )
 
     def test_init(self, simulation1d):
