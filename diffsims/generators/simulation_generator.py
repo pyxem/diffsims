@@ -74,6 +74,25 @@ class SimulationGenerator:
         minimum_intensity: float = 1e-20,
         **kwargs,
     ):
+        """
+        Parameters
+        ----------
+        accelerating_voltage
+            The accelerating voltage of the electrons in keV.
+        scattering_params
+            The scattering parameters to use. One of 'lobato', 'xtables'
+        precession_angle
+            The precession angle in degrees. If 0, no precession is applied.
+        shape_factor_model
+            The shape factor model to use. One of 'linear', 'atanc', 'sinc', 'sin2c', 'lorentzian'
+        approximate_precession
+            If True, the precession is approximated by a Lorentzian function.
+        minimum_intensity
+            The minimum intensity of a reflection to be included in the profile.
+        kwargs
+            Keyword arguments to pass to the shape factor model.
+
+        """
         self.accelerating_voltage = accelerating_voltage
         self.precession_angle = np.abs(precession_angle)
         self.approximate_precession = approximate_precession
