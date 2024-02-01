@@ -389,6 +389,15 @@ class Simulation2D:
         else:
             return copy.deepcopy(self.coordinates)
 
+    def get_current_rotation(self):
+        """Returns the matrix for the current matrix"""
+        if self.has_multiple_phases:
+            return copy.deepcopy(
+                self.rotations[self.phase_index].to_matrix()[self.rotation_index]
+            )
+        else:
+            return copy.deepcopy(self.rotations.to_matrix()[self.rotation_index])
+
     def plot_rotations(self, beam_direction: Vector3d = Vector3d.zvector()):
         """Plots the rotations of the current phase in stereographic projection"""
         if self.has_multiple_phases:
@@ -497,7 +506,9 @@ class Simulation2D:
         ax.set_ylim(-self.reciporical_radius, self.reciporical_radius)
 
         if show_labels:
-            millers = coords.hkl.astype(np.int16)
+            millers = np.matmul(coords.hkl, self.get_current_rotation()).astype(
+                np.int16
+            )
             # only label the points inside the axes
             xlim = ax.get_xlim()
             ylim = ax.get_ylim()
