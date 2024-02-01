@@ -506,9 +506,9 @@ class Simulation2D:
         ax.set_ylim(-self.reciporical_radius, self.reciporical_radius)
 
         if show_labels:
-            millers = np.matmul(coords.hkl, self.get_current_rotation()).astype(
-                np.int16
-            )
+            millers = np.round(
+                np.matmul(coords.hkl, self.get_current_rotation())
+            ).astype(np.int16)
             # only label the points inside the axes
             xlim = ax.get_xlim()
             ylim = ax.get_ylim()
