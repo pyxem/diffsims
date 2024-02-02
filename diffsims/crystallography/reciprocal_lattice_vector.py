@@ -533,7 +533,7 @@ class ReciprocalLatticeVector(Vector3d):
 
     def rotate_from_matrix(self, rotation_matrix):
         return ReciprocalLatticeVector(
-            phase=self.phase, xyz=np.matmul(rotation_matrix, self.data.T).T
+            phase=self.phase, xyz=np.matmul(rotation_matrix.T, self.data.T).T
         )
 
     @property

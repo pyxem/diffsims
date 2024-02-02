@@ -507,7 +507,7 @@ class Simulation2D:
 
         if show_labels:
             millers = np.round(
-                np.matmul(coords.hkl, self.get_current_rotation())
+                np.matmul(coords.hkl, self.get_current_rotation().T)
             ).astype(np.int16)
             # only label the points inside the axes
             xlim = ax.get_xlim()
