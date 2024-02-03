@@ -184,6 +184,10 @@ class TestSinglePhaseMultiSimulation:
         )
         return sim
 
+    def test_get_current_rotation(self, multi_simulation):
+        rot = multi_simulation.get_current_rotation()
+        np.testing.assert_array_equal(rot, multi_simulation.rotations[0].to_matrix()[0])
+
     def test_init(self, multi_simulation):
         assert isinstance(multi_simulation, Simulation2D)
         assert isinstance(multi_simulation.phases, Phase)
