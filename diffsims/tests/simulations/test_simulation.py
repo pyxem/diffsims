@@ -184,6 +184,12 @@ class TestSinglePhaseMultiSimulation:
         )
         return sim
 
+    def test_get_simulation(self, multi_simulation):
+        for i in range(4):
+            rotation, phase = multi_simulation.get_simulation(i)
+            assert isinstance(rotation, Rotation)
+            assert phase == 0
+
     def test_get_current_rotation(self, multi_simulation):
         rot = multi_simulation.get_current_rotation()
         np.testing.assert_array_equal(rot, multi_simulation.rotations[0].to_matrix()[0])
@@ -284,6 +290,16 @@ class TestMultiPhaseMultiSimulation:
         assert isinstance(multi_simulation.simulation_generator, SimulationGenerator)
         assert isinstance(multi_simulation.rotations, np.ndarray)
         assert isinstance(multi_simulation.coordinates, np.ndarray)
+
+    def test_get_simulation(self, multi_simulation):
+        for i in range(4):
+            rotation, phase = multi_simulation.get_simulation(i)
+            assert isinstance(rotation, Rotation)
+            assert phase == 0
+        for i in range(4, 8):
+            rotation, phase = multi_simulation.get_simulation(i)
+            assert isinstance(rotation, Rotation)
+            assert phase == 1
 
     def test_iphase(self, multi_simulation):
         phase_slic = multi_simulation.iphase[0]
