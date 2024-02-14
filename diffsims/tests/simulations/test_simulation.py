@@ -58,6 +58,11 @@ class TestSingleSimulation:
         assert isinstance(single_simulation.simulation_generator, SimulationGenerator)
         assert isinstance(single_simulation.rotations, Rotation)
 
+    def test_get_simulation(self, single_simulation):
+        rotation, phase, coords = single_simulation.get_simulation(0)
+        assert isinstance(rotation, Rotation)
+        assert phase == 0
+
     def test_iphase(self, single_simulation):
         with pytest.raises(ValueError):
             single_simulation.iphase[0]
@@ -76,12 +81,29 @@ class TestSingleSimulation:
     def test_plot(self, single_simulation):
         single_simulation.plot()
 
+    def test_num_rotations(self, single_simulation):
+        assert single_simulation._num_rotations() == 1
+
     def test_polar_flatten(self, single_simulation):
         (
             r_templates,
             theta_templates,
             intensities_templates,
         ) = single_simulation.polar_flatten_simulations()
+        assert r_templates.shape == (1, 1)
+        assert theta_templates.shape == (1, 1)
+        assert intensities_templates.shape == (1, 1)
+
+    def test_polar_flatten_axes(self, single_simulation):
+        radial_axes = np.linspace(0, 1, 10)
+        theta_axes = np.linspace(0, 2 * np.pi, 10)
+        (
+            r_templates,
+            theta_templates,
+            intensities_templates,
+        ) = single_simulation.polar_flatten_simulations(
+            radial_axes=radial_axes, azimuthal_axes=theta_axes
+        )
         assert r_templates.shape == (1, 1)
         assert theta_templates.shape == (1, 1)
         assert intensities_templates.shape == (1, 1)
@@ -186,7 +208,7 @@ class TestSinglePhaseMultiSimulation:
 
     def test_get_simulation(self, multi_simulation):
         for i in range(4):
-            rotation, phase = multi_simulation.get_simulation(i)
+            rotation, phase, coords = multi_simulation.get_simulation(i)
             assert isinstance(rotation, Rotation)
             assert phase == 0
 
@@ -293,11 +315,11 @@ class TestMultiPhaseMultiSimulation:
 
     def test_get_simulation(self, multi_simulation):
         for i in range(4):
-            rotation, phase = multi_simulation.get_simulation(i)
+            rotation, phase, coords = multi_simulation.get_simulation(i)
             assert isinstance(rotation, Rotation)
             assert phase == 0
         for i in range(4, 8):
-            rotation, phase = multi_simulation.get_simulation(i)
+            rotation, phase, coords = multi_simulation.get_simulation(i)
             assert isinstance(rotation, Rotation)
             assert phase == 1
 
@@ -386,3 +408,49 @@ class TestMultiPhaseMultiSimulation:
     def test_rotate_shift_coords(self, multi_simulation):
         rot = multi_simulation.rotate_shift_coordinates(angle=0.1)
         assert isinstance(rot, ReciprocalLatticeVector)
+
+
+class TestMultiPhaseSingleSimulation:
+    @pytest.fixture
+    def al_phase(self):
+        p = Phase(
+            name="al",
+            space_group=225,
+            structure=Structure(
+                atoms=[Atom("al", [0, 0, 0])],
+                lattice=Lattice(0.405, 0.405, 0.405, 90, 90, 90),
+            ),
+        )
+        return p
+
+    @pytest.fixture
+    def multi_simulation(self, al_phase):
+        gen = SimulationGenerator(accelerating_voltage=200)
+        rot = Rotation.from_axes_angles([1, 0, 0], (0,), degrees=True)
+        rot2 = rot
+        coords = ReciprocalLatticeVector(
+            phase=al_phase,
+            xyz=[
+                [1, 0, 0],
+                [0, -0.3, 0],
+                [1 / 0.405, 1 / -0.405, 0],
+                [0.1, -0.1, -0.3],
+            ],
+        )
+        coords.intensity = 1
+        vectors = coords
+        al_phase2 = al_phase.deepcopy()
+        al_phase2.name = "al2"
+        sim = Simulation2D(
+            phases=[al_phase, al_phase2],
+            simulation_generator=gen,
+            coordinates=[vectors, vectors],
+            rotations=[rot, rot2],
+        )
+        return sim
+
+    def test_get_simulation(self, multi_simulation):
+        for i in range(2):
+            rotation, phase, coords = multi_simulation.get_simulation(i)
+            assert isinstance(rotation, Rotation)
+            assert phase == i

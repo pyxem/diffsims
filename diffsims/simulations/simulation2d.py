@@ -185,18 +185,19 @@ class Simulation2D:
 
     def get_simulation(self, item):
         """Return the rotation and the phase index of the simulation"""
-        if self.has_multiple_phases and self.has_multiple_rotations:
+        if self.has_multiple_phases:
             cumsum = np.cumsum(self._num_rotations())
             ind = np.searchsorted(cumsum, item, side="right")
             cumsum = np.insert(cumsum, 0, 0)
             num_rot = cumsum[ind]
-            return (
-                self.rotations[ind][item - num_rot],
-                ind,
-                self.coordinates[ind][item - num_rot],
-            )
-        elif self.has_multiple_phases:
-            return self.rotations[item], item, self.coordinates[item]
+            if self.has_multiple_rotations[ind]:
+                return (
+                    self.rotations[ind][item - num_rot],
+                    ind,
+                    self.coordinates[ind][item - num_rot],
+                )
+            else:
+                return self.rotations[ind], ind, self.coordinates[ind]
         elif self.has_multiple_rotations:
             return self.rotations[item], 0, self.coordinates[item]
         else:
@@ -409,7 +410,10 @@ class Simulation2D:
     @property
     def has_multiple_rotations(self):
         """Returns True if the simulation has multiple rotations"""
-        return self.rotations.size > 1
+        if isinstance(self.rotations, Rotation):
+            return self.rotations.size > 1
+        else:
+            return [r.size > 1 for r in self.rotations]
 
     def get_current_coordinates(self):
         """Returns the coordinates of the current phase and rotation"""
