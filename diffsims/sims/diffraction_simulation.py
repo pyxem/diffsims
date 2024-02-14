@@ -22,6 +22,7 @@ import numpy as np
 
 from diffsims.pattern.detector_functions import add_shot_and_point_spread
 from diffsims.utils import mask_utils
+from diffsims.utils._deprecated import deprecated
 
 
 __all__ = [
@@ -50,6 +51,12 @@ class DiffractionSimulation:
         zero in each direction.
     """
 
+    @deprecated(
+        since="0.6.0",
+        alternative="diffsims.simulation.Simulation2D",
+        alternative_is_function=False,
+        removal="0.8.0",
+    )
     def __init__(
         self,
         coordinates,
@@ -210,7 +217,7 @@ class DiffractionSimulation:
         y = coords_transformed[:, 1]
         mirrored_factor = -1 if mirrored else 1
         theta = mirrored_factor * np.arctan2(y, x) + np.deg2rad(angle)
-        rd = np.sqrt(x ** 2 + y ** 2)
+        rd = np.sqrt(x**2 + y**2)
         coords_transformed[:, 0] = rd * np.cos(theta) + cx
         coords_transformed[:, 1] = rd * np.sin(theta) + cy
         return coords_transformed

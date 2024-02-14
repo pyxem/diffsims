@@ -13,6 +13,13 @@ Unreleased
 Added
 -----
 - Explicit support for Python 3.11.
+- Added deprecation tools for deprecating functions and arguments.
+- Added new class :class:`diffsims.generators.simulation_generator.SimulationGenerator` for
+  generating kinemetic diffraction from a phase and a set of reflections.
+- Added new class :class:`diffsims.generators.simulations.Simulation` for storing results
+  from a :class:`diffsims.generators.simulation_generator.SimulationGenerator`.
+- Added new class :class:`diffsims.simulations.Simulation1D` for storing the results of a
+  1D simulation.
 
 Changed
 -------
@@ -20,6 +27,12 @@ Changed
 
 Deprecated
 ----------
+- Deprecated :class:`diffsims.generators.diffraction_generator.DiffractionGenerator` in
+  favor of :class:`diffsims.generators.simulation_generator.SimulationGenerator`.
+- Deprecated :class:`diffsims.generators.library_generator.DiffractionLibraryGenerator` in
+  favor of :class:`diffsims.generators.simulation_generator.SimulationGenerator`.
+- Deprecated :class:`diffsims.diffraction_library.DiffractionLibrary` in favor of
+  :class:`diffsims.generators.simulations.Simulation`.
 
 Removed
 -------

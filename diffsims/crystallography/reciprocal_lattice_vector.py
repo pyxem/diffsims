@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
-
+from typing import Tuple
 from collections import defaultdict
 from copy import deepcopy
 
@@ -122,10 +122,11 @@ class ReciprocalLatticeVector(Vector3d):
 
         self._theta = np.full(self.shape, np.nan)
         self._structure_factor = np.full(self.shape, np.nan, dtype="complex128")
+        self._intensity = np.full(self.shape, np.nan)
 
     def __getitem__(self, key):
-        miller_new = self.to_miller().__getitem__(key)
-        rlv_new = self.from_miller(miller_new)
+        new_data = self.data[key]
+        rlv_new = self.__class__(self.phase, xyz=new_data)
 
         if np.isnan(self.structure_factor).all():
             rlv_new._structure_factor = np.full(
@@ -138,6 +139,18 @@ class ReciprocalLatticeVector(Vector3d):
             rlv_new._theta = np.full(rlv_new.shape, np.nan)
         else:
             rlv_new._theta = self.theta[key]
+
+        if np.isnan(self.intensity).all():
+            rlv_new._intensity = np.full(rlv_new.shape, np.nan)
+        else:
+            slic = self.intensity[key]
+            if not hasattr(slic, "__len__"):
+                slic = np.array(
+                    [
+                        slic,
+                    ]
+                )
+            rlv_new._intensity = slic
 
         return rlv_new
 
@@ -169,7 +182,6 @@ class ReciprocalLatticeVector(Vector3d):
         >>> rlv.hkl
         array([[1., 1., 1.],
                [2., 0., 0.]])
-
         """
 
         return _transform_space(self.data, "c", "r", self.phase.structure.lattice)
@@ -501,6 +513,28 @@ class ReciprocalLatticeVector(Vector3d):
         """
 
         return 0.5 * self.gspacing
+
+    @property
+    def intensity(self):
+        return self._intensity
+
+    @intensity.setter
+    def intensity(self, value):
+        if not hasattr(value, "__len__"):
+            value = np.array(
+                [
+                    value,
+                ]
+                * self.size
+            )
+        if len(value) != self.size:
+            raise ValueError("Length of intensity array must match number of vectors")
+        self._intensity = np.array(value)
+
+    def rotate_from_matrix(self, rotation_matrix):
+        return ReciprocalLatticeVector(
+            phase=self.phase, xyz=np.matmul(rotation_matrix.T, self.data.T).T
+        )
 
     @property
     def structure_factor(self):
@@ -1070,7 +1104,7 @@ class ReciprocalLatticeVector(Vector3d):
         return cls(phase, hkl=idx).unique()
 
     @classmethod
-    def from_min_dspacing(cls, phase, min_dspacing=0.7):
+    def from_min_dspacing(cls, phase, min_dspacing=0.7, include_zero_beam=False):
         """Create a set of unique reciprocal lattice vectors with a
         a direct space interplanar spacing greater than a lower
         threshold.
@@ -1128,6 +1162,8 @@ class ReciprocalLatticeVector(Vector3d):
         dspacing = 1 / phase.structure.lattice.rnorm(hkl)
         idx = dspacing >= min_dspacing
         hkl = hkl[idx]
+        if include_zero_beam:
+            hkl = np.vstack((hkl, np.zeros(3, dtype=int)))
         return cls(phase, hkl=hkl).unique()
 
     @classmethod
@@ -1179,6 +1215,54 @@ class ReciprocalLatticeVector(Vector3d):
                 "`Miller` instance must have `coordinate_format` 'hkl' or 'hkil'"
             )
         return cls(miller.phase, **{miller.coordinate_format: miller.coordinates})
+
+    def to_polar(
+        self, degrees: bool = False
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Convert the vectors to polar coordinates.
+
+        Parameters
+        ----------
+        degrees : bool, optional
+            Whether to return angles in degrees (default is False).
+
+        Returns
+        -------
+        r : numpy.ndarray
+            Length of the vectors.
+        theta : numpy.ndarray
+            Polar angle of the vectors.
+        phi : numpy.ndarray
+            Azimuthal angle of the vectors.
+
+        Examples
+        --------
+        See :class:`ReciprocalLatticeVector` for the creation of ``rlv``
+
+        >>> rlv
+        ReciprocalLatticeVector (2,), al (m-3m)
+        [[1. 1. 1.]
+         [2. 0. 0.]]
+        >>> r, theta, phi = rlv.to_polar()
+        >>> r
+        array([1.73205081, 2.        ])
+        >>> theta
+        array([0.95531662, 0.        ])
+        >>> phi
+        array([0., 0.])
+
+        """
+
+        x = self.data[:, 0]
+        y = self.data[:, 1]
+        z = self.data[:, 2]
+
+        r = np.sqrt(x**2 + y**2)
+        theta = np.arctan2(y, x)
+
+        if degrees:
+            theta = np.rad2deg(theta)
+        return r, theta, z
 
     def to_miller(self):
         """Return the vectors as a ``Miller`` instance.
