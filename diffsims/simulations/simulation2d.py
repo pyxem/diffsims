@@ -152,8 +152,6 @@ class Simulation2D:
         else:  # iterable of Rotation
             rotations = np.array(rotations, dtype=object)
             coordinates = np.array(coordinates, dtype=object)
-            if len(coordinates.shape) != 2:
-                coordinates = coordinates[:, np.newaxis]
             phases = np.array(phases)
             if rotations.size != phases.size:
                 raise ValueError(
@@ -162,7 +160,13 @@ class Simulation2D:
                 )
 
             for r, c in zip(rotations, coordinates):
-                if r.size != c.size:
+                if isinstance(c, ReciprocalLatticeVector):
+                    c = np.array(
+                        [
+                            c,
+                        ]
+                    )
+                if r.size != len(c):
                     raise ValueError(
                         f"The number of rotations: {r.size} must match the number of "
                         f"coordinates {c.shape[0]}"
