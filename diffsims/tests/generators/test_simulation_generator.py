@@ -21,6 +21,7 @@ import pytest
 
 import diffpy.structure
 from orix.crystal_map import Phase
+from orix.quaternion import Rotation
 
 from diffsims.generators.simulation_generator import SimulationGenerator
 from diffsims.utils.shape_factor_models import (
@@ -224,6 +225,15 @@ class TestDiffractionCalculator:
                 assert len(h) == 4
             else:
                 assert len(h) == 3
+
+
+def test_multiphase_multirotation_simulation():
+    generator = SimulationGenerator(300)
+    silicon = make_phase(5)
+    big_silicon = make_phase(10)
+    rot = Rotation.from_euler([[0, 0, 0], [0.1, 0.1, 0.1]])
+    rot2 = Rotation.from_euler([[0, 0, 0], [0.1, 0.1, 0.1], [0.2, 0.2, 0.2]])
+    sim = generator.calculate_ed_data([silicon, big_silicon], rotation=[rot, rot2])
 
 
 @pytest.mark.parametrize("scattering_param", ["lobato", "xtables"])
