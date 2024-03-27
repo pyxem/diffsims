@@ -13,6 +13,7 @@ Unreleased
 Added
 -----
 - Explicit support for Python 3.11.
+- Added Pre-Commit for code formatting.
 
 Changed
 -------
