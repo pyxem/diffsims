@@ -88,7 +88,7 @@ class deprecated:
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
             warnings.simplefilter(
-                action="always", category=np.VisibleDeprecationWarning, append=True
+                action="once", category=np.VisibleDeprecationWarning, append=True
             )
             func_code = func.__code__
             warnings.warn_explicit(

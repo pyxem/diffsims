@@ -22,7 +22,6 @@ import numpy as np
 
 from diffsims.pattern.detector_functions import add_shot_and_point_spread
 from diffsims.utils import mask_utils
-from diffsims.utils._deprecated import deprecated
 
 
 __all__ = [
@@ -51,12 +50,6 @@ class DiffractionSimulation:
         zero in each direction.
     """
 
-    @deprecated(
-        since="0.6.0",
-        alternative="diffsims.simulation.Simulation2D",
-        alternative_is_function=False,
-        removal="0.8.0",
-    )
     def __init__(
         self,
         coordinates,
