@@ -86,6 +86,10 @@ Please run the latest version of
 `black <https://black.readthedocs.io/en/stable/the_black_code_style/index.html>`_ on
 your newly added and modified files prior to each PR.
 
+If this doesn't work for you, you can also use the Pre-commit CI to reformat your code
+on github by commenting "pre-commit autofix" on your PR.
+
+
 Run and write tests
 -------------------
 
