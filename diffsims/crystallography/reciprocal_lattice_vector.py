@@ -18,6 +18,7 @@
 
 from collections import defaultdict
 from copy import deepcopy
+from typing import Tuple
 
 from diffpy.structure.symmetryutilities import expandPosition
 from diffpy.structure import Structure
@@ -122,10 +123,11 @@ class ReciprocalLatticeVector(Vector3d):
 
         self._theta = np.full(self.shape, np.nan)
         self._structure_factor = np.full(self.shape, np.nan, dtype="complex128")
+        self._intensity = np.full(self.shape, np.nan)
 
     def __getitem__(self, key):
-        miller_new = self.to_miller().__getitem__(key)
-        rlv_new = self.from_miller(miller_new)
+        new_data = self.data[key]
+        rlv_new = self.__class__(self.phase, xyz=new_data)
 
         if np.isnan(self.structure_factor).all():
             rlv_new._structure_factor = np.full(
@@ -138,6 +140,18 @@ class ReciprocalLatticeVector(Vector3d):
             rlv_new._theta = np.full(rlv_new.shape, np.nan)
         else:
             rlv_new._theta = self.theta[key]
+
+        if np.isnan(self.intensity).all():
+            rlv_new._intensity = np.full(rlv_new.shape, np.nan)
+        else:
+            slic = self.intensity[key]
+            if not hasattr(slic, "__len__"):
+                slic = np.array(
+                    [
+                        slic,
+                    ]
+                )
+            rlv_new._intensity = slic
 
         return rlv_new
 
@@ -501,6 +515,28 @@ class ReciprocalLatticeVector(Vector3d):
         """
 
         return 0.5 * self.gspacing
+
+    @property
+    def intensity(self):
+        return self._intensity
+
+    @intensity.setter
+    def intensity(self, value):
+        if not hasattr(value, "__len__"):
+            value = np.array(
+                [
+                    value,
+                ]
+                * self.size
+            )
+        if len(value) != self.size:
+            raise ValueError("Length of intensity array must match number of vectors")
+        self._intensity = np.array(value)
+
+    def rotate_from_matrix(self, rotation_matrix):
+        return ReciprocalLatticeVector(
+            phase=self.phase, xyz=np.matmul(rotation_matrix.T, self.data.T).T
+        )
 
     @property
     def structure_factor(self):
