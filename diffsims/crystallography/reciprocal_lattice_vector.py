@@ -1106,7 +1106,7 @@ class ReciprocalLatticeVector(Vector3d):
         return cls(phase, hkl=idx).unique()
 
     @classmethod
-    def from_min_dspacing(cls, phase, min_dspacing=0.7):
+    def from_min_dspacing(cls, phase, min_dspacing=0.7, include_zero_beam=False):
         """Create a set of unique reciprocal lattice vectors with a
         a direct space interplanar spacing greater than a lower
         threshold.
@@ -1119,6 +1119,8 @@ class ReciprocalLatticeVector(Vector3d):
             Smallest interplanar spacing to consider. Default is 0.7,
             in the unit used to define the lattice parameters in
             ``phase``, which is assumed to be Ångström.
+        include_zero_beam: bool
+            If ``True``, include the zero beam in the set of vectors.
 
         Examples
         --------
@@ -1164,6 +1166,8 @@ class ReciprocalLatticeVector(Vector3d):
         dspacing = 1 / phase.structure.lattice.rnorm(hkl)
         idx = dspacing >= min_dspacing
         hkl = hkl[idx]
+        if include_zero_beam:
+            hkl = np.vstack((hkl, np.zeros(3, dtype=int)))
         return cls(phase, hkl=hkl).unique()
 
     @classmethod
