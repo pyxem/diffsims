@@ -27,6 +27,7 @@ Deprecated
 Removed
 -------
 - Removed support for Python 3.6, leaving 3.7 as the oldest supported version.
+- Removed support for Python 3.7, leaving 3.8 as the oldest supported version.
 
 Fixed
 -----
