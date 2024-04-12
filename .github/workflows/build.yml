@@ -43,7 +43,7 @@ jobs:
         include:
           # Oldest supported version of main dependencies
           - os: ubuntu-latest
-            python-version: 3.7
+            python-version: 3.8
             OLDEST_SUPPORTED_VERSION: true
             DEPENDENCIES: diffpy.structure==3.0.0 matplotlib==3.3 numpy==1.17 orix==0.9.0 scipy==1.1 tqdm==4.9
             LABEL: -oldest
