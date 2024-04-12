@@ -15,9 +15,11 @@ Added
 - Explicit support for Python 3.11.
 - Added Pre-Commit for code formatting.
 
+
 Changed
 -------
 - Documentation theme from Furo to the PyData-Sphinx-Theme.
+- Ran ``black`` formatting to update the code style.
 
 Deprecated
 ----------
