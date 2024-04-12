@@ -20,7 +20,8 @@ import numpy as np
 import pytest
 
 from diffsims.sims.diffraction_simulation import (
-    DiffractionSimulation, ProfileSimulation
+    DiffractionSimulation,
+    ProfileSimulation,
 )
 
 
@@ -104,7 +105,7 @@ class TestDiffractionSimulation:
         with pytest.raises(ValueError, match="Coordinate"):
             DiffractionSimulation(
                 np.array([[0, 0, 0], [1, 2, 3], [3, 4, 5]], dtype=float),
-                indices=np.array([1, 2, 3])
+                indices=np.array([1, 2, 3]),
             )
 
     def test_init(self, diffraction_simulation):

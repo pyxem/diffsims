@@ -69,7 +69,7 @@ def linear(excitation_error, max_excitation_error):
     if isinstance(excitation_error, np.ndarray):
         sf[sf < 0.0] = 0.0
     else:
-        sf = max(sf, 0.)
+        sf = max(sf, 0.0)
     return sf
 
 
@@ -176,11 +176,7 @@ def lorentzian(excitation_error, max_excitation_error):
     # in the paper, sigma = pi*thickness.
     # We assume thickness = 1/max_exitation_error
     sigma = np.pi / max_excitation_error
-    fac = (
-        sigma
-        / (np.pi * (sigma ** 2 * excitation_error ** 2 + 1))
-        * max_excitation_error
-    )
+    fac = sigma / (np.pi * (sigma**2 * excitation_error**2 + 1)) * max_excitation_error
     return fac
 
 
@@ -217,7 +213,7 @@ def lorentzian_precession(
     [1] L. Palatinus, P. Brázda, M. Jelínek, J. Hrdá, G. Steciuk, M. Klementová, Specifics of the data processing of precession electron diffraction tomography data and their implementation in the program PETS2.0, Acta Crystallogr. Sect. B Struct. Sci. Cryst. Eng. Mater. 75 (2019) 512–522. doi:10.1107/S2052520619007534.
     """
     sigma = np.pi / max_excitation_error
-    u = sigma ** 2 * (r_spot ** 2 * precession_angle ** 2 - excitation_error ** 2) + 1
-    z = np.sqrt(u ** 2 + 4 * sigma ** 2 * excitation_error ** 2)
-    fac = (sigma / np.pi) * np.sqrt(2 * (u + z) / z ** 2)
+    u = sigma**2 * (r_spot**2 * precession_angle**2 - excitation_error**2) + 1
+    z = np.sqrt(u**2 + 4 * sigma**2 * excitation_error**2)
+    fac = (sigma / np.pi) * np.sqrt(2 * (u + z) / z**2)
     return fac

@@ -267,7 +267,7 @@ def _get_kinematical_structure_factor(
         scattering_params=scattering_params,
     )
 
-    gspacing_squared = g_hkls_array ** 2
+    gspacing_squared = g_hkls_array**2
 
     if scattering_params is not None:
         atomic_scattering_factor = get_atomic_scattering_factors(
@@ -395,7 +395,7 @@ def simulate_kinematic_scattering(
     kx, ky = np.meshgrid(l, l)
 
     # Convert 2D k-vectors into 3D k-vectors accounting for Ewald sphere.
-    k = np.array((kx, ky, (wavelength / 2) * (kx ** 2 + ky ** 2)))
+    k = np.array((kx, ky, (wavelength / 2) * (kx**2 + ky**2)))
 
     # Calculate scattering vector squared for each k-vector.
     gs_sq = np.linalg.norm(k, axis=0) ** 2
@@ -411,7 +411,7 @@ def simulate_kinematic_scattering(
     elif illumination == "gaussian_probe":
         for r in atomic_coordinates:
             probe = (1 / (np.sqrt(2 * np.pi) * sigma)) * np.exp(
-                (-np.abs(((r[0] ** 2) - (r[1] ** 2)))) / (4 * sigma ** 2)
+                (-np.abs(((r[0] ** 2) - (r[1] ** 2)))) / (4 * sigma**2)
             )
             scattering = scattering + (probe * fs * np.exp(np.dot(k.T, r) * np.pi * 2j))
     else:
@@ -503,7 +503,6 @@ def uvtw_to_uvw(uvtw):
 
 
 def get_intensities_params(reciprocal_lattice, reciprocal_radius):
-
     """Calculates the variables needed for get_kinematical_intensities
 
     Parameters
@@ -574,7 +573,7 @@ def get_holz_angle(electron_wavelength, lattice_parameter):
     k0 = 1.0 / electron_wavelength
     kz = 1.0 / lattice_parameter
     in_root = kz * ((2 * k0) - kz)
-    sin_angle = (in_root ** 0.5) / k0
+    sin_angle = (in_root**0.5) / k0
     angle = np.arcsin(sin_angle)
     return angle
 
@@ -716,7 +715,7 @@ def acceleration_voltage_to_velocity(acceleration_voltage):
 
     """
 
-    part1 = (1 + (acceleration_voltage * e) / (m_e * c ** 2)) ** 2
+    part1 = (1 + (acceleration_voltage * e) / (m_e * c**2)) ** 2
     v = c * (1 - (1 / part1)) ** 0.5
     return v
 
@@ -741,7 +740,7 @@ def acceleration_voltage_to_relativistic_mass(acceleration_voltage):
 
     """
     v = acceleration_voltage_to_velocity(acceleration_voltage)
-    part1 = 1 - (v ** 2) / (c ** 2)
+    part1 = 1 - (v**2) / (c**2)
     mr = m_e / (part1) ** 0.5
     return mr
 
@@ -773,7 +772,7 @@ def et_to_beta(et, acceleration_voltage):
     wavelength = acceleration_voltage_to_wavelength(acceleration_voltage)
     m = acceleration_voltage_to_relativistic_mass(acceleration_voltage)
 
-    beta = e * (wavelength ** 2) * m * et / (h ** 2)
+    beta = e * (wavelength**2) * m * et / (h**2)
     return beta
 
 
@@ -792,7 +791,7 @@ def acceleration_voltage_to_wavelength(acceleration_voltage):
 
     """
     energy = acceleration_voltage * e
-    wavelength = h / (2 * m_e * energy * (1 + (energy / (2 * m_e * c ** 2)))) ** 0.5
+    wavelength = h / (2 * m_e * energy * (1 + (energy / (2 * m_e * c**2)))) ** 0.5
     return wavelength
 
 
@@ -825,6 +824,6 @@ def diffraction_scattering_angle(acceleration_voltage, lattice_size, miller_inde
     wavelength = acceleration_voltage_to_wavelength(acceleration_voltage)
     h, k, l = miller_index
     a = lattice_size
-    d = a / (h ** 2 + k ** 2 + l ** 2) ** 0.5
+    d = a / (h**2 + k**2 + l**2) ** 0.5
     scattering_angle = 2 * np.arcsin(wavelength / (2 * d))
     return scattering_angle

@@ -210,7 +210,7 @@ class DiffractionSimulation:
         y = coords_transformed[:, 1]
         mirrored_factor = -1 if mirrored else 1
         theta = mirrored_factor * np.arctan2(y, x) + np.deg2rad(angle)
-        rd = np.sqrt(x ** 2 + y ** 2)
+        rd = np.sqrt(x**2 + y**2)
         coords_transformed[:, 0] = rd * np.cos(theta) + cx
         coords_transformed[:, 1] = rd * np.sin(theta) + cy
         return coords_transformed

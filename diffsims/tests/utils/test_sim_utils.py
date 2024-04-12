@@ -151,7 +151,7 @@ def test_uvtw_to_uvw(uvtw, uvw):
 class TestHolzCalibration:
     def test_get_holz_angle(self):
         wavelength = 2.51 / 1000
-        lattice_parameter = 0.3905 * 2 ** 0.5
+        lattice_parameter = 0.3905 * 2**0.5
         angle = get_holz_angle(wavelength, lattice_parameter)
         assert np.isclose(angle, 0.095378, rtol=1e-4)
 

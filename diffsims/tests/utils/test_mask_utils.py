@@ -28,22 +28,22 @@ def test_create_mask():
 
 def test_invert_mask():
     mask = mu.create_mask((20, 10))
-    initial = mask[0,0]
+    initial = mask[0, 0]
     mu.invert_mask(mask)
-    assert initial != mask[0,0]
+    assert initial != mask[0, 0]
 
 
 def test_add_polygon():
     mask = mu.create_mask((20, 10))
-    coords = np.array([[5, 5],[15, 5],[10,10]])
+    coords = np.array([[5, 5], [15, 5], [10, 10]])
     mu.add_polygon_to_mask(mask, coords)
 
 
 def test_add_circles_to_mask():
     mask = mu.create_mask((20, 10))
-    coords = np.array([[5, 5],[15, 5],[10,10]])
+    coords = np.array([[5, 5], [15, 5], [10, 10]])
     mu.add_circles_to_mask(mask, coords, 3)
-    
+
 
 def test_add_circle_to_mask():
     mask = mu.create_mask((20, 10))

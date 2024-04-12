@@ -54,7 +54,7 @@ def add_polygon_to_mask(mask, coords, fill=False):
         the mask is adjusted inplace
     """
     coords = np.array(coords)
-    coords = np.ravel(coords, order='C').tolist()
+    coords = np.ravel(coords, order="C").tolist()
     tempmask = Image.fromarray(mask)
     draw = ImageDraw.Draw(tempmask)
     draw.polygon(coords, fill=fill)
@@ -82,7 +82,7 @@ def add_circles_to_mask(mask, coords, r, fill=False):
         the mask is adjusted inplace
     """
     coords = np.array(coords)
-    r = r*np.ones(coords.shape[0])
+    r = r * np.ones(coords.shape[0])
     for i, j in zip(coords, r):
         add_circle_to_mask(mask, i[0], i[1], j, fill=fill)
 
@@ -112,7 +112,7 @@ def add_circle_to_mask(mask, x, y, r, fill=False):
     xx = np.arange(mask.shape[1])
     yy = np.arange(mask.shape[0])
     X, Y = np.meshgrid(xx, yy)
-    condition = ((X - x)**2 + (Y - y)**2 < r**2)
+    condition = (X - x) ** 2 + (Y - y) ** 2 < r**2
     mask[condition] = fill
 
 
@@ -147,7 +147,9 @@ def add_annulus_to_mask(mask, r1, r2, x=None, y=None, fill=False):
     xx = np.arange(mask.shape[1])
     yy = np.arange(mask.shape[0])
     X, Y = np.meshgrid(xx, yy)
-    condition = ((X - x)**2 + (Y - y)**2 > r1**2) & ((X - x)**2 + (Y - y)**2 < r2**2)
+    condition = ((X - x) ** 2 + (Y - y) ** 2 > r1**2) & (
+        (X - x) ** 2 + (Y - y) ** 2 < r2**2
+    )
     mask[condition] = fill
 
 
@@ -181,10 +183,10 @@ def add_band_to_mask(mask, x, y, theta, width, fill=False):
     theta_r = np.deg2rad(theta)
     a = np.sin(theta_r)
     b = -np.cos(theta_r)
-    c = -(a*x+b*y)
+    c = -(a * x + b * y)
     denom = np.sqrt(a**2 + b**2)
     xx = np.arange(mask.shape[1])
     yy = np.arange(mask.shape[0])
     X, Y = np.meshgrid(xx, yy)
-    condition = np.abs(a*X+b*Y+c)/denom < width/2
+    condition = np.abs(a * X + b * Y + c) / denom < width / 2
     mask[condition] = fill

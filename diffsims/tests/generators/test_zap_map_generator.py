@@ -51,7 +51,7 @@ class TestOrthonormals:
         assert np.allclose(r_to_y, (180, 90, -180))
 
     def test_rotations_to_static_yz(self, sample_system):
-        """ We rotate from z towards y, and compare the results to geometry"""
+        """We rotate from z towards y, and compare the results to geometry"""
         r_to_yz = get_rotation_from_z_to_direction(sample_system, [0, 1, 1])
         tan_angle = np.tan(np.deg2rad(r_to_yz[1]))
         tan_lattice = sample_system.lattice.b / sample_system.lattice.c
@@ -70,7 +70,7 @@ def test_zap_map_all_systems(default_structure, default_simulator, system):
 
 @pytest.mark.parametrize("density", ["3", "7"])
 def test_zap_map_density_changes(default_structure, default_simulator, density):
-    """ Checks density arguments are passed correctly """
+    """Checks density arguments are passed correctly"""
     z_dict = generate_zap_map(default_structure, default_simulator, density=density)
     if density == "3":
         assert str(len(z_dict.keys())) == "3"

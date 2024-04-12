@@ -177,7 +177,7 @@ class BesselProbe(ProbeFunction):
             x = maximum(1e-16, abs(x)).reshape(-1)
             out[...] = jv(1, x) / x * scale
         elif x.shape[-1] == 2:
-            x = maximum(1e-16, sqrt(abs(x * x).sum(-1) / self._r ** 2))
+            x = maximum(1e-16, sqrt(abs(x * x).sum(-1) / self._r**2))
             out[...] = jv(1, x) / x * scale
         else:
             d = abs(x[1, 1, 0, :2] - x[0, 0, 0, :2])
@@ -243,15 +243,13 @@ class BesselProbe(ProbeFunction):
                 if out is None:
                     out = empty(y.shape[:3], dtype=y.dtype)
 
-                _bessFT(
-                    y.reshape(-1, 3), 1 / r ** 2, 2 * pi * r ** 2, eps, out.reshape(-1)
-                )
+                _bessFT(y.reshape(-1, 3), 1 / r**2, 2 * pi * r**2, eps, out.reshape(-1))
 
             else:
                 if out is None:
-                    out = (2 * pi * r ** 2) * (abs(y * y).sum(-1) <= 1 / r ** 2)
+                    out = (2 * pi * r**2) * (abs(y * y).sum(-1) <= 1 / r**2)
                 else:
-                    out[...] = (2 * pi * r ** 2) * (abs(y * y).sum(-1) <= 1 / r ** 2)
+                    out[...] = (2 * pi * r**2) * (abs(y * y).sum(-1) <= 1 / r**2)
         return out
 
 

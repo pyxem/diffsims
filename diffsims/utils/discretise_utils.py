@@ -514,7 +514,6 @@ if _CUDA:  # pragma: no cover
 
     @cuda.jit
     def __density3D_pw_gpu(x0, x1, x2, xmin, loc, sublist, r, a, d, B, precomp, h, out):
-
         i0, i1, i2 = cuda.grid(3)
         if i0 >= x0.size or i1 >= x1.size or i2 >= x2.size:
             return
@@ -544,7 +543,6 @@ if _CUDA:  # pragma: no cover
 
     @cuda.jit
     def __density3D_av_gpu(x0, x1, x2, xmin, loc, sublist, r, a, d, B, precomp, h, out):
-
         i0, i1, i2 = cuda.grid(3)
         if i0 >= x0.size or i1 >= x1.size or i2 >= x2.size:
             return
@@ -641,14 +639,14 @@ def _precomp_atom(a, b, d, pw, ZERO, dtype=FTYPE):
     if pw:
         n_zeros = sum(1 for D in d if D == 0)
         f = lambda x: sum(
-            a[i] * c_exp(-b[i] * x ** 2) * (pi / b[i]) ** (n_zeros / 2)
+            a[i] * c_exp(-b[i] * x**2) * (pi / b[i]) ** (n_zeros / 2)
             for i in range(a.size)
         )
         Rmax = 0.1
         while f(Rmax) >= ZERO * f(0):
             Rmax *= 1.1
         h = max(Rmax / 500, max(d) / 10)
-        pms = array([Rmax ** 2, 1 / h], dtype=dtype)
+        pms = array([Rmax**2, 1 / h], dtype=dtype)
         precomp = array([f(x) for x in arange(0, Rmax + 2 * h, h)], dtype=dtype)
 
     else:
@@ -662,7 +660,7 @@ def _precomp_atom(a, b, d, pw, ZERO, dtype=FTYPE):
                 A
                 * (c_erf(B * (x + d[j] / 2)) - c_erf(B * (x - d[j] / 2)))
                 / (2 * d[j] * B)
-                * pi ** 0.5
+                * pi**0.5
             )
 
         h = [D / 10 for D in d]
