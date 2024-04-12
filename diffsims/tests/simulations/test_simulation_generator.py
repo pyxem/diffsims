@@ -176,10 +176,10 @@ class TestDiffractionCalculator:
     def test_appropriate_intensities(self, diffraction_calculator, local_structure):
         """Tests the central beam is strongest."""
         diffraction = diffraction_calculator.calculate_ed_data(
-            local_structure, reciprocal_radius=0.5, with_direct_beam=False
+            local_structure, reciprocal_radius=0.5, with_direct_beam=True
         )  # direct beam doesn't work
         indices = [tuple(np.round(i).astype(int)) for i in diffraction.coordinates.hkl]
-        central_beam = indices.index((0, 1, 0))
+        central_beam = indices.index((0, 0, 0))
 
         smaller = np.greater_equal(
             diffraction.coordinates.intensity[central_beam],
