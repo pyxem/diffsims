@@ -74,13 +74,13 @@ setup(
     packages=find_packages(),
     extras_require=extra_feature_requirements,
     install_requires=[
-        "diffpy.structure   >= 3.0.0",  # First Python 3 support
+        "diffpy.structure   >= 3.0.2",
         "matplotlib         >= 3.3",
         "numba",
-        "numpy              >= 1.17",
+        "numpy              >= 1.17.3",
         "orix               >= 0.9",
         "psutil",
-        "scipy              >= 1.1",
+        "scipy              >= 1.8",
         "tqdm               >= 4.9",
         "transforms3d",
     ],
