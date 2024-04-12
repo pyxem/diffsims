@@ -278,7 +278,7 @@ def _get_kinematical_structure_factor(
 
     # Express the atom positions in the same reference frame as the
     # Miller indices
-    mat = np.linalg.inv(np.dot(structure.lattice.stdbase, structure.lattice.recbase.T))
+    mat = np.linalg.inv(np.dot(structure.lattice.stdbase, structure.lattice.recbase))
     xyz = np.dot(xyz, mat)
 
     # Calculate the complex structure factor
