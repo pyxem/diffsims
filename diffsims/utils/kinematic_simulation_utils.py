@@ -214,7 +214,7 @@ def grid2sphere(arr, x, dx, C):
     y = to_mesh((x[0], x[1], array([0])), dx).reshape(-1, 3)
 
     if C is not None:  # project on line to centre
-        w = 1 / (1 + (y ** 2).sum(-1) / C ** 2)
+        w = 1 / (1 + (y**2).sum(-1) / C**2)
         y *= w[:, None]
         if dx is None:
             y[:, 2] = C * (1 - w)

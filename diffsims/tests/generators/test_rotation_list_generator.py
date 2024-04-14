@@ -87,7 +87,7 @@ def test_get_beam_directions_grid(crystal_system, mesh):
         ("orthorhombic", 1657),
         ("monoclinic", 6441),
         ("triclinic", 12698),
-    ]
+    ],
 )
 def test_get_beam_directions_grid_size(crystal_system, desired_size):
     grid = get_beam_directions_grid(crystal_system, 2)

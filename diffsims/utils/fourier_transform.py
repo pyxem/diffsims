@@ -216,7 +216,6 @@ try:  # pragma: no cover
         )
         return plan, plan.input_array
 
-
 except ImportError:
     # Only scipy has a next_fast_len, usually numpy is a little faster
     # (note they are not identical)

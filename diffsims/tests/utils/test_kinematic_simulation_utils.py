@@ -127,7 +127,7 @@ def test_grid2sphere(shape, rad):
     x = [np.linspace(-1, 1, s) if s > 1 else np.array([0]) for s in shape]
     X = to_mesh(x)
     Y = to_mesh((x[0], x[1], np.array([0]))).reshape(-1, 3)
-    w = 1 / (1 + (Y ** 2).sum(-1) / rad ** 2)
+    w = 1 / (1 + (Y**2).sum(-1) / rad**2)
     Y *= w[..., None]
     Y[:, 2] = rad * (1 - w)
     Y = Y.reshape(shape[0], shape[1], 3)

@@ -258,7 +258,7 @@ class DiffractionGenerator(object):
         r_spot = np.sqrt(np.sum(np.square(cartesian_coordinates[:, :2]), axis=1))
         z_spot = cartesian_coordinates[:, 2]
 
-        z_sphere = -np.sqrt(r_sphere ** 2 - r_spot ** 2) + r_sphere
+        z_sphere = -np.sqrt(r_sphere**2 - r_spot**2) + r_sphere
         excitation_error = z_sphere - z_spot
 
         # determine the pre-selection reflections
@@ -270,8 +270,8 @@ class DiffractionGenerator(object):
             P_z = r_sphere * np.cos(np.deg2rad(self.precession_angle))
             P_t = r_sphere * np.sin(np.deg2rad(self.precession_angle))
             # the extremes of the ewald sphere
-            z_surf_up = P_z - np.sqrt(r_sphere ** 2 - (r_spot + P_t) ** 2)
-            z_surf_do = P_z - np.sqrt(r_sphere ** 2 - (r_spot - P_t) ** 2)
+            z_surf_up = P_z - np.sqrt(r_sphere**2 - (r_spot + P_t) ** 2)
+            z_surf_do = P_z - np.sqrt(r_sphere**2 - (r_spot - P_t) ** 2)
             intersection = (z_spot - max_excitation_error <= z_surf_up) & (
                 z_spot + max_excitation_error >= z_surf_do
             )

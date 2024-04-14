@@ -45,10 +45,10 @@ def test_constrain_to_dynamic_range(pattern):
 
 
 class TestReturnsareCopies:
-    """ We want pattern to remain untouched by the noise addition """
+    """We want pattern to remain untouched by the noise addition"""
 
     def test_copy_shot_and_point_spread(self, pattern):
-        """ Also covers shot/point independantly """
+        """Also covers shot/point independantly"""
         z = add_shot_and_point_spread(pattern, 2, shot_noise=True)
         assert not np.may_share_memory(pattern, z)
 
@@ -82,13 +82,13 @@ class TestShotAndPointSpread:
 
 class TestShotNoise:
     def test_seed_duplicates(self, pattern):
-        """ Same seed should imply same result """
+        """Same seed should imply same result"""
         z1 = add_shot_noise(pattern, seed=7)
         z2 = add_shot_noise(pattern, seed=7)
         assert np.allclose(z1, z2)
 
     def test_seed_unduplicates(self, pattern):
-        """ Different seeds should (almost always) give different results"""
+        """Different seeds should (almost always) give different results"""
         z1 = add_shot_noise(pattern, seed=7)
         z2 = add_shot_noise(pattern, seed=312)
         z3 = add_shot_noise(pattern, seed=None)
@@ -98,7 +98,7 @@ class TestShotNoise:
 
 class TestGaussianNoise:
     def test_seed_duplicates(self, pattern):
-        """ Same seed should imply same result """
+        """Same seed should imply same result"""
         z1 = add_gaussian_noise(pattern, sigma=3, seed=7)
         z2 = add_gaussian_noise(pattern, sigma=3, seed=7)
         assert np.allclose(z1, z2)
@@ -106,7 +106,7 @@ class TestGaussianNoise:
 
 class TestDeadPixel:
     def test_seed_duplicates(self, pattern):
-        """ Same seed should imply same result """
+        """Same seed should imply same result"""
         pattern = pattern + 1  # so that we can detect dead pixels
         z1 = add_dead_pixels(pattern, n=6, seed=7)
         z2 = add_dead_pixels(pattern, n=6, seed=7)
@@ -131,26 +131,26 @@ class TestDeadPixel:
 
 class TestDetectorGainOffset:
     def test_gain_scalar(self, pattern):
-        """ Tests scalar gains are invertible """
+        """Tests scalar gains are invertible"""
         g1 = add_linear_detector_gain(pattern, 1.1)
         g2 = add_linear_detector_gain(g1, 1 / 1.1)
         assert np.allclose(pattern, g2)
 
     def test_gain_array(self, pattern):
-        """ Test array gain are invertible """
+        """Test array gain are invertible"""
         pattern = pattern + 1  # avoids problems inverting zeroes
         g1 = add_linear_detector_gain(pattern, pattern)
         g2 = add_linear_detector_gain(g1, np.divide(1, pattern))
         assert np.allclose(pattern, g2)
 
     def test_offset_scalar(self, pattern):
-        """ Test postive scalar offsets are invertible """
+        """Test postive scalar offsets are invertible"""
         g1 = add_detector_offset(pattern, 3)
         g2 = add_detector_offset(g1, -3)
         assert np.allclose(pattern, g2)
 
     def test_offset_array(self, pattern):
-        """ Test postive array offsets are invertible """
+        """Test postive array offsets are invertible"""
         g1 = add_detector_offset(pattern, pattern)
         g2 = add_detector_offset(g1, -pattern)
         assert np.allclose(pattern, g2)

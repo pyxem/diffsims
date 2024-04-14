@@ -101,6 +101,7 @@ def probe(x, out=None, scale=None):
         v = v * abs(x[1].reshape(1, -1, 1)) < 6
         return v + 0 * x[2].reshape(1, 1, -1)
 
+
 @pytest.mark.parametrize("model", [binary, linear, atanc, sin2c, lorentzian])
 def test_shape_factor_precession(model):
     excitation = np.array([-0.1, 0.1])
@@ -111,9 +112,8 @@ def test_shape_factor_precession(model):
 def test_linear_shape_factor():
     excitation = np.array([-2, -1, -0.5, 0, 0.5, 1, 2])
     totest = linear(excitation, 1)
-    np.testing.assert_allclose(totest, np.array([0,0,0.5,1,0.5,0,0]))
+    np.testing.assert_allclose(totest, np.array([0, 0, 0.5, 1, 0.5, 0, 0]))
     np.testing.assert_allclose(linear(0.5, 1), 0.5)
-
 
 
 @pytest.mark.parametrize(
@@ -202,7 +202,6 @@ class TestDiffractionCalculator:
         _ = diffraction_calculator.calculate_ed_data(local_structure, 2)
 
     def test_shape_factor_custom(self, diffraction_calculator, local_structure):
-
         t1 = diffraction_calculator.calculate_ed_data(
             local_structure, 2, max_excitation_error=0.02
         )
