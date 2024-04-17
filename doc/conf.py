@@ -46,6 +46,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx_design",
+    "sphinx_gallery.gen_gallery",
 ]
 
 # Create links to references within diffsims' documentation to these packages
@@ -161,4 +162,16 @@ autosummary_imported_members = True
 autodoc_typehints_format = "short"
 autodoc_default_options = {
     "show-inheritance": True,
+}
+
+# -- Sphinx-Gallery---------------
+# https://sphinx-gallery.github.io
+sphinx_gallery_conf = {
+    "backreferences_dir": "reference/generated",
+    "doc_module": ("diffsims",),
+    "examples_dirs": "../examples",  # path to your example scripts
+    "gallery_dirs": "examples",  # path to where to save gallery generated output
+    "filename_pattern": "^((?!sgskip).)*$",  # pattern to define which will be executed
+    "ignore_pattern": "_sgskip.py",  # pattern to define which will not be executed
+    "reference_url": {"diffsims": None},
 }

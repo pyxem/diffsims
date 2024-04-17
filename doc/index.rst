@@ -12,6 +12,8 @@ diffsims is an open-source Python library for simulating diffraction.
     reference/index.rst
     dev/index.rst
     changelog.rst
+    Examples <examples/index>
+
 
 Installation
 ============

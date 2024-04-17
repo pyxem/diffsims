@@ -1,6 +1,6 @@
 """
 =====================================================
- Simulating One Diffraction Pattern for a Single Phase
+Simulating One Diffraction Pattern for a Single Phase
 =====================================================
 """
 
