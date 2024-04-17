@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Kinematic Diffraction Simulation Generator."""
+
 from typing import Union, Sequence
 import numpy as np
 
@@ -50,6 +52,8 @@ _shape_factor_model_mapping = {
 }
 
 from diffsims.simulations import Simulation1D, Simulation2D
+
+__all__ = ["SimulationGenerator"]
 
 
 class SimulationGenerator:

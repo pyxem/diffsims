@@ -29,5 +29,6 @@ the `demos <https://github.com/pyxem/diffsims-demos>`_.
     libraries
     pattern
     sims
+    simulations
     structure_factor
     utils

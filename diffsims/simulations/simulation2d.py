@@ -33,6 +33,11 @@ from diffsims.pattern.detector_functions import add_shot_and_point_spread
 if TYPE_CHECKING:  # pragma: no cover
     from diffsims.generators.simulation_generator import SimulationGenerator
 
+__all__ = [
+    "Simulation2D",
+    "get_closest",
+]
+
 
 class PhaseGetter:
     """A class for getting the phases of a simulation library.
