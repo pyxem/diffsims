@@ -177,7 +177,7 @@ class TestDiffractionCalculator:
         """Tests the central beam is strongest."""
         diffraction = diffraction_calculator.calculate_diffraction2d(
             local_structure, reciprocal_radius=0.5, with_direct_beam=True
-        )  # direct beam doesn't work
+        )
         indices = [tuple(np.round(i).astype(int)) for i in diffraction.coordinates.hkl]
         central_beam = indices.index((0, 0, 0))
 
@@ -186,6 +186,14 @@ class TestDiffractionCalculator:
             diffraction.coordinates.intensity,
         )
         assert np.all(smaller)
+
+    def test_direct_beam(self, diffraction_calculator, local_structure):
+        diffraction = diffraction_calculator.calculate_diffraction2d(
+            local_structure, reciprocal_radius=0.5, with_direct_beam=False
+        )
+        indices = [tuple(np.round(i).astype(int)) for i in diffraction.coordinates.hkl]
+        with pytest.raises(ValueError):
+            indices.index((0, 0, 0))
 
     def test_shape_factor_strings(self, diffraction_calculator, local_structure):
         _ = diffraction_calculator.calculate_diffraction2d(
