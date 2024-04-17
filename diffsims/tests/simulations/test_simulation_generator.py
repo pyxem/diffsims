@@ -125,7 +125,7 @@ class TestDiffractionCalculator:
     def test_matching_results(
         self, diffraction_calculator: SimulationGenerator, local_structure
     ):
-        diffraction = diffraction_calculator.calculate_ed_data(
+        diffraction = diffraction_calculator.calculate_diffraction2d(
             local_structure, reciprocal_radius=5.0
         )
         assert diffraction.coordinates.size == 69
@@ -133,7 +133,7 @@ class TestDiffractionCalculator:
     def test_precession_simple(
         self, diffraction_calculator_precession_simple, local_structure
     ):
-        diffraction = diffraction_calculator_precession_simple.calculate_ed_data(
+        diffraction = diffraction_calculator_precession_simple.calculate_diffraction2d(
             local_structure,
             reciprocal_radius=5.0,
         )
@@ -142,14 +142,14 @@ class TestDiffractionCalculator:
     def test_precession_full(
         self, diffraction_calculator_precession_full, local_structure
     ):
-        diffraction = diffraction_calculator_precession_full.calculate_ed_data(
+        diffraction = diffraction_calculator_precession_full.calculate_diffraction2d(
             local_structure,
             reciprocal_radius=5.0,
         )
         assert diffraction.coordinates.size == 249
 
     def test_custom_shape_func(self, diffraction_calculator_custom, local_structure):
-        diffraction = diffraction_calculator_custom.calculate_ed_data(
+        diffraction = diffraction_calculator_custom.calculate_diffraction2d(
             local_structure,
             reciprocal_radius=5.0,
         )
@@ -159,10 +159,10 @@ class TestDiffractionCalculator:
         """Tests that doubling the unit cell halves the pattern spacing."""
         silicon = make_phase(5)
         big_silicon = make_phase(10)
-        diffraction = diffraction_calculator.calculate_ed_data(
+        diffraction = diffraction_calculator.calculate_diffraction2d(
             phase=silicon, reciprocal_radius=5.0
         )
-        big_diffraction = diffraction_calculator.calculate_ed_data(
+        big_diffraction = diffraction_calculator.calculate_diffraction2d(
             phase=big_silicon, reciprocal_radius=5.0
         )
         indices = [tuple(i) for i in diffraction.coordinates.hkl]
@@ -175,7 +175,7 @@ class TestDiffractionCalculator:
 
     def test_appropriate_intensities(self, diffraction_calculator, local_structure):
         """Tests the central beam is strongest."""
-        diffraction = diffraction_calculator.calculate_ed_data(
+        diffraction = diffraction_calculator.calculate_diffraction2d(
             local_structure, reciprocal_radius=0.5, with_direct_beam=True
         )  # direct beam doesn't work
         indices = [tuple(np.round(i).astype(int)) for i in diffraction.coordinates.hkl]
@@ -188,15 +188,15 @@ class TestDiffractionCalculator:
         assert np.all(smaller)
 
     def test_shape_factor_strings(self, diffraction_calculator, local_structure):
-        _ = diffraction_calculator.calculate_ed_data(
+        _ = diffraction_calculator.calculate_diffraction2d(
             local_structure,
         )
 
     def test_shape_factor_custom(self, diffraction_calculator, local_structure):
-        t1 = diffraction_calculator.calculate_ed_data(
+        t1 = diffraction_calculator.calculate_diffraction2d(
             local_structure, max_excitation_error=0.02
         )
-        t2 = diffraction_calculator.calculate_ed_data(
+        t2 = diffraction_calculator.calculate_diffraction2d(
             local_structure, max_excitation_error=0.4
         )
         # softly makes sure the two sims are different
@@ -233,7 +233,9 @@ def test_multiphase_multirotation_simulation():
     big_silicon = make_phase(10)
     rot = Rotation.from_euler([[0, 0, 0], [0.1, 0.1, 0.1]])
     rot2 = Rotation.from_euler([[0, 0, 0], [0.1, 0.1, 0.1], [0.2, 0.2, 0.2]])
-    sim = generator.calculate_ed_data([silicon, big_silicon], rotation=[rot, rot2])
+    sim = generator.calculate_diffraction2d(
+        [silicon, big_silicon], rotation=[rot, rot2]
+    )
 
 
 @pytest.mark.parametrize("scattering_param", ["lobato", "xtables"])
