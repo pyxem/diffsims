@@ -57,7 +57,7 @@ structure_matrix = diffpy.structure.Structure(atoms=atoms, lattice=latt)
 p = Phase("Al", point_group="m-3m", structure=structure_matrix)
 gen = SimulationGenerator(accelerating_voltage=200)
 rot = Rotation.from_euler([[0, 0, 0], [10.0, 0.0, 0.0]], degrees=True)
-sim = gen.calculate_ed_data(
+sim = gen.calculate_diffraction2d(
     phase=p,
     rotation=rot,
     reciprocal_radius=1.6768,

@@ -29,7 +29,7 @@ gen = SimulationGenerator(
 rot = Rotation.from_axes_angles(
     [1, 0, 0], 45, degrees=True
 )  # 45 degree rotation around x-axis
-sim = gen.calculate_ed_data(phase=p, rotation=rot)
+sim = gen.calculate_diffraction2d(phase=p, rotation=rot)
 
 sim.plot(show_labels=True)  # plot the first (and only) diffraction pattern
 
@@ -47,7 +47,7 @@ sim.coordinates  # coordinates of the first (and only) diffraction pattern
 rot = Rotation.from_axes_angles(
     [1, 0, 0], (0, 15, 30, 45, 60, 75, 90), degrees=True
 )  # 45 degree rotation around x-axis
-sim = gen.calculate_ed_data(phase=p, rotation=rot)
+sim = gen.calculate_diffraction2d(phase=p, rotation=rot)
 
 sim.plot(show_labels=True)  # plot the first diffraction pattern
 
@@ -69,7 +69,7 @@ p2.name = "al_2"
 rot = Rotation.from_axes_angles(
     [1, 0, 0], (0, 15, 30, 45, 60, 75, 90), degrees=True
 )  # 45 degree rotation around x-axis
-sim = gen.calculate_ed_data(phase=[p, p2], rotation=[rot, rot])
+sim = gen.calculate_diffraction2d(phase=[p, p2], rotation=[rot, rot])
 
 sim.plot(
     include_direct_beam=True, show_labels=True, min_label_intensity=0.1
