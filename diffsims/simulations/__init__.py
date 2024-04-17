@@ -18,3 +18,8 @@
 
 from diffsims.simulations.simulation2d import Simulation2D
 from diffsims.simulations.simulation1d import Simulation1D
+
+__all__ = [
+    "Simulation1D",
+    "Simulation2D",
+]

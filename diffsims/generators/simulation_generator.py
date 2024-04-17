@@ -124,7 +124,7 @@ class SimulationGenerator:
     def wavelength(self):
         return get_electron_wavelength(self.accelerating_voltage)
 
-    def calculate_ed_data(
+    def calculate_diffraction2d(
         self,
         phase: Union[Phase, Sequence[Phase]],
         rotation: Union[Rotation, Sequence[Rotation]] = Rotation.from_euler(
