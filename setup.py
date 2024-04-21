@@ -30,6 +30,7 @@ extra_feature_requirements = {
         "pydata-sphinx-theme",
         "sphinx                 >= 3.0.2",
         "sphinx-design",
+        "sphinx_gallery",
     ],
     "tests": [
         "coverage               >= 5.0",
