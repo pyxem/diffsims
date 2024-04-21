@@ -213,7 +213,7 @@ class TestSinglePhaseMultiSimulation:
             assert phase == 0
 
     def test_get_current_rotation(self, multi_simulation):
-        rot = multi_simulation.get_current_rotation()
+        rot = multi_simulation.get_current_rotation_matrix()
         np.testing.assert_array_equal(rot, multi_simulation.rotations[0].to_matrix()[0])
 
     def test_init(self, multi_simulation):

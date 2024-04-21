@@ -44,8 +44,8 @@ class PhaseGetter:
 
     Parameters
     ----------
-    phases : Sequence[Phase]
-        The phases in the library.
+    simulation : Simulation2D
+        The simulation to get from.
     """
 
     def __init__(self, simulation):
@@ -77,8 +77,8 @@ class RotationGetter:
 
     Parameters
     ----------
-    phases : Sequence[Phase]
-        The phases in the library.
+    simulation : Simulation2D
+        The simulation to get from.
     """
 
     def __init__(self, simulation):
@@ -435,8 +435,8 @@ class Simulation2D:
         else:
             return copy.deepcopy(self.coordinates)
 
-    def get_current_rotation(self):
-        """Returns the matrix for the current matrix"""
+    def get_current_rotation_matrix(self):
+        """Returns the current rotation matrix based on the phase and rotation index"""
         if self.has_multiple_phases:
             return copy.deepcopy(
                 self.rotations[self.phase_index].to_matrix()[self.rotation_index]
@@ -554,7 +554,7 @@ class Simulation2D:
         if show_labels:
             millers = np.round(
                 np.matmul(
-                    np.matmul(coords.data, self.get_current_rotation().T),
+                    np.matmul(coords.data, self.get_current_rotation_matrix().T),
                     coords.phase.structure.lattice.base.T,
                 )
             ).astype(np.int16)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2023 The diffsims developers
+# Copyright 2017-2024 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -244,6 +244,16 @@ def test_multiphase_multirotation_simulation():
     sim = generator.calculate_diffraction2d(
         [silicon, big_silicon], rotation=[rot, rot2]
     )
+
+
+def test_multiphase_multirotation_simulation_error():
+    generator = SimulationGenerator(300)
+    silicon = make_phase(5)
+    big_silicon = make_phase(10)
+    rot = Rotation.from_euler([[0, 0, 0], [0.1, 0.1, 0.1]])
+    rot2 = Rotation.from_euler([[0, 0, 0], [0.1, 0.1, 0.1], [0.2, 0.2, 0.2]])
+    with pytest.raises(ValueError):
+        sim = generator.calculate_diffraction2d([silicon, big_silicon], rotation=[rot])
 
 
 @pytest.mark.parametrize("scattering_param", ["lobato", "xtables"])

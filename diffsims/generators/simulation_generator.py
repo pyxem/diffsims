@@ -176,6 +176,12 @@ class SimulationGenerator:
             phase = [phase]
         if isinstance(rotation, Rotation):
             rotation = [rotation]
+        if len(phase) != len(rotation):
+            raise ValueError(
+                "The number of phases and rotations must be equal. "
+                f"Got {len(phase)} phases and {len(rotation)} rotations."
+            )
+
         if debye_waller_factors is None:
             debye_waller_factors = {}
         # Specify variables used in calculation
@@ -298,22 +304,22 @@ class SimulationGenerator:
 
         hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in g_indices]
 
-        peaks = {}
+        peaks = []
         for l, i, g in zip(hkls_labels, i_hkl, g_hkls):
-            peaks[l] = [i, g]
+            peaks.append((l, [i, g]))
 
         # Scale intensities so that the max intensity is 100.
 
-        max_intensity = max([v[0] for v in peaks.values()])
+        max_intensity = max([v[1][0] for v in peaks])
         reciporical_spacing = []
         intensities = []
         hkls = []
-        for k in peaks.keys():
-            v = peaks[k]
-            if v[0] / max_intensity * 100 > minimum_intensity and (k != "000"):
+        for p in peaks:
+            label, v = p  # (label, [intensity,g])
+            if v[0] / max_intensity * 100 > minimum_intensity and (label != "000"):
                 reciporical_spacing.append(v[1])
                 intensities.append(v[0])
-                hkls.append(k)
+                hkls.append(label)
 
         intensities = np.asarray(intensities) / max(intensities) * 100
 
