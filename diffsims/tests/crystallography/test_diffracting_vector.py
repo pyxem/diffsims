@@ -35,3 +35,8 @@ class TestDiffractingVector:
         rlv_slice = rlv[0:3]
         assert rlv_slice.size == 3
         assert np.allclose(rlv_slice.intensity, np.ones(3))
+
+    def test_structure_factor(self, ferrite_phase):
+        rlv = DiffractingVector.from_min_dspacing(ferrite_phase, 1.5)
+        with pytest.raises(NotImplementedError):
+            rlv.calculate_structure_factor()

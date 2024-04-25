@@ -109,3 +109,8 @@ class DiffractingVector(ReciprocalLatticeVector):
         if len(value) != self.size:
             raise ValueError("Length of intensity array must match number of vectors")
         self._intensity = np.array(value)
+
+    def calculate_structure_factor(self):
+        raise NotImplementedError(
+            "Structure factor calculation not implemented for DiffractingVector"
+        )
