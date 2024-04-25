@@ -25,7 +25,7 @@ from orix.quaternion import Rotation
 
 from diffsims.simulations import Simulation2D
 from diffsims.generators.simulation_generator import SimulationGenerator
-from diffsims.crystallography.reciprocal_lattice_vector import ReciprocalLatticeVector
+from diffsims.crystallography import DiffractingVector
 
 
 @pytest.fixture(scope="module")
@@ -46,7 +46,7 @@ class TestSingleSimulation:
     def single_simulation(self, al_phase):
         gen = SimulationGenerator(accelerating_voltage=200)
         rot = Rotation.from_axes_angles([1, 0, 0], 45, degrees=True)
-        coords = ReciprocalLatticeVector(phase=al_phase, xyz=[[1, 0, 0]])
+        coords = DiffractingVector(phase=al_phase, xyz=[[1, 0, 0]])
         sim = Simulation2D(
             phases=al_phase, simulation_generator=gen, coordinates=coords, rotations=rot
         )
@@ -75,7 +75,7 @@ class TestSingleSimulation:
         count = 0
         for sim in single_simulation:
             count += 1
-            assert isinstance(sim, ReciprocalLatticeVector)
+            assert isinstance(sim, DiffractingVector)
         assert count == 1
 
     def test_plot(self, single_simulation):
@@ -117,7 +117,7 @@ class TestSimulationInitFailures:
     def test_different_size(self, al_phase):
         gen = SimulationGenerator(accelerating_voltage=200)
         rot = Rotation.from_axes_angles([1, 0, 0], 45, degrees=True)
-        coords = ReciprocalLatticeVector(phase=al_phase, xyz=[[1, 0, 0], [1, 1, 1]])
+        coords = DiffractingVector(phase=al_phase, xyz=[[1, 0, 0], [1, 1, 1]])
         with pytest.raises(ValueError):
             sim = Simulation2D(
                 phases=al_phase,
@@ -129,7 +129,7 @@ class TestSimulationInitFailures:
     def test_different_size2(self, al_phase):
         gen = SimulationGenerator(accelerating_voltage=200)
         rot = Rotation.from_axes_angles([1, 0, 0], (0, 45), degrees=True)
-        coords = ReciprocalLatticeVector(phase=al_phase, xyz=[[1, 0, 0], [1, 1, 1]])
+        coords = DiffractingVector(phase=al_phase, xyz=[[1, 0, 0], [1, 1, 1]])
         with pytest.raises(ValueError):
             sim = Simulation2D(
                 phases=al_phase,
@@ -141,7 +141,7 @@ class TestSimulationInitFailures:
     def test_different_size_multiphase(self, al_phase):
         gen = SimulationGenerator(accelerating_voltage=200)
         rot = Rotation.from_axes_angles([1, 0, 0], 45, degrees=True)
-        coords = ReciprocalLatticeVector(phase=al_phase, xyz=[[1, 0, 0], [1, 1, 1]])
+        coords = DiffractingVector(phase=al_phase, xyz=[[1, 0, 0], [1, 1, 1]])
         with pytest.raises(ValueError):
             sim = Simulation2D(
                 phases=[al_phase, al_phase],
@@ -153,7 +153,7 @@ class TestSimulationInitFailures:
     def test_different_num_phase(self, al_phase):
         gen = SimulationGenerator(accelerating_voltage=200)
         rot = Rotation.from_axes_angles([1, 0, 0], 45, degrees=True)
-        coords = ReciprocalLatticeVector(phase=al_phase, xyz=[[1, 0, 0], [1, 1, 1]])
+        coords = DiffractingVector(phase=al_phase, xyz=[[1, 0, 0], [1, 1, 1]])
         with pytest.raises(ValueError):
             sim = Simulation2D(
                 phases=[al_phase, al_phase],
@@ -165,7 +165,7 @@ class TestSimulationInitFailures:
     def test_different_num_phase_and_rot(self, al_phase):
         gen = SimulationGenerator(accelerating_voltage=200)
         rot = Rotation.from_axes_angles([1, 0, 0], 45, degrees=True)
-        coords = ReciprocalLatticeVector(phase=al_phase, xyz=[[1, 0, 0], [1, 1, 1]])
+        coords = DiffractingVector(phase=al_phase, xyz=[[1, 0, 0], [1, 1, 1]])
         with pytest.raises(ValueError):
             sim = Simulation2D(
                 phases=[al_phase, al_phase],
@@ -192,7 +192,7 @@ class TestSinglePhaseMultiSimulation:
     def multi_simulation(self, al_phase):
         gen = SimulationGenerator(accelerating_voltage=200)
         rot = Rotation.from_axes_angles([1, 0, 0], (0, 15, 30, 45), degrees=True)
-        coords = ReciprocalLatticeVector(
+        coords = DiffractingVector(
             phase=al_phase, xyz=[[1, 0, 0], [0, 1, 0], [1, 1, 0], [1, 1, 1]]
         )
 
@@ -253,7 +253,7 @@ class TestSinglePhaseMultiSimulation:
         count = 0
         for sim in multi_simulation:
             count += 1
-            assert isinstance(sim, ReciprocalLatticeVector)
+            assert isinstance(sim, DiffractingVector)
         assert count == 4
 
     def test_polar_flatten(self, multi_simulation):
@@ -285,7 +285,7 @@ class TestMultiPhaseMultiSimulation:
         gen = SimulationGenerator(accelerating_voltage=200)
         rot = Rotation.from_axes_angles([1, 0, 0], (0, 15, 30, 45), degrees=True)
         rot2 = rot
-        coords = ReciprocalLatticeVector(
+        coords = DiffractingVector(
             phase=al_phase,
             xyz=[
                 [1, 0, 0],
@@ -377,7 +377,7 @@ class TestMultiPhaseMultiSimulation:
         count = 0
         for sim in multi_simulation:
             count += 1
-            assert isinstance(sim, ReciprocalLatticeVector)
+            assert isinstance(sim, DiffractingVector)
         assert count == 8
 
     def test_get_diffraction_pattern(self, multi_simulation):
@@ -407,7 +407,7 @@ class TestMultiPhaseMultiSimulation:
 
     def test_rotate_shift_coords(self, multi_simulation):
         rot = multi_simulation.rotate_shift_coordinates(angle=0.1)
-        assert isinstance(rot, ReciprocalLatticeVector)
+        assert isinstance(rot, DiffractingVector)
 
 
 class TestMultiPhaseSingleSimulation:
@@ -428,7 +428,7 @@ class TestMultiPhaseSingleSimulation:
         gen = SimulationGenerator(accelerating_voltage=200)
         rot = Rotation.from_axes_angles([1, 0, 0], (0,), degrees=True)
         rot2 = rot
-        coords = ReciprocalLatticeVector(
+        coords = DiffractingVector(
             phase=al_phase,
             xyz=[
                 [1, 0, 0],

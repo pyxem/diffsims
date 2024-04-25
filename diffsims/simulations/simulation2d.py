@@ -114,6 +114,7 @@ class Simulation2D:
         self,
         phases: Sequence[Phase],
         coordinates: Union[
+            ReciprocalLatticeVector,
             Sequence[ReciprocalLatticeVector],
             Sequence[Sequence[ReciprocalLatticeVector]],
         ],

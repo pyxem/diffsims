@@ -24,7 +24,7 @@ import numpy as np
 from orix.quaternion import Rotation
 from orix.crystal_map import Phase
 
-from diffsims.crystallography import ReciprocalLatticeVector
+from diffsims.crystallography import ReciprocalLatticeVector, DiffractingVector
 from diffsims.utils.shape_factor_models import (
     linear,
     atanc,
@@ -393,7 +393,7 @@ class SimulationGenerator:
 
         # select these reflections
         intersected_vectors = rotated_vectors[intersection]
-        intersected_vectors = ReciprocalLatticeVector(
+        intersected_vectors = DiffractingVector(
             phase=recip.phase, xyz=intersected_vectors
         )
         excitation_error = excitation_error[intersection]

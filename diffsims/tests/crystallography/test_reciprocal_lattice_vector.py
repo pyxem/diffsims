@@ -108,17 +108,6 @@ class TestReciprocalLatticeVector:
             "[[ 1.  1.  0.]",
         ]
 
-    def test_add_intensity(self, ferrite_phase):
-        rlv = ReciprocalLatticeVector.from_min_dspacing(ferrite_phase, 1.5)
-        rlv.intensity = 1
-        assert isinstance(rlv.intensity, np.ndarray)
-        assert np.allclose(rlv.intensity, np.ones(rlv.size))
-
-    def test_add_intensity_error(self, ferrite_phase):
-        rlv = ReciprocalLatticeVector.from_min_dspacing(ferrite_phase, 1.5)
-        with pytest.raises(ValueError):
-            rlv.intensity = [0, 1]
-
     @pytest.mark.parametrize("degrees", [True, False])
     def test_to_polar(self, ferrite_phase, degrees):
         rlv = ReciprocalLatticeVector.from_min_dspacing(ferrite_phase, 1.5)
