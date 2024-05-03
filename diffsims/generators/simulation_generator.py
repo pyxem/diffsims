@@ -193,7 +193,7 @@ class SimulationGenerator:
             recip = ReciprocalLatticeVector.from_min_dspacing(
                 p,
                 min_dspacing=1 / reciprocal_radius,
-                include_zero_beam=with_direct_beam,
+                include_zero_vector=with_direct_beam,
             )
             phase_vectors = []
             for rot in rotate.to_matrix():
