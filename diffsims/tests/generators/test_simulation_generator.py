@@ -270,3 +270,68 @@ def test_invalid_scattering_params():
 @pytest.mark.xfail(faises=NotImplementedError)
 def test_invalid_shape_model():
     generator = SimulationGenerator(300, shape_factor_model="dracula")
+
+
+def test_same_simulation_results():
+    # This test is to ensure that the new SimulationGenerator produces the same
+    # results as the old DiffractionLibraryGenerator. Based on comments from
+    # viljarjf in https://github.com/pyxem/diffsims/pull/201
+    # Shared parameters
+    latt = diffpy.structure.lattice.Lattice(2.464, 2.464, 6.711, 90, 90, 120)
+    atoms = [
+        diffpy.structure.atom.Atom(atype="C", xyz=[0.0, 0.0, 0.25], lattice=latt),
+        diffpy.structure.atom.Atom(atype="C", xyz=[0.0, 0.0, 0.75], lattice=latt),
+        diffpy.structure.atom.Atom(atype="C", xyz=[1 / 3, 2 / 3, 0.25], lattice=latt),
+        diffpy.structure.atom.Atom(atype="C", xyz=[2 / 3, 1 / 3, 0.75], lattice=latt),
+    ]
+    structure_matrix = diffpy.structure.Structure(atoms=atoms, lattice=latt)
+    calibration = 0.0262
+    reciprocal_radius = 1.6768
+    with_direct_beam = False
+    max_excitation_error = 0.1
+    accelerating_voltage = 200
+    shape = (128, 128)
+    sigma = 1.4
+    generator_kwargs = {
+        "accelerating_voltage": accelerating_voltage,
+        "scattering_params": "lobato",
+        "precession_angle": 0,
+        "shape_factor_model": "lorentzian",
+        "approximate_precession": True,
+        "minimum_intensity": 1e-20,
+    }
+    # The euler angles are different, as orix.Phase enforces x||a, z||c*
+    # euler_angles_old = np.array([[0, 90, 120]])
+    euler_angles_new = np.array([[0, 90, 90]])
+
+    # Old way. For creating the old data.
+    # struct_library = StructureLibrary(["Graphite"], [structure_matrix], [euler_angles_old])
+    # diff_gen = DiffractionGenerator(**generator_kwargs)
+    # lib_gen = DiffractionLibraryGenerator(diff_gen)
+    # diff_lib = lib_gen.get_diffraction_library(struct_library,
+    #                                            calibration=calibration,
+    #                                            reciprocal_radius=reciprocal_radius,
+    #                                            with_direct_beam=with_direct_beam,
+    #                                            max_excitation_error=max_excitation_error,
+    #                                            half_shape=shape[0] // 2,
+    #                                           )
+    # old_data = diff_lib["Graphite"]["simulations"][0].get_diffraction_pattern(shape=shape, sigma=sigma)
+
+    # New
+    p = Phase("Graphite", point_group="6/mmm", structure=structure_matrix)
+    gen = SimulationGenerator(**generator_kwargs)
+    rot = Rotation.from_euler(euler_angles_new, degrees=True)
+    sim = gen.calculate_diffraction2d(
+        phase=p,
+        rotation=rot,
+        reciprocal_radius=reciprocal_radius,
+        max_excitation_error=max_excitation_error,
+        with_direct_beam=with_direct_beam,
+    )
+    new_data = sim.get_diffraction_pattern(
+        shape=shape, sigma=sigma, calibration=calibration
+    )
+    old_data = np.load(
+        "old_simulation.npy",
+    )
+    np.testing.assert_allclose(new_data, old_data, atol=1e-8)

@@ -515,7 +515,7 @@ class ReciprocalLatticeVector(Vector3d):
             (3, 3) rotation matrix.
         """
         return ReciprocalLatticeVector(
-            phase=self.phase, xyz=np.matmul(self.data, rotation_matrix.T)
+            phase=self.phase, xyz=np.matmul(rotation_matrix.T, self.data.T).T
         )
 
     @property
