@@ -504,6 +504,16 @@ class ReciprocalLatticeVector(Vector3d):
         return 0.5 * self.gspacing
 
     def rotate_from_matrix(self, rotation_matrix):
+        """Rotate the reciprocal lattice vectors using a (3x3) rotation matrix.
+
+        This method creates a new instance of :class:`ReciprocalLatticeVector`
+        with the rotated vectors.
+
+        Parameters
+        ----------
+        rotation_matrix : numpy.ndarray
+            (3, 3) rotation matrix.
+        """
         return ReciprocalLatticeVector(
             phase=self.phase, xyz=np.matmul(self.data, rotation_matrix.T)
         )

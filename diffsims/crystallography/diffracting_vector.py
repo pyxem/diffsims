@@ -112,5 +112,6 @@ class DiffractingVector(ReciprocalLatticeVector):
 
     def calculate_structure_factor(self):
         raise NotImplementedError(
-            "Structure factor calculation not implemented for DiffractingVector"
+            "Structure factor calculation not implemented for DiffractionVector. "
+            "Use ReciprocalLatticeVector instead."
         )

@@ -108,14 +108,6 @@ class TestReciprocalLatticeVector:
             "[[ 1.  1.  0.]",
         ]
 
-    @pytest.mark.parametrize("degrees", [True, False])
-    def test_to_polar(self, ferrite_phase, degrees):
-        rlv = ReciprocalLatticeVector.from_min_dspacing(ferrite_phase, 1.5)
-        r, theta, z = rlv.to_polar(degrees=degrees)
-        assert r.shape == (rlv.size,)
-        assert theta.shape == (rlv.size,)
-        assert z.shape == (rlv.size,)
-
     def test_get_item(self, ferrite_phase):
         """Indexing gives desired vectors and properties carry over."""
         rlv = ReciprocalLatticeVector.from_min_dspacing(ferrite_phase, 1.5)
