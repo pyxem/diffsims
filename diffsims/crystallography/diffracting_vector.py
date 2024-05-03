@@ -46,6 +46,9 @@ class DiffractingVector(ReciprocalLatticeVector):
         Indices of reciprocal lattice vector(s), often preferred over
         ``hkl`` in trigonal and hexagonal lattices. Default is ``None``.
         This, ``xyz``, or ``hkl`` is required.
+    intensity : numpy.ndarray, list, or tuple, optional
+        Intensity of the diffraction vector(s). Default is ``None``.
+
 
     Examples
     --------
