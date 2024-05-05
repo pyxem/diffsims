@@ -1,4 +1,6 @@
 from diffsims.crystallography import DiffractingVector, ReciprocalLatticeVector
+from orix.quaternion import Rotation
+
 import pytest
 import numpy as np
 
@@ -40,3 +42,10 @@ class TestDiffractingVector:
         rlv = DiffractingVector.from_min_dspacing(ferrite_phase, 1.5)
         with pytest.raises(NotImplementedError):
             rlv.calculate_structure_factor()
+
+    def test_hl(self, ferrite_phase):
+        rlv = ReciprocalLatticeVector(ferrite_phase, hkl=[[1, 1, 1], [2, 0, 0]])
+        rot = Rotation.from_euler([90, 90, 0], degrees=True)
+        rotated_vectors = (~rot * rlv.to_miller()).data
+        dv = DiffractingVector(ferrite_phase, xyz=rotated_vectors, rotation=rot)
+        assert np.allclose(rlv.hkl, dv.hkl)

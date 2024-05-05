@@ -129,7 +129,7 @@ class DiffractingVector(ReciprocalLatticeVector):
         if self._rotation is None:
             return self.data
         else:
-            return np.matmul(self.data, self._rotation.to_matrix()[0])
+            return np.matmul(self.data, self._rotation.to_matrix()[0].T)
 
     @property
     def hkl(self):
