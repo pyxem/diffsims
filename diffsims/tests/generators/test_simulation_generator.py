@@ -18,6 +18,7 @@
 
 import numpy as np
 import pytest
+from pathlib import Path
 
 import diffpy.structure
 from orix.crystal_map import Phase
@@ -34,6 +35,9 @@ from diffsims.utils.shape_factor_models import (
 )
 from diffsims.simulations import Simulation1D
 from diffsims.utils.sim_utils import is_lattice_hexagonal
+
+TEST_DATA_DIR = Path(__file__).parent
+FILE1 = TEST_DATA_DIR / "old_simulation.npy"
 
 
 @pytest.fixture(params=[(300)])
@@ -331,7 +335,5 @@ def test_same_simulation_results():
     new_data = sim.get_diffraction_pattern(
         shape=shape, sigma=sigma, calibration=calibration
     )
-    old_data = np.load(
-        "old_simulation.npy",
-    )
+    old_data = np.load(FILE1)
     np.testing.assert_allclose(new_data, old_data, atol=1e-8)

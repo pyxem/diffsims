@@ -361,13 +361,11 @@ class SimulationGenerator:
             control. If not set will be set equal to max_excitation_error.
         """
         initial_hkl = recip.hkl
-        rotated_vectors = recip.rotate_from_matrix(rot)
+        rotated_vectors = np.matmul(rot.T, recip.data.T).T
 
         if with_direct_beam:
-            rotated_vectors = np.vstack([rotated_vectors.data, [0, 0, 0]])
+            rotated_vectors = np.vstack([rotated_vectors, [0, 0, 0]])
             initial_hkl = np.vstack([initial_hkl, [0, 0, 0]])
-        else:
-            rotated_vectors = rotated_vectors.data
         # Identify the excitation errors of all points (distance from point to Ewald sphere)
         r_sphere = 1 / wavelength
         r_spot = np.sqrt(np.sum(np.square(rotated_vectors[:, :2]), axis=1))
@@ -394,7 +392,9 @@ class SimulationGenerator:
         # select these reflections
         intersected_vectors = rotated_vectors[intersection]
         intersected_vectors = DiffractingVector(
-            phase=recip.phase, xyz=intersected_vectors
+            phase=recip.phase,
+            xyz=intersected_vectors,
+            rotation=rot,
         )
         excitation_error = excitation_error[intersection]
         r_spot = r_spot[intersection]

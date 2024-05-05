@@ -18,6 +18,7 @@
 
 from diffsims.crystallography import ReciprocalLatticeVector
 import numpy as np
+from orix.vector.miller import _transform_space
 
 
 class DiffractingVector(ReciprocalLatticeVector):
@@ -30,6 +31,9 @@ class DiffractingVector(ReciprocalLatticeVector):
     focus on the subset of reciporical lattice vectors that are relevant for
     electron diffraction based on the intersection of the Ewald sphere with the
     reciprocal lattice.
+
+    This class is only used internally to store the DiffractionVectors generated from the
+    DiffractionSimulation class. It is not (currently) intended to be used directly by the user.
 
     Parameters
     ----------
@@ -48,6 +52,10 @@ class DiffractingVector(ReciprocalLatticeVector):
         This, ``xyz``, or ``hkl`` is required.
     intensity : numpy.ndarray, list, or tuple, optional
         Intensity of the diffraction vector(s). Default is ``None``.
+    rotation : 3x3 numpy.ndarray, list, or tuple, optional
+        Rotation matrix previously applied to the reciprocal lattice vector(s) and the
+        lattice of the phase. Default is ``None`` which corresponds to the
+        identity matrix.
 
 
     Examples
@@ -71,7 +79,9 @@ class DiffractingVector(ReciprocalLatticeVector):
 
     """
 
-    def __init__(self, phase, xyz=None, hkl=None, hkil=None, intensity=None):
+    def __init__(
+        self, phase, xyz=None, hkl=None, hkil=None, intensity=None, rotation=None
+    ):
         super().__init__(phase, xyz=xyz, hkl=hkl, hkil=hkil)
         if intensity is None:
             self._intensity = np.full(self.shape, np.nan)
@@ -79,6 +89,7 @@ class DiffractingVector(ReciprocalLatticeVector):
             raise ValueError("Length of intensity array must match number of vectors")
         else:
             self._intensity = np.array(intensity)
+        self._rotation = rotation
 
     def __getitem__(self, key):
         dv_new = super().__getitem__(key)
@@ -112,6 +123,19 @@ class DiffractingVector(ReciprocalLatticeVector):
         if len(value) != self.size:
             raise ValueError("Length of intensity array must match number of vectors")
         self._intensity = np.array(value)
+
+    @property
+    def lattice_aligned_data(self):
+        if self._rotation is None:
+            return self.data
+        else:
+            return np.matmul(self.data, self._rotation.T)
+
+    @property
+    def hkl(self):
+        return _transform_space(
+            self.lattice_aligned_data, "c", "r", self.phase.structure.lattice
+        )
 
     def calculate_structure_factor(self):
         raise NotImplementedError(

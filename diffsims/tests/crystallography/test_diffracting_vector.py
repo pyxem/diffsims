@@ -1,4 +1,4 @@
-from diffsims.crystallography import DiffractingVector
+from diffsims.crystallography import DiffractingVector, ReciprocalLatticeVector
 import pytest
 import numpy as np
 
