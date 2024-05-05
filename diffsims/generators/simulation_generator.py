@@ -196,7 +196,7 @@ class SimulationGenerator:
                 include_zero_vector=with_direct_beam,
             )
             phase_vectors = []
-            for rot in rotate.to_matrix():
+            for rot in rotate:
                 # Calculate the reciprocal lattice vectors that intersect the Ewald sphere.
                 (
                     intersected_vectors,
@@ -361,7 +361,7 @@ class SimulationGenerator:
             control. If not set will be set equal to max_excitation_error.
         """
         initial_hkl = recip.hkl
-        rotated_vectors = np.matmul(rot.T, recip.data.T).T
+        rotated_vectors = (~rot * recip.to_miller()).data
 
         if with_direct_beam:
             rotated_vectors = np.vstack([rotated_vectors, [0, 0, 0]])

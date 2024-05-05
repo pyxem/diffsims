@@ -52,7 +52,7 @@ class DiffractingVector(ReciprocalLatticeVector):
         This, ``xyz``, or ``hkl`` is required.
     intensity : numpy.ndarray, list, or tuple, optional
         Intensity of the diffraction vector(s). Default is ``None``.
-    rotation : 3x3 numpy.ndarray, list, or tuple, optional
+    rotation : orix.quaternion.Rotation, optional
         Rotation matrix previously applied to the reciprocal lattice vector(s) and the
         lattice of the phase. Default is ``None`` which corresponds to the
         identity matrix.
@@ -129,7 +129,7 @@ class DiffractingVector(ReciprocalLatticeVector):
         if self._rotation is None:
             return self.data
         else:
-            return np.matmul(self.data, self._rotation.T)
+            return np.matmul(self.data, self._rotation.to_matrix()[0])
 
     @property
     def hkl(self):
