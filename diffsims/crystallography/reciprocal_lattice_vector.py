@@ -78,10 +78,6 @@ class ReciprocalLatticeVector(Vector3d):
         Indices of reciprocal lattice vector(s), often preferred over
         ``hkl`` in trigonal and hexagonal lattices. Default is ``None``.
         This, ``xyz``, or ``hkl`` is required.
-    lattice_rotation : 3x3 numpy.ndarray, list, or tuple, optional
-        Rotation matrix applied to the reciprocal lattice vector(s) and the
-        lattice of the phase. Default is ``None`` which corresponds to the
-        identity matrix.
 
     Examples
     --------
