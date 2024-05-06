@@ -568,6 +568,9 @@ class Simulation2D:
             whether to include the direct beam in the plot
         ax : matplotlib Axes, optional
             axes on which to draw the pattern. If `None`, a new axis is created
+        interactive : bool, optional
+            Whether to add sliders for selecting the rotation and phase. This
+            is an experimental feature and will evolve/change in the future.
         **kwargs :
             passed to ax.scatter() method
 
