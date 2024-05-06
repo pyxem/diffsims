@@ -21,7 +21,7 @@ import copy
 
 import numpy as np
 import matplotlib.pyplot as plt
-import math
+from matplotlib.widgets import Slider
 from orix.crystal_map import Phase
 from orix.quaternion import Rotation
 from orix.vector import Vector3d
@@ -192,6 +192,8 @@ class Simulation2D:
         # for slicing a simulation
         self.iphase = PhaseGetter(self)
         self.irot = RotationGetter(self)
+        self._rotation_slider = None
+        self._phase_slider = None
 
     def get_simulation(self, item):
         """Return the rotation and the phase index of the simulation"""
@@ -465,6 +467,60 @@ class Simulation2D:
         _plot = fig.axes[0]
         _plot.set_title("Rotations" + self.current_phase.name)
 
+    def _get_spots(
+        self,
+        in_plane_angle,
+        direct_beam_position,
+        mirrored,
+        units,
+        calibration,
+        include_direct_beam,
+    ):
+        """Returns the spots of the current phase and rotation for plotting"""
+        coords = self._get_transformed_coordinates(
+            in_plane_angle,
+            direct_beam_position,
+            mirrored,
+            units=units,
+            calibration=calibration,
+        )
+        if include_direct_beam:
+            spots = coords.data[:, :2]
+            spots = np.concatenate((spots, np.array([direct_beam_position])))
+            intensity = np.concatenate((coords.intensity, np.array([1])))
+        else:
+            spots = coords.data[:, :2]
+            intensity = coords.intensity
+        return spots, intensity, coords
+
+    def _get_labels(self, coords, intensity, min_label_intensity, xlim, ylim):
+        condition = (
+            (coords.data[:, 0] > min(xlim))
+            & (coords.data[:, 0] < max(xlim))
+            & (coords.data[:, 1] > min(ylim))
+            & (coords.data[:, 1] < max(ylim))
+        )
+        in_range_coords = coords.data[condition]
+        millers = np.round(
+            np.matmul(
+                np.matmul(in_range_coords, self.get_current_rotation_matrix().T),
+                coords.phase.structure.lattice.base.T,
+            )
+        ).astype(np.int16)
+        labels = []
+        for miller, coordinate, inten in zip(millers, in_range_coords, intensity):
+            if np.isnan(inten) or inten > min_label_intensity:
+                label = "("
+                for index in miller:
+                    if index < 0:
+                        label += r"$\bar{" + str(abs(index)) + r"}$"
+                    else:
+                        label += str(abs(index))
+                    label += " "
+                label = label[:-1] + ")"
+                labels.append((coordinate, label))
+        return labels
+
     def plot(
         self,
         size_factor=1,
@@ -479,6 +535,7 @@ class Simulation2D:
         include_direct_beam=True,
         calibration=0.1,
         ax=None,
+        interactive=False,
         **kwargs,
     ):
         """A quick-plot function for a simulation of spots
@@ -522,27 +579,23 @@ class Simulation2D:
         -----
         spot size scales with the square root of the intensity.
         """
+
         if label_formatting is None:
             label_formatting = {}
         if direct_beam_position is None:
             direct_beam_position = (0, 0)
         if ax is None:
-            _, ax = plt.subplots()
+            fig, ax = plt.subplots()
             ax.set_aspect("equal")
-        coords = self._get_transformed_coordinates(
-            in_plane_angle,
-            direct_beam_position,
-            mirrored,
+
+        spots, intensity, coords = self._get_spots(
+            in_plane_angle=in_plane_angle,
+            direct_beam_position=direct_beam_position,
+            mirrored=mirrored,
             units=units,
             calibration=calibration,
+            include_direct_beam=include_direct_beam,
         )
-        if include_direct_beam:
-            spots = coords.data[:, :2]
-            spots = np.concatenate((spots, np.array([direct_beam_position])))
-            intensity = np.concatenate((coords.intensity, np.array([1])))
-        else:
-            spots = coords.data[:, :2]
-            intensity = coords.intensity
         sp = ax.scatter(
             spots[:, 0],
             spots[:, 1],
@@ -551,25 +604,13 @@ class Simulation2D:
         )
         ax.set_xlim(-self.reciporical_radius, self.reciporical_radius)
         ax.set_ylim(-self.reciporical_radius, self.reciporical_radius)
-
+        texts = []
         if show_labels:
-            millers = np.round(
-                np.matmul(
-                    np.matmul(coords.data, self.get_current_rotation_matrix().T),
-                    coords.phase.structure.lattice.base.T,
-                )
-            ).astype(np.int16)
-            # only label the points inside the axes
             xlim = ax.get_xlim()
             ylim = ax.get_ylim()
-            condition = (
-                (coords.data[:, 0] > min(xlim))
-                & (coords.data[:, 0] < max(xlim))
-                & (coords.data[:, 1] > min(ylim))
-                & (coords.data[:, 1] < max(ylim))
+            labels = self._get_labels(
+                coords, intensity, min_label_intensity, xlim, ylim
             )
-            millers = millers[condition]
-            coords = coords.data[condition]
             # default alignment options
             if (
                 "ha" not in label_offset
@@ -578,28 +619,118 @@ class Simulation2D:
                 label_formatting["ha"] = "center"
             if "va" not in label_offset and "verticalalignment" not in label_formatting:
                 label_formatting["va"] = "center"
-            for miller, coordinate, inten in zip(millers, coords, intensity):
-                if np.isnan(inten) or inten > min_label_intensity:
-                    label = "("
-                    for index in miller:
-                        if index < 0:
-                            label += r"$\bar{" + str(abs(index)) + r"}$"
-                        else:
-                            label += str(abs(index))
-                        label += " "
-                    label = label[:-1] + ")"
+            for coordinate, label in labels:
+                texts.append(
                     ax.text(
                         coordinate[0] + label_offset[0],
                         coordinate[1] + label_offset[1],
                         label,
                         **label_formatting,
                     )
-            if units == "real":
-                ax.set_xlabel(r"$\AA^{-1}$")
-                ax.set_ylabel(r"$\AA^{-1}$")
+                )
+        if units == "real":
+            ax.set_xlabel(r"$\AA^{-1}$")
+            ax.set_ylabel(r"$\AA^{-1}$")
+        else:
+            ax.set_xlabel("pixels")
+            ax.set_ylabel("pixels")
+        if interactive and self.has_multiple_rotations or self.has_multiple_phases:
+            axrot = fig.add_axes([0.5, 0.05, 0.4, 0.03])
+            axphase = fig.add_axes([0.1, 0.05, 0.2, 0.03])
+
+            fig.subplots_adjust(left=0.25, bottom=0.25)
+            if self.has_multiple_rotations and self.has_multiple_phases:
+                max_rot = np.max([r.size for r in self.rotations])
+                rotation_slider = Slider(
+                    ax=axrot,
+                    label="Rotation",
+                    valmin=0,
+                    valmax=max_rot - 1,
+                    valinit=self.rotation_index,
+                    valstep=1,
+                    orientation="horizontal",
+                )
+                phase_slider = Slider(
+                    ax=axphase,
+                    label="Phase  ",
+                    valmin=0,
+                    valmax=self.phases.size - 1,
+                    valinit=self.phase_index,
+                    valstep=1,
+                    orientation="horizontal",
+                )
+            elif self.has_multiple_rotations:
+                rotation_slider = Slider(
+                    ax=axrot,
+                    label="Rotation",
+                    valmin=0,
+                    valmax=self.rotations.size - 1,
+                    valinit=self.rotation_index,
+                    valstep=1,
+                    orientation="horizontal",
+                )
+                phase_slider = None
             else:
-                ax.set_xlabel("pixels")
-                ax.set_ylabel("pixels")
+                rotation_slider = None
+                phase_slider = Slider(
+                    ax=axrot,
+                    label="Phase",
+                    valmin=0,
+                    valmax=self.phases.size - 1,
+                    valinit=self.phase_index,
+                    valstep=1,
+                    orientation="horizontal",
+                )
+            self._rotation_slider = rotation_slider
+            self._phase_slider = phase_slider
+
+            def update(val):
+                if self.has_multiple_rotations and self.has_multiple_phases:
+                    self.rotation_index = int(rotation_slider.val)
+                    self.phase_index = int(phase_slider.val)
+                    self._rotation_slider.valmax = (
+                        self.rotations[self.phase_index].size - 1
+                    )
+                elif self.has_multiple_rotations:
+                    self.rotation_index = int(rotation_slider.val)
+                else:
+                    self.phase_index = int(phase_slider.val)
+                spots, intensity, coords = self._get_spots(
+                    in_plane_angle,
+                    direct_beam_position,
+                    mirrored,
+                    units,
+                    calibration,
+                    include_direct_beam,
+                )
+                sp.set(
+                    offsets=spots,
+                    sizes=size_factor * np.sqrt(intensity),
+                )
+                for t in texts:
+                    t.remove()
+                texts.clear()
+                if show_labels:
+                    xlim = ax.get_xlim()
+                    ylim = ax.get_ylim()
+                    labels = self._get_labels(
+                        coords, intensity, min_label_intensity, xlim, ylim
+                    )
+                    for coordinate, label in labels:
+                        texts.append(
+                            ax.text(
+                                coordinate[0] + label_offset[0],
+                                coordinate[1] + label_offset[1],
+                                label,
+                                **label_formatting,
+                            )
+                        )
+                fig.canvas.draw_idle()
+
+            if self._rotation_slider is not None:
+                self._rotation_slider.on_changed(update)
+            if self._phase_slider is not None:
+                self._phase_slider.on_changed(update)
         return ax, sp
 
 
