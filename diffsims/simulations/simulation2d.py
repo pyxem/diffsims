@@ -634,12 +634,14 @@ class Simulation2D:
         else:
             ax.set_xlabel("pixels")
             ax.set_ylabel("pixels")
-        if interactive and self.has_multiple_rotations or self.has_multiple_phases:
+        if (
+            interactive and self.has_multiple_rotations or self.has_multiple_phases
+        ):  # pragma: no cover
             axrot = fig.add_axes([0.5, 0.05, 0.4, 0.03])
             axphase = fig.add_axes([0.1, 0.05, 0.2, 0.03])
 
             fig.subplots_adjust(left=0.25, bottom=0.25)
-            if self.has_multiple_rotations and self.has_multiple_phases:
+            if self.has_multiple_phases:
                 max_rot = np.max([r.size for r in self.rotations])
                 rotation_slider = Slider(
                     ax=axrot,
@@ -659,7 +661,7 @@ class Simulation2D:
                     valstep=1,
                     orientation="horizontal",
                 )
-            elif self.has_multiple_rotations:
+            else:  # self.has_multiple_rotations:
                 rotation_slider = Slider(
                     ax=axrot,
                     label="Rotation",
@@ -670,17 +672,6 @@ class Simulation2D:
                     orientation="horizontal",
                 )
                 phase_slider = None
-            else:
-                rotation_slider = None
-                phase_slider = Slider(
-                    ax=axrot,
-                    label="Phase",
-                    valmin=0,
-                    valmax=self.phases.size - 1,
-                    valinit=self.phase_index,
-                    valstep=1,
-                    orientation="horizontal",
-                )
             self._rotation_slider = rotation_slider
             self._phase_slider = phase_slider
 
@@ -717,6 +708,7 @@ class Simulation2D:
                         coords, intensity, min_label_intensity, xlim, ylim
                     )
                     for coordinate, label in labels:
+                        # this could be faster using a TextCollection when available in matplotlib
                         texts.append(
                             ax.text(
                                 coordinate[0] + label_offset[0],

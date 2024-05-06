@@ -193,7 +193,9 @@ class TestSinglePhaseMultiSimulation:
         gen = SimulationGenerator(accelerating_voltage=200)
         rot = Rotation.from_axes_angles([1, 0, 0], (0, 15, 30, 45), degrees=True)
         coords = DiffractingVector(
-            phase=al_phase, xyz=[[1, 0, 0], [0, 1, 0], [1, 1, 0], [1, 1, 1]]
+            phase=al_phase,
+            xyz=[[1, 0, 0], [0, 1, 0], [1, 1, 0], [1, 1, 1]],
+            intensity=[1, 2, 3, 4],
         )
 
         vectors = [coords, coords, coords, coords]
