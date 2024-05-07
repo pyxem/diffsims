@@ -49,3 +49,9 @@ class TestDiffractingVector:
         rotated_vectors = (~rot * rlv.to_miller()).data
         dv = DiffractingVector(ferrite_phase, xyz=rotated_vectors, rotation=rot)
         assert np.allclose(rlv.hkl, dv.hkl)
+
+    def test_flat_polar(self, ferrite_phase):
+        dv = DiffractingVector(ferrite_phase, xyz=[[1, 1, 1], [0.5, -0.5, 0]])
+        r, t = dv.to_flat_polar()
+        assert np.allclose(r, [np.sqrt(2), 0.70710678])
+        assert np.allclose(t, [np.pi / 4, -np.pi / 4])

@@ -142,3 +142,12 @@ class DiffractingVector(ReciprocalLatticeVector):
             "Structure factor calculation not implemented for DiffractionVector. "
             "Use ReciprocalLatticeVector instead."
         )
+
+    def to_flat_polar(self):
+        """Return the vectors in polar coordinates as projected onto the x,y plane"""
+        r = np.linalg.norm(self.data[:, :2], axis=1)
+        theta = np.arctan2(
+            self.data[:, 1],
+            self.data[:, 0],
+        )
+        return r, theta

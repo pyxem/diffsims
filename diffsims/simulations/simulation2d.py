@@ -26,7 +26,7 @@ from orix.crystal_map import Phase
 from orix.quaternion import Rotation
 from orix.vector import Vector3d
 
-from diffsims.crystallography.reciprocal_lattice_vector import ReciprocalLatticeVector
+from diffsims.crystallography._diffracting_vector import DiffractingVector
 from diffsims.pattern.detector_functions import add_shot_and_point_spread
 
 # to avoid circular imports
@@ -114,9 +114,9 @@ class Simulation2D:
         self,
         phases: Sequence[Phase],
         coordinates: Union[
-            ReciprocalLatticeVector,
-            Sequence[ReciprocalLatticeVector],
-            Sequence[Sequence[ReciprocalLatticeVector]],
+            DiffractingVector,
+            Sequence[DiffractingVector],
+            Sequence[Sequence[DiffractingVector]],
         ],
         rotations: Union[Rotation, Sequence[Rotation]],
         simulation_generator: "SimulationGenerator",
@@ -128,9 +128,9 @@ class Simulation2D:
         Parameters
         ----------
         coordinates
-            The list of ReciprocalLatticeVector objects for each phase and rotation. If there
-            are multiple phases, then this should be a list of lists of ReciprocalLatticeVector objects.
-            If there is only one phase, then this should be a list of ReciprocalLatticeVector objects.
+            The list of DiffractingVector objects for each phase and rotation. If there
+            are multiple phases, then this should be a list of lists of DiffractingVector objects.
+            If there is only one phase, then this should be a list of DiffractingVector objects.
         rotations
             The list of Rotation objects for each phase. If there are multiple phases, then this should
             be a list of Rotation objects. If there is only one phase, then this should be a single
@@ -144,9 +144,9 @@ class Simulation2D:
         """
         # Basic data
         if isinstance(rotations, Rotation) and rotations.size == 1:
-            if not isinstance(coordinates, ReciprocalLatticeVector):
+            if not isinstance(coordinates, DiffractingVector):
                 raise ValueError(
-                    "If there is only one rotation, then the coordinates must be a ReciprocalLatticeVector object"
+                    "If there is only one rotation, then the coordinates must be a DiffractingVector object"
                 )
         elif isinstance(rotations, Rotation):
             coordinates = np.array(coordinates, dtype=object)
@@ -166,7 +166,7 @@ class Simulation2D:
                 )
 
             for r, c in zip(rotations, coordinates):
-                if isinstance(c, ReciprocalLatticeVector):
+                if isinstance(c, DiffractingVector):
                     c = np.array(
                         [
                             c,
@@ -325,7 +325,7 @@ class Simulation2D:
         theta_templates = np.zeros((len(flattened_vectors), max_num_spots))
         intensities_templates = np.zeros((len(flattened_vectors), max_num_spots))
         for i, v in enumerate(flattened_vectors):
-            r, t, _ = v.to_polar()
+            r, t = v.to_flat_polar()
             if radial_axes is not None and azimuthal_axes is not None:
                 r = get_closest(radial_axes, r)
                 t = get_closest(azimuthal_axes, t)
