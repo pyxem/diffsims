@@ -18,6 +18,7 @@
 
 from diffsims.crystallography import ReciprocalLatticeVector
 import numpy as np
+from orix.vector.miller import _transform_space
 
 
 class DiffractingVector(ReciprocalLatticeVector):
@@ -81,13 +82,14 @@ class DiffractingVector(ReciprocalLatticeVector):
     def __init__(
         self, phase, xyz=None, hkl=None, hkil=None, intensity=None, rotation=None
     ):
-        super().__init__(phase, xyz=xyz, hkl=hkl, hkil=hkil, rotation=rotation)
+        super().__init__(phase, xyz=xyz, hkl=hkl, hkil=hkil)
         if intensity is None:
             self._intensity = np.full(self.shape, np.nan)
         elif len(intensity) != self.size:
             raise ValueError("Length of intensity array must match number of vectors")
         else:
             self._intensity = np.array(intensity)
+        self._rotation = rotation
 
     def __getitem__(self, key):
         dv_new = super().__getitem__(key)
@@ -121,6 +123,19 @@ class DiffractingVector(ReciprocalLatticeVector):
         if len(value) != self.size:
             raise ValueError("Length of intensity array must match number of vectors")
         self._intensity = np.array(value)
+
+    @property
+    def lattice_aligned_data(self):
+        if self._rotation is None:
+            return self.data
+        else:
+            return np.matmul(self.data, self._rotation.to_matrix()[0].T)
+
+    @property
+    def hkl(self):
+        return _transform_space(
+            self.lattice_aligned_data, "c", "r", self.phase.structure.lattice
+        )
 
     def calculate_structure_factor(self):
         raise NotImplementedError(

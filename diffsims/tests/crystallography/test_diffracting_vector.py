@@ -43,11 +43,12 @@ class TestDiffractingVector:
         with pytest.raises(NotImplementedError):
             rlv.calculate_structure_factor()
 
-    def test_hkl(self, ferrite_phase):
+    def test_hl(self, ferrite_phase):
         rlv = ReciprocalLatticeVector(ferrite_phase, hkl=[[1, 1, 1], [2, 0, 0]])
         rot = Rotation.from_euler([90, 90, 0], degrees=True)
-        rotated = rot * rlv
-        assert np.allclose(rlv.hkl, rotated.hkl)
+        rotated_vectors = (~rot * rlv.to_miller()).data
+        dv = DiffractingVector(ferrite_phase, xyz=rotated_vectors, rotation=rot)
+        assert np.allclose(rlv.hkl, dv.hkl)
 
     def test_flat_polar(self, ferrite_phase):
         dv = DiffractingVector(ferrite_phase, xyz=[[1, 1, 1], [0.5, -0.5, 0]])

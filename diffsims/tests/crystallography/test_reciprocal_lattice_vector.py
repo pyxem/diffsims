@@ -20,7 +20,6 @@ from diffpy.structure import Atom, Lattice, Structure
 import numpy as np
 from orix.crystal_map import Phase
 from orix.vector import Miller, Vector3d
-from orix.quaternion import Rotation
 import pytest
 
 from diffsims.crystallography import ReciprocalLatticeVector
@@ -79,7 +78,6 @@ class TestReciprocalLatticeVector:
         rlv = ReciprocalLatticeVector.from_min_dspacing(ferrite_phase, d)
         assert rlv.size == desired_size
 
-    @pytest.mark.parametrize("with_zb", [True, False])
     @pytest.mark.parametrize(
         "hkl, desired_highest_hkl, desired_lowest_hkl, desired_size",
         [
@@ -95,33 +93,12 @@ class TestReciprocalLatticeVector:
         desired_highest_hkl,
         desired_lowest_hkl,
         desired_size,
-        with_zb,
     ):
         """Class method gives desired number of vectors and indices."""
-        rlv = ReciprocalLatticeVector.from_highest_hkl(
-            silicon_carbide_phase, hkl, include_zero_vector=with_zb
-        )
-        if with_zb:
-            desired_lowest_hkl = [0, 0, 0]
-            desired_size += 1
-        assert rlv.size == desired_size
-        assert np.allclose(rlv[-1].hkl, desired_lowest_hkl)
+        rlv = ReciprocalLatticeVector.from_highest_hkl(silicon_carbide_phase, hkl)
         assert np.allclose(rlv[0].hkl, desired_highest_hkl)
-
-    def test_rotate(self, ferrite_phase):
-        rlv = ReciprocalLatticeVector(ferrite_phase, hkl=[[1, 1, 1], [2, 0, 0]])
-        rot = Rotation.from_euler([90, 90, 0], degrees=True)
-        rotated = rot * rlv
-        assert np.allclose(rlv.hkl, rotated.hkl)
-
-    def test_2rotate(self, ferrite_phase):
-        rlv = ReciprocalLatticeVector(ferrite_phase, hkl=[[1, 1, 1], [2, 0, 0]])
-        rot = Rotation.from_euler([90, 90, 0], degrees=True)
-        rot2 = Rotation.from_euler([90, 45, 0], degrees=True)
-        rotated = rot * rlv
-        rotated2 = rot2 * rotated
-        assert np.allclose(rlv.hkl, rotated.hkl)
-        assert np.allclose(rlv.hkl, rotated2.hkl)
+        assert np.allclose(rlv[-1].hkl, desired_lowest_hkl)
+        assert rlv.size == desired_size
 
     def test_repr(self, ferrite_phase):
         """String representation gives desired (start of) string."""
@@ -151,14 +128,6 @@ class TestReciprocalLatticeVector:
             rlv.phase.structure.lattice.abcABG(),
             rlv[20:23].phase.structure.lattice.abcABG(),
         )
-
-    def test_get_item_multi_rotation(self, ferrite_phase):
-        """Indexing gives desired vectors and properties carry over."""
-        rlv = ReciprocalLatticeVector(ferrite_phase, [1, 1, 1])
-        rot = Rotation.from_euler([[90, 90, 0], [35, 25, 0]], degrees=True)
-        rlv = rot * rlv
-        assert rlv[0].rotation.size == 1
-        assert rlv[:2].rotation.size == 2
 
     def test_get_hkil(self, silicon_carbide_phase):
         """Miller index properties give desired values."""
@@ -285,13 +254,6 @@ class TestReciprocalLatticeVector:
         rlv = ReciprocalLatticeVector(phase=phase, hkl=[1, 1, 1])
         with pytest.raises(ValueError, match=f"The phase {phase} must have a"):
             _ = rlv.allowed
-
-    def test_init_with_wrong_rotation_size_raises(self, nickel_phase):
-        rot = Rotation.from_euler([[90, 90, 0], [90, 90, 0], [90, 90, 0]], degrees=True)
-        with pytest.raises(ValueError, match="Rotation must be a single "):
-            rlv_ni = ReciprocalLatticeVector(
-                nickel_phase, hkl=[[1, 1, 1], [2, 0, 0]], rotation=rot
-            )
 
     def test_multiplicity(self, nickel_phase, silicon_carbide_phase):
         """Correct vector multiplicity for cubic and hexagonal phases."""

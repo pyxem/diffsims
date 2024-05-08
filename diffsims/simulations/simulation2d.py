@@ -253,8 +253,6 @@ class Simulation2D:
             return self.rotations.size
 
     def deepcopy(self):
-        self._rotation_slider = None
-        self._phase_slider = None
         return copy.deepcopy(self)
 
     def _get_transformed_coordinates(
@@ -381,8 +379,6 @@ class Simulation2D:
         produces reasonably good patterns when the lattice parameters are on
         the order of 0.5nm and the default size and sigma are used.
         """
-        if shape is None:
-            shape = (256, 256)
         if direct_beam_position is None:
             direct_beam_position = (shape[1] // 2, shape[0] // 2)
         transformed = self._get_transformed_coordinates(
@@ -505,7 +501,12 @@ class Simulation2D:
             & (coords.data[:, 1] < max(ylim))
         )
         in_range_coords = coords.data[condition]
-        millers = coords.hkl
+        millers = np.round(
+            np.matmul(
+                np.matmul(in_range_coords, self.get_current_rotation_matrix().T),
+                coords.phase.structure.lattice.base.T,
+            )
+        ).astype(np.int16)
         labels = []
         for miller, coordinate, inten in zip(millers, in_range_coords, intensity):
             if np.isnan(inten) or inten > min_label_intensity:
@@ -639,10 +640,11 @@ class Simulation2D:
         if (
             interactive and self.has_multiple_rotations or self.has_multiple_phases
         ):  # pragma: no cover
+            axrot = fig.add_axes([0.5, 0.05, 0.4, 0.03])
+            axphase = fig.add_axes([0.1, 0.05, 0.2, 0.03])
+
             fig.subplots_adjust(left=0.25, bottom=0.25)
             if self.has_multiple_phases:
-                axphase = fig.add_axes([0.1, 0.05, 0.2, 0.03])
-                axrot = fig.add_axes([0.5, 0.05, 0.4, 0.03])
                 max_rot = np.max([r.size for r in self.rotations])
                 rotation_slider = Slider(
                     ax=axrot,
@@ -663,7 +665,6 @@ class Simulation2D:
                     orientation="horizontal",
                 )
             else:  # self.has_multiple_rotations:
-                axrot = fig.add_axes([0.5, 0.05, 0.4, 0.03])
                 rotation_slider = Slider(
                     ax=axrot,
                     label="Rotation",

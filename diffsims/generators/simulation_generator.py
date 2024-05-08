@@ -361,8 +361,7 @@ class SimulationGenerator:
             control. If not set will be set equal to max_excitation_error.
         """
         initial_hkl = recip.hkl
-
-        rotated_vectors = (~rot * recip).data
+        rotated_vectors = (~rot * recip.to_miller()).data
 
         if with_direct_beam:
             rotated_vectors = np.vstack([rotated_vectors, [0, 0, 0]])
@@ -395,7 +394,7 @@ class SimulationGenerator:
         intersected_vectors = DiffractingVector(
             phase=recip.phase,
             xyz=intersected_vectors,
-            rotation=~rot,
+            rotation=rot,
         )
         excitation_error = excitation_error[intersection]
         r_spot = r_spot[intersection]
