@@ -19,6 +19,7 @@
 from diffsims.crystallography import ReciprocalLatticeVector
 import numpy as np
 from orix.vector.miller import _transform_space
+from orix.quaternion import Rotation
 
 
 class DiffractingVector(ReciprocalLatticeVector):
@@ -90,7 +91,18 @@ class DiffractingVector(ReciprocalLatticeVector):
             self._intensity = np.array(intensity)
 
     def __getitem__(self, key):
-        dv_new = super().__getitem__(key)
+        new_data = self.data[key]
+        dv_new = self.__class__(self.phase, xyz=new_data)
+
+        if np.isnan(self.structure_factor).all():
+            dv_new._structure_factor = np.full(dv_new.shape, np.nan, dtype="complex128")
+
+        else:
+            dv_new._structure_factor = self.structure_factor[key]
+        if np.isnan(self.theta).all():
+            dv_new._theta = np.full(dv_new.shape, np.nan)
+        else:
+            dv_new._theta = self.theta[key]
         if np.isnan(self.intensity).all():
             dv_new._intensity = np.full(dv_new.shape, np.nan)
         else:
@@ -104,6 +116,36 @@ class DiffractingVector(ReciprocalLatticeVector):
             dv_new._intensity = slic
 
         return dv_new
+
+    @property
+    def basis_rotation(self):
+        """
+        Returns the lattice basis rotation.
+        """
+        return Rotation.from_matrix(self.phase.structure.lattice.baserot)
+
+    def rotate_with_basis(self, rotation):
+        """Rotate both vectors and the basis with a given `Rotation`.
+        This differs from simply multiplying with a `Rotation`,
+        as that would NOT update the basis.
+
+        Parameters
+        ----------
+        rot : orix.quaternion.Rotation
+            A rotation to apply to vectors and the basis.
+        """
+
+        if rotation.size != 1:
+            raise ValueError("Rotation must be a single rotation")
+        # rotate basis
+        new_phase = self.phase.deepcopy()
+        br = new_phase.structure.lattice.baserot
+        # In case the base rotation is set already
+        new_br = br @ rotation.to_matrix().squeeze()
+        new_phase.structure.lattice.setLatPar(baserot=new_br)
+        # rotate vectors
+        vecs = ~rotation * self.to_miller()
+        return ReciprocalLatticeVector(new_phase, xyz=vecs.data)
 
     @property
     def intensity(self):

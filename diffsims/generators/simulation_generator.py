@@ -24,7 +24,6 @@ import numpy as np
 from orix.quaternion import Rotation
 from orix.crystal_map import Phase
 
-from diffsims.crystallography import ReciprocalLatticeVector
 from diffsims.crystallography._diffracting_vector import DiffractingVector
 from diffsims.utils.shape_factor_models import (
     linear,
@@ -191,7 +190,7 @@ class SimulationGenerator:
         # Rotate using all the rotations in the list
         vectors = []
         for p, rotate in zip(phase, rotation):
-            recip = ReciprocalLatticeVector.from_min_dspacing(
+            recip = DiffractingVector.from_min_dspacing(
                 p,
                 min_dspacing=1 / reciprocal_radius,
                 include_zero_vector=with_direct_beam,
@@ -335,7 +334,7 @@ class SimulationGenerator:
 
     def get_intersecting_reflections(
         self,
-        recip: ReciprocalLatticeVector,
+        recip: DiffractingVector,
         rot: np.ndarray,
         wavelength: float,
         max_excitation_error: float,

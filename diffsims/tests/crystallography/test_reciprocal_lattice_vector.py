@@ -155,20 +155,6 @@ class TestReciprocalLatticeVector:
         assert np.allclose(rlv.i, [0, 0, 0, 0, 0, 0])
         assert np.allclose(rlv.l, [3, 2, 1, -1, -2, -3])
 
-    def test_get_lattice_basis_rotation(self, ferrite_phase):
-        """Rotation matrix to align the lattice basis with the Cartesian
-        basis is correct.
-        """
-        rlv = ReciprocalLatticeVector(ferrite_phase, hkl=[[1, 1, 1], [2, 0, 0]])
-        rot = rlv.basis_rotation
-        assert np.allclose(rot.to_matrix(), np.eye(3))
-
-    def test_rotation_with_basis_raises(self, ferrite_phase):
-        rlv = ReciprocalLatticeVector(ferrite_phase, hkl=[[1, 1, 1], [2, 0, 0]])
-        rot = Rotation.from_euler([[90, 90, 0], [90, 90, 1]], degrees=True)
-        with pytest.raises(ValueError):
-            rlv.rotate_with_basis(rotation=rot)
-
     def test_gspacing_dspacing_scattering_parameter(self, ferrite_phase):
         """Length and scattering parameter properties give desired
         values.
