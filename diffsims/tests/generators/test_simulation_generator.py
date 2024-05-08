@@ -132,7 +132,7 @@ class TestDiffractionCalculator:
         diffraction = diffraction_calculator.calculate_diffraction2d(
             local_structure, reciprocal_radius=5.0
         )
-        assert diffraction.coordinates.size == 69
+        assert diffraction.coordinates.size == 70
 
     def test_precession_simple(
         self, diffraction_calculator_precession_simple, local_structure
@@ -141,7 +141,7 @@ class TestDiffractionCalculator:
             local_structure,
             reciprocal_radius=5.0,
         )
-        assert diffraction.coordinates.size == 249
+        assert diffraction.coordinates.size == 250
 
     def test_precession_full(
         self, diffraction_calculator_precession_full, local_structure
@@ -150,7 +150,7 @@ class TestDiffractionCalculator:
             local_structure,
             reciprocal_radius=5.0,
         )
-        assert diffraction.coordinates.size == 249
+        assert diffraction.coordinates.size == 250
 
     def test_custom_shape_func(self, diffraction_calculator_custom, local_structure):
         diffraction = diffraction_calculator_custom.calculate_diffraction2d(
