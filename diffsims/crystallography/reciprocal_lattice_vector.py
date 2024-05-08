@@ -25,6 +25,7 @@ from diffpy.structure import Structure
 import numba as nb
 import numpy as np
 from orix.vector import Miller, Vector3d
+from orix.quaternion import Rotation
 from orix.vector.miller import (
     _check_hkil,
     _get_highest_hkl,
@@ -78,6 +79,8 @@ class ReciprocalLatticeVector(Vector3d):
         Indices of reciprocal lattice vector(s), often preferred over
         ``hkl`` in trigonal and hexagonal lattices. Default is ``None``.
         This, ``xyz``, or ``hkl`` is required.
+    rotation : orix.quaternion.Rotation, optional
+        Rotation to apply to the vectors. Default is ``None``.
 
     Examples
     --------
@@ -100,7 +103,7 @@ class ReciprocalLatticeVector(Vector3d):
 
     """
 
-    def __init__(self, phase, xyz=None, hkl=None, hkil=None):
+    def __init__(self, phase, xyz=None, hkl=None, hkil=None, rotation=None):
         self.phase = phase
         self._raise_if_no_point_group()
 
@@ -120,13 +123,24 @@ class ReciprocalLatticeVector(Vector3d):
             self._coordinate_format = "hkl"
             xyz = _transform_space(hkl, "r", "c", phase.structure.lattice)
         super().__init__(xyz)
-
+        if rotation is None:
+            self._rotation = Rotation.from_euler([0, 0, 0], degrees=True)
+        elif rotation.size == 1 or self.size == rotation.size:
+            self._rotation = rotation
+        else:
+            raise ValueError(
+                "Rotation must be a single Rotation or have the same size as the vectors"
+            )
         self._theta = np.full(self.shape, np.nan)
         self._structure_factor = np.full(self.shape, np.nan, dtype="complex128")
 
     def __getitem__(self, key):
         new_data = self.data[key]
-        rlv_new = self.__class__(self.phase, xyz=new_data)
+        if self.rotation.size == 1:
+            rotation = self.rotation
+        else:
+            rotation = self.rotation[key]
+        rlv_new = self.__class__(self.phase, xyz=new_data, rotation=rotation)
 
         if np.isnan(self.structure_factor).all():
             rlv_new._structure_factor = np.full(
@@ -151,6 +165,28 @@ class ReciprocalLatticeVector(Vector3d):
         phase_name = self.phase.name
         return f"{name} {shape}, {phase_name} ({symmetry})\n" f"{data}"
 
+    def get_kwargs(self, new_data, *args, **kwargs):
+        if "rotation" in kwargs:
+            mult_rotation = kwargs.pop("rotation")
+            new_rotation = mult_rotation * self.rotation
+        else:
+            new_rotation = self.rotation
+        return dict(phase=self.phase, xyz=new_data, rotation=new_rotation)
+
+    @property
+    def rotation(self):
+        """
+        Rotation applied to the vectors, for calculating hkl
+        """
+        return self._rotation
+
+    @property
+    def unrotated_data(self):
+        """
+        Un-rotated data for calculating hkl
+        """
+        return (~self.rotation * self).data
+
     @property
     def hkl(self):
         """Miller indices.
@@ -173,7 +209,9 @@ class ReciprocalLatticeVector(Vector3d):
 
         """
 
-        return _transform_space(self.data, "c", "r", self.phase.structure.lattice)
+        return _transform_space(
+            self.unrotated_data, "c", "r", self.phase.structure.lattice
+        )
 
     @property
     def hkil(self):
@@ -1070,9 +1108,11 @@ class ReciprocalLatticeVector(Vector3d):
         """
 
         idx = _get_indices_from_highest(highest_indices=hkl)
+        new = cls(phase, hkl=idx).unique()
         if include_zero_vector:
-            idx = np.vstack((idx, np.zeros(3, dtype=int)))
-        return cls(phase, hkl=idx).unique()
+            new_data = np.vstack((new.hkl, np.zeros(3, dtype=int)))
+            new = ReciprocalLatticeVector(phase, hkl=new_data)
+        return new
 
     @classmethod
     def from_min_dspacing(cls, phase, min_dspacing=0.7, include_zero_vector=False):

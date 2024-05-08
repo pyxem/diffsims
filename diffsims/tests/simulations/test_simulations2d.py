@@ -342,6 +342,10 @@ class TestMultiPhaseMultiSimulation:
         with pytest.raises(ValueError):
             phase_slic = multi_simulation.iphase[3.1]
 
+    def test_get_current_rotation(self, multi_simulation):
+        rot = multi_simulation.get_current_rotation_matrix()
+        np.testing.assert_array_equal(rot, multi_simulation.rotations[0].to_matrix()[0])
+
     def test_irot(self, multi_simulation):
         sliced_sim = multi_simulation.irot[0]
         assert isinstance(sliced_sim, Simulation2D)
