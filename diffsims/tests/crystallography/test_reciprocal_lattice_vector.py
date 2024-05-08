@@ -74,10 +74,17 @@ class TestReciprocalLatticeVector:
         with pytest.raises(ValueError, match="Exactly one of "):
             _ = ReciprocalLatticeVector(nickel_phase)
 
+    @pytest.mark.parametrize("include_zero_beam", [True, False])
     @pytest.mark.parametrize("d, desired_size", [(2, 18), (1, 92), (0.5, 750)])
-    def test_init_from_min_dspacing(self, ferrite_phase, d, desired_size):
+    def test_init_from_min_dspacing(
+        self, ferrite_phase, d, desired_size, include_zero_beam
+    ):
         """Class method gives desired number of vectors."""
-        rlv = ReciprocalLatticeVector.from_min_dspacing(ferrite_phase, d)
+        rlv = ReciprocalLatticeVector.from_min_dspacing(
+            ferrite_phase, d, include_zero_vector=include_zero_beam
+        )
+        if include_zero_beam:
+            desired_size += 1
         assert rlv.size == desired_size
 
     @pytest.mark.parametrize("include_zero_beam", [True, False])
@@ -155,26 +162,6 @@ class TestReciprocalLatticeVector:
         rlv = ReciprocalLatticeVector(ferrite_phase, hkl=[[1, 1, 1], [2, 0, 0]])
         rot = rlv.basis_rotation
         assert np.allclose(rot.to_matrix(), np.eye(3))
-
-    def test_set_lattice_basis_rotation(self, ferrite_phase):
-        """Setting the lattice basis rotation works."""
-        rlv = ReciprocalLatticeVector(ferrite_phase, hkl=[[1, 1, 1], [2, 0, 0]])
-        rot = Rotation.from_euler([90, 90, 0], degrees=True)
-        rlv.basis_rotation = rot
-        assert np.allclose(rot.to_matrix(), rlv.basis_rotation.to_matrix())
-        rlv.basis_rotation = rot.to_matrix()[0]
-        assert np.allclose(rot.to_matrix(), rlv.basis_rotation.to_matrix())
-
-    def test_set_lattice_basis_rotation_raises(self, ferrite_phase):
-        """Setting the lattice basis rotation works."""
-        rlv = ReciprocalLatticeVector(ferrite_phase, hkl=[[1, 1, 1], [2, 0, 0]])
-        rot = Rotation.from_euler([[90, 90, 0], [90, 90, 1]], degrees=True)
-        with pytest.raises(ValueError):
-            rlv.basis_rotation = rot
-        with pytest.raises(ValueError):
-            rlv.basis_rotation = rot.to_matrix()
-        with pytest.raises(ValueError):
-            rlv.basis_rotation = [1, 2, 3]
 
     def test_rotation_with_basis_raises(self, ferrite_phase):
         rlv = ReciprocalLatticeVector(ferrite_phase, hkl=[[1, 1, 1], [2, 0, 0]])

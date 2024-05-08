@@ -18,7 +18,6 @@
 
 from collections import defaultdict
 from copy import deepcopy
-from typing import Tuple
 
 from diffpy.structure.symmetryutilities import expandPosition
 from diffpy.structure import Structure
@@ -159,23 +158,6 @@ class ReciprocalLatticeVector(Vector3d):
         Returns the lattice basis rotation.
         """
         return Rotation.from_matrix(self.phase.structure.lattice.baserot)
-
-    @basis_rotation.setter
-    def basis_rotation(self, value):
-        """
-        Sets the lattice basis rotation.
-        """
-        if isinstance(value, Rotation):
-            if value.size != 1:
-                raise ValueError("Rotation must be a single rotation")
-            matrix = value.to_matrix().squeeze()
-        elif isinstance(value, np.ndarray):
-            if value.shape != (3, 3):
-                raise ValueError("Rotation matrix must be 3x3")
-            matrix = value
-        else:
-            raise ValueError("Rotation must be a Rotation or a 3x3 numpy array")
-        self.phase.structure.lattice.setLatPar(baserot=matrix)
 
     def rotate_with_basis(self, rotation):
         """Rotate both vectors and the basis with a given `Rotation`.
@@ -1186,9 +1168,11 @@ class ReciprocalLatticeVector(Vector3d):
         dspacing = 1 / phase.structure.lattice.rnorm(hkl)
         idx = dspacing >= min_dspacing
         hkl = hkl[idx]
+        new = cls(phase, hkl=hkl).unique()
         if include_zero_vector:
-            hkl = np.vstack((hkl, np.zeros(3, dtype=int)))
-        return cls(phase, hkl=hkl).unique()
+            new_data = np.vstack((new.hkl, np.zeros(3, dtype=int)))
+            new = ReciprocalLatticeVector(phase, hkl=new_data)
+        return new
 
     @classmethod
     def from_miller(cls, miller):

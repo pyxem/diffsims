@@ -58,3 +58,10 @@ class TestDiffractingVector:
         r, t = dv.to_flat_polar()
         assert np.allclose(r, [np.sqrt(2), 0.70710678])
         assert np.allclose(t, [np.pi / 4, -np.pi / 4])
+        dv = DiffractingVector(
+            ferrite_phase,
+            xyz=[[[1, 1, 1], [0.5, -0.5, 0]], [[1, 1, 1], [0.5, -0.5, 0]]],
+        )
+        r, t = dv.to_flat_polar()
+        assert np.allclose(r, [np.sqrt(2), np.sqrt(2), 0.70710678, 0.70710678])
+        assert np.allclose(t, [np.pi / 4, np.pi / 4, -np.pi / 4, -np.pi / 4])

@@ -27,13 +27,14 @@ class DiffractingVector(ReciprocalLatticeVector):
 
     All lengths are assumed to be given in Å or inverse Å.
 
-    This extends the :class:`ReciprocalLatticeVector` class.  Diffracting Vectors
-    focus on the subset of reciporical lattice vectors that are relevant for
+    This extends the :class:`ReciprocalLatticeVector` class.  `DiffractingVector`
+    focus on the subset of reciprocal lattice vectors that are relevant for
     electron diffraction based on the intersection of the Ewald sphere with the
     reciprocal lattice.
 
     This class is only used internally to store the DiffractionVectors generated from the
-    DiffractionSimulation class. It is not (currently) intended to be used directly by the user.
+    :class:`~diffsims.simulations.DiffractionSimulation` class. It is not (currently)
+    intended to be used directly by the user.
 
     Parameters
     ----------
@@ -129,9 +130,10 @@ class DiffractingVector(ReciprocalLatticeVector):
 
     def to_flat_polar(self):
         """Return the vectors in polar coordinates as projected onto the x,y plane"""
-        r = np.linalg.norm(self.data[:, :2], axis=1)
+        flat_self = self.flatten()
+        r = np.linalg.norm(flat_self.data[:, :2], axis=1)
         theta = np.arctan2(
-            self.data[:, 1],
-            self.data[:, 0],
+            flat_self.data[:, 1],
+            flat_self.data[:, 0],
         )
         return r, theta
