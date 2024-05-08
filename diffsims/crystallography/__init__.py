@@ -27,7 +27,6 @@ from diffsims.crystallography.reciprocal_lattice_point import (
     get_hkl,
 )
 from diffsims.crystallography.reciprocal_lattice_vector import ReciprocalLatticeVector
-from diffsims.crystallography._diffracting_vector import DiffractingVector
 
 __all__ = [
     "get_equivalent_hkl",
@@ -35,5 +34,4 @@ __all__ = [
     "get_hkl",
     "ReciprocalLatticePoint",
     "ReciprocalLatticeVector",
-    "DiffractingVector",
 ]

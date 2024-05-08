@@ -25,7 +25,7 @@ from orix.quaternion import Rotation
 
 from diffsims.simulations import Simulation2D
 from diffsims.generators.simulation_generator import SimulationGenerator
-from diffsims.crystallography import DiffractingVector
+from diffsims.crystallography._diffracting_vector import DiffractingVector
 
 
 @pytest.fixture(scope="module")

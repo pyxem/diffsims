@@ -24,7 +24,8 @@ import numpy as np
 from orix.quaternion import Rotation
 from orix.crystal_map import Phase
 
-from diffsims.crystallography import ReciprocalLatticeVector, DiffractingVector
+from diffsims.crystallography import ReciprocalLatticeVector
+from diffsims.crystallography._diffracting_vector import DiffractingVector
 from diffsims.utils.shape_factor_models import (
     linear,
     atanc,
@@ -361,10 +362,11 @@ class SimulationGenerator:
             control. If not set will be set equal to max_excitation_error.
         """
         initial_hkl = recip.hkl
-        rotated_vectors = (~rot * recip.to_miller()).data
-
+        rotated_vectors = recip.rotate_with_basis(rotation=rot)
+        rotated_phase = rotated_vectors.phase
+        rotated_vectors = rotated_vectors.data
         if with_direct_beam:
-            rotated_vectors = np.vstack([rotated_vectors, [0, 0, 0]])
+            rotated_vectors = np.vstack([rotated_vectors.data, [0, 0, 0]])
             initial_hkl = np.vstack([initial_hkl, [0, 0, 0]])
         # Identify the excitation errors of all points (distance from point to Ewald sphere)
         r_sphere = 1 / wavelength
@@ -392,9 +394,8 @@ class SimulationGenerator:
         # select these reflections
         intersected_vectors = rotated_vectors[intersection]
         intersected_vectors = DiffractingVector(
-            phase=recip.phase,
+            phase=rotated_phase,
             xyz=intersected_vectors,
-            rotation=rot,
         )
         excitation_error = excitation_error[intersection]
         r_spot = r_spot[intersection]

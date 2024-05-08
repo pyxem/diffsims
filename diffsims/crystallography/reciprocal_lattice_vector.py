@@ -25,6 +25,7 @@ from diffpy.structure import Structure
 import numba as nb
 import numpy as np
 from orix.vector import Miller, Vector3d
+from orix.quaternion import Rotation
 from orix.vector.miller import (
     _check_hkil,
     _get_highest_hkl,
@@ -78,6 +79,8 @@ class ReciprocalLatticeVector(Vector3d):
         Indices of reciprocal lattice vector(s), often preferred over
         ``hkl`` in trigonal and hexagonal lattices. Default is ``None``.
         This, ``xyz``, or ``hkl`` is required.
+    rotation : orix.quaternion.Rotation, optional
+        Rotation to apply to the vectors. Default is ``None``.
 
     Examples
     --------
@@ -120,7 +123,6 @@ class ReciprocalLatticeVector(Vector3d):
             self._coordinate_format = "hkl"
             xyz = _transform_space(hkl, "r", "c", phase.structure.lattice)
         super().__init__(xyz)
-
         self._theta = np.full(self.shape, np.nan)
         self._structure_factor = np.full(self.shape, np.nan, dtype="complex128")
 
@@ -150,6 +152,53 @@ class ReciprocalLatticeVector(Vector3d):
         data = np.array_str(self.coordinates, precision=0, suppress_small=True)
         phase_name = self.phase.name
         return f"{name} {shape}, {phase_name} ({symmetry})\n" f"{data}"
+
+    @property
+    def basis_rotation(self):
+        """
+        Returns the lattice basis rotation.
+        """
+        return Rotation.from_matrix(self.phase.structure.lattice.baserot)
+
+    @basis_rotation.setter
+    def basis_rotation(self, value):
+        """
+        Sets the lattice basis rotation.
+        """
+        if isinstance(value, Rotation):
+            if value.size != 1:
+                raise ValueError("Rotation must be a single rotation")
+            matrix = value.to_matrix().squeeze()
+        elif isinstance(value, np.ndarray):
+            if value.shape != (3, 3):
+                raise ValueError("Rotation matrix must be 3x3")
+            matrix = value
+        else:
+            raise ValueError("Rotation must be a Rotation or a 3x3 numpy array")
+        self.phase.structure.lattice.setLatPar(baserot=matrix)
+
+    def rotate_with_basis(self, rotation):
+        """Rotate both vectors and the basis with a given `Rotation`.
+        This differs from simply multiplying with a `Rotation`,
+        as that would NOT update the basis.
+
+        Parameters
+        ----------
+        rot : orix.quaternion.Rotation
+            A rotation to apply to vectors and the basis.
+        """
+
+        if rotation.size != 1:
+            raise ValueError("Rotation must be a single rotation")
+        # rotate basis
+        new_phase = self.phase.deepcopy()
+        br = new_phase.structure.lattice.baserot
+        # In case the base rotation is set already
+        new_br = br @ rotation.to_matrix().squeeze()
+        new_phase.structure.lattice.setLatPar(baserot=new_br)
+        # rotate vectors
+        vecs = ~rotation * self.to_miller()
+        return ReciprocalLatticeVector(new_phase, xyz=vecs.data)
 
     @property
     def hkl(self):
@@ -1070,9 +1119,11 @@ class ReciprocalLatticeVector(Vector3d):
         """
 
         idx = _get_indices_from_highest(highest_indices=hkl)
+        new = cls(phase, hkl=idx).unique()
         if include_zero_vector:
-            idx = np.vstack((idx, np.zeros(3, dtype=int)))
-        return cls(phase, hkl=idx).unique()
+            new_data = np.vstack((new.hkl, np.zeros(3, dtype=int)))
+            new = ReciprocalLatticeVector(phase, hkl=new_data)
+        return new
 
     @classmethod
     def from_min_dspacing(cls, phase, min_dspacing=0.7, include_zero_vector=False):
