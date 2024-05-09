@@ -14,7 +14,7 @@ Added
 -----
 - Explicit support for Python 3.11.
 - Added Pre-Commit for code formatting.
-
+- Added deprecation tools for deprecating functions, parameters, methods, and properties.
 
 Changed
 -------

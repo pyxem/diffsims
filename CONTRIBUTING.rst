@@ -128,6 +128,27 @@ Useful hints on testing:
   error-prone. See `pytest documentation for more details
   <https://doc.pytest.org/en/latest/how-to/parametrize.html>`_.
 
+
+Deprecations
+------------
+We attempt to adhere to semantic versioning as best we can. This means that as little,
+ideally no, functionality should break between minor releases. Deprecation warnings
+are raised whenever possible and feasible for functions/methods/properties/arguments,
+so that users get a heads-up one (minor) release before something is removed or changes,
+with a possible alternative to be used.
+
+
+A deprecation decorator should be placed right above the object signature to be deprecated.
+
+.. code-block:: python
+    from diffsims.utils._deprecated import deprecated
+    @deprecated(since=0.8, removal=0.9, alternative="bar")
+    def foo(self, n):
+        return n + 1
+    @property
+    @deprecated(since=0.9, removal=0.10, alternative="another", is_function=True)
+
+
 Build and write documentation
 -----------------------------
 
