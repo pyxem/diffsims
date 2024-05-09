@@ -17,21 +17,36 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
+from orix.crystal_map import Phase
 from orix.quaternion.symmetry import get_point_group
 from orix.vector import Vector3d
 import pytest
 
-from diffsims.crystallography import get_equivalent_hkl, get_highest_hkl, get_hkl
+from diffsims.crystallography import (
+    get_equivalent_hkl,
+    get_highest_hkl,
+    get_hkl,
+    ReciprocalLatticeVector,
+)
 
 
 class TestGetHKL:
     @pytest.mark.parametrize("highest_hkl, n", [([1, 2, 3], 105), ([1, 1, 1], 27)])
     def test_get_hkl(self, highest_hkl, n):
+        highest_hkl = np.array(highest_hkl)
         hkl = get_hkl(highest_hkl)
         assert np.allclose(hkl.max(axis=0), highest_hkl)
-        assert np.allclose(hkl.min(axis=0), -np.array(highest_hkl))
+        assert np.allclose(hkl.min(axis=0), -highest_hkl)
         assert hkl.shape[0] == n
         assert np.allclose(abs(hkl).min(axis=0), [0, 0, 0])  # Contains zero-vector
+
+        # Slightly different implementation (from orix)
+        phase = Phase(point_group="1")
+        g = ReciprocalLatticeVector.from_highest_hkl(phase, highest_hkl)
+        assert np.allclose(g.data.max(axis=0), highest_hkl)
+        assert np.allclose(g.data.min(axis=0), -highest_hkl)
+        assert g.size == n - 1
+        assert np.allclose(abs(g.data).min(axis=0), [0, 0, 0])
 
     @pytest.mark.parametrize(
         "d, hkl", [(0.5, [6, 6, 21]), (1, [3, 3, 11]), (1.5, [2, 2, 7])]
@@ -42,9 +57,15 @@ class TestGetHKL:
         )
         assert np.allclose(hkl_out, hkl)
 
+        # Slightly different implementation (from orix)
+        g = ReciprocalLatticeVector.from_min_dspacing(silicon_carbide_phase, d)
+        assert np.allclose(g.hkl.max(axis=0) + 1, hkl_out)
+
     def test_get_equivalent_hkl(self):
-        pgm3m = get_point_group(225)
-        hkl1 = get_equivalent_hkl([1, 1, 1], operations=pgm3m, unique=True)
+        phase_225 = Phase(space_group=225)
+        hkl1 = get_equivalent_hkl(
+            [1, 1, 1], operations=phase_225.point_group, unique=True
+        )
         # fmt: off
         assert np.allclose(
             hkl1.data,
@@ -60,22 +81,31 @@ class TestGetHKL:
             ]
         )
         # fmt: on
+        g1 = ReciprocalLatticeVector(phase_225, hkl=[1, 1, 1])
+        assert np.allclose(g1.symmetrise().hkl, hkl1.data)
 
-        hkl2 = get_equivalent_hkl([1, 1, 1], operations=pgm3m)
-        assert hkl2.shape[0] == 48
+        hkl2 = get_equivalent_hkl([1, 1, 1], operations=phase_225.point_group)
+        assert hkl2.shape[0] == g1.symmetrise().size * 6 == 48
 
-        pg6mmm = get_point_group(186)
+        phase_186 = Phase(space_group=186)
         hkl3, mult3 = get_equivalent_hkl(
-            [2, 2, 0], operations=pg6mmm, return_multiplicity=True, unique=True
+            [2, 2, 0],
+            operations=phase_186.point_group,
+            return_multiplicity=True,
+            unique=True,
         )
-        assert mult3 == 12
+        g3 = ReciprocalLatticeVector(phase_186, hkl=[2, 2, 0])
+        assert mult3 == g3.symmetrise().size == 12
         assert np.allclose(hkl3.data[:2], [[2, 2, 0], [-2.7321, 0.7321, 0]], atol=1e-4)
 
         hkl4, mult4 = get_equivalent_hkl(
             Vector3d([[2, 2, 0], [4, 0, 0]]),
-            pg6mmm,
+            phase_186.point_group,
             unique=True,
             return_multiplicity=True,
         )
+        g4 = ReciprocalLatticeVector(phase_186, hkl=[[2, 2, 0], [4, 0, 0]])
+        g4_sym, mult4_2 = g4.symmetrise(return_multiplicity=True)
         assert np.allclose(mult4, [12, 6])
-        assert hkl4.shape == (18,)
+        assert np.allclose(mult4_2, [12, 6])
+        assert hkl4.shape[0] == g4_sym.size == 18
