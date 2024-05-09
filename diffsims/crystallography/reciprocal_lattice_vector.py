@@ -119,7 +119,6 @@ class ReciprocalLatticeVector(Vector3d):
             self._coordinate_format = "hkl"
             xyz = _transform_space(hkl, "r", "c", phase.structure.lattice)
         super().__init__(xyz)
-
         self._theta = np.full(self.shape, np.nan)
         self._structure_factor = np.full(self.shape, np.nan, dtype="complex128")
 
@@ -1023,7 +1022,7 @@ class ReciprocalLatticeVector(Vector3d):
             return new_out
 
     @classmethod
-    def from_highest_hkl(cls, phase, hkl):
+    def from_highest_hkl(cls, phase, hkl, include_zero_vector=False):
         """Create a set of unique reciprocal lattice vectors from three
         highest indices.
 
@@ -1033,6 +1032,8 @@ class ReciprocalLatticeVector(Vector3d):
             A phase with a crystal lattice and symmetry.
         hkl : numpy.ndarray, list, or tuple
             Three highest reciprocal lattice vector indices.
+        include_zero_vector : bool
+            If ``True``, include the zero vector (000) in the set of vectors.
 
         Examples
         --------
@@ -1067,10 +1068,14 @@ class ReciprocalLatticeVector(Vector3d):
         """
 
         idx = _get_indices_from_highest(highest_indices=hkl)
-        return cls(phase, hkl=idx).unique()
+        new = cls(phase, hkl=idx).unique()
+        if include_zero_vector:
+            new_data = np.vstack((new.hkl, np.zeros(3, dtype=int)))
+            new = ReciprocalLatticeVector(phase, hkl=new_data)
+        return new
 
     @classmethod
-    def from_min_dspacing(cls, phase, min_dspacing=0.7):
+    def from_min_dspacing(cls, phase, min_dspacing=0.7, include_zero_vector=False):
         """Create a set of unique reciprocal lattice vectors with a
         a direct space interplanar spacing greater than a lower
         threshold.
@@ -1083,6 +1088,8 @@ class ReciprocalLatticeVector(Vector3d):
             Smallest interplanar spacing to consider. Default is 0.7,
             in the unit used to define the lattice parameters in
             ``phase``, which is assumed to be Ångström.
+        include_zero_vector: bool
+            If ``True``, include the zero vector (000) in the set of vectors.
 
         Examples
         --------
@@ -1128,7 +1135,11 @@ class ReciprocalLatticeVector(Vector3d):
         dspacing = 1 / phase.structure.lattice.rnorm(hkl)
         idx = dspacing >= min_dspacing
         hkl = hkl[idx]
-        return cls(phase, hkl=hkl).unique()
+        new = cls(phase, hkl=hkl).unique()
+        if include_zero_vector:
+            new_data = np.vstack((new.hkl, np.zeros(3, dtype=int)))
+            new = cls(phase, hkl=new_data)
+        return new
 
     @classmethod
     def from_miller(cls, miller):

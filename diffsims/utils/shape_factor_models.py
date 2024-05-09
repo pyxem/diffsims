@@ -17,6 +17,7 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
+from scipy.integrate import quad
 
 
 __all__ = [
@@ -217,3 +218,53 @@ def lorentzian_precession(
     z = np.sqrt(u**2 + 4 * sigma**2 * excitation_error**2)
     fac = (sigma / np.pi) * np.sqrt(2 * (u + z) / z**2)
     return fac
+
+
+def _shape_factor_precession(
+    excitation_error, r_spot, phi, shape_function, max_excitation, **kwargs
+):
+    """
+    The rel-rod shape factors for reflections taking into account
+    precession
+
+    Parameters
+    ----------
+    excitation_error : np.ndarray (N,)
+        An array of excitation errors
+    r_spot : np.ndarray (N,)
+        An array representing the distance of spots from the z-axis in A^-1
+    phi : float
+        The precession angle in radians
+    shape_function : callable
+        A function that describes the influence from the rel-rods. Should be
+        in the form func(excitation_error: np.ndarray, max_excitation: float,
+        **kwargs)
+    max_excitation : float
+        Parameter to describe the "extent" of the rel-rods.
+
+    Other parameters
+    ----------------
+    ** kwargs: passed directly to shape_function
+
+    Notes
+    -----
+    * We calculate excitation_error as z_spot - z_sphere so that it is
+    negative when the spot is outside the ewald sphere and positive when inside
+    conform W&C chapter 12, section 12.6
+    * We assume that the sample is a thin infinitely wide slab perpendicular
+    to the optical axis, so that the shape factor function only depends on the
+    distance from each spot to the Ewald sphere parallel to the optical axis.
+    """
+    shf = np.zeros(excitation_error.shape)
+    # loop over all spots
+    for i, (excitation_error_i, r_spot_i) in enumerate(zip(excitation_error, r_spot)):
+
+        def integrand(theta):
+            # Equation 8 in L.Palatinus et al. Acta Cryst. (2019) B75, 512-522
+            S_zero = excitation_error_i
+            variable_term = r_spot_i * (phi) * np.cos(theta)
+            return shape_function(S_zero + variable_term, max_excitation, **kwargs)
+
+        # average factor integrated over the full revolution of the beam
+        shf[i] = (1 / (2 * np.pi)) * quad(integrand, 0, 2 * np.pi)[0]
+    return shf
