@@ -28,6 +28,8 @@ Removed
 -------
 - Removed support for Python 3.6 and Python 3.7, leaving 3.8 as the oldest supported
   version.
+- ``ReciprocalLatticePoint`` class; Use the ``ReciprocalLatticeVector`` class instead,
+  which is an improved replacement.
 
 Fixed
 -----

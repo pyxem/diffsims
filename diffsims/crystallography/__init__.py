@@ -20,8 +20,7 @@
 g, hkl) for a crystal structure.
 """
 
-from diffsims.crystallography.reciprocal_lattice_point import (
-    ReciprocalLatticePoint,
+from diffsims.crystallography.get_hkl import (
     get_equivalent_hkl,
     get_highest_hkl,
     get_hkl,
@@ -32,6 +31,5 @@ __all__ = [
     "get_equivalent_hkl",
     "get_highest_hkl",
     "get_hkl",
-    "ReciprocalLatticePoint",
     "ReciprocalLatticeVector",
 ]
