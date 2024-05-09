@@ -10,5 +10,6 @@ include README.rst
 include readthedocs.yaml
 include setup.cfg
 include setup.py
+include diffsims/tests/**/*.npy
 
 recursive-include doc Makefile make.bat *.rst *.py *.png
