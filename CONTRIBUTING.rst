@@ -137,18 +137,16 @@ are raised whenever possible and feasible for functions/methods/properties/argum
 so that users get a heads-up one (minor) release before something is removed or changes,
 with a possible alternative to be used.
 
-The decorator should be placed right above the object signature to be deprecated::
+
+A deprecation decorator should be placed right above the object signature to be deprecated.
 
 .. code-block:: python
-    from diffsims.utils._deprecated import deprecate
-    @deprecate(since=0.8, removal=0.9, alternative="bar")
+    from diffsims.utils._deprecated import deprecated
+    @deprecated(since=0.8, removal=0.9, alternative="bar")
     def foo(self, n):
         return n + 1
-
     @property
-    @deprecate(since=0.9, removal=0.10, alternative="another", is_function=True)
-    def this_property(self):
-        return 2
+    @deprecated(since=0.9, removal=0.10, alternative="another", is_function=True)
 
 
 Build and write documentation
