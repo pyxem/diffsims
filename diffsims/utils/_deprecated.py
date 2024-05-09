@@ -18,8 +18,10 @@
 
 
 """Helper functions and classes for managing diffsims.
+
 This module and documentation is only relevant for diffsims developers,
 not for users.
+
 .. warning:
     This module and its submodules are for internal use only.  Do not
     use them in your own code. We may change the API at any time with no
@@ -37,11 +39,10 @@ import numpy as np
 class deprecated:
     """Decorator to mark deprecated functions with an informative
     warning.
+
     Adapted from
-    `scikit-image
-    <https://github.com/scikit-image/scikit-image/blob/main/skimage/_shared/utils.py>`_
-    and `matplotlib
-    <https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/_api/deprecation.py>`_.
+    `scikit-image<https://github.com/scikit-image/scikit-image/blob/main/skimage/_shared/utils.py>`_
+    and `matplotlib<https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/_api/deprecation.py>`_.
     """
 
     def __init__(
@@ -52,6 +53,7 @@ class deprecated:
         removal: Union[str, int, float, None] = None,
     ):
         """Visible deprecation warning.
+
         Parameters
         ----------
         since
@@ -116,6 +118,7 @@ class deprecated:
 class deprecated_argument:
     """Decorator to remove an argument from a function or method's
     signature.
+
     Adapted from `scikit-image
     <https://github.com/scikit-image/scikit-image/blob/main/skimage/_shared/utils.py>`_.
     """

@@ -140,15 +140,15 @@ with a possible alternative to be used.
 The decorator should be placed right above the object signature to be deprecated::
 
 .. code-block:: python
-    >>> from diffsims.utils._deprecated import deprecate
-    >>> @deprecate(since=0.8, removal=0.9, alternative="bar")
-    >>> def foo(self, n):
-    >>>     return n + 1
+    from diffsims.utils._deprecated import deprecate
+    @deprecate(since=0.8, removal=0.9, alternative="bar")
+    def foo(self, n):
+        return n + 1
 
-    >>> @property
-    >>> @deprecate(since=0.9, removal=0.10, alternative="another", is_function=True)
-    >>> def this_property(self):
-    >>>     return 2
+    @property
+    @deprecate(since=0.9, removal=0.10, alternative="another", is_function=True)
+    def this_property(self):
+        return 2
 
 
 Build and write documentation
