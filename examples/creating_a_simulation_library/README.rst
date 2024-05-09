@@ -1,6 +1,4 @@
-.. _examples-index:
+Creating a Simulation Library
+=============================
 
-Simulation Library
-==================
-
-These examples show specific workflows for creating a library of simulations
+These examples show specific workflows for creating a library of simulations.

@@ -175,3 +175,5 @@ sphinx_gallery_conf = {
     "ignore_pattern": "_sgskip.py",  # pattern to define which will not be executed
     "reference_url": {"diffsims": None},
 }
+
+autosummary_generate = True

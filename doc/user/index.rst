@@ -12,6 +12,13 @@ use diffsims.
     installation.rst
 
 .. toctree::
+    :caption: Usage
+    :maxdepth: 2
+    https://github.com/pyxem/diffsims-demos
+    ../examples/index.rst
+
+    installation.rst
+.. toctree::
     :caption: Resources
 
     related_projects.rst

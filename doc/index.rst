@@ -14,32 +14,6 @@ diffsims is an open-source Python library for simulating diffraction.
     changelog.rst
     Examples <examples/index>
 
-
-Installation
-============
-
-diffsims can be installed with `pip <https://pypi.org/project/diffsims>`__ or
-`conda <https://anaconda.org/conda-forge/diffsims>`__:
-
-.. tab-set::
-
-    .. tab-item:: pip
-
-        .. code-block:: bash
-
-            pip install diffsims
-
-    .. tab-item:: conda
-
-        .. code-block:: bash
-
-            conda install diffsims -c conda-forge
-
-Further details are available in the :doc:`installation guide <user/installation>`.
-
-Learning resources
-==================
-
 .. See: https://sphinx-design.readthedocs.io/en/furo-theme/grids.html
 .. grid:: 2
     :gutter: 2
@@ -67,6 +41,46 @@ Learning resources
 
         :octicon:`people;2em;sd-text-info` Contributing
         ^^^
+
+        Guide for contributing to diffsims.
+
+    .. grid-item-card::
+        :link: dev/examples
+        :link-type: doc
+
+        :octicon:`zap;2em;sd-text-info` Examples
+        ^^^
+
+        Gallery of short examples illustrating simple tasks that can be performed with diffsims.
+
+
+
+Installation
+============
+
+diffsims can be installed with `pip <https://pypi.org/project/diffsims>`__ or
+`conda <https://anaconda.org/conda-forge/diffsims>`__:
+
+.. tab-set::
+
+    .. tab-item:: pip
+
+        .. code-block:: bash
+
+            pip install diffsims
+
+    .. tab-item:: conda
+
+        .. code-block:: bash
+
+            conda install diffsims -c conda-forge
+
+Further details are available in the :doc:`installation guide <user/installation>`.
+
+Learning resources
+==================
+
+
 
         diffsims is a community project maintained for and by its users. There are many
         ways you can help!

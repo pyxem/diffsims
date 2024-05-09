@@ -11,21 +11,22 @@ Old
 """
 
 import numpy as np
-import diffpy
 import matplotlib.pyplot as plt
+from diffpy.structure import Atom, Lattice, Structure
+
 from diffsims.libraries.structure_library import StructureLibrary
 from diffsims.generators.diffraction_generator import DiffractionGenerator
 from diffsims.generators.library_generator import DiffractionLibraryGenerator
 
 
-latt = diffpy.structure.lattice.Lattice(4, 4, 4, 90, 90, 90)
+latt = Lattice(4, 4, 4, 90, 90, 90)
 atoms = [
-    diffpy.structure.atom.Atom(atype="Al", xyz=[0.0, 0.0, 0.0], lattice=latt),
-    diffpy.structure.atom.Atom(atype="Al", xyz=[0.5, 0.5, 0.0], lattice=latt),
-    diffpy.structure.atom.Atom(atype="Al", xyz=[0.5, 0.0, 0.5], lattice=latt),
-    diffpy.structure.atom.Atom(atype="Al", xyz=[0.0, 0.5, 0.5], lattice=latt),
+    Atom(atype="Al", xyz=[0.0, 0.0, 0.0], lattice=latt),
+    Atom(atype="Al", xyz=[0.5, 0.5, 0.0], lattice=latt),
+    Atom(atype="Al", xyz=[0.5, 0.0, 0.5], lattice=latt),
+    Atom(atype="Al", xyz=[0.0, 0.5, 0.5], lattice=latt),
 ]
-structure_matrix = diffpy.structure.Structure(atoms=atoms, lattice=latt)
+structure_matrix = Structure(atoms=atoms, lattice=latt)
 euler_angles = np.array([[0, 0, 0], [10.0, 0.0, 0.0]])
 struct_library = StructureLibrary(["Al"], [structure_matrix], [euler_angles])
 diff_gen = DiffractionGenerator(accelerating_voltage=200)
@@ -43,19 +44,18 @@ diff_lib = lib_gen.get_diffraction_library(
 # New
 # ---
 
-import diffpy
 from orix.crystal_map import Phase
 from orix.quaternion import Rotation
 from diffsims.generators.simulation_generator import SimulationGenerator
 
-latt = diffpy.structure.lattice.Lattice(4, 4, 4, 90, 90, 90)
+latt = Lattice(4, 4, 4, 90, 90, 90)
 atoms = [
-    diffpy.structure.atom.Atom(atype="Al", xyz=[0.0, 0.0, 0.0], lattice=latt),
-    diffpy.structure.atom.Atom(atype="Al", xyz=[0.5, 0.5, 0.0], lattice=latt),
-    diffpy.structure.atom.Atom(atype="Al", xyz=[0.5, 0.0, 0.5], lattice=latt),
-    diffpy.structure.atom.Atom(atype="Al", xyz=[0.0, 0.5, 0.5], lattice=latt),
+    Atom(atype="Al", xyz=[0.0, 0.0, 0.0], lattice=latt),
+    Atom(atype="Al", xyz=[0.5, 0.5, 0.0], lattice=latt),
+    Atom(atype="Al", xyz=[0.5, 0.0, 0.5], lattice=latt),
+    Atom(atype="Al", xyz=[0.0, 0.5, 0.5], lattice=latt),
 ]
-structure_matrix = diffpy.structure.Structure(atoms=atoms, lattice=latt)
+structure_matrix = Structure(atoms=atoms, lattice=latt)
 p = Phase("Al", point_group="m-3m", structure=structure_matrix)
 gen = SimulationGenerator(accelerating_voltage=200)
 rot = Rotation.from_euler([[0, 0, 0], [10.0, 0.0, 0.0]], degrees=True)
@@ -78,5 +78,7 @@ for i in range(2):
     axs[i, 1].set_xlim(-1.5, 1.5)
     axs[i, 1].set_ylim(-1.5, 1.5)
 
-axs[0, 0].set_title("Old")
-axs[0, 1].set_title("New")
+_ = axs[0, 0].set_title("Old")
+_ = axs[0, 1].set_title("New")
+
+# %%

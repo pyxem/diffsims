@@ -1,7 +1,16 @@
 """
-=====================================================
-Simulating One Diffraction Pattern for a Single Phase
-=====================================================
+==============================================
+Simple Diffraction Pattern Simulation Examples
+==============================================
+
+This example demonstrates how to simulate diffraction patterns using the
+:class:`diffsims.generators.simulation_generator.SimulationGenerator` class. A
+single diffraction pattern can be simulated for a single phase or multiple
+diffraction patterns can be simulated for a single/multiple phases given
+a rotation.
+
+One Pattern for One Phase
+--------------------------
 """
 
 from orix.crystal_map import Phase
@@ -31,35 +40,35 @@ rot = Rotation.from_axes_angles(
 )  # 45 degree rotation around x-axis
 sim = gen.calculate_diffraction2d(phase=p, rotation=rot)
 
-sim.plot(show_labels=True)  # plot the first (and only) diffraction pattern
+_ = sim.plot(show_labels=True)  # plot the first (and only) diffraction pattern
 
 # %%
 
 sim.coordinates  # coordinates of the first (and only) diffraction pattern
 
 # %%
-# ===========================================================
-# Simulating Multiple Rotations for a Single Phase
-# ===========================================================
+# Simulating Multiple Patterns for a Single Phase
+# -----------------------------------------------
 
 rot = Rotation.from_axes_angles(
     [1, 0, 0], (0, 15, 30, 45, 60, 75, 90), degrees=True
 )  # 45 degree rotation around x-axis
 sim = gen.calculate_diffraction2d(phase=p, rotation=rot)
 
-sim.plot(show_labels=True)  # plot the first diffraction pattern
+_ = sim.plot(show_labels=True)  # plot the first diffraction pattern
 
 # %%
 
-sim.irot[3].plot(show_labels=True)  # plot the fourth(45 degrees) diffraction pattern
+_ = sim.irot[3].plot(
+    show_labels=True
+)  # plot the fourth(45 degrees) diffraction pattern
 # %%
 
 sim.coordinates  # coordinates of all the diffraction patterns
 
 # %%
-# ============================================================
-# Simulating Multiple Rotations for Multiple Phases
-# ============================================================
+# Simulating Multiple Patterns for Multiple Phases
+# ------------------------------------------------
 
 p2 = p.deepcopy()  # copy the phase
 
@@ -70,24 +79,23 @@ rot = Rotation.from_axes_angles(
 )  # 45 degree rotation around x-axis
 sim = gen.calculate_diffraction2d(phase=[p, p2], rotation=[rot, rot])
 
-sim.plot(
+_ = sim.plot(
     include_direct_beam=True, show_labels=True, min_label_intensity=0.1
 )  # plot the first diffraction pattern
 
 # %%
 
-sim.iphase["al_2"].irot[3].plot(
-    show_labels=True, min_label_intensity=0.1
+_ = (
+    sim.iphase["al_2"].irot[3].plot(show_labels=True, min_label_intensity=0.1)
 )  # plot the fourth(45 degrees) diffraction pattern
 
 # %%
-# ===================================
-# Plotting a Real Diffraction Pattern
-# ===================================
+# Plotting a Pixelated Diffraction Pattern
+# ----------------------------------------
 dp = sim.get_diffraction_pattern(
     shape=(512, 512),
     calibration=0.01,
 )
 plt.figure()
-plt.imshow(dp)
+_ = plt.imshow(dp)
 # %%
