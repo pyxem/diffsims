@@ -21,7 +21,14 @@ from itertools import product
 import numpy as np
 from orix.vector import Vector3d
 
+from diffsims.utils._deprecated import deprecated
 
+
+@deprecated(
+    since="0.6",
+    alternative="diffsims.crystallography.ReciprocalLatticeVector.from_min_dspacing",
+    removal="0.7",
+)
 def get_highest_hkl(lattice, min_dspacing=0.5):
     """Return the highest Miller indices hkl of the plane with a direct
     space interplanar spacing (d-spacing) greater than but closest to
@@ -50,6 +57,11 @@ def get_highest_hkl(lattice, min_dspacing=0.5):
     return highest_hkl
 
 
+@deprecated(
+    since="0.6",
+    alternative="diffsims.crystallography.ReciprocalLatticeVector.from_highest_hkl",
+    removal="0.7",
+)
 def get_hkl(highest_hkl):
     """Return a list of planes from a set of highest Miller indices.
 
@@ -67,6 +79,11 @@ def get_hkl(highest_hkl):
     return np.asarray(list(product(*index_ranges)))
 
 
+@deprecated(
+    since="0.6",
+    alternative="diffsims.crystallography.ReciprocalLatticeVector.symmetrise",
+    removal="0.7",
+)
 def get_equivalent_hkl(hkl, operations, unique=False, return_multiplicity=False):
     """Return symmetrically equivalent Miller indices.
 
