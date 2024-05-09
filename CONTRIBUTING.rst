@@ -12,6 +12,7 @@ We have a `Code of Conduct
 <https://github.com/pyxem/diffsims/blob/master/.github/CODE_OF_CONDUCT.md>`_ that must
 be honoured by contributors.
 
+
 Start using diffsims
 ====================
 
@@ -42,6 +43,7 @@ install of diffsims!
 PS: If you choose to develop in Windows/Mac you may find the `Github Desktop
 <https://desktop.github.com>`_ useful.
 
+
 Questions?
 ==========
 
@@ -55,6 +57,7 @@ Much of the conversation happens in 'public' using the 'issues' pages on
 scary but it ensures that issues are identified and logged until dealt with. This is
 also a good place to make a proposal for some new feature or tool that you want to work
 on.
+
 
 Good coding practice
 ====================
@@ -88,7 +91,6 @@ your newly added and modified files prior to each PR.
 
 If this doesn't work for you, you can also use the Pre-commit CI to reformat your code
 on github by commenting "pre-commit autofix" on your PR.
-
 
 Run and write tests
 -------------------
@@ -128,26 +130,29 @@ Useful hints on testing:
   error-prone. See `pytest documentation for more details
   <https://doc.pytest.org/en/latest/how-to/parametrize.html>`_.
 
-
 Deprecations
 ------------
+
 We attempt to adhere to semantic versioning as best we can. This means that as little,
 ideally no, functionality should break between minor releases. Deprecation warnings
 are raised whenever possible and feasible for functions/methods/properties/arguments,
 so that users get a heads-up one (minor) release before something is removed or changes,
 with a possible alternative to be used.
 
+A deprecation decorator should be placed right above the object signature to be deprecated::
 
-A deprecation decorator should be placed right above the object signature to be deprecated.
-
-.. code-block:: python
     from diffsims.utils._deprecated import deprecated
-    @deprecated(since=0.8, removal=0.9, alternative="bar")
-    def foo(self, n):
-        return n + 1
-    @property
-    @deprecated(since=0.9, removal=0.10, alternative="another", is_function=True)
 
+    @deprecated(since=0.8, removal=0.9, alternative="bar")
+    def foo(self, n): ...
+
+    @property
+    @deprecated(
+        since="0.9",
+        removal="0.10",
+        alternative="another",
+        alternative_is_function=True
+    ): ...
 
 Build and write documentation
 -----------------------------
@@ -173,6 +178,7 @@ in the `reStructuredText (reST)
 plaintext markup language. They should be accessible in the browser by typing
 ``file:///your-absolute/path/to/diffsims/doc/build/html/index.html`` in the address bar.
 
+
 Continuous integration (CI)
 ===========================
 
@@ -180,6 +186,7 @@ We use `GitHub Actions <https://github.com/pyxem/diffsims/actions>`_ to ensure t
 diffsims can be installed on Windows, macOS and Linux. After a successful installation,
 the CI server runs the tests. After the tests return no errors, code coverage is
 reported to `Coveralls <https://coveralls.io/github/pyxem/diffsims?branch=master>`_.
+
 
 Learn more
 ==========

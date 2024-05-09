@@ -4,7 +4,8 @@ Installation
 
 diffsims can be installed from `Anaconda <https://anaconda.org/conda-forge/diffsims>`_, the
 `Python Package Index <https://pypi.org/project/diffsims>`_ (``pip``), or from source,
-and supports Python >= 3.6.
+and supports Python >= 3.8.
+
 
 With pip
 ========
