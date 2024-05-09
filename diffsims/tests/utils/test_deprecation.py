@@ -73,7 +73,9 @@ class TestDeprecationWarning:
         )
 
     def test_deprecation_not_function(self):
-        @deprecated(since=0.7, alternative="bar", removal=0.8, alternative_is_function=False)
+        @deprecated(
+            since=0.7, alternative="bar", removal=0.8, alternative_is_function=False
+        )
         def foo(n):
             return n + 1
 
@@ -90,7 +92,6 @@ class TestDeprecationWarning:
             ".. deprecated:: 0.7\n"
             f"   {desired_msg}"
         )
-
 
 
 class TestDeprecateArgument:
