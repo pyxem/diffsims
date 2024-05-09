@@ -20,7 +20,6 @@ from diffpy.structure import Atom, Lattice, Structure
 import numpy as np
 from orix.crystal_map import Phase
 from orix.vector import Miller, Vector3d
-from orix.quaternion import Rotation
 
 import pytest
 
@@ -74,20 +73,20 @@ class TestReciprocalLatticeVector:
         with pytest.raises(ValueError, match="Exactly one of "):
             _ = ReciprocalLatticeVector(nickel_phase)
 
-    @pytest.mark.parametrize("include_zero_beam", [True, False])
+    @pytest.mark.parametrize("include_zero_vector", [True, False])
     @pytest.mark.parametrize("d, desired_size", [(2, 18), (1, 92), (0.5, 750)])
     def test_init_from_min_dspacing(
-        self, ferrite_phase, d, desired_size, include_zero_beam
+        self, ferrite_phase, d, desired_size, include_zero_vector
     ):
         """Class method gives desired number of vectors."""
         rlv = ReciprocalLatticeVector.from_min_dspacing(
-            ferrite_phase, d, include_zero_vector=include_zero_beam
+            ferrite_phase, d, include_zero_vector=include_zero_vector
         )
-        if include_zero_beam:
+        if include_zero_vector:
             desired_size += 1
         assert rlv.size == desired_size
 
-    @pytest.mark.parametrize("include_zero_beam", [True, False])
+    @pytest.mark.parametrize("include_zero_vector", [True, False])
     @pytest.mark.parametrize(
         "hkl, desired_highest_hkl, desired_lowest_hkl, desired_size",
         [
@@ -103,13 +102,13 @@ class TestReciprocalLatticeVector:
         desired_highest_hkl,
         desired_lowest_hkl,
         desired_size,
-        include_zero_beam,
+        include_zero_vector,
     ):
         """Class method gives desired number of vectors and indices."""
         rlv = ReciprocalLatticeVector.from_highest_hkl(
-            silicon_carbide_phase, hkl, include_zero_vector=include_zero_beam
+            silicon_carbide_phase, hkl, include_zero_vector=include_zero_vector
         )
-        if include_zero_beam:
+        if include_zero_vector:
             desired_size += 1
             desired_lowest_hkl = [0, 0, 0]
         assert np.allclose(rlv[0].hkl, desired_highest_hkl)

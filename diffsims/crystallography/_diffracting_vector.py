@@ -133,6 +133,19 @@ class DiffractingVector(ReciprocalLatticeVector):
         ----------
         rot : orix.quaternion.Rotation
             A rotation to apply to vectors and the basis.
+
+        Returns
+        -------
+        DiffractingVector
+            A new DiffractingVector with the rotated vectors and basis. This maintains
+            the hkl indices of the vectors, but the underlying vector xyz coordinates
+            are rotated by the given rotation.
+
+        Notes
+        -----
+        Rotating the lattice basis may lead to undefined behavior in orix as it violates
+        the assumption that the basis is aligned with the crystal axes. Particularly,
+        applying symmetry operations to the phase may lead to unexpected results.
         """
 
         if rotation.size != 1:
