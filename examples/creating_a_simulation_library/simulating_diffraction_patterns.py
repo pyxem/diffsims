@@ -38,8 +38,6 @@ sim.plot(show_labels=True)  # plot the first (and only) diffraction pattern
 sim.coordinates  # coordinates of the first (and only) diffraction pattern
 
 # %%
-
-
 # ===========================================================
 # Simulating Multiple Rotations for a Single Phase
 # ===========================================================
@@ -58,6 +56,7 @@ sim.irot[3].plot(show_labels=True)  # plot the fourth(45 degrees) diffraction pa
 
 sim.coordinates  # coordinates of all the diffraction patterns
 
+# %%
 # ============================================================
 # Simulating Multiple Rotations for Multiple Phases
 # ============================================================
@@ -81,7 +80,7 @@ sim.iphase["al_2"].irot[3].plot(
     show_labels=True, min_label_intensity=0.1
 )  # plot the fourth(45 degrees) diffraction pattern
 
-
+# %%
 # ===================================
 # Plotting a Real Diffraction Pattern
 # ===================================

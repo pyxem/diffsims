@@ -5,9 +5,10 @@ This is a migration guide for version 0.5.x to 0.6.x. This guide helps to show t
 that were made to the API and how to update your code to use the new API.
 
 Here you can see how to make an equivalent to a diffraction library
-"""
 
-# Old
+Old
+---
+"""
 
 import numpy as np
 import diffpy
@@ -38,8 +39,9 @@ diff_lib = lib_gen.get_diffraction_library(
     max_excitation_error=0.02,
 )
 
-
+# %%
 # New
+# ---
 
 import diffpy
 from orix.crystal_map import Phase
