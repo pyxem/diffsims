@@ -17,11 +17,16 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 from diffpy.structure import Atom, Lattice, Structure
+import matplotlib.pyplot as plt
 from orix.crystal_map import Phase
 import pytest
 
 from diffsims.crystallography import ReciprocalLatticeVector
 from diffsims.generators.diffraction_generator import DiffractionGenerator
+
+
+def pytest_sessionstart(session):
+    plt.rcParams["backend"] = "agg"
 
 
 @pytest.fixture
