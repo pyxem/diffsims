@@ -7,14 +7,15 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0>`_
 this project tries its best to adhere to
 `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
-Unreleased
-==========
+2024-05-12 - version 0.6.0
+==========================
 
 Added
 -----
 - Explicit support for Python 3.11.
 - Added Pre-Commit for code formatting.
-- Added deprecation tools for deprecating functions, parameters, methods, and properties.
+- Added deprecation tools for deprecating functions, parameters, methods, and
+  properties.
 
 Changed
 -------
@@ -23,6 +24,10 @@ Changed
 
 Deprecated
 ----------
+- ``get_hkl()``, ``get_highest_hkl()``, and ``get_equivalent_hkl()`` methods in the
+  crystallography module. Please use the following corresponding methods in the
+  ``ReciprocalLatticeVector`` class instead: ``from_highest_hkl()``,
+  ``from_min_dspacing()``, and ``symmetrise()``.
 
 Removed
 -------
@@ -30,9 +35,6 @@ Removed
   version.
 - ``ReciprocalLatticePoint`` class; Use the ``ReciprocalLatticeVector`` class instead,
   which is an improved replacement.
-
-Fixed
------
 
 2023-05-22 - version 0.5.2
 ==========================
