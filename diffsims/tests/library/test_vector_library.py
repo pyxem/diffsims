@@ -17,7 +17,6 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-import os
 import numpy as np
 
 from diffsims.generators.library_generator import (
@@ -38,10 +37,9 @@ def get_library(default_structure):
     return vlg.get_vector_library(0.5)
 
 
-def test_library_io(get_library):
-    get_library.pickle_library("file_01.pickle")
-    loaded_library = load_VectorLibrary("file_01.pickle", safety=True)
-    os.remove("file_01.pickle")
+def test_library_io(get_library, pickle_temp_file):
+    get_library.pickle_library(pickle_temp_file)
+    loaded_library = load_VectorLibrary(pickle_temp_file, safety=True)
     # we can't check that the entire libraries are the same as the memory
     # location of the 'Sim' changes
     np.testing.assert_allclose(
@@ -52,13 +50,13 @@ def test_library_io(get_library):
     )
 
 
-@pytest.mark.xfail(raises=RuntimeError)
-def test_unsafe_loading(get_library):
-    get_library.pickle_library("file_01.pickle")
-    loaded_library = load_VectorLibrary("file_01.pickle")
+def test_unsafe_loading(get_library, pickle_temp_file):
+    get_library.pickle_library(pickle_temp_file)
+    with pytest.raises(RuntimeError):
+        _ = load_VectorLibrary(pickle_temp_file)
 
 
 def test_generate_lookup_table(default_structure):
     lattice = default_structure.lattice.reciprocal()
-    table = _generate_lookup_table(lattice, 0.5, unique=True)
-    table = _generate_lookup_table(lattice, 0.5, unique=False)
+    _ = _generate_lookup_table(lattice, 0.5, unique=True)
+    _ = _generate_lookup_table(lattice, 0.5, unique=False)

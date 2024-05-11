@@ -26,7 +26,7 @@ from diffsims.generators.diffraction_generator import DiffractionGenerator
 
 @pytest.fixture
 def default_structure():
-    """An atomic structure represented using diffpy"""
+    """An atomic structure represented using diffpy."""
     latt = Lattice(3, 3, 5, 90, 90, 120)
     atom = Atom(atype="Ni", xyz=[0, 0, 0], lattice=latt)
     hexagonal_structure = Structure(atoms=[atom], lattice=latt)
@@ -109,3 +109,10 @@ def add_reciprocal_lattice_vector_al(doctest_namespace):
     )
     rlv = ReciprocalLatticeVector(phase, hkl=[[1, 1, 1], [2, 0, 0]])
     doctest_namespace["rlv"] = rlv
+
+
+@pytest.fixture(params=[("file_01")])
+def pickle_temp_file(tmpdir, request):
+    name = request.param
+    fname = tmpdir.join(name + ".pickle")
+    yield fname
