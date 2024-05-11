@@ -26,6 +26,6 @@ credits = [
     "Eirik Opheim",
 ]
 license = "GPLv3+"
-maintainer = "Duncan Johnstone, Phillip Crout, Håkon Wiik Ånes"
+maintainer = "Duncan Johnstone, Phillip Crout, Håkon Wiik Ånes, Carter Francis"
 email = "pyxem.team@gmail.com"
 status = "Development"
