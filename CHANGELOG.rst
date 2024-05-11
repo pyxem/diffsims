@@ -35,6 +35,8 @@ Removed
   version.
 - ``ReciprocalLatticePoint`` class; Use the ``ReciprocalLatticeVector`` class instead,
   which is an improved replacement.
+- ``StructureLibrary.from_crystal_systems()`` class method, which previously raised a
+  ``NotImplementedError``, but now will throw an ``AttributeError`` instead.
 
 2023-05-22 - version 0.5.2
 ==========================
