@@ -96,7 +96,7 @@ def get_atoms(Z, returnFunc=True, dtype=FTYPE):
         Z = Z.astype(int)
     Z = unique(Z)
     if Z.size > 1:
-        raise ValueError("Only 1 atom can generated at once")
+        raise ValueError("Only 1 atom can be generated at once")
     else:
         Z = Z[0]
     if Z == 0:
