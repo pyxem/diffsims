@@ -120,13 +120,13 @@ class TestDeadPixel:
         z1 = add_dead_pixels(pattern, fraction=fraction)
         assert np.sum(z1 == 0) == 6  # we should have 6 dead pixels!
 
-    @pytest.mark.xfail(strict=True)
     def test_bad_kwarg_choices_a(self, pattern):
-        _ = add_dead_pixels(pattern, n=None, fraction=None)
+        with pytest.raises(ValueError):
+            _ = add_dead_pixels(pattern, n=None, fraction=None)
 
-    @pytest.mark.xfail(strict=True)
     def test_bad_kwarg_choices_b(self, pattern):
-        _ = add_dead_pixels(pattern, n=6, fraction=0.2)
+        with pytest.raises(ValueError):
+            _ = add_dead_pixels(pattern, n=6, fraction=0.2)
 
 
 class TestDetectorGainOffset:

@@ -44,16 +44,6 @@ def test_from_orientations_method():
     np.testing.assert_equal(library.struct_lib["b"], (2, 4))
 
 
-@pytest.mark.xfail(reason="Functionality removed")
-def test_from_systems_methods():
-    identifiers = ["a", "b"]
-    structures = [1, 2]
-    systems = ["cubic", "hexagonal"]
-    library = StructureLibrary.from_crystal_systems(
-        identifiers, structures, systems, resolution=2
-    )
-
-
 @pytest.mark.parametrize(
     "identifiers, structures, orientations",
     [
@@ -61,6 +51,6 @@ def test_from_systems_methods():
         (["a"], [1], [3, 4]),
     ],
 )
-@pytest.mark.xfail(raises=ValueError)
 def test_constructor_parameter_validation_errors(identifiers, structures, orientations):
-    StructureLibrary(identifiers, structures, orientations)
+    with pytest.raises(ValueError):
+        _ = StructureLibrary(identifiers, structures, orientations)

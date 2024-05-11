@@ -206,9 +206,9 @@ def test_DFT(rX, rY):
         np.testing.assert_allclose(f, IFT(g, axes=axes), 1e-5, 1e-5)
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_fail_DFT():
-    get_DFT()
+    with pytest.raises(ValueError):
+        get_DFT()
 
 
 @pytest.mark.parametrize(

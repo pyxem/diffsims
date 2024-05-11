@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
@@ -86,6 +87,7 @@ def profile_simulation():
 
 def test_plot_profile_simulation(profile_simulation):
     profile_simulation.get_plot()
+    plt.close()
 
 
 class TestDiffractionSimulation:
@@ -320,4 +322,6 @@ class TestDiffractionSimulation:
             intensities=np.array([3.0, 5.0, 2.0]),
             calibration=[1, 2],
         )
-        ax, sp = short_sim.plot(units=units_in, show_labels=True)
+        _ = short_sim.plot(units=units_in, show_labels=True)
+
+        plt.close()

@@ -94,6 +94,6 @@ def test_get_beam_directions_grid_size(crystal_system, desired_size):
     assert grid.shape[0] == desired_size
 
 
-@pytest.mark.xfail()
 def test_invalid_mesh_beam_directions():
-    _ = get_beam_directions_grid("cubic", 10, mesh="invalid")
+    with pytest.raises(NotImplementedError):
+        _ = get_beam_directions_grid("cubic", 10, mesh="invalid")

@@ -19,8 +19,7 @@
 import numpy as np
 import pytest
 
-from diffsims.utils.vector_utils import get_angle_cartesian
-from diffsims.utils.vector_utils import get_angle_cartesian_vec
+from diffsims.utils.vector_utils import get_angle_cartesian, get_angle_cartesian_vec
 
 
 @pytest.mark.parametrize(
@@ -47,6 +46,6 @@ def test_get_angle_cartesian_vec(a, b, expected_angles):
     np.testing.assert_allclose(angles, expected_angles)
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_get_angle_cartesian_vec_input_validation():
-    get_angle_cartesian_vec(np.empty((2, 3)), np.empty((5, 3)))
+    with pytest.raises(ValueError):
+        get_angle_cartesian_vec(np.empty((2, 3)), np.empty((5, 3)))
