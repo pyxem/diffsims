@@ -1,6 +1,7 @@
 .. _examples-index:
 
-Gallery of Examples
-===================
+========
+Examples
+========
 
 Below is a gallery of examples for different operations in diffsims.
