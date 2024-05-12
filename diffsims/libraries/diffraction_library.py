@@ -172,7 +172,7 @@ class DiffractionLibrary(dict):
 
         See Also
         --------
-        load_DiffractionLibrary()
+        load_DiffractionLibrary
 
         """
         with open(filename, "wb") as handle:
