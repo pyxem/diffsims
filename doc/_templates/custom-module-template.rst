@@ -60,8 +60,8 @@
     :toctree:
     :template: custom-module-template.rst
     :recursive:
-{% for item in modules %}
+    {% for item in modules %}
     {{ item }}
-{%- endfor %}
+    {%- endfor %}
 {% endif %}
 {% endblock %}
