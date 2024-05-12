@@ -39,12 +39,12 @@ release = __version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "numpydoc",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
     "sphinx.ext.linkcode",
     "sphinx.ext.mathjax",
-    "sphinx.ext.napoleon",
     "sphinx_design",
     "sphinx_gallery.gen_gallery",
 ]
@@ -74,7 +74,7 @@ html_theme_options = {
     "github_url": "https://github.com/pyxem/diffsims",
     "header_links_before_dropdown": 6,
     "logo": {"alt_text": project, "text": project},
-    "navigation_with_keys": False,
+    "navigation_with_keys": True,
     "show_toc_level": 2,
     "use_edit_page_button": True,
 }
@@ -175,5 +175,4 @@ sphinx_gallery_conf = {
     "ignore_pattern": "_sgskip.py",  # pattern to define which will not be executed
     "reference_url": {"diffsims": None},
 }
-
 autosummary_generate = True
