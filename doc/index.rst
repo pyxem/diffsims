@@ -12,47 +12,6 @@ diffsims is an open-source Python library for simulating diffraction.
     reference/index.rst
     dev/index.rst
     changelog.rst
-    Examples <examples/index>
-
-.. See: https://sphinx-design.readthedocs.io/en/furo-theme/grids.html
-.. grid:: 2
-    :gutter: 2
-
-    .. grid-item-card::
-        :link: https://github.com/pyxem/diffsims-demos
-
-        :octicon:`book;2em;sd-text-info` Tutorials
-        ^^^
-
-        In-depth guides for using diffsims.
-
-    .. grid-item-card::
-        :link: reference/index
-        :link-type: doc
-
-        :octicon:`code;2em;sd-text-info` API reference
-        ^^^
-
-        Descriptions of all functions, modules, and objects in diffsims.
-
-    .. grid-item-card::
-        :link: dev/index
-        :link-type: doc
-
-        :octicon:`people;2em;sd-text-info` Contributing
-        ^^^
-
-        Guide for contributing to diffsims.
-
-    .. grid-item-card::
-        :link: dev/examples
-        :link-type: doc
-
-        :octicon:`zap;2em;sd-text-info` Examples
-        ^^^
-
-        Gallery of short examples illustrating simple tasks that can be performed with diffsims.
-
 
 
 Installation
@@ -77,13 +36,50 @@ diffsims can be installed with `pip <https://pypi.org/project/diffsims>`__ or
 
 Further details are available in the :doc:`installation guide <user/installation>`.
 
+
 Learning resources
 ==================
 
+.. See: https://sphinx-design.readthedocs.io/en/furo-theme/grids.html
+.. grid:: 2
+    :gutter: 2
 
+    .. grid-item-card::
+        :link: https://github.com/pyxem/diffsims-demos
+
+        :octicon:`book;2em;sd-text-info` Tutorials
+        ^^^
+
+        In-depth guides for using diffsims (notebooks hosted on GitHub).
+
+    .. grid-item-card::
+        :link: examples/index
+        :link-type: doc
+
+        :octicon:`zap;2em;sd-text-info` Examples
+        ^^^
+
+        Short examples illustrating simple tasks that can be performed with diffsims.
+
+    .. grid-item-card::
+        :link: reference/index
+        :link-type: doc
+
+        :octicon:`code;2em;sd-text-info` API reference
+        ^^^
+
+        Descriptions of all functions, modules, and objects in diffsims.
+
+    .. grid-item-card::
+        :link: dev/index
+        :link-type: doc
+
+        :octicon:`people;2em;sd-text-info` Contributing
+        ^^^
 
         diffsims is a community project maintained for and by its users. There are many
         ways you can help!
+
 
 Citing diffsims
 ===============
