@@ -39,13 +39,14 @@ release = __version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "numpydoc",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
     "sphinx.ext.linkcode",
     "sphinx.ext.mathjax",
-    "sphinx.ext.napoleon",
     "sphinx_design",
+    "sphinx_gallery.gen_gallery",
 ]
 
 # Create links to references within diffsims' documentation to these packages
@@ -73,7 +74,7 @@ html_theme_options = {
     "github_url": "https://github.com/pyxem/diffsims",
     "header_links_before_dropdown": 6,
     "logo": {"alt_text": project, "text": project},
-    "navigation_with_keys": False,
+    "navigation_with_keys": True,
     "show_toc_level": 2,
     "use_edit_page_button": True,
 }
@@ -162,3 +163,42 @@ autodoc_typehints_format = "short"
 autodoc_default_options = {
     "show-inheritance": True,
 }
+
+# -- Sphinx-Gallery---------------
+# https://sphinx-gallery.github.io
+sphinx_gallery_conf = {
+    "backreferences_dir": "reference/generated",
+    "doc_module": ("diffsims",),
+    "examples_dirs": "../examples",  # path to your example scripts
+    "gallery_dirs": "examples",  # path to where to save gallery generated output
+    "filename_pattern": "^((?!sgskip).)*$",  # pattern to define which will be executed
+    "reference_url": {"diffsims": None},
+    "run_stale_examples": False,
+}
+autosummary_generate = True
+
+
+# -- numpydoc
+# https://numpydoc.readthedocs.io
+numpydoc_show_class_members = False
+numpydoc_use_plots = True
+numpydoc_xref_param_type = True
+# fmt: off
+numpydoc_validation_checks = {
+    "all",   # All but the following:
+    "ES01",  # Not all docstrings need an extend summary
+    "EX01",  # Examples: Will eventually enforce
+    "GL01",  # Contradicts numpydoc examples
+    "GL02",  # Appears to be broken?
+    "GL07",  # Appears to be broken?
+    "GL08",  # Methods can be documented in super class
+    "PR01",  # Parameters can be documented in super class
+    "PR02",  # Properties with setters might have docstrings w/"Returns"
+    "PR04",  # Doesn't seem to work with type hints?
+    "RT01",  # Abstract classes might not have return sections
+    "SA01",  # Not all docstrings need a "See Also"
+    "SA04",  # "See Also" section does not need descriptions
+    "SS06",  # Not possible to make all summaries one line
+    "YD01",  # Yields: No plan to enforce
+}
+# fmt: on

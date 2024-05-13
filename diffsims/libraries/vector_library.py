@@ -42,7 +42,7 @@ def load_VectorLibrary(filename, safety=False):
 
     See Also
     --------
-    VectorLibrary.pickle_library()
+    VectorLibrary.pickle_library
     """
     if safety:
         with open(filename, "rb") as handle:
@@ -92,7 +92,7 @@ class DiffractionVectorLibrary(dict):
 
         See Also
         --------
-            load_VectorLibrary()
+        load_VectorLibrary
 
         """
         with open(filename, "wb") as handle:

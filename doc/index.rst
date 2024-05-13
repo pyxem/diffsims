@@ -13,6 +13,7 @@ diffsims is an open-source Python library for simulating diffraction.
     dev/index.rst
     changelog.rst
 
+
 Installation
 ============
 
@@ -35,6 +36,7 @@ diffsims can be installed with `pip <https://pypi.org/project/diffsims>`__ or
 
 Further details are available in the :doc:`installation guide <user/installation>`.
 
+
 Learning resources
 ==================
 
@@ -48,7 +50,16 @@ Learning resources
         :octicon:`book;2em;sd-text-info` Tutorials
         ^^^
 
-        In-depth guides for using diffsims.
+        In-depth guides for using diffsims (notebooks hosted on GitHub).
+
+    .. grid-item-card::
+        :link: examples/index
+        :link-type: doc
+
+        :octicon:`zap;2em;sd-text-info` Examples
+        ^^^
+
+        Short examples illustrating simple tasks that can be performed with diffsims.
 
     .. grid-item-card::
         :link: reference/index
@@ -68,6 +79,7 @@ Learning resources
 
         diffsims is a community project maintained for and by its users. There are many
         ways you can help!
+
 
 Citing diffsims
 ===============
