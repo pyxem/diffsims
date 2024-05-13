@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2023 The diffsims developers
+# Copyright 2017-2024 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -22,7 +22,6 @@ import numpy as np
 
 from orix.sampling.sample_generators import get_sample_fundamental, get_sample_local
 from orix.quaternion.rotation import Rotation
-from orix.vector.neo_euler import AxAngle
 
 from diffsims.utils.sim_utils import uvtw_to_uvw
 from diffsims.generators.sphere_mesh_generators import (
@@ -168,7 +167,7 @@ def get_grid_around_beam_direction(beam_rotation, resolution, angular_range=(0, 
         np.arange(start=angular_range[0], stop=angular_range[1], step=resolution)
     )
     axes = np.repeat([[0, 0, 1]], angles.shape[0], axis=0)
-    in_plane_rotation = Rotation.from_neo_euler(AxAngle.from_axes_angles(axes, angles))
+    in_plane_rotation = Rotation.from_axes_angles(axes, angles)
 
     orix_grid = beam_rotation * in_plane_rotation
     rotation_list = get_list_from_orix(orix_grid, rounding=2)

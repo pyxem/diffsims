@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2023 The diffsims developers
+# Copyright 2017-2024 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -15,8 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
-
-import os
 
 import numpy as np
 import pytest
@@ -58,10 +56,9 @@ def test_get_library_small_offset(get_library):
     assert np.allclose(alpha, beta)
 
 
-def test_library_io(get_library):
-    get_library.pickle_library("file_01.pickle")
-    loaded_library = load_DiffractionLibrary("file_01.pickle", safety=True)
-    os.remove("file_01.pickle")
+def test_library_io(get_library, pickle_temp_file):
+    get_library.pickle_library(pickle_temp_file)
+    loaded_library = load_DiffractionLibrary(pickle_temp_file, safety=True)
     # We can't check that the entire libraries are the same as the memory
     # location of the 'Sim' changes
     for i in range(len(get_library["Phase"]["orientations"])):
@@ -96,7 +93,7 @@ def test_unknown_library_entry(get_library):
         )
 
 
-def test_unsafe_loading(get_library):
+def test_unsafe_loading(get_library, pickle_temp_file):
     with pytest.raises(RuntimeError, match="Unpickling is risky, turn safety to True "):
-        get_library.pickle_library("file_01.pickle")
-        _ = load_DiffractionLibrary("file_01.pickle")
+        get_library.pickle_library(pickle_temp_file)
+        _ = load_DiffractionLibrary(pickle_temp_file)

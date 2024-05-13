@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2023 The diffsims developers
+# Copyright 2017-2024 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -248,17 +248,17 @@ class TestDiffractionCalculatorAtomic:
 
         np.testing.assert_allclose(diffraction1, diffraction2, 1e-6, 1e-6)
 
-    @pytest.mark.xfail(raises=NotImplementedError)
     def test_mode(self, diffraction_calculator_atomic, local_structure):
-        diffraction = diffraction_calculator_atomic.calculate_ed_data(
-            local_structure, probe, 1, mode="other"
-        )
+        with pytest.raises(NotImplementedError):
+            _ = diffraction_calculator_atomic.calculate_ed_data(
+                local_structure, probe, 1, mode="other"
+            )
 
-    @pytest.mark.xfail(raises=ValueError, strict=True)
     def test_bad_ZERO(self, diffraction_calculator_atomic, local_structure):
-        _ = diffraction_calculator_atomic.calculate_ed_data(
-            local_structure, probe, 1, ZERO=-1
-        )
+        with pytest.raises(ValueError):
+            _ = diffraction_calculator_atomic.calculate_ed_data(
+                local_structure, probe, 1, ZERO=-1
+            )
 
 
 @pytest.mark.parametrize("scattering_param", ["lobato", "xtables"])
@@ -266,18 +266,18 @@ def test_param_check(scattering_param):
     generator = DiffractionGenerator(300, scattering_params=scattering_param)
 
 
-@pytest.mark.xfail(raises=NotImplementedError)
 def test_invalid_scattering_params():
     scattering_param = "_empty"
-    generator = DiffractionGenerator(300, scattering_params=scattering_param)
+    with pytest.raises(NotImplementedError):
+        _ = DiffractionGenerator(300, scattering_params=scattering_param)
 
 
-@pytest.mark.xfail(faises=NotImplementedError)
 def test_invalid_shape_model():
-    generator = DiffractionGenerator(300, shape_factor_model="dracula")
+    with pytest.raises(NotImplementedError):
+        _ = DiffractionGenerator(300, shape_factor_model="dracula")
 
 
 @pytest.mark.parametrize("shape", [(10, 20), (20, 10)])
 def test_param_check_atomic(shape):
     detector = [np.linspace(-1, 1, s) for s in shape]
-    generator = AtomicDiffractionGenerator(300, detector, True)
+    _ = AtomicDiffractionGenerator(300, detector, True)

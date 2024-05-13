@@ -126,6 +126,13 @@ class TestDiffractionCalculator:
         assert diffraction_calculator.approximate_precession == True
         assert diffraction_calculator.minimum_intensity == 1e-20
 
+    def test_repr(self, diffraction_calculator):
+        assert repr(diffraction_calculator) == (
+            "SimulationGenerator(accelerating_voltage=300, "
+            "scattering_params=lobato, "
+            "approximate_precession=True)"
+        )
+
     def test_matching_results(
         self, diffraction_calculator: SimulationGenerator, local_structure
     ):
@@ -245,9 +252,7 @@ def test_multiphase_multirotation_simulation():
     big_silicon = make_phase(10)
     rot = Rotation.from_euler([[0, 0, 0], [0.1, 0.1, 0.1]])
     rot2 = Rotation.from_euler([[0, 0, 0], [0.1, 0.1, 0.1], [0.2, 0.2, 0.2]])
-    sim = generator.calculate_diffraction2d(
-        [silicon, big_silicon], rotation=[rot, rot2]
-    )
+    _ = generator.calculate_diffraction2d([silicon, big_silicon], rotation=[rot, rot2])
 
 
 def test_multiphase_multirotation_simulation_error():
@@ -255,25 +260,24 @@ def test_multiphase_multirotation_simulation_error():
     silicon = make_phase(5)
     big_silicon = make_phase(10)
     rot = Rotation.from_euler([[0, 0, 0], [0.1, 0.1, 0.1]])
-    rot2 = Rotation.from_euler([[0, 0, 0], [0.1, 0.1, 0.1], [0.2, 0.2, 0.2]])
+    _ = Rotation.from_euler([[0, 0, 0], [0.1, 0.1, 0.1], [0.2, 0.2, 0.2]])
     with pytest.raises(ValueError):
-        sim = generator.calculate_diffraction2d([silicon, big_silicon], rotation=[rot])
+        _ = generator.calculate_diffraction2d([silicon, big_silicon], rotation=[rot])
 
 
 @pytest.mark.parametrize("scattering_param", ["lobato", "xtables"])
 def test_param_check(scattering_param):
-    generator = SimulationGenerator(300, scattering_params=scattering_param)
+    _ = SimulationGenerator(300, scattering_params=scattering_param)
 
 
-@pytest.mark.xfail(raises=NotImplementedError)
 def test_invalid_scattering_params():
-    scattering_param = "_empty"
-    generator = SimulationGenerator(300, scattering_params=scattering_param)
+    with pytest.raises(NotImplementedError):
+        _ = SimulationGenerator(300, scattering_params="_empty")
 
 
-@pytest.mark.xfail(faises=NotImplementedError)
 def test_invalid_shape_model():
-    generator = SimulationGenerator(300, shape_factor_model="dracula")
+    with pytest.raises(NotImplementedError):
+        _ = SimulationGenerator(300, shape_factor_model="dracula")
 
 
 def test_same_simulation_results():

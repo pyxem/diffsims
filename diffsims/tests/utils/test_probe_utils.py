@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2023 The diffsims developers
+# Copyright 2017-2024 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -85,10 +85,10 @@ def _random_array(shape, n=0):
     return x.reshape(shape)
 
 
-@pytest.mark.xfail(raises=NotImplementedError)
 def test_null_probe():
     p = ProbeFunction()
-    p(1)
+    with pytest.raises(NotImplementedError):
+        p(1)
 
 
 @pytest.fixture(params=[(10, 11, 12)])

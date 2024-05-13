@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2023 The diffsims developers
+# Copyright 2017-2024 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -17,6 +17,7 @@
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
 from diffpy.structure import Atom, Lattice, Structure
+import matplotlib.pyplot as plt
 from orix.crystal_map import Phase
 import pytest
 
@@ -24,9 +25,13 @@ from diffsims.crystallography import ReciprocalLatticeVector
 from diffsims.generators.diffraction_generator import DiffractionGenerator
 
 
+def pytest_sessionstart(session):
+    plt.rcParams["backend"] = "agg"
+
+
 @pytest.fixture
 def default_structure():
-    """An atomic structure represented using diffpy"""
+    """An atomic structure represented using diffpy."""
     latt = Lattice(3, 3, 5, 90, 90, 120)
     atom = Atom(atype="Ni", xyz=[0, 0, 0], lattice=latt)
     hexagonal_structure = Structure(atoms=[atom], lattice=latt)
@@ -109,3 +114,10 @@ def add_reciprocal_lattice_vector_al(doctest_namespace):
     )
     rlv = ReciprocalLatticeVector(phase, hkl=[[1, 1, 1], [2, 0, 0]])
     doctest_namespace["rlv"] = rlv
+
+
+@pytest.fixture(params=[("file_01")])
+def pickle_temp_file(tmpdir, request):
+    name = request.param
+    fname = tmpdir.join(name + ".pickle")
+    yield fname

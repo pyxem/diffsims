@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2023 The diffsims developers
+# Copyright 2017-2024 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -206,9 +206,9 @@ def test_DFT(rX, rY):
         np.testing.assert_allclose(f, IFT(g, axes=axes), 1e-5, 1e-5)
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_fail_DFT():
-    get_DFT()
+    with pytest.raises(ValueError):
+        get_DFT()
 
 
 @pytest.mark.parametrize(

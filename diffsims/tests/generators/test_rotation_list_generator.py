@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2023 The diffsims developers
+# Copyright 2017-2024 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -94,6 +94,6 @@ def test_get_beam_directions_grid_size(crystal_system, desired_size):
     assert grid.shape[0] == desired_size
 
 
-@pytest.mark.xfail()
 def test_invalid_mesh_beam_directions():
-    _ = get_beam_directions_grid("cubic", 10, mesh="invalid")
+    with pytest.raises(NotImplementedError):
+        _ = get_beam_directions_grid("cubic", 10, mesh="invalid")

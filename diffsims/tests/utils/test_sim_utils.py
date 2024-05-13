@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2023 The diffsims developers
+# Copyright 2017-2024 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -114,25 +114,25 @@ def test_kinematic_simulator_xtables_scattering_params():
     )
 
 
-@pytest.mark.xfail(raises=NotImplementedError)
 def test_kinematic_simulator_invalid_scattering_params():
     atomic_coordinates = np.asarray([[0, 0, 0]])  # structure.cart_coords
-    sim = simulate_kinematic_scattering(
-        atomic_coordinates,
-        "Si",
-        300.0,
-        simulation_size=32,
-        illumination="gaussian_probe",
-        scattering_params="_empty",
-    )
+    with pytest.raises(NotImplementedError):
+        simulate_kinematic_scattering(
+            atomic_coordinates,
+            "Si",
+            300.0,
+            simulation_size=32,
+            illumination="gaussian_probe",
+            scattering_params="_empty",
+        )
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_kinematic_simulator_invalid_illumination():
     atomic_coordinates = np.asarray([[0, 0, 0]])  # structure.cart_coords
-    sim = simulate_kinematic_scattering(
-        atomic_coordinates, "Si", 300.0, simulation_size=32, illumination="gaussian"
-    )
+    with pytest.raises(ValueError):
+        simulate_kinematic_scattering(
+            atomic_coordinates, "Si", 300.0, simulation_size=32, illumination="gaussian"
+        )
 
 
 @pytest.mark.parametrize(

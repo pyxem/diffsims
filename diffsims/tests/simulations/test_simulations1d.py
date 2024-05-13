@@ -15,11 +15,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
-import matplotlib.pyplot as plt
-import pytest
 
-from orix.crystal_map import Phase
+import matplotlib.pyplot as plt
 import numpy as np
+from orix.crystal_map import Phase
+import pytest
 
 from diffsims.tests.generators.test_simulation_generator import make_phase
 from diffsims.simulations import Simulation1D
@@ -57,8 +57,10 @@ class TestSingleSimulation:
     @pytest.mark.parametrize("with_labels", [True, False])
     def test_plot(self, simulation1d, annotate, ax, with_labels):
         if ax == "new":
-            fig, ax = plt.subplots()
-        fig = simulation1d.plot(annotate_peaks=annotate, ax=ax, with_labels=with_labels)
+            _, ax = plt.subplots()
+        _ = simulation1d.plot(annotate_peaks=annotate, ax=ax, with_labels=with_labels)
+
+        plt.close()
 
     def test_repr(self, simulation1d):
         assert simulation1d.__repr__() == "Simulation1D(name: Al, wavelength: 0.025)"

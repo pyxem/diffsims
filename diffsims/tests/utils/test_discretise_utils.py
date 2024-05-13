@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2023 The diffsims developers
+# Copyright 2017-2024 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -62,14 +62,10 @@ def test_getA(Z, returnFunc):
         assert len(a) == len(b)
 
 
-@pytest.mark.xfail(raises=ValueError)
-def test_2_atoms_getA():
-    get_atoms(np.array([0, 1]))
-
-
-@pytest.mark.xfail(raises=ValueError)
-def test_max_atom_getA():
-    get_atoms("Es")
+@pytest.mark.parametrize("atoms", [np.array([0, 1]), "Es"])
+def tests_get_atoms_raises(atoms):
+    with pytest.raises(ValueError):
+        get_atoms(atoms)
 
 
 @pytest.mark.parametrize(
@@ -82,13 +78,7 @@ def test_max_atom_getA():
 )
 def test_rebin(r):
     x = [np.linspace(0, 1, 10), np.linspace(0, 1, 21), np.linspace(0, 1, 32)]
-    loc = np.concatenate(
-        [
-            0 * np.linspace(0, 1, 500)[:, None],
-        ]
-        * 3,
-        axis=1,
-    )
+    loc = np.concatenate([0 * np.linspace(0, 1, 500)[:, None]] * 3, axis=1)
     k = 1
     mem = 1e5
     rebin(x, loc, r, k, mem)

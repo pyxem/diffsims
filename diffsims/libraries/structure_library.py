@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017-2023 The diffsims developers
+# Copyright 2017-2024 The diffsims developers
 #
 # This file is part of diffsims.
 #
@@ -80,36 +80,6 @@ class StructureLibrary:
         StructureLibrary
         """
         return cls(identifiers, structures, orientations)
-
-    @classmethod
-    def from_crystal_systems(
-        cls, identifiers, structures, systems, resolution, equal="angle"
-    ):
-        """
-        Creates a structure library from crystal system derived orientation lists
-
-        Parameters
-        ----------
-        identifiers : list of strings/ints
-            A list of phase identifiers referring to different atomic structures.
-        structures : list of diffpy.structure.Structure objects.
-            A list of diffpy.structure.Structure objects describing the atomic
-            structure associated with each phase in the library.
-        systems : list
-            A list over indentifiers of crystal systems
-        resolution : float
-            resolution in degrees
-        equal : str
-            Default is 'angle'
-
-        Raises
-        ------
-        NotImplementedError:
-            "This function has been removed in version 0.3.0, in favour of creation from orientation lists"
-        """
-        raise NotImplementedError(
-            "This function has been removed in version 0.3.0, in favour of creation from orientation lists"
-        )
 
     def get_library_size(self, to_print=False):
         """

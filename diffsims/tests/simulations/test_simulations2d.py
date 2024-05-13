@@ -16,12 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-import numpy as np
-import pytest
-
 from diffpy.structure import Structure, Atom, Lattice
+import matplotlib.pyplot as plt
+import numpy as np
 from orix.crystal_map import Phase
 from orix.quaternion import Rotation
+import pytest
 
 from diffsims.simulations import Simulation2D
 from diffsims.generators.simulation_generator import SimulationGenerator
@@ -80,6 +80,7 @@ class TestSingleSimulation:
 
     def test_plot(self, single_simulation):
         single_simulation.plot()
+        plt.close()
 
     def test_num_rotations(self, single_simulation):
         assert single_simulation._num_rotations() == 1
@@ -245,9 +246,11 @@ class TestSinglePhaseMultiSimulation:
 
     def test_plot(self, multi_simulation):
         multi_simulation.plot()
+        plt.close()
 
     def test_plot_rotation(self, multi_simulation):
         multi_simulation.plot_rotations()
+        plt.close()
 
     def test_iter(self, multi_simulation):
         multi_simulation.phase_index = 0
@@ -370,8 +373,11 @@ class TestMultiPhaseMultiSimulation:
             calibration=0.1,
         )
 
+        plt.close()
+
     def test_plot_rotation(self, multi_simulation):
         multi_simulation.plot_rotations()
+        plt.close()
 
     def test_iter(self, multi_simulation):
         multi_simulation.phase_index = 0
