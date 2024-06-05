@@ -7,15 +7,14 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0>`_
 this project tries its best to adhere to
 `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
-2024-05-12 - version 0.6.0
+2024-06-06 - version 0.6.0
 ==========================
 
 Added
 -----
 - Explicit support for Python 3.11.
-- Added Pre-Commit for code formatting.
-- Added deprecation tools for deprecating functions, parameters, methods, and
-  properties.
+- pre-commit configuration file for code formatting.
+- Deprecation tools for deprecating functions, parameters, methods, and properties.
 
 Changed
 -------
