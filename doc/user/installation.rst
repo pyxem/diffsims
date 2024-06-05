@@ -65,8 +65,8 @@ install diffsims from source is to clone the repository from `GitHub
     pip install --editable .
 
 The source can also be downloaded as tarballs or zip archives via links like
-`https://github.com/pyxem/diffsims/archive/v<major.minor.patch>/diffsims-<major.minor.patch>.tar.gz`_,
-where the version ``<major.minor.patch>`` can be e.g. ``0.5.1``, and ``tar.gz`` can be
-exchanged with ``zip``.
+``https://github.com/pyxem/diffsims/archive/v<major.minor.patch>/
+diffsims-<major.minor.patch>.tar.gz``, where the version ``<major.minor.patch>`` can be
+e.g. ``0.5.1``, and ``tar.gz`` can be exchanged with ``zip``.
 
 .. _https://github.com/pyxem/diffsims/archive/v<major.minor.patch>/diffsims-<major.minor.patch>.tar.gz: https://github.com/pyxem/diffsims/archive/v<major.minor.patch>/diffsims-<major.minor.patch>.tar.gz
