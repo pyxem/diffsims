@@ -24,6 +24,7 @@ credits = [
     "Tina Bergh",
     "Tomas Ostasevicius",
     "Eirik Opheim",
+    "Dieter Weber",
 ]
 license = "GPLv3+"
 maintainer = "Duncan Johnstone, Phillip Crout, Håkon Wiik Ånes, Carter Francis"
