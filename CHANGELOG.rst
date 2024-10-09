@@ -24,6 +24,7 @@ Removed
 
 Fixed
 -----
+- Numpy 2.0.0 compatibility in (#228).
 
 2024-06-06 - version 0.6.0
 ==========================
