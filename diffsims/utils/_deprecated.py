@@ -35,6 +35,11 @@ import warnings
 
 import numpy as np
 
+if np.__version__ >= "2.0.0":
+    from numpy.exceptions import VisibleDeprecationWarning
+else:
+    VisibleDeprecationWarning = np.VisibleDeprecationWarning
+
 
 class deprecated:
     """Decorator to mark deprecated functions with an informative
@@ -90,12 +95,14 @@ class deprecated:
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
             warnings.simplefilter(
-                action="always", category=np.VisibleDeprecationWarning, append=True
+                action="always",
+                category=VisibleDeprecationWarning,
+                append=True,
             )
             func_code = func.__code__
             warnings.warn_explicit(
                 message=msg,
-                category=np.VisibleDeprecationWarning,
+                category=VisibleDeprecationWarning,
                 filename=func_code.co_filename,
                 lineno=func_code.co_firstlineno + 1,
             )
@@ -143,12 +150,12 @@ class deprecated_argument:
                     kwargs[self.alternative] = kwargs.pop(self.name)
                 msg += f"See the documentation of `{func.__name__}()` for more details."
                 warnings.simplefilter(
-                    action="always", category=np.VisibleDeprecationWarning
+                    action="always", category=VisibleDeprecationWarning
                 )
                 func_code = func.__code__
                 warnings.warn_explicit(
                     message=msg,
-                    category=np.VisibleDeprecationWarning,
+                    category=VisibleDeprecationWarning,
                     filename=func_code.co_filename,
                     lineno=func_code.co_firstlineno + 1,
                 )
