@@ -160,9 +160,9 @@ def test_freq(shape, dX, rX, dY, rY):
             if dX[i] is not None:
                 assert abs(x[i].item(1) - x[i].item(0)) <= dX[i] + 1e-8
             if rY[i] is not None:
-                assert y[i].ptp() >= rY[i] - 1e-8
+                assert np.ptp(y[i]) >= rY[i] - 1e-8
         if rX[i] is not None:
-            assert x[i].ptp() >= rX[i] - 1e-8
+            assert np.ptp(x[i]) >= rX[i] - 1e-8
         if dY[i] is not None:
             assert abs(y[i].item(1) - y[i].item(0)) <= dY[i] + 1e-8
 

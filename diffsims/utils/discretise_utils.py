@@ -44,6 +44,7 @@ from numpy import (
     exp,
     prod,
 )
+import numpy as np
 from psutil import virtual_memory
 import numba
 
@@ -321,7 +322,7 @@ def rebin(x, loc, r, k, mem):
     else:
         r = r.copy()
     xmin = array([X.item(0) if X.size > 1 else -1e5 for X in x], dtype=x[0].dtype)
-    nbins = [int(ceil(x[i].ptp() / r[i])) + 1 for i in range(3)]
+    nbins = [int(ceil(np.ptp(x[i]) / r[i])) + 1 for i in range(3)]
     if prod(nbins) * 32 * 10 > mem:
         raise MemoryError
     Len = zeros(nbins, dtype="i4")

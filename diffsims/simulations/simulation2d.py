@@ -253,6 +253,7 @@ class Simulation2D:
             return self.rotations.size
 
     def deepcopy(self):
+
         return copy.deepcopy(self)
 
     def _get_transformed_coordinates(
