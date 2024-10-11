@@ -527,7 +527,7 @@ class AtomicDiffractionGenerator:
 
         # Add z-coordinate
         z_range = max(
-            z_range, coordinates[:, -1].ptp()
+            z_range, np.ptp(coordinates[:, -1])
         )  # enforce minimal resolution in reciprocal space
         x = [
             self.detector[0],

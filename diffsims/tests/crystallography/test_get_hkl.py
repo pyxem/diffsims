@@ -27,13 +27,14 @@ from diffsims.crystallography import (
     get_hkl,
     ReciprocalLatticeVector,
 )
+from diffsims.constants import VisibleDeprecationWarning
 
 
 class TestGetHKL:
     @pytest.mark.parametrize("highest_hkl, n", [([1, 2, 3], 105), ([1, 1, 1], 27)])
     def test_get_hkl(self, highest_hkl, n):
         highest_hkl = np.array(highest_hkl)
-        with pytest.warns(np.VisibleDeprecationWarning):
+        with pytest.warns(VisibleDeprecationWarning):
             hkl = get_hkl(highest_hkl)
         assert np.allclose(hkl.max(axis=0), highest_hkl)
         assert np.allclose(hkl.min(axis=0), -highest_hkl)
@@ -52,7 +53,7 @@ class TestGetHKL:
         "d, hkl", [(0.5, [6, 6, 21]), (1, [3, 3, 11]), (1.5, [2, 2, 7])]
     )
     def test_get_highest_hkl(self, silicon_carbide_phase, d, hkl):
-        with pytest.warns(np.VisibleDeprecationWarning):
+        with pytest.warns(VisibleDeprecationWarning):
             hkl_out = get_highest_hkl(
                 silicon_carbide_phase.structure.lattice, min_dspacing=d
             )
@@ -64,7 +65,7 @@ class TestGetHKL:
 
     def test_get_equivalent_hkl(self):
         phase_225 = Phase(space_group=225)
-        with pytest.warns(np.VisibleDeprecationWarning):
+        with pytest.warns(VisibleDeprecationWarning):
             hkl1 = get_equivalent_hkl(
                 [1, 1, 1], operations=phase_225.point_group, unique=True
             )
@@ -86,12 +87,12 @@ class TestGetHKL:
         g1 = ReciprocalLatticeVector(phase_225, hkl=[1, 1, 1])
         assert np.allclose(g1.symmetrise().hkl, hkl1.data)
 
-        with pytest.warns(np.VisibleDeprecationWarning):
+        with pytest.warns(VisibleDeprecationWarning):
             hkl2 = get_equivalent_hkl([1, 1, 1], operations=phase_225.point_group)
         assert hkl2.shape[0] == g1.symmetrise().size * 6 == 48
 
         phase_186 = Phase(space_group=186)
-        with pytest.warns(np.VisibleDeprecationWarning):
+        with pytest.warns(VisibleDeprecationWarning):
             hkl3, mult3 = get_equivalent_hkl(
                 [2, 2, 0],
                 operations=phase_186.point_group,
@@ -102,7 +103,7 @@ class TestGetHKL:
         assert mult3 == g3.symmetrise().size == 12
         assert np.allclose(hkl3.data[:2], [[2, 2, 0], [-2.7321, 0.7321, 0]], atol=1e-4)
 
-        with pytest.warns(np.VisibleDeprecationWarning):
+        with pytest.warns(VisibleDeprecationWarning):
             hkl4, mult4 = get_equivalent_hkl(
                 Vector3d([[2, 2, 0], [4, 0, 0]]),
                 phase_186.point_group,
