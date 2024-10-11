@@ -33,12 +33,7 @@ import inspect
 from typing import Callable, Optional, Union
 import warnings
 
-import numpy as np
-
-if np.__version__ >= "2.0.0":
-    from numpy.exceptions import VisibleDeprecationWarning
-else:
-    VisibleDeprecationWarning = np.VisibleDeprecationWarning
+from diffsims.constants import VisibleDeprecationWarning
 
 
 class deprecated:

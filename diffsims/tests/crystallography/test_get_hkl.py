@@ -27,11 +27,7 @@ from diffsims.crystallography import (
     get_hkl,
     ReciprocalLatticeVector,
 )
-
-if np.__version__ >= "2.0.0":
-    from numpy.exceptions import VisibleDeprecationWarning
-else:
-    VisibleDeprecationWarning = np.VisibleDeprecationWarning
+from diffsims.constants import VisibleDeprecationWarning
 
 
 class TestGetHKL:

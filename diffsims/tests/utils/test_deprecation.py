@@ -1,14 +1,10 @@
 import warnings
 
-import numpy as np
 import pytest
 
 from diffsims.utils._deprecated import deprecated, deprecated_argument
 
-if np.__version__ >= "2.0.0":
-    from numpy.exceptions import VisibleDeprecationWarning
-else:
-    VisibleDeprecationWarning = np.VisibleDeprecationWarning
+from diffsims.constants import VisibleDeprecationWarning
 
 
 class TestDeprecationWarning:
