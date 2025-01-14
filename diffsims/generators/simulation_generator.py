@@ -206,7 +206,7 @@ class SimulationGenerator:
             rotate_iter = rotate
             if show_progressbar:
                 rotate_iter = tqdm(rotate_iter, desc=p.name, total=rotate.size)
-            
+
             for rot in rotate_iter:
                 # Calculate the reciprocal lattice vectors that intersect the Ewald sphere.
                 (
