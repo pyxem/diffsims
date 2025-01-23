@@ -26,6 +26,7 @@ from diffsims.pattern.detector_functions import (
     add_dead_pixels,
     add_linear_detector_gain,
     add_detector_offset,
+    get_pattern_from_pixel_coordinates_and_intensities,
 )
 
 
@@ -154,3 +155,152 @@ class TestDetectorGainOffset:
         g1 = add_detector_offset(pattern, pattern)
         g2 = add_detector_offset(g1, -pattern)
         assert np.allclose(pattern, g2)
+
+
+class TestGetPatternFromPixelCoordinatesAndIntensities:
+    def test_2d_vs_3d_coordinates(self):
+        c2 = np.asarray(
+            [
+                [10, 10],
+                [20, 30],
+                [15, 20],
+            ]
+        )
+        c3 = np.asarray(
+            [
+                [c2[0, 0], c2[0, 1], 92],
+                [c2[1, 0], c2[1, 1], 0],
+                [c2[2, 0], c2[2, 1], -192],
+            ]
+        )
+        shape = (50, 50)
+        intensities = np.ones(3) * 100
+        sigma = 1
+        p2 = get_pattern_from_pixel_coordinates_and_intensities(
+            c2,
+            intensities,
+            shape,
+            sigma,
+        )
+        p3 = get_pattern_from_pixel_coordinates_and_intensities(
+            c3,
+            intensities,
+            shape,
+            sigma,
+        )
+        assert np.array_equal(p2, p3)
+
+    def test_integer_vs_float_coordinates(self):
+        # With cutoff at 1, rounding the patterns to int should yield the same result
+        ci = np.asarray(
+            [
+                [10, 10],
+                [20, 30],
+                [15, 20],
+            ]
+        ).astype(int)
+        cf = ci.astype(float)
+        intensities = np.ones(3) * 100
+        shape = (50, 50)
+        sigma = 1
+        pi = get_pattern_from_pixel_coordinates_and_intensities(
+            ci,
+            intensities,
+            shape,
+            sigma,
+        ).astype(int)
+        pf = get_pattern_from_pixel_coordinates_and_intensities(
+            cf,
+            intensities,
+            shape,
+            sigma,
+        ).astype(int)
+        assert np.allclose(pi, pf)
+
+    def test_low_intensity(self):
+        # No pixel intensities above the cutoff
+        ci = np.asarray(
+            [
+                [10, 10],
+                [20, 30],
+                [15, 20],
+            ]
+        ).astype(float)
+        p = get_pattern_from_pixel_coordinates_and_intensities(
+            ci,
+            np.ones(3),
+            (50, 50),
+            1,
+        )
+        assert np.sum(p) == 0.0
+
+    def test_total_intensity_preservation(self):
+        # total intensity always preserved for integer coords
+        ci = np.asarray(
+            [
+                [10, 10],
+            ]
+        ).astype(int)
+        i = 100
+        p = get_pattern_from_pixel_coordinates_and_intensities(
+            ci,
+            np.array([i]),
+            (50, 50),
+            3,
+        )
+        assert np.allclose(np.sum(p), i)
+
+    def test_total_intensity_preservation_with_threshold(self):
+        # With large intensity, total is preserved for floats as well
+        # (since the values below the cutoff don't contribute)
+
+        # Large intensity and default cutoff
+        ci = np.asarray(
+            [
+                [10, 10],
+            ]
+        ).astype(float)
+        i = 1000
+        p = get_pattern_from_pixel_coordinates_and_intensities(
+            ci,
+            np.array([i]),
+            (50, 50),
+            1,
+        )
+        assert np.sum(p) / i > 0.999  # 0.1% error
+        # Smaller intensity and cutoff
+        i = 20
+        p = get_pattern_from_pixel_coordinates_and_intensities(
+            ci,
+            np.array([i]),
+            (50, 50),
+            1,
+            clip_threshold=0.01,
+        )
+        assert np.sum(p) / i > 0.999  # 0.1% error
+
+    def test_spot_in_corner(self):
+        ci = np.asarray(
+            [
+                [0.3, 0.1],
+            ]
+        )
+        i = 100
+        sigma = 3
+        p = get_pattern_from_pixel_coordinates_and_intensities(
+            ci,
+            np.array([i]),
+            (50, 50),
+            sigma,
+        )
+        # Intensity spread out of the pattern is lost
+        assert np.sum(p) < i
+
+        p = get_pattern_from_pixel_coordinates_and_intensities(
+            ci.astype(int),
+            np.array([i]),
+            (50, 50),
+            sigma,
+        )
+        # Integer coordinates, total intensity is preserved even at edge
+        assert np.allclose(np.sum(p), i)
