@@ -16,8 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Diffraction pattern library generator and associated tools.
-"""
+"""Diffraction pattern library generator and associated tools."""
 
 import numpy as np
 from tqdm import tqdm

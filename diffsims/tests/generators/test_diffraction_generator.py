@@ -29,7 +29,7 @@ import diffpy.structure
 from diffsims.utils.shape_factor_models import linear, binary, sin2c, atanc, lorentzian
 
 
-@pytest.fixture(params=[(300)])
+@pytest.fixture(params=[300])
 def diffraction_calculator(request):
     return DiffractionGenerator(request.param)
 
