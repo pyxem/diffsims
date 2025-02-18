@@ -18,10 +18,12 @@
 
 """Kinematic Diffraction Simulation Generator."""
 
-from typing import Union, Sequence
+from typing import Union, Sequence, Tuple
 import numpy as np
+from numba import njit
 
 from orix.quaternion import Rotation
+from orix.vector import Vector3d
 from orix.crystal_map import Phase
 
 from diffsims.crystallography._diffracting_vector import DiffractingVector
@@ -131,9 +133,7 @@ class SimulationGenerator:
     def calculate_diffraction2d(
         self,
         phase: Union[Phase, Sequence[Phase]],
-        rotation: Union[Rotation, Sequence[Rotation]] = Rotation.from_euler(
-            (0, 0, 0), degrees=True
-        ),
+        rotation: Union[Rotation, Sequence[Rotation]] = Rotation.identity(),
         reciprocal_radius: float = 1.0,
         with_direct_beam: bool = True,
         max_excitation_error: float = 1e-2,
@@ -195,31 +195,33 @@ class SimulationGenerator:
                 min_dspacing=1 / reciprocal_radius,
                 include_zero_vector=with_direct_beam,
             )
+            recip.sanitise_phase()
+            recip.calculate_structure_factor(
+                scattering_params=self.scattering_params,
+                debye_waller_factors=debye_waller_factors,
+            )
             phase_vectors = []
-            for rot in rotate:
+            for rot, optical_axis in zip(rotate, rotate * Vector3d.zvector()):
                 # Calculate the reciprocal lattice vectors that intersect the Ewald sphere.
-                (
-                    intersected_vectors,
-                    hkl,
-                    shape_factor,
-                ) = self.get_intersecting_reflections(
+                intersection, excitation_error = get_intersection_with_ewalds_sphere(
                     recip,
-                    rot,
+                    optical_axis,
                     wavelength,
                     max_excitation_error,
-                    shape_factor_width=shape_factor_width,
-                    with_direct_beam=with_direct_beam,
+                    self.precession_angle,
                 )
+                # Select intersected reflections
+                intersected_vectors = recip[intersection].rotate_with_basis(rot)
+                excitation_error = excitation_error[intersection]
+                r_spot = intersected_vectors.norm
 
-                # Calculate diffracted intensities based on a kinematic model.
-                intensities = get_kinematical_intensities(
-                    p.structure,
-                    hkl,
-                    intersected_vectors.gspacing,
-                    prefactor=shape_factor,
-                    scattering_params=self.scattering_params,
-                    debye_waller_factors=debye_waller_factors,
+                # Calculate shape factor
+                shape_factor = self.get_shape_factor(
+                    excitation_error, max_excitation_error, r_spot, shape_factor_width
                 )
+                # Calculate intensity
+                f_hkls = recip.structure_factor[intersection]
+                intensities = (f_hkls * f_hkls.conjugate()).real * shape_factor
 
                 # Threshold peaks included in simulation as factor of zero beam intensity.
                 peak_mask = intensities > np.max(intensities) * self.minimum_intensity
@@ -332,10 +334,50 @@ class SimulationGenerator:
             wavelength=self.wavelength,
         )
 
+    def get_shape_factor(
+        self,
+        excitation_error: np.ndarray,
+        max_excitation_error: float,
+        r_spot: np.ndarray = None,
+        shape_factor_width: float = None,
+    ) -> np.ndarray:
+
+        if shape_factor_width is None:
+            shape_factor_width = max_excitation_error
+        # select and evaluate shape factor model
+        if self.precession_angle == 0:
+            # calculate shape factor
+            shape_factor = self.shape_factor_model(
+                excitation_error, shape_factor_width, **self.shape_factor_kwargs
+            )
+        else:
+            if self.approximate_precession:
+                shape_factor = lorentzian_precession(
+                    excitation_error,
+                    shape_factor_width,
+                    r_spot,
+                    np.deg2rad(self.precession_angle),
+                )
+            else:
+                if r_spot is None:
+                    raise ValueError(
+                        "Must supply `r_spot` parameter when not approximating precession"
+                    )
+                shape_factor = _shape_factor_precession(
+                    excitation_error,
+                    r_spot,
+                    np.deg2rad(self.precession_angle),
+                    self.shape_factor_model,
+                    shape_factor_width,
+                    **self.shape_factor_kwargs,
+                )
+        return shape_factor
+
     def get_intersecting_reflections(
         self,
         recip: DiffractingVector,
-        rot: np.ndarray,
+        recip_hkl: np.ndarray,
+        rot: Rotation,
         wavelength: float,
         max_excitation_error: float,
         shape_factor_width: float = None,
@@ -360,69 +402,183 @@ class SimulationGenerator:
             Determines the width of the reciprocal rel-rod, for fine-grained
             control. If not set will be set equal to max_excitation_error.
         """
-        initial_hkl = recip.hkl
-        rotated_vectors = recip.rotate_with_basis(rotation=rot)
-        rotated_phase = rotated_vectors.phase
-        rotated_vectors = rotated_vectors.data
         if with_direct_beam:
-            rotated_vectors = np.vstack([rotated_vectors.data, [0, 0, 0]])
-            initial_hkl = np.vstack([initial_hkl, [0, 0, 0]])
-        # Identify the excitation errors of all points (distance from point to Ewald sphere)
-        r_sphere = 1 / wavelength
-        r_spot = np.sqrt(np.sum(np.square(rotated_vectors[:, :2]), axis=1))
-        z_spot = rotated_vectors[:, 2]
+            # Modify the data directly, as `data` is a property
+            recip._data = np.vstack([recip._data, [0, 0, 0]])
+            recip_hkl = np.vstack([recip_hkl, [0, 0, 0]])
 
-        z_sphere = -np.sqrt(r_sphere**2 - r_spot**2) + r_sphere
-        excitation_error = z_sphere - z_spot
-
-        # determine the pre-selection reflections
-        if self.precession_angle == 0:
-            intersection = np.abs(excitation_error) < max_excitation_error
-        else:
-            # only consider points that intersect the ewald sphere at some point
-            # the center point of the sphere
-            P_z = r_sphere * np.cos(np.deg2rad(self.precession_angle))
-            P_t = r_sphere * np.sin(np.deg2rad(self.precession_angle))
-            # the extremes of the ewald sphere
-            z_surf_up = P_z - np.sqrt(r_sphere**2 - (r_spot + P_t) ** 2)
-            z_surf_do = P_z - np.sqrt(r_sphere**2 - (r_spot - P_t) ** 2)
-            intersection = (z_spot - max_excitation_error <= z_surf_up) & (
-                z_spot + max_excitation_error >= z_surf_do
-            )
-
-        # select these reflections
-        intersected_vectors = rotated_vectors[intersection]
-        intersected_vectors = DiffractingVector(
-            phase=rotated_phase,
-            xyz=intersected_vectors,
+        intersection, excitation_error = get_intersection_with_ewalds_sphere(
+            recip,
+            rot * Vector3d.zvector(),
+            wavelength,
+            max_excitation_error,
+            self.precession_angle,
         )
+        intersected_vectors = recip[intersection].rotate_with_basis(rot)
         excitation_error = excitation_error[intersection]
-        r_spot = r_spot[intersection]
-        hkl = initial_hkl[intersection]
+        hkl = recip_hkl[intersection]
+        r_spot = intersected_vectors.norm
 
-        if shape_factor_width is None:
-            shape_factor_width = max_excitation_error
-        # select and evaluate shape factor model
-        if self.precession_angle == 0:
-            # calculate shape factor
-            shape_factor = self.shape_factor_model(
-                excitation_error, shape_factor_width, **self.shape_factor_kwargs
-            )
-        else:
-            if self.approximate_precession:
-                shape_factor = lorentzian_precession(
-                    excitation_error,
-                    shape_factor_width,
-                    r_spot,
-                    np.deg2rad(self.precession_angle),
-                )
-            else:
-                shape_factor = _shape_factor_precession(
-                    excitation_error,
-                    r_spot,
-                    np.deg2rad(self.precession_angle),
-                    self.shape_factor_model,
-                    shape_factor_width,
-                    **self.shape_factor_kwargs,
-                )
+        shape_factor = self.get_shape_factor(
+            excitation_error, max_excitation_error, r_spot, shape_factor_width
+        )
         return intersected_vectors, hkl, shape_factor
+
+
+# TODO consider refactoring into a seperate file
+def get_intersection_with_ewalds_sphere(
+    recip: DiffractingVector,
+    optical_axis: Vector3d,
+    wavelength: float,
+    max_excitation_error: float,
+    precession_angle: float = 0,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Calculates the reciprocal lattice vectors that intersect the Ewald sphere.
+
+    Parameters
+    ----------
+    recip
+        The reciprocal lattice vectors to rotate.
+    optical_axis
+        Normalised vector representing the direction of the beam
+    wavelength
+        The wavelength of the electrons in Angstroms.
+    max_excitation_error
+        The cut-off for geometric excitation error in the z-direction
+        in units of reciprocal Angstroms. Spots with a larger distance
+        from the Ewald sphere are removed from the pattern.
+        Related to the extinction distance and roungly equal to 1/thickness.
+    precession_angle
+        Degrees
+
+    Returns
+    -------
+    intersection
+        Array of bools. True where the vectors intersect
+    excitation_error
+        Excitation error of all vectors
+    """
+    if precession_angle == 0:
+        return _get_intersection_with_ewalds_sphere_without_precession(
+            recip.data, optical_axis.data.squeeze(), wavelength, max_excitation_error
+        )
+    return _get_intersection_with_ewalds_sphere_with_precession(
+        recip.data,
+        optical_axis.data.squeeze(),
+        wavelength,
+        max_excitation_error,
+        precession_angle,
+    )
+
+
+@njit(
+    "float64[:](float64[:, :], float64[:], float64)",
+    fastmath=True,
+)
+def _calculate_excitation_error(
+    recip: np.ndarray,
+    optical_axis_vector: np.ndarray,
+    wavelength: float,
+) -> np.ndarray:
+    # Instead of rotating vectors, rotate Ewald's sphere to find intersections.
+    # Only rotate the intersecting vectors.
+    # Using notation from https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
+    r = 1 / wavelength
+    # u = rot @ np.array([0, 0, 1])
+    u = optical_axis_vector
+    c = r * u
+    o = recip
+
+    diff = o - c
+    dot = np.dot(u, diff.T)
+    nabla = dot**2 - np.sum(diff**2, axis=1) + r**2
+    # We know the reflections are all going to intersect twice
+    # Therefore, no need to look at the sign of nabla
+    # We also know only the smaller root is important, i.e. -sqrt(nabla)
+    sqrt_nabla = np.sqrt(nabla)
+    d = -dot - sqrt_nabla
+
+    return d
+
+
+@njit(
+    "Tuple((bool[:], float64[:]))(float64[:, :], float64[:], float64, float64)",
+    fastmath=True,
+)
+def _get_intersection_with_ewalds_sphere_without_precession(
+    recip: np.ndarray,
+    optical_axis_vector: np.ndarray,
+    wavelength: float,
+    max_excitation_error: float,
+) -> Tuple[np.ndarray, np.ndarray]:
+    excitation_error = _calculate_excitation_error(
+        recip, optical_axis_vector, wavelength
+    )
+    intersection = np.abs(excitation_error) < max_excitation_error
+    return intersection, excitation_error
+
+
+@njit(
+    "Tuple((bool[:], float64[:]))(float64[:, :], float64[:], float64, float64, float64)",
+    fastmath=True,
+)
+def _get_intersection_with_ewalds_sphere_with_precession(
+    recip: np.ndarray,
+    optical_axis_vector: np.ndarray,
+    wavelength: float,
+    max_excitation_error: float,
+    precession_angle: float,
+) -> Tuple[np.ndarray, np.ndarray]:
+    # Using the following script to find equations for upper and lower bounds for precessing Ewald's sphere
+    # (names are same as in _get_excitation_error_no_precession)
+    """
+    import sympy
+    import numpy as np
+
+    a = sympy.Symbol("a") # Precession angle
+    r = sympy.Symbol("r") # Ewald's sphere radius
+    rho, z = sympy.symbols("rho z") # cylindrical coordinates of reflection
+
+    rot = lambda ang: np.asarray([[sympy.cos(ang), -sympy.sin(ang)],[sympy.sin(ang), sympy.cos(ang)]])
+
+    u = np.asarray([0, 1])
+    c = r * u
+    cl = rot(a) @ c
+    cr = rot(-a) @ c
+    o = np.asarray([rho, z])
+
+    def get_d(_c):
+        diff = o - _c
+        dot = np.dot(u, diff)
+        nabla = dot**2 - sum(i**2 for i in diff) + r**2
+        sqrt_nabla = nabla**0.5
+        return  -dot - sqrt_nabla
+
+    d = get_d(c)
+    d_upper = get_d(cl)
+    d_lower = get_d(cr)
+
+    print(d.simplify())             # r - z - (r**2 - rho**2)**0.5
+    print((d_upper - d).simplify()) # r*cos(a) - r + (r**2 - rho**2)**0.5 - (r**2 - (r*sin(a) + rho)**2)**0.5
+    print((d_lower - d).simplify()) # r*cos(a) - r + (r**2 - rho**2)**0.5 - (r**2 - (r*sin(a) - rho)**2)**0.5
+    """
+    d = _calculate_excitation_error(recip, optical_axis_vector, wavelength)
+
+    r = 1 / wavelength
+    u = optical_axis_vector
+    o = recip
+
+    excitation_error = d
+    # We need the distance of the reflections from the incident beam, i.e. the cylindrical coordinate rho
+    # (using https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Vector_formulation):
+
+    # Numba does not support norm with axes, implement manually
+    rho = np.sum((np.dot(o, u)[:, np.newaxis] * u - o) ** 2, axis=1) ** 0.5
+    a = np.deg2rad(precession_angle)
+    first_half = r * np.cos(a) - r + (r**2 - rho**2) ** 0.5
+    upper = first_half - (r**2 - (r * np.sin(a) + rho) ** 2) ** 0.5
+    lower = first_half - (r**2 - (r * np.sin(a) - rho) ** 2) ** 0.5
+    intersection = (d < (upper + max_excitation_error)) & (
+        d > (lower - max_excitation_error)
+    )
+    return intersection, excitation_error

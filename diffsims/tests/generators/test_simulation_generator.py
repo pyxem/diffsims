@@ -133,13 +133,30 @@ class TestDiffractionCalculator:
             "approximate_precession=True)"
         )
 
+    @pytest.mark.parametrize("with_direct_beam", [False, True])
+    def test_single_direct_beam(
+        self,
+        diffraction_calculator: SimulationGenerator,
+        local_structure,
+        with_direct_beam,
+    ):
+        diffraction = diffraction_calculator.calculate_diffraction2d(
+            local_structure, reciprocal_radius=5.0, with_direct_beam=with_direct_beam
+        )
+        # Check that there is only one direct beam
+        num_direct_beam = 0
+        for hkl in diffraction.coordinates.hkl:
+            hkl = tuple(hkl.flatten().tolist())
+            num_direct_beam += hkl == (0, 0, 0)
+        assert num_direct_beam == with_direct_beam
+
     def test_matching_results(
         self, diffraction_calculator: SimulationGenerator, local_structure
     ):
         diffraction = diffraction_calculator.calculate_diffraction2d(
             local_structure, reciprocal_radius=5.0
         )
-        assert diffraction.coordinates.size == 70
+        assert diffraction.coordinates.size == 69
 
     def test_precession_simple(
         self, diffraction_calculator_precession_simple, local_structure
@@ -148,7 +165,7 @@ class TestDiffractionCalculator:
             local_structure,
             reciprocal_radius=5.0,
         )
-        assert diffraction.coordinates.size == 250
+        assert diffraction.coordinates.size == 249
 
     def test_precession_full(
         self, diffraction_calculator_precession_full, local_structure
@@ -157,14 +174,16 @@ class TestDiffractionCalculator:
             local_structure,
             reciprocal_radius=5.0,
         )
-        assert diffraction.coordinates.size == 250
+        assert diffraction.coordinates.size == 249
 
     def test_custom_shape_func(self, diffraction_calculator_custom, local_structure):
         diffraction = diffraction_calculator_custom.calculate_diffraction2d(
             local_structure,
             reciprocal_radius=5.0,
         )
-        assert diffraction.coordinates.size == 52
+        # This shape factor model yields 0 intensity for the direct beam,
+        # which is less than the intensity threshold. The direct beam is therefore removed
+        assert diffraction.coordinates.unique(use_symmetry=True).size == 9
 
     def test_appropriate_scaling(self, diffraction_calculator: SimulationGenerator):
         """Tests that doubling the unit cell halves the pattern spacing."""
@@ -176,12 +195,15 @@ class TestDiffractionCalculator:
         big_diffraction = diffraction_calculator.calculate_diffraction2d(
             phase=big_silicon, reciprocal_radius=5.0
         )
-        indices = [tuple(i) for i in diffraction.coordinates.hkl]
-        big_indices = [tuple(i) for i in big_diffraction.coordinates.hkl]
-        assert (2, 2, 0) in indices
-        assert (2, 2, 0) in big_indices
-        coordinates = diffraction.coordinates[indices.index((2, 2, 0))]
-        big_coordinates = big_diffraction.coordinates[big_indices.index((2, 2, 0))]
+        indices = [tuple(i.tolist()) for i in diffraction.coordinates.hkl.astype(int)]
+        big_indices = [
+            tuple(i.tolist()) for i in big_diffraction.coordinates.hkl.astype(int)
+        ]
+        target = (2, 2, 0)
+        assert target in indices
+        assert target in big_indices
+        coordinates = diffraction.coordinates[indices.index(target)]
+        big_coordinates = big_diffraction.coordinates[big_indices.index(target)]
         assert np.allclose(coordinates.data, big_coordinates.data * 2)
 
     def test_appropriate_intensities(self, diffraction_calculator, local_structure):
@@ -326,7 +348,7 @@ def test_same_simulation_results():
     # old_data = diff_lib["Graphite"]["simulations"][0].get_diffraction_pattern(shape=shape, sigma=sigma)
 
     # New
-    p = Phase("Graphite", point_group="6/mmm", structure=structure_matrix)
+    p = Phase("Graphite", structure=structure_matrix, space_group=194)
     gen = SimulationGenerator(**generator_kwargs)
     rot = Rotation.from_euler(euler_angles_new, degrees=True)
     sim = gen.calculate_diffraction2d(
@@ -341,3 +363,43 @@ def test_same_simulation_results():
     )
     old_data = np.load(FILE1)
     np.testing.assert_allclose(new_data, old_data, atol=1e-8)
+
+
+def test_space_group_is_accounted_for():
+    structure = diffpy.structure.Structure(
+        atoms=[diffpy.structure.Atom("Au", xyz=(0, 0, 0))],
+        lattice=diffpy.structure.Lattice(4, 4, 4, 90, 90, 90),
+    )
+    P1 = Phase(space_group=1, structure=structure)
+    Fd3m = Phase(space_group=227, structure=structure)
+
+    gen = SimulationGenerator()
+    P1_sim = gen.calculate_diffraction2d(P1)
+    Fd3m_sim = gen.calculate_diffraction2d(Fd3m)
+
+    # Use ReciprocalLatticeVector.sanitize_phase
+    Fd3m_expanded = Fd3m.deepcopy()
+    Fd3m_expanded.expand_asymmetric_unit()
+    Fd3m_expanded_sim = gen.calculate_diffraction2d(Fd3m_expanded)
+
+    # Check coordinates. There are many extinct reflections in Fd3m, so look for those in P1
+    P1_hkl = [tuple(hkl.round().astype(int).tolist()) for hkl in P1_sim.coordinates.hkl]
+    Fd3m_hkl = [
+        tuple(hkl.round().astype(int).tolist()) for hkl in Fd3m_sim.coordinates.hkl
+    ]
+    Fd3m_expanded_hkl = [
+        tuple(hkl.round().astype(int).tolist())
+        for hkl in Fd3m_expanded_sim.coordinates.hkl
+    ]
+    assert set(P1_hkl).issuperset(set(Fd3m_hkl))
+    assert set(P1_hkl).issuperset(set(Fd3m_expanded_hkl))
+    assert set(Fd3m_hkl) == set(Fd3m_expanded_hkl)
+
+    # Check intensities, should be different
+    order = [P1_hkl.index(hkl) for hkl in Fd3m_hkl]
+    assert not np.allclose(
+        P1_sim.coordinates.intensity[order], Fd3m_sim.coordinates.intensity
+    )
+    assert np.allclose(
+        Fd3m_sim.coordinates.intensity, Fd3m_expanded_sim.coordinates.intensity
+    )
