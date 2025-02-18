@@ -116,7 +116,7 @@ def add_reciprocal_lattice_vector_al(doctest_namespace):
     doctest_namespace["rlv"] = rlv
 
 
-@pytest.fixture(params=[("file_01")])
+@pytest.fixture(params=["file_01"])
 def pickle_temp_file(tmpdir, request):
     name = request.param
     fname = tmpdir.join(name + ".pickle")

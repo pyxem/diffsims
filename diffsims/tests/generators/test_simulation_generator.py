@@ -40,7 +40,7 @@ TEST_DATA_DIR = Path(__file__).parent
 FILE1 = TEST_DATA_DIR / "old_simulation.npy"
 
 
-@pytest.fixture(params=[(300)])
+@pytest.fixture(params=[300])
 def diffraction_calculator(request):
     return SimulationGenerator(request.param)
 

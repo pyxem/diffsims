@@ -16,8 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Back-end for computing diffraction patterns with a kinematic model.
-"""
+"""Back-end for computing diffraction patterns with a kinematic model."""
 
 from numpy import array, pi, sin, cos, empty
 from scipy.interpolate import interpn
