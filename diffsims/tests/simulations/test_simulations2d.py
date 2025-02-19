@@ -113,6 +113,55 @@ class TestSingleSimulation:
         copied = single_simulation.deepcopy()
         assert copied is not single_simulation
 
+    def test_get_diffraction_pattern_fast_vs_slow(self, al_phase):
+        gen = SimulationGenerator()
+        rot = Rotation.identity()
+        xyz = np.asarray([[0, 0, 0]])
+        i = np.array([30])
+        integer_coords = DiffractingVector(
+            phase=al_phase, xyz=xyz.astype(int), intensity=i
+        )
+        float_coords = DiffractingVector(
+            phase=al_phase, xyz=xyz.astype(float), intensity=i
+        )
+        int_sim = Simulation2D(
+            phases=al_phase,
+            simulation_generator=gen,
+            coordinates=integer_coords,
+            rotations=rot,
+        )
+        float_sim = Simulation2D(
+            phases=al_phase,
+            simulation_generator=gen,
+            coordinates=float_coords,
+            rotations=rot,
+        )
+        sim_kwargs = dict(
+            shape=(11, 11),  # This shape has a center directly at a pixel
+            sigma=1,
+            calibration=1,
+            normalize=False,
+            fast_clip_threshold=0.01,
+        )
+        # Check that fast/slow are the same when coordinates are dtype int
+        fast = int_sim.get_diffraction_pattern(fast=True, **sim_kwargs)
+        slow = int_sim.get_diffraction_pattern(fast=False, **sim_kwargs)
+        # Should be exactly equal
+        assert np.array_equal(fast, slow)
+
+        # Check that float coords are the same too, when the center is in a pixel
+        float_fast = float_sim.get_diffraction_pattern(fast=True, **sim_kwargs)
+        float_slow = float_sim.get_diffraction_pattern(fast=False, **sim_kwargs)
+        assert np.allclose(float_fast, fast)
+        assert np.all((float_slow - float_fast) < sim_kwargs["fast_clip_threshold"])
+
+        # Change the size, now the center is between pixels.
+        # Slow should reflect this
+        sim_kwargs["shape"] = (10, 10)
+        float_fast = float_sim.get_diffraction_pattern(fast=True, **sim_kwargs)
+        float_slow = float_sim.get_diffraction_pattern(fast=False, **sim_kwargs)
+        assert not np.allclose(float_fast, float_slow)
+
 
 class TestSimulationInitFailures:
     def test_different_size(self, al_phase):

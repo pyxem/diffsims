@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Union, Sequence, TYPE_CHECKING, Any
+from typing import Union, Sequence, Tuple, TYPE_CHECKING, Any
 import copy
 
 import numpy as np
@@ -27,7 +27,9 @@ from orix.quaternion import Rotation
 from orix.vector import Vector3d
 
 from diffsims.crystallography._diffracting_vector import DiffractingVector
-from diffsims.pattern.detector_functions import add_shot_and_point_spread
+from diffsims.pattern.detector_functions import (
+    get_pattern_from_pixel_coordinates_and_intensities,
+)
 
 # to avoid circular imports
 if TYPE_CHECKING:  # pragma: no cover
@@ -343,12 +345,15 @@ class Simulation2D:
 
     def get_diffraction_pattern(
         self,
-        shape=None,
-        sigma=10,
-        direct_beam_position=None,
-        in_plane_angle=0,
-        calibration=0.01,
-        mirrored=False,
+        shape: Tuple[int, int] = None,
+        sigma: float = 10,
+        direct_beam_position: Tuple[int, int] = None,
+        in_plane_angle: float = 0,
+        calibration: float = 0.01,
+        mirrored: bool = False,
+        fast: bool = True,
+        normalize: bool = True,
+        fast_clip_threshold: float = 1,
     ):
         """Returns the diffraction data as a numpy array with
         two-dimensional Gaussians representing each diffracted peak. Should only
@@ -368,11 +373,19 @@ class Simulation2D:
         mirrored: bool, optional
             Whether the pattern should be flipped over the x-axis,
             corresponding to the inverted orientation
-
+        fast: bool, optional
+            Whether to speed up calculations by rounding spot coordinates down to integer pixel
+        normalize: bool, optional
+            Whether to normalize the pattern to values between 0 and 1
+        fast_clip_threshold: float, optional
+            Only used when `fast` is False.
+            Pixel intensity threshold, such that pixels which would be below this value are ignored.
+            Thresholding performed before possible normalization.
+            See diffsims.pattern.detector_functions.get_pattern_from_pixel_coordinates_and_intensities for details.
         Returns
         -------
         diffraction-pattern : numpy.array
-            The simulated electron diffraction pattern, normalised.
+            The simulated electron diffraction pattern, normalized by default.
 
         Notes
         -----
@@ -381,7 +394,13 @@ class Simulation2D:
         the order of 0.5nm and the default size and sigma are used.
         """
         if direct_beam_position is None:
-            direct_beam_position = (shape[1] // 2, shape[0] // 2)
+            # Use subpixel-precise center if possible
+            if fast or np.issubdtype(
+                self.get_current_coordinates().data.dtype, np.integer
+            ):
+                direct_beam_position = (shape[1] // 2, shape[0] // 2)
+            else:
+                direct_beam_position = ((shape[1] - 1) / 2, (shape[0] - 1) / 2)
         transformed = self._get_transformed_coordinates(
             in_plane_angle,
             direct_beam_position,
@@ -395,17 +414,21 @@ class Simulation2D:
             & (transformed.data[:, 1] >= 0)
             & (transformed.data[:, 1] < shape[0])
         )
-        spot_coords = transformed.data[in_frame].astype(int)
-
+        spot_coords = transformed.data[in_frame]
+        if fast:
+            spot_coords = spot_coords.astype(int)
         spot_intens = transformed.intensity[in_frame]
-        pattern = np.zeros(shape)
+
         # checks that we have some spots
         if spot_intens.shape[0] == 0:
-            return pattern
-        else:
-            pattern[spot_coords[:, 0], spot_coords[:, 1]] = spot_intens
-            pattern = add_shot_and_point_spread(pattern.T, sigma, shot_noise=False)
-        return np.divide(pattern, np.max(pattern))
+            return np.zeros(shape)
+
+        pattern = get_pattern_from_pixel_coordinates_and_intensities(
+            spot_coords, spot_intens, shape, sigma, fast_clip_threshold
+        )
+        if normalize:
+            pattern = np.divide(pattern, np.max(pattern))
+        return pattern
 
     @property
     def num_phases(self):
