@@ -12,6 +12,7 @@ Unreleased
 
 Added
 -----
+- Progressbar for SimulationGenerator.calculate_diffraction2d in (#233)
 
 Changed
 -------

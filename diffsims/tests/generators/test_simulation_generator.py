@@ -341,3 +341,63 @@ def test_same_simulation_results():
     )
     old_data = np.load(FILE1)
     np.testing.assert_allclose(new_data, old_data, atol=1e-8)
+
+
+def test_calculate_diffraction2d_progressbar_single_phase(capsys):
+    gen = SimulationGenerator()
+    phase = make_phase()
+    phase.name = "test phase"
+    rots = Rotation.random(10)
+
+    # no pbar
+    sims = gen.calculate_diffraction2d(phase, rots, show_progressbar=False)
+
+    # Note: tqdm outputs to stderr by default
+    captured = capsys.readouterr()
+    assert captured.err == ""
+
+    # with pbar
+    sims = gen.calculate_diffraction2d(phase, rots, show_progressbar=True)
+
+    captured = capsys.readouterr()
+    expected = "test phase: 100%|██████████| 10/10"  # also some more, but that is compute-time dependent
+    # ignore possible flushing
+    captured = captured.err.split("\r")[-1]
+    assert captured[: len(expected)] == expected
+
+
+def test_calculate_diffraction2d_progressbar_multi_phase(capsys):
+    gen = SimulationGenerator()
+    phase1 = make_phase()
+    phase1.name = "A"
+    phase2 = make_phase()
+    phase2.name = "B"
+    rots = Rotation.random(10)
+
+    # no pbar
+    sims = gen.calculate_diffraction2d(
+        [phase1, phase2], [rots, rots], show_progressbar=False
+    )
+
+    # Note: tqdm outputs to stderr by default
+    captured = capsys.readouterr()
+    assert captured.err == ""
+
+    # with pbar
+    sims = gen.calculate_diffraction2d(
+        [phase1, phase2], [rots, rots], show_progressbar=True
+    )
+
+    captured = capsys.readouterr()
+    expected1 = "A: 100%|██████████| 10/10 "
+    expected2 = "B: 100%|██████████| 10/10 "
+    # Find the correct output in the stream, i.e. final line containing the name of the phase
+    captured1 = ""
+    captured2 = ""
+    for line in captured.err.split("\r"):
+        if "A" in line:
+            captured1 = line
+        if "B" in line:
+            captured2 = line
+    assert captured1[: len(expected1)] == expected1
+    assert captured2[: len(expected2)] == expected2

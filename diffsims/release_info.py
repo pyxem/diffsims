@@ -14,6 +14,7 @@ credits = [
     "Ben Martineau",
     "Niels Cautaerts",
     "Joonatan Laulainen",
+    "Viljar Johan Femoen",
     "Isabel Wood",
     "Sean Collins",
     "Stef Smeets",

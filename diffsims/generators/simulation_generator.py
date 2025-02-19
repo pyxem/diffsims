@@ -19,7 +19,9 @@
 """Kinematic Diffraction Simulation Generator."""
 
 from typing import Union, Sequence
+
 import numpy as np
+from tqdm import tqdm
 
 from orix.quaternion import Rotation
 from orix.crystal_map import Phase
@@ -139,6 +141,7 @@ class SimulationGenerator:
         max_excitation_error: float = 1e-2,
         shape_factor_width: float = None,
         debye_waller_factors: dict = None,
+        show_progressbar: bool = False,
     ):
         """Calculates the diffraction pattern for one or more phases given a list
         of rotations for each phase.
@@ -166,6 +169,8 @@ class SimulationGenerator:
             control. If not set will be set equal to max_excitation_error.
         debye_waller_factors
             Maps element names to their temperature-dependent Debye-Waller factors.
+        show_progressbar
+            If True, display a progressbar. Defaults to False
 
         Returns
         -------
@@ -196,7 +201,13 @@ class SimulationGenerator:
                 include_zero_vector=with_direct_beam,
             )
             phase_vectors = []
-            for rot in rotate:
+
+            # Progress bar setup
+            rotate_iter = rotate
+            if show_progressbar:
+                rotate_iter = tqdm(rotate_iter, desc=p.name, total=rotate.size)
+
+            for rot in rotate_iter:
                 # Calculate the reciprocal lattice vectors that intersect the Ewald sphere.
                 (
                     intersected_vectors,
