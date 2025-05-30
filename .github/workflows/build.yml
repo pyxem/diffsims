@@ -40,13 +40,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.10', '3.11']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
         include:
           # Oldest supported version of main dependencies
           - os: ubuntu-latest
-            python-version: 3.8
+            python-version: 3.9
             OLDEST_SUPPORTED_VERSION: true
-            DEPENDENCIES: diffpy.structure==3.0.2 matplotlib==3.5 numpy==1.17.3 orix==0.12.1 scipy==1.8 tqdm==4.9
+            DEPENDENCIES: diffpy.structure==3.0.2 matplotlib==3.5 numpy==1.17.3 orix==0.12.1 scipy==1.8 tqdm==4.61.2
             LABEL: -oldest
     steps:
       - uses: actions/checkout@v4
