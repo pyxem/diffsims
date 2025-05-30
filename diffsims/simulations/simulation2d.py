@@ -327,14 +327,27 @@ class Simulation2D:
         intensities_templates = np.zeros((len(flattened_vectors), max_num_spots))
         for i, v in enumerate(flattened_vectors):
             r, t = v.to_flat_polar()
+            inten = v.intensity
             if radial_axes is not None and azimuthal_axes is not None:
-                r = get_closest(radial_axes, r)
-                t = get_closest(azimuthal_axes, t)
-                r = r[r < len(radial_axes)]
-                t = t[t < len(azimuthal_axes)]
-            r_templates[i, : len(r)] = r
-            theta_templates[i, : len(t)] = t
-            intensities_templates[i, : len(v.intensity)] = v.intensity
+                r = get_closest(
+                    radial_axes, r
+                )  # convert from real to pixel coordinates
+                t = get_closest(
+                    azimuthal_axes, t
+                )  # convert from real to pixel coordinates
+                mask = r < len(radial_axes) - 1  # if out of bounds, ignore
+                r = r[mask]  # if out of bounds, ignore
+                t = t[mask]  # if out of bounds, ignore
+                inten = inten[mask]  # if out of bounds, ignore
+                mask = t < len(azimuthal_axes) - 1  # if out of bounds, ignore
+                t = t[mask]  # if out of bounds, ignore
+                r = r[mask]  # if out of bounds, ignore
+                inten = inten[mask]  # if out of bounds, ignore
+            r_templates[i, : len(r)] = (
+                r  # set the r coordinates (len r and t should be the same)
+            )
+            theta_templates[i, : len(r)] = t  # set the theta coordinates
+            intensities_templates[i, : len(inten)] = inten
         if radial_axes is not None and azimuthal_axes is not None:
             r_templates = np.array(r_templates, dtype=int)
             theta_templates = np.array(theta_templates, dtype=int)
