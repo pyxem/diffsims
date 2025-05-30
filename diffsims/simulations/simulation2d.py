@@ -335,14 +335,10 @@ class Simulation2D:
                 t = get_closest(
                     azimuthal_axes, t
                 )  # convert from real to pixel coordinates
-                mask = r < len(radial_axes) - 1  # if out of bounds, ignore
-                r = r[mask]  # if out of bounds, ignore
-                t = t[mask]  # if out of bounds, ignore
-                inten = inten[mask]  # if out of bounds, ignore
-                mask = t < len(azimuthal_axes) - 1  # if out of bounds, ignore
-                t = t[mask]  # if out of bounds, ignore
-                r = r[mask]  # if out of bounds, ignore
-                inten = inten[mask]  # if out of bounds, ignore
+                mask = (r < len(radial_axes) - 1) & (t < len(azimuthal_axes) - 1)  # combined mask for out-of-bounds indices
+                r = r[mask]  # apply combined mask
+                t = t[mask]  # apply combined mask
+                inten = inten[mask]  # apply combined mask
             r_templates[i, : len(r)] = (
                 r  # set the r coordinates (len r and t should be the same)
             )
