@@ -335,7 +335,9 @@ class Simulation2D:
                 t = get_closest(
                     azimuthal_axes, t
                 )  # convert from real to pixel coordinates
-                mask = (r < len(radial_axes) - 1) & (t < len(azimuthal_axes) - 1)  # combined mask for out-of-bounds indices
+                mask = (r < len(radial_axes) - 1) & (
+                    t < len(azimuthal_axes) - 1
+                )  # combined mask for out-of-bounds indices
                 r = r[mask]  # apply combined mask
                 t = t[mask]  # apply combined mask
                 inten = inten[mask]  # apply combined mask
