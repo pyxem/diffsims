@@ -30,7 +30,7 @@ class TestSingleSimulation:
     def simulation1d(self):
         al_phase = make_phase()
         al_phase.name = "Al"
-        hkls = np.array(["100", "110", "111"])
+        hkls = np.array([[1, 0, 0], [1, 1, 0], [1, 1, 1]])
         magnitudes = np.array([1, 2, 3])
         inten = np.array([1, 2, 3])
         recip = 4.0

@@ -72,15 +72,45 @@ class Simulation1D:
     def theta(self):
         return np.arctan2(np.array(self.reciprocal_spacing), 1 / self.wavelength)
 
-    def plot(self, ax=None, annotate_peaks=False, fontsize=12, with_labels=True):
-        """Plots the 1D diffraction pattern,"""
+    def plot(
+        self,
+        ax=None,
+        annotate_peaks=False,
+        fontsize=12,
+        with_labels=True,
+        rotation=90,
+        va="bottom",
+        ha="center",
+        **kwargs,
+    ):
+        """Plots the 1D diffraction pattern,
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            The axes to plot on. If None, a new figure and axes are created.
+        annotate_peaks : bool, optional
+            Whether to annotate the peaks with their hkl indices. Default is False.
+
+        """
         if ax is None:
             fig, ax = plt.subplots(1, 1)
         for g, i, hkls in zip(self.reciprocal_spacing, self.intensities, self.hkl):
             label = hkls
             ax.plot([g, g], [0, i], color="k", linewidth=3, label=label)
             if annotate_peaks:
-                ax.annotate(label, xy=[g, i], xytext=[g, i], fontsize=fontsize)
+                label = "[" + "".join([str(int(np.round(x))) for x in label]) + "]"
+
+                ax.annotate(
+                    label,
+                    xy=[g, i],
+                    xytext=[g, i + 4],
+                    fontsize=fontsize,
+                    rotation=rotation,
+                    va=va,
+                    ha=ha,
+                    **kwargs,
+                )
 
             if with_labels:
                 ax.set_xlabel("A ($^{-1}$)")

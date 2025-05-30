@@ -27,6 +27,7 @@ from orix.quaternion import Rotation
 from orix.crystal_map import Phase
 
 from diffsims.crystallography._diffracting_vector import DiffractingVector
+from diffsims.crystallography import ReciprocalLatticeVector
 from diffsims.utils.shape_factor_models import (
     linear,
     atanc,
@@ -280,65 +281,37 @@ class SimulationGenerator:
         debye_waller_factors
             Maps element names to their temperature-dependent Debye-Waller factors.
         """
-        latt = phase.structure.lattice
+        rpl = ReciprocalLatticeVector.from_min_dspacing(phase)
+        rpl = rpl.unique(use_symmetry=True)
 
-        # Obtain crystallographic reciprocal lattice points within range
-        recip_latt = latt.reciprocal()
-        spot_indices, _, spot_distances = get_points_in_sphere(
-            recip_latt, reciprocal_radius
-        )
-
-        ##spot_indicies is a numpy.array of the hkls allowed in the recip radius
-        g_indices, multiplicities, g_hkls = get_intensities_params(
-            recip_latt, reciprocal_radius
-        )
-
-        i_hkl = get_kinematical_intensities(
+        intensities = get_kinematical_intensities(
             phase.structure,
-            g_indices,
-            np.asarray(g_hkls),
-            prefactor=multiplicities,
+            rpl.hkl,
+            rpl.gspacing,
+            prefactor=rpl.multiplicity,
             scattering_params=self.scattering_params,
             debye_waller_factors=debye_waller_factors,
         )
-
-        if is_lattice_hexagonal(latt):
-            # Use Miller-Bravais indices for hexagonal lattices.
-            g_indices = np.array(
-                [
-                    g_indices[:, 0],
-                    g_indices[:, 1],
-                    g_indices[:, 0] - g_indices[:, 1],
-                    g_indices[:, 2],
-                ]
-            ).T
-
-        hkls_labels = ["".join([str(int(x)) for x in xs]) for xs in g_indices]
-
-        peaks = []
-        for l, i, g in zip(hkls_labels, i_hkl, g_hkls):
-            peaks.append((l, [i, g]))
+        if rpl.has_hexagonal_lattice:
+            hkl = rpl.hkil
+        else:
+            hkl = rpl.hkl
+        g_vectors = rpl.gspacing
 
         # Scale intensities so that the max intensity is 100.
 
-        max_intensity = max([v[1][0] for v in peaks])
-        reciporical_spacing = []
-        intensities = []
-        hkls = []
-        for p in peaks:
-            label, v = p  # (label, [intensity,g])
-            if v[0] / max_intensity * 100 > minimum_intensity and (label != "000"):
-                reciporical_spacing.append(v[1])
-                intensities.append(v[0])
-                hkls.append(label)
-
+        max_intensity = np.max(intensities)
         intensities = np.asarray(intensities) / max(intensities) * 100
+        mask = intensities > minimum_intensity
+        intensities = intensities[mask]
+        g_vectors = g_vectors[mask]
+        hkl = hkl[mask]
 
         return Simulation1D(
             phase=phase,
-            reciprocal_spacing=reciporical_spacing,
+            reciprocal_spacing=g_vectors,
             intensities=intensities,
-            hkl=hkls,
+            hkl=hkl,
             reciprocal_radius=reciprocal_radius,
             wavelength=self.wavelength,
         )
