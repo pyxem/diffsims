@@ -158,7 +158,7 @@ class TestSingleSimulation:
             sigma=1,
             calibration=1,
             normalize=False,
-            fast_clip_threshold=0.01,
+            clip_threshold=0.01,
         )
         # Check that fast/slow are the same when coordinates are dtype int
         fast = int_sim.get_diffraction_pattern(fast=True, **sim_kwargs)
@@ -170,7 +170,7 @@ class TestSingleSimulation:
         float_fast = float_sim.get_diffraction_pattern(fast=True, **sim_kwargs)
         float_slow = float_sim.get_diffraction_pattern(fast=False, **sim_kwargs)
         assert np.allclose(float_fast, fast)
-        assert np.all((float_slow - float_fast) < sim_kwargs["fast_clip_threshold"])
+        assert np.all((float_slow - float_fast) < sim_kwargs["clip_threshold"])
 
         # Change the size, now the center is between pixels.
         # Slow should reflect this

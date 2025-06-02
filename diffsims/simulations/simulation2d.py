@@ -364,7 +364,7 @@ class Simulation2D:
         mirrored: bool = False,
         fast: bool = True,
         normalize: bool = True,
-        fast_clip_threshold: float = 1,
+        clip_threshold: float = 1,
     ):
         """Returns the diffraction data as a numpy array with
         two-dimensional Gaussians representing each diffracted peak. Should only
@@ -388,7 +388,7 @@ class Simulation2D:
             Whether to speed up calculations by rounding spot coordinates down to integer pixel
         normalize: bool, optional
             Whether to normalize the pattern to values between 0 and 1
-        fast_clip_threshold: float, optional
+        clip_threshold: float, optional
             Only used when `fast` is False.
             Pixel intensity threshold, such that pixels which would be below this value are ignored.
             Thresholding performed before possible normalization.
@@ -435,7 +435,7 @@ class Simulation2D:
             return np.zeros(shape)
 
         pattern = get_pattern_from_pixel_coordinates_and_intensities(
-            spot_coords, spot_intens, shape, sigma, fast_clip_threshold
+            spot_coords, spot_intens, shape, sigma, clip_threshold
         )
         if normalize:
             pattern = np.divide(pattern, np.max(pattern))
