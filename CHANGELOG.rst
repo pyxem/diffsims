@@ -7,8 +7,8 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0>`_
 this project tries its best to adhere to
 `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
-Unreleased
-==========
+2025-6-02 - version 0.7.0
+=========================
 
 Added
 -----
@@ -16,14 +16,6 @@ Added
 - Added ``fast`` parameter to ``Simulation2D.get_diffraction_pattern`` which allows
   for sub pixel sampling of the diffraction pattern. This is useful for simulating
   an accurate diffraction pattern. (#235)
-Changed
--------
-
-Deprecated
-----------
-
-Removed
--------
 
 Fixed
 -----
