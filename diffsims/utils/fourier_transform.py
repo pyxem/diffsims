@@ -216,7 +216,7 @@ try:  # pragma: no cover
         )
         return plan, plan.input_array
 
-except ImportError:
+except ImportError:  # pragma: no cover
     # Only scipy has a next_fast_len, usually numpy is a little faster
     # (note they are not identical)
     from scipy.fftpack import fftn, ifftn, ifftshift, fftshift, next_fast_len
@@ -224,7 +224,7 @@ except ImportError:
 
     _fftn, _ifftn = fftn, ifftn
 
-    def plan_fft(A, n=None, axis=None, norm=None, **_):
+    def plan_fft(A, n=None, axis=None, norm=None, **_):  # pragma: no cover
         """
         Plans an fft for repeated use. Parameters are the same as for `pyfftw`'s `fftn`
         which are, where possible, the same as the `numpy` equivalents.
