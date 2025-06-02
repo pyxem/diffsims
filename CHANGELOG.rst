@@ -13,7 +13,9 @@ Unreleased
 Added
 -----
 - Progressbar for SimulationGenerator.calculate_diffraction2d in (#233)
-
+- Added ``fast`` parameter to ``Simulation2D.get_diffraction_pattern`` which allows
+  for sub pixel sampling of the diffraction pattern. This is useful for simulating
+  an accurate diffraction pattern. (#235)
 Changed
 -------
 
@@ -25,6 +27,8 @@ Removed
 
 Fixed
 -----
+- Fixed bug in masking logic for ``Simulation2D.polar_flatten`` in (#238)
+- Fixed a bug in 1D diffraction patterns for non-cubic lattices. (#238)
 
 2024-10-11 - version 0.6.1
 ==========================
