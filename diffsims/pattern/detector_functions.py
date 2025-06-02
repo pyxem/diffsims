@@ -322,7 +322,7 @@ def _subpixel_gaussian(
     shape: Tuple[int, int],
     sigma: float,
     clip_threshold: float = 1,
-) -> np.ndarray:
+) -> np.ndarray:  # pragma: no cover
     out = np.zeros(shape)
 
     # Pre-calculate the constants
