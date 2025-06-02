@@ -19,6 +19,7 @@
 import numpy as np
 import pytest
 from pathlib import Path
+import re
 
 import diffpy.structure
 from orix.crystal_map import Phase
@@ -239,7 +240,6 @@ class TestDiffractionCalculator:
         assert len(sim.intensities) == len(sim.reciprocal_spacing)
         assert len(sim.intensities) == len(sim.hkl)
         for h in sim.hkl:
-            h = h.replace("-", "")
             if is_hex:
                 assert len(h) == 4
             else:
@@ -360,10 +360,9 @@ def test_calculate_diffraction2d_progressbar_single_phase(capsys):
     sims = gen.calculate_diffraction2d(phase, rots, show_progressbar=True)
 
     captured = capsys.readouterr()
-    expected = "test phase: 100%|██████████| 10/10"  # also some more, but that is compute-time dependent
-    # ignore possible flushing
-    captured = captured.err.split("\r")[-1]
-    assert captured[: len(expected)] == expected
+    # Accept any number of "█" characters
+    expected = "test phase: 100\%\|█+\| 10\/10"
+    assert re.findall(expected, captured.err)
 
 
 def test_calculate_diffraction2d_progressbar_multi_phase(capsys):
@@ -389,15 +388,8 @@ def test_calculate_diffraction2d_progressbar_multi_phase(capsys):
     )
 
     captured = capsys.readouterr()
-    expected1 = "A: 100%|██████████| 10/10 "
-    expected2 = "B: 100%|██████████| 10/10 "
-    # Find the correct output in the stream, i.e. final line containing the name of the phase
-    captured1 = ""
-    captured2 = ""
-    for line in captured.err.split("\r"):
-        if "A" in line:
-            captured1 = line
-        if "B" in line:
-            captured2 = line
-    assert captured1[: len(expected1)] == expected1
-    assert captured2[: len(expected2)] == expected2
+    # Accept any number of "█" characters
+    expected1 = "A: 100\%\|█+\| 10\/10 "
+    expected2 = "B: 100\%\|█+\| 10\/10 "
+    assert re.findall(expected1, captured.err)
+    assert re.findall(expected2, captured.err)

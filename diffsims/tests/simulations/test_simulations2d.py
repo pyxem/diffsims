@@ -46,7 +46,20 @@ class TestSingleSimulation:
     def single_simulation(self, al_phase):
         gen = SimulationGenerator(accelerating_voltage=200)
         rot = Rotation.from_axes_angles([1, 0, 0], 45, degrees=True)
-        coords = DiffractingVector(phase=al_phase, xyz=[[1, 0, 0]])
+        coords = DiffractingVector(
+            phase=al_phase,
+            xyz=[
+                [1, 0, 0],
+                [2, 0, 0],
+                [3, 3, 0],
+                [-4, 0, 0],
+                [-5, 0, 0],
+                [-6, 0, 0],
+                [-7, 0, 0],
+                [-8, 0, 0],
+            ],
+            intensity=[1, 2, 3, 4, 5, 6, 7, 8],
+        )
         sim = Simulation2D(
             phases=al_phase, simulation_generator=gen, coordinates=coords, rotations=rot
         )
@@ -91,12 +104,12 @@ class TestSingleSimulation:
             theta_templates,
             intensities_templates,
         ) = single_simulation.polar_flatten_simulations()
-        assert r_templates.shape == (1, 1)
-        assert theta_templates.shape == (1, 1)
-        assert intensities_templates.shape == (1, 1)
+        assert r_templates.shape == (1, 8)
+        assert theta_templates.shape == (1, 8)
+        assert intensities_templates.shape == (1, 8)
 
     def test_polar_flatten_axes(self, single_simulation):
-        radial_axes = np.linspace(0, 1, 10)
+        radial_axes = np.linspace(0, 7, 5)
         theta_axes = np.linspace(0, 2 * np.pi, 10)
         (
             r_templates,
@@ -105,9 +118,13 @@ class TestSingleSimulation:
         ) = single_simulation.polar_flatten_simulations(
             radial_axes=radial_axes, azimuthal_axes=theta_axes
         )
-        assert r_templates.shape == (1, 1)
-        assert theta_templates.shape == (1, 1)
-        assert intensities_templates.shape == (1, 1)
+        assert r_templates.shape == (1, 8)
+        assert theta_templates.shape == (1, 8)
+        assert intensities_templates.shape == (1, 8)
+        # The last 2 elements should be zero
+        np.testing.assert_array_equal(r_templates[:, 6:], 0)
+        np.testing.assert_array_equal(theta_templates[:, 6:], 0)
+        np.testing.assert_array_equal(intensities_templates[:, 6:], 0)
 
     def test_deepcopy(self, single_simulation):
         copied = single_simulation.deepcopy()
