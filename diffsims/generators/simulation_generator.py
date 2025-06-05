@@ -26,8 +26,8 @@ from tqdm import tqdm
 from orix.quaternion import Rotation
 from orix.crystal_map import Phase
 
-from diffsims.crystallography._diffracting_vector import DiffractingVector
 from diffsims.crystallography import ReciprocalLatticeVector
+from diffsims.crystallography._diffracting_vector import DiffractingVector, RotatedPhase
 from diffsims.utils.shape_factor_models import (
     linear,
     atanc,
@@ -202,9 +202,9 @@ class SimulationGenerator:
                 include_zero_vector=with_direct_beam,
             )
             phase_vectors = []
-            recip_hkl = recip.hkl # Avoid re-calculating in get_intersecting_reflections
-            from tqdm import tqdm
-            for rot in tqdm(rotate, total=rotate.size):
+            # Avoid re-calculating in get_intersecting_reflections
+            recip_hkl = recip.hkl
+            for rot in rotate:
                 # Calculate the reciprocal lattice vectors that intersect the Ewald sphere.
                 (
                     intersected_vectors,
@@ -406,16 +406,18 @@ class SimulationGenerator:
             """
             # In the above script, d is the same as before.
             # We need the distance of the reflections from the incident beam, i.e. the cylindrical coordinate rho
-            rho = np.linalg.norm(np.dot(o, u)[:, np.newaxis] * u - o, axis=1) # using https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Vector_formulation
+            # (using https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Vector_formulation):
+            rho = np.linalg.norm(np.dot(o, u)[:, np.newaxis] * u - o, axis=1)
             a = np.deg2rad(self.precession_angle)
-            first_half = r*np.cos(a) - r + (r**2 - rho**2)**0.5
-            upper = first_half - (r**2 - (r*np.sin(a) + rho)**2)**0.5
-            lower = first_half - (r**2 - (r*np.sin(a) - rho)**2)**0.5
-            intersection = (d < (upper + max_excitation_error)) & (d > (lower - max_excitation_error))
+            first_half = r * np.cos(a) - r + (r**2 - rho**2) ** 0.5
+            upper = first_half - (r**2 - (r * np.sin(a) + rho) ** 2) ** 0.5
+            lower = first_half - (r**2 - (r * np.sin(a) - rho) ** 2) ** 0.5
+            intersection = (d < (upper + max_excitation_error)) & (
+                d > (lower - max_excitation_error)
+            )
 
         # select these reflections
         intersected_vectors = ~rot * (recip[intersection].to_miller())
-        from diffsims.crystallography._diffracting_vector import RotatedPhase
         intersected_vectors = DiffractingVector(
             phase=RotatedPhase(recip.phase, rot),
             xyz=intersected_vectors.data,
