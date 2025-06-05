@@ -37,7 +37,10 @@ class RotatedPhase(Phase):
     """
 
     def __init__(self, phase: Phase, rotation: Rotation):
+        # Copy structure to not override the input phase.
+        # Use private members to avoid re-computing
         self._structure = Structure(phase.structure)
+        self._diffpy_lattice = phase._diffpy_lattice
         self.name = phase.name
         self.space_group = phase.space_group
         self.point_group = phase.point_group

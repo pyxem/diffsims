@@ -197,7 +197,9 @@ class TestDiffractionCalculator:
             phase=big_silicon, reciprocal_radius=5.0
         )
         indices = [tuple(i.tolist()) for i in diffraction.coordinates.hkl.astype(int)]
-        big_indices = [tuple(i.tolist()) for i in big_diffraction.coordinates.hkl.astype(int)]
+        big_indices = [
+            tuple(i.tolist()) for i in big_diffraction.coordinates.hkl.astype(int)
+        ]
         target = (2, 2, 0)
         assert target in indices
         assert target in big_indices
@@ -413,3 +415,41 @@ def test_calculate_diffraction2d_progressbar_multi_phase(capsys):
     expected2 = "B: 100\%\|█+\| 10\/10 "
     assert re.findall(expected1, captured.err)
     assert re.findall(expected2, captured.err)
+def test_space_group_is_accounted_for():
+    structure = diffpy.structure.Structure(
+        atoms=[diffpy.structure.Atom("Au", xyz=(0, 0, 0))],
+        lattice=diffpy.structure.Lattice(4, 4, 4, 90, 90, 90),
+    )
+    P1 = Phase(space_group=1, structure=structure)
+    Fd3m = Phase(space_group=227, structure=structure)
+
+    gen = SimulationGenerator()
+    P1_sim = gen.calculate_diffraction2d(P1)
+    Fd3m_sim = gen.calculate_diffraction2d(Fd3m)
+
+    # Use ReciprocalLatticeVector.sanitize_phase
+    Fd3m_expanded = Fd3m.deepcopy()
+    Fd3m_expanded.expand_asymmetric_unit()
+    Fd3m_expanded_sim = gen.calculate_diffraction2d(Fd3m_expanded)
+
+    # Check coordinates. There are many extinct reflections in Fd3m, so look for those in P1
+    P1_hkl = [tuple(hkl.round().astype(int).tolist()) for hkl in P1_sim.coordinates.hkl]
+    Fd3m_hkl = [
+        tuple(hkl.round().astype(int).tolist()) for hkl in Fd3m_sim.coordinates.hkl
+    ]
+    Fd3m_expanded_hkl = [
+        tuple(hkl.round().astype(int).tolist())
+        for hkl in Fd3m_expanded_sim.coordinates.hkl
+    ]
+    assert set(P1_hkl).issuperset(set(Fd3m_hkl))
+    assert set(P1_hkl).issuperset(set(Fd3m_expanded_hkl))
+    assert set(Fd3m_hkl) == set(Fd3m_expanded_hkl)
+
+    # Check intensities, should be different
+    order = [P1_hkl.index(hkl) for hkl in Fd3m_hkl]
+    assert not np.allclose(
+        P1_sim.coordinates.intensity[order], Fd3m_sim.coordinates.intensity
+    )
+    assert np.allclose(
+        Fd3m_sim.coordinates.intensity, Fd3m_expanded_sim.coordinates.intensity
+    )

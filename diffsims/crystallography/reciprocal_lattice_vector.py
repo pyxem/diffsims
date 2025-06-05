@@ -19,8 +19,6 @@
 from collections import defaultdict
 from copy import deepcopy
 
-from diffpy.structure.symmetryutilities import expandPosition
-from diffpy.structure import Structure, Lattice
 import numba as nb
 import numpy as np
 from orix.vector import Miller, Vector3d
@@ -919,21 +917,11 @@ class ReciprocalLatticeVector(Vector3d):
 
         self._raise_if_no_space_group()
 
-        space_group = self.phase.space_group
-        structure = self.phase.structure
+        self.phase.expand_asymmetric_unit()
 
-        # Lattice basis transform for hexagonal crystals can sometimes move atoms below 0
-        for atom in structure:
-            for i in range(3):
-                if -1e-6 < atom.xyz[i] < 0:
-                    atom.xyz[i] = 0
-
-        new_structure = _expand_unit_cell(space_group, structure)
-        for atom in new_structure:
+        for atom in self.phase.structure:
             if np.issubdtype(type(atom.element), np.integer):
                 atom.element = _get_string_from_element_id(atom.element)
-
-        self.phase.structure = new_structure
 
     def symmetrise(self, return_multiplicity=False, return_index=False):
         """Unique vectors symmetrically equivalent to the vectors.
@@ -1528,7 +1516,9 @@ class ReciprocalLatticeVector(Vector3d):
 
         # TODO: Reduce floating point precision in orix!
         def miller_unique(miller, use_symmetry=False):
-            v, idx, inv = Vector3d(miller).unique(return_index=True, return_inverse=True)
+            v, idx, inv = Vector3d(miller).unique(
+                return_index=True, return_inverse=True, ignore_zero=False
+            )
 
             if use_symmetry:
                 operations = miller.phase.point_group
@@ -1540,8 +1530,10 @@ class ReciprocalLatticeVector(Vector3d):
                 for i in range(n_v):
                     a = data[i]
                     order = np.lexsort(a.T)  # Sort by column 1, 2, then 3
-                    data_sorted[i] = a[order[::-1]] # Reverse to preserve order
-                _, idx, inv = np.unique(data_sorted, return_index=True, return_inverse=True, axis=0)
+                    data_sorted[i] = a[order[::-1]]  # Reverse to preserve order
+                _, idx, inv = np.unique(
+                    data_sorted, return_index=True, return_inverse=True, axis=0
+                )
                 v = v[idx]
 
             m = miller.__class__(xyz=v.data, phase=miller.phase)
@@ -1596,74 +1588,6 @@ class ReciprocalLatticeVector(Vector3d):
         new.coordinate_format = sequence[0].coordinate_format
 
         return new
-
-
-# TODO: Upstream to diffpy.structure.Atom.__eq__()
-def _atom_eq(atom1, atom2):
-    """Determine whether two atoms are equal.
-
-    Parameters
-    ----------
-    atom1, atom2 : diffpy.structure.Atom
-
-    Returns
-    -------
-    bool
-
-    """
-
-    return (
-        atom1.element == atom2.element
-        and np.allclose(atom1.xyz_cartn, atom2.xyz_cartn, atol=1e-7)
-        and atom1.occupancy == atom2.occupancy
-        and np.allclose(atom1.U, atom2.U, atol=1e-7)
-        and np.allclose(atom1.Uisoequiv, atom2.Uisoequiv, atol=1e-7)
-    )
-
-
-# TODO: Upstream to orix.crystal_map.Phase.expand_structure()
-def _expand_unit_cell(space_group, structure):
-    """Expand a unit cell with symmetrically equivalent atoms.
-
-    Parameters
-    ----------
-    space_group : diffpy.structure.spacegroupmod.SpaceGroup
-        Space group describing the symmetry operations of the unit cell.
-    structure : diffpy.structure.Structure
-        Initial structure with atoms.
-
-    Returns
-    -------
-    new_structure : diffpy.structure.Structure
-
-    """
-    # Transform to diffpy axis conventions
-    structure_matrix = structure.lattice.base
-    pos = structure.xyz_cartn
-    structure = Structure(
-        atoms=list(structure),
-        lattice=Lattice(*structure.lattice.abcABG()),
-    )
-    new_structure = Structure(lattice=structure.lattice)
-    structure.xyz_cartn = pos
-
-    # Perform symmetry expansion
-    for atom in structure:
-        equal = []
-        for atom2 in new_structure:
-            equal.append(_atom_eq(atom, atom2))
-        if not any(equal):
-            new_positions = expandPosition(space_group, atom.xyz)[0]
-            for new_position in new_positions:
-                new_atom = deepcopy(atom)
-                new_atom.xyz = new_position
-                new_structure.append(new_atom)
-
-    # Transform back to orix convention
-    old_xyz_cartn = new_structure.xyz_cartn
-    new_structure.lattice.setLatBase(structure_matrix)
-    new_structure.xyz_cartn = old_xyz_cartn
-    return new_structure
 
 
 @nb.njit(
