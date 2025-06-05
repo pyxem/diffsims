@@ -20,7 +20,6 @@ from diffsims.crystallography import ReciprocalLatticeVector
 import numpy as np
 from diffpy.structure import Structure
 from orix.crystal_map import Phase
-from orix.vector.miller import _transform_space
 from orix.quaternion import Rotation
 
 

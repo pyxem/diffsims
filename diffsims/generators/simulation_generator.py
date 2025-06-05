@@ -401,6 +401,7 @@ class SimulationGenerator:
         )
         return intersected_vectors, hkl, shape_factor
 
+
 # TODO consider refactoring into a seperate file
 def get_intersection_with_ewalds_sphere(
     recip: DiffractingVector,
@@ -436,18 +437,16 @@ def get_intersection_with_ewalds_sphere(
     """
     if precession_angle == 0:
         return _get_intersection_with_ewalds_sphere_without_precession(
-            recip.data,
-            optical_axis.data.squeeze(),
-            wavelength,
-            max_excitation_error
+            recip.data, optical_axis.data.squeeze(), wavelength, max_excitation_error
         )
     return _get_intersection_with_ewalds_sphere_with_precession(
         recip.data,
         optical_axis.data.squeeze(),
         wavelength,
         max_excitation_error,
-        precession_angle
+        precession_angle,
     )
+
 
 @njit(
     "float64[:](float64[:, :], float64[:], float64)",
@@ -478,6 +477,7 @@ def _calculate_excitation_error(
 
     return d
 
+
 @njit(
     "Tuple((bool[:], float64[:]))(float64[:, :], float64[:], float64, float64)",
     fastmath=True,
@@ -488,11 +488,13 @@ def _get_intersection_with_ewalds_sphere_without_precession(
     wavelength: float,
     max_excitation_error: float,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    excitation_error = _calculate_excitation_error(recip, optical_axis_vector, wavelength)
+    excitation_error = _calculate_excitation_error(
+        recip, optical_axis_vector, wavelength
+    )
     intersection = np.abs(excitation_error) < max_excitation_error
     return intersection, excitation_error
 
-    
+
 @njit(
     "Tuple((bool[:], float64[:]))(float64[:, :], float64[:], float64, float64, float64)",
     fastmath=True,
@@ -548,7 +550,7 @@ def _get_intersection_with_ewalds_sphere_with_precession(
     # (using https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Vector_formulation):
 
     # Numba does not support norm with axes, implement manually
-    rho = np.sum((np.dot(o, u)[:, np.newaxis] * u - o)**2, axis=1)**0.5
+    rho = np.sum((np.dot(o, u)[:, np.newaxis] * u - o) ** 2, axis=1) ** 0.5
     a = np.deg2rad(precession_angle)
     first_half = r * np.cos(a) - r + (r**2 - rho**2) ** 0.5
     upper = first_half - (r**2 - (r * np.sin(a) + rho) ** 2) ** 0.5
@@ -557,4 +559,3 @@ def _get_intersection_with_ewalds_sphere_with_precession(
         d > (lower - max_excitation_error)
     )
     return intersection, excitation_error
-
