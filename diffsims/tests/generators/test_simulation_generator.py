@@ -184,7 +184,7 @@ class TestDiffractionCalculator:
         )
         # This shape factor model yields 0 intensity for the direct beam,
         # which is less than the intensity threshold. The direct beam is therefore removed
-        assert diffraction.coordinates.size == 52
+        assert diffraction.coordinates.unique(use_symmetry=True).size == 9
 
     def test_appropriate_scaling(self, diffraction_calculator: SimulationGenerator):
         """Tests that doubling the unit cell halves the pattern spacing."""
