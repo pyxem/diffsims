@@ -644,7 +644,9 @@ class ReciprocalLatticeVector(Vector3d):
 
     # ------------------------- Custom methods ----------------------- #
 
-    def calculate_structure_factor(self, scattering_params="xtables"):
+    def calculate_structure_factor(
+        self, scattering_params="xtables", debye_waller_factors=None
+    ):
         r"""Populate :attr:`structure_factor` with the complex
         kinematical structure factor :math:`F_{hkl}` for each vector.
 
@@ -653,6 +655,8 @@ class ReciprocalLatticeVector(Vector3d):
         scattering_params : str
             Which atomic scattering factors to use, either ``"xtables"``
             (default) or ``"lobato"``.
+        debye_waller_factors: dict
+            Debye-Waller factors for atoms in the structure.
 
         Examples
         --------
@@ -712,6 +716,7 @@ class ReciprocalLatticeVector(Vector3d):
             structure=self.phase.structure,
             g_indices=hkl_unique,
             g_hkls_array=self.phase.structure.lattice.rnorm(hkl_unique),
+            debye_waller_factors=debye_waller_factors,
             scattering_params=scattering_params,
         )
 
@@ -932,6 +937,12 @@ class ReciprocalLatticeVector(Vector3d):
 
         space_group = self.phase.space_group
         structure = self.phase.structure
+
+        # Lattice basis transform for hexagonal crystals can sometimes move atoms below 0
+        for atom in structure:
+            for i in range(3):
+                if -1e-6 < atom.xyz[i] < 0:
+                    atom.xyz[i] = 0
 
         new_structure = _expand_unit_cell(space_group, structure)
         for atom in new_structure:

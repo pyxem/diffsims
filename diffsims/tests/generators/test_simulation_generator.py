@@ -345,7 +345,7 @@ def test_same_simulation_results():
     # old_data = diff_lib["Graphite"]["simulations"][0].get_diffraction_pattern(shape=shape, sigma=sigma)
 
     # New
-    p = Phase("Graphite", point_group="6/mmm", structure=structure_matrix)
+    p = Phase("Graphite", structure=structure_matrix, space_group=1) # Space group 1 ensures no symmetry is applied
     gen = SimulationGenerator(**generator_kwargs)
     rot = Rotation.from_euler(euler_angles_new, degrees=True)
     sim = gen.calculate_diffraction2d(
