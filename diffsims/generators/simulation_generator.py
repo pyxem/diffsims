@@ -319,7 +319,7 @@ class SimulationGenerator:
     def get_intersecting_reflections(
         self,
         recip: DiffractingVector,
-        rot: np.ndarray,
+        rot: Rotation,
         wavelength: float,
         max_excitation_error: float,
         shape_factor_width: float = None,
@@ -345,19 +345,30 @@ class SimulationGenerator:
             control. If not set will be set equal to max_excitation_error.
         """
         initial_hkl = recip.hkl
-        rotated_vectors = recip.rotate_with_basis(rotation=rot)
-        rotated_phase = rotated_vectors.phase
-        rotated_vectors = rotated_vectors.data
-        if with_direct_beam:
-            rotated_vectors = np.vstack([rotated_vectors.data, [0, 0, 0]])
-            initial_hkl = np.vstack([initial_hkl, [0, 0, 0]])
+        # rotated_vectors = recip.rotate_with_basis(rotation=rot)
+        # rotated_phase = rotated_vectors.phase
+        # rotated_vectors = rotated_vectors.data
+        # if with_direct_beam:
+        #     rotated_vectors = np.vstack([rotated_vectors.data, [0, 0, 0]])
+        #     initial_hkl = np.vstack([initial_hkl, [0, 0, 0]])
         # Identify the excitation errors of all points (distance from point to Ewald sphere)
-        r_sphere = 1 / wavelength
-        r_spot = np.sqrt(np.sum(np.square(rotated_vectors[:, :2]), axis=1))
-        z_spot = rotated_vectors[:, 2]
 
-        z_sphere = -np.sqrt(r_sphere**2 - r_spot**2) + r_sphere
-        excitation_error = z_sphere - z_spot
+        # Instead of rotating vectors, rotate Ewald's sphere to find intersections.
+        # Only rotate the intersecting vectors.
+        # Using notation from https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
+        r = 1 / wavelength
+        u = rot.to_matrix().squeeze() @ np.array([0, 0, 1])
+        c = r * u
+        o = recip.data
+
+        diff = o - c
+        dot = np.dot(u, diff.T)
+        nabla = dot**2 - np.linalg.norm(diff, axis=1)**2 + r**2
+        # We know the reflections are all going to intersect twice; no need to look at the sign of nabla
+        sqrt_nabla = np.sqrt(nabla)
+        d = np.min([-dot - sqrt_nabla, -dot + sqrt_nabla], axis=0) 
+
+        excitation_error = d
 
         # determine the pre-selection reflections
         if self.precession_angle == 0:
@@ -375,13 +386,14 @@ class SimulationGenerator:
             )
 
         # select these reflections
-        intersected_vectors = rotated_vectors[intersection]
+        intersected_vectors = ~rot * (recip[intersection].to_miller())
+        from diffsims.crystallography._diffracting_vector import RotatedPhase
         intersected_vectors = DiffractingVector(
-            phase=rotated_phase,
-            xyz=intersected_vectors,
+            phase=RotatedPhase(recip.phase, rot),
+            xyz=intersected_vectors.data,
         )
         excitation_error = excitation_error[intersection]
-        r_spot = r_spot[intersection]
+        # r_spot = r_spot[intersection]
         hkl = initial_hkl[intersection]
 
         if shape_factor_width is None:
