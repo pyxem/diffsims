@@ -1529,15 +1529,19 @@ class ReciprocalLatticeVector(Vector3d):
         # TODO: Reduce floating point precision in orix!
         def miller_unique(miller, use_symmetry=False):
             v, idx, inv = Vector3d(miller).unique(return_index=True, return_inverse=True)
-            idx = idx[::-1]
-            inv = inv[::-1]
 
             if use_symmetry:
                 operations = miller.phase.point_group
                 n_v = v.size
-                v2 = operations.outer(v[::-1]).flatten().reshape(*(n_v, operations.size))
-                data = v2.data.round(6)  # Reduced precision
-                _, idx, inv = np.unique(data, return_index=True, return_inverse=True, axis=0)
+                v2 = operations.outer(v).flatten().reshape(*(n_v, operations.size))
+                data = v2.data.round(8)  # Reduced precision
+                # To check for uniqueness, sort the equivalent vectors from each operation
+                data_sorted = np.zeros_like(data)
+                for i in range(n_v):
+                    a = data[i]
+                    order = np.lexsort(a.T)  # Sort by column 1, 2, then 3
+                    data_sorted[i] = a[order[::-1]] # Reverse to preserve order
+                _, idx, inv = np.unique(data_sorted, return_index=True, return_inverse=True, axis=0)
                 v = v[idx]
 
             m = miller.__class__(xyz=v.data, phase=miller.phase)
