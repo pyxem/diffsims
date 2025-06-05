@@ -202,13 +202,9 @@ class SimulationGenerator:
                 include_zero_vector=with_direct_beam,
             )
             phase_vectors = []
-
-            # Progress bar setup
-            rotate_iter = rotate
-            if show_progressbar:
-                rotate_iter = tqdm(rotate_iter, desc=p.name, total=rotate.size)
-
-            for rot in rotate_iter:
+            recip_hkl = recip.hkl # Avoid re-calculating in get_intersecting_reflections
+            from tqdm import tqdm
+            for rot in tqdm(rotate, total=rotate.size):
                 # Calculate the reciprocal lattice vectors that intersect the Ewald sphere.
                 (
                     intersected_vectors,
@@ -216,6 +212,7 @@ class SimulationGenerator:
                     shape_factor,
                 ) = self.get_intersecting_reflections(
                     recip,
+                    recip_hkl,
                     rot,
                     wavelength,
                     max_excitation_error,
@@ -319,6 +316,7 @@ class SimulationGenerator:
     def get_intersecting_reflections(
         self,
         recip: DiffractingVector,
+        recip_hkl: np.ndarray,
         rot: Rotation,
         wavelength: float,
         max_excitation_error: float,
@@ -344,13 +342,9 @@ class SimulationGenerator:
             Determines the width of the reciprocal rel-rod, for fine-grained
             control. If not set will be set equal to max_excitation_error.
         """
-        initial_hkl = recip.hkl
-        # rotated_vectors = recip.rotate_with_basis(rotation=rot)
-        # rotated_phase = rotated_vectors.phase
-        # rotated_vectors = rotated_vectors.data
-        # if with_direct_beam:
-        #     rotated_vectors = np.vstack([rotated_vectors.data, [0, 0, 0]])
-        #     initial_hkl = np.vstack([initial_hkl, [0, 0, 0]])
+        if with_direct_beam:
+            recip_hkl = np.vstack([recip_hkl, [0, 0, 0]])
+
         # Identify the excitation errors of all points (distance from point to Ewald sphere)
 
         # Instead of rotating vectors, rotate Ewald's sphere to find intersections.
@@ -360,13 +354,17 @@ class SimulationGenerator:
         u = rot.to_matrix().squeeze() @ np.array([0, 0, 1])
         c = r * u
         o = recip.data
+        if with_direct_beam:
+            o = np.vstack([o, [0, 0, 0]])
 
         diff = o - c
         dot = np.dot(u, diff.T)
         nabla = dot**2 - np.linalg.norm(diff, axis=1)**2 + r**2
-        # We know the reflections are all going to intersect twice; no need to look at the sign of nabla
+        # We know the reflections are all going to intersect twice
+        # Therefore, no need to look at the sign of nabla
+        # We also know only the smaller root is important, i.e. -sqrt(nabla)
         sqrt_nabla = np.sqrt(nabla)
-        d = np.min([-dot - sqrt_nabla, -dot + sqrt_nabla], axis=0) 
+        d = -dot - sqrt_nabla
 
         excitation_error = d
 
@@ -374,16 +372,46 @@ class SimulationGenerator:
         if self.precession_angle == 0:
             intersection = np.abs(excitation_error) < max_excitation_error
         else:
-            # only consider points that intersect the ewald sphere at some point
-            # the center point of the sphere
-            P_z = r_sphere * np.cos(np.deg2rad(self.precession_angle))
-            P_t = r_sphere * np.sin(np.deg2rad(self.precession_angle))
-            # the extremes of the ewald sphere
-            z_surf_up = P_z - np.sqrt(r_sphere**2 - (r_spot + P_t) ** 2)
-            z_surf_do = P_z - np.sqrt(r_sphere**2 - (r_spot - P_t) ** 2)
-            intersection = (z_spot - max_excitation_error <= z_surf_up) & (
-                z_spot + max_excitation_error >= z_surf_do
-            )
+            # Using the following script to find equations for upper and lower bounds for precessing Ewald's sphere
+            """
+            import sympy
+            import numpy as np
+
+            a = sympy.Symbol("a") # Precession angle
+            r = sympy.Symbol("r") # Ewald's sphere radius
+            rho, z = sympy.symbols("rho z") # cylindrical coordinates of reflection
+
+            rot = lambda ang: np.asarray([[sympy.cos(ang), -sympy.sin(ang)],[sympy.sin(ang), sympy.cos(ang)]])
+
+            u = np.asarray([0, 1])
+            c = r * u
+            cl = rot(a) @ c
+            cr = rot(-a) @ c
+            o = np.asarray([rho, z])
+
+            def get_d(_c):
+                diff = o - _c
+                dot = np.dot(u, diff)
+                nabla = dot**2 - sum(i**2 for i in diff) + r**2
+                sqrt_nabla = nabla**0.5
+                return  -dot - sqrt_nabla
+
+            d = get_d(c)
+            d_upper = get_d(cl)
+            d_lower = get_d(cr)
+
+            print(d.simplify())             # r - z - (r**2 - rho**2)**0.5
+            print((d_upper - d).simplify()) # r*cos(a) - r + (r**2 - rho**2)**0.5 - (r**2 - (r*sin(a) + rho)**2)**0.5
+            print((d_lower - d).simplify()) # r*cos(a) - r + (r**2 - rho**2)**0.5 - (r**2 - (r*sin(a) - rho)**2)**0.5
+            """
+            # In the above script, d is the same as before.
+            # We need the distance of the reflections from the incident beam, i.e. the cylindrical coordinate rho
+            rho = np.linalg.norm(np.dot(o, u) * u - o) # using https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Vector_formulation
+            a = np.deg2rad(self.precession_angle)
+            upper = r*np.cos(a) - r + (r**2 - rho**2)**0.5 - (r**2 - (r*np.sin(a) + rho)**2)**0.5
+            lower = r*np.cos(a) - r + (r**2 - rho**2)**0.5 - (r**2 - (r*np.sin(a) - rho)**2)**0.5
+            intersection = (d < upper + excitation_error) & (d > lower - excitation_error)
+
 
         # select these reflections
         intersected_vectors = ~rot * (recip[intersection].to_miller())
@@ -393,8 +421,8 @@ class SimulationGenerator:
             xyz=intersected_vectors.data,
         )
         excitation_error = excitation_error[intersection]
-        # r_spot = r_spot[intersection]
-        hkl = initial_hkl[intersection]
+        hkl = recip_hkl[intersection]
+        r_spot = intersected_vectors.norm
 
         if shape_factor_width is None:
             shape_factor_width = max_excitation_error
