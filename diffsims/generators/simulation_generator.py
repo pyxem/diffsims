@@ -21,8 +21,10 @@
 from typing import Union, Sequence, Tuple
 import numpy as np
 from tqdm import tqdm
+from numba import njit
 
 from orix.quaternion import Rotation
+from orix.vector import Vector3d
 from orix.crystal_map import Phase
 
 from diffsims.crystallography import ReciprocalLatticeVector
@@ -204,11 +206,11 @@ class SimulationGenerator:
                 debye_waller_factors=debye_waller_factors,
             )
             phase_vectors = []
-            for rot in rotate:
+            for rot, optical_axis in zip(rotate, rotate * Vector3d.zvector()):
                 # Calculate the reciprocal lattice vectors that intersect the Ewald sphere.
                 intersection, excitation_error = get_intersection_with_ewalds_sphere(
                     recip,
-                    rot,
+                    optical_axis,
                     wavelength,
                     max_excitation_error,
                     self.precession_angle,
@@ -384,7 +386,7 @@ class SimulationGenerator:
 
         intersection, excitation_error = get_intersection_with_ewalds_sphere(
             recip,
-            rot,
+            rot * Vector3d.zvector(),
             wavelength,
             max_excitation_error,
             self.precession_angle,
@@ -399,11 +401,10 @@ class SimulationGenerator:
         )
         return intersected_vectors, hkl, shape_factor
 
-
 # TODO consider refactoring into a seperate file
 def get_intersection_with_ewalds_sphere(
     recip: DiffractingVector,
-    rot: Rotation,
+    optical_axis: Vector3d,
     wavelength: float,
     max_excitation_error: float,
     precession_angle: float = 0,
@@ -414,8 +415,8 @@ def get_intersection_with_ewalds_sphere(
     ----------
     recip
         The reciprocal lattice vectors to rotate.
-    rot
-        The rotation to apply to the reciprocal lattice vectors.
+    optical_axis
+        Normalised vector representing the direction of the beam
     wavelength
         The wavelength of the electrons in Angstroms.
     max_excitation_error
@@ -433,15 +434,38 @@ def get_intersection_with_ewalds_sphere(
     excitation_error
         Excitation error of all vectors
     """
-    # Identify the excitation errors of all points (distance from point to Ewald sphere)
+    if precession_angle == 0:
+        return _get_intersection_with_ewalds_sphere_without_precession(
+            recip.data,
+            optical_axis.data.squeeze(),
+            wavelength,
+            max_excitation_error
+        )
+    return _get_intersection_with_ewalds_sphere_with_precession(
+        recip.data,
+        optical_axis.data.squeeze(),
+        wavelength,
+        max_excitation_error,
+        precession_angle
+    )
 
+@njit(
+    "float64[:](float64[:, :], float64[:], float64)",
+    fastmath=True,
+)
+def _calculate_excitation_error(
+    recip: np.ndarray,
+    optical_axis_vector: np.ndarray,
+    wavelength: float,
+) -> np.ndarray:
     # Instead of rotating vectors, rotate Ewald's sphere to find intersections.
     # Only rotate the intersecting vectors.
     # Using notation from https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
     r = 1 / wavelength
-    u = rot.to_matrix().squeeze() @ np.array([0, 0, 1])
+    # u = rot @ np.array([0, 0, 1])
+    u = optical_axis_vector
     c = r * u
-    o = recip.data
+    o = recip
 
     diff = o - c
     dot = np.dot(u, diff.T)
@@ -452,53 +476,85 @@ def get_intersection_with_ewalds_sphere(
     sqrt_nabla = np.sqrt(nabla)
     d = -dot - sqrt_nabla
 
-    excitation_error = d
+    return d
 
-    # determine the pre-selection reflections
-    if precession_angle == 0:
-        intersection = np.abs(excitation_error) < max_excitation_error
-    else:
-        # Using the following script to find equations for upper and lower bounds for precessing Ewald's sphere
-        """
-        import sympy
-        import numpy as np
-
-        a = sympy.Symbol("a") # Precession angle
-        r = sympy.Symbol("r") # Ewald's sphere radius
-        rho, z = sympy.symbols("rho z") # cylindrical coordinates of reflection
-
-        rot = lambda ang: np.asarray([[sympy.cos(ang), -sympy.sin(ang)],[sympy.sin(ang), sympy.cos(ang)]])
-
-        u = np.asarray([0, 1])
-        c = r * u
-        cl = rot(a) @ c
-        cr = rot(-a) @ c
-        o = np.asarray([rho, z])
-
-        def get_d(_c):
-            diff = o - _c
-            dot = np.dot(u, diff)
-            nabla = dot**2 - sum(i**2 for i in diff) + r**2
-            sqrt_nabla = nabla**0.5
-            return  -dot - sqrt_nabla
-
-        d = get_d(c)
-        d_upper = get_d(cl)
-        d_lower = get_d(cr)
-
-        print(d.simplify())             # r - z - (r**2 - rho**2)**0.5
-        print((d_upper - d).simplify()) # r*cos(a) - r + (r**2 - rho**2)**0.5 - (r**2 - (r*sin(a) + rho)**2)**0.5
-        print((d_lower - d).simplify()) # r*cos(a) - r + (r**2 - rho**2)**0.5 - (r**2 - (r*sin(a) - rho)**2)**0.5
-        """
-        # In the above script, d is the same as before.
-        # We need the distance of the reflections from the incident beam, i.e. the cylindrical coordinate rho
-        # (using https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Vector_formulation):
-        rho = np.linalg.norm(np.dot(o, u)[:, np.newaxis] * u - o, axis=1)
-        a = np.deg2rad(precession_angle)
-        first_half = r * np.cos(a) - r + (r**2 - rho**2) ** 0.5
-        upper = first_half - (r**2 - (r * np.sin(a) + rho) ** 2) ** 0.5
-        lower = first_half - (r**2 - (r * np.sin(a) - rho) ** 2) ** 0.5
-        intersection = (d < (upper + max_excitation_error)) & (
-            d > (lower - max_excitation_error)
-        )
+@njit(
+    "Tuple((bool[:], float64[:]))(float64[:, :], float64[:], float64, float64)",
+    fastmath=True,
+)
+def _get_intersection_with_ewalds_sphere_without_precession(
+    recip: np.ndarray,
+    optical_axis_vector: np.ndarray,
+    wavelength: float,
+    max_excitation_error: float,
+) -> Tuple[np.ndarray, np.ndarray]:
+    excitation_error = _calculate_excitation_error(recip, optical_axis_vector, wavelength)
+    intersection = np.abs(excitation_error) < max_excitation_error
     return intersection, excitation_error
+
+    
+@njit(
+    "Tuple((bool[:], float64[:]))(float64[:, :], float64[:], float64, float64, float64)",
+    fastmath=True,
+)
+def _get_intersection_with_ewalds_sphere_with_precession(
+    recip: np.ndarray,
+    optical_axis_vector: np.ndarray,
+    wavelength: float,
+    max_excitation_error: float,
+    precession_angle: float,
+) -> Tuple[np.ndarray, np.ndarray]:
+    # Using the following script to find equations for upper and lower bounds for precessing Ewald's sphere
+    # (names are same as in _get_excitation_error_no_precession)
+    """
+    import sympy
+    import numpy as np
+
+    a = sympy.Symbol("a") # Precession angle
+    r = sympy.Symbol("r") # Ewald's sphere radius
+    rho, z = sympy.symbols("rho z") # cylindrical coordinates of reflection
+
+    rot = lambda ang: np.asarray([[sympy.cos(ang), -sympy.sin(ang)],[sympy.sin(ang), sympy.cos(ang)]])
+
+    u = np.asarray([0, 1])
+    c = r * u
+    cl = rot(a) @ c
+    cr = rot(-a) @ c
+    o = np.asarray([rho, z])
+
+    def get_d(_c):
+        diff = o - _c
+        dot = np.dot(u, diff)
+        nabla = dot**2 - sum(i**2 for i in diff) + r**2
+        sqrt_nabla = nabla**0.5
+        return  -dot - sqrt_nabla
+
+    d = get_d(c)
+    d_upper = get_d(cl)
+    d_lower = get_d(cr)
+
+    print(d.simplify())             # r - z - (r**2 - rho**2)**0.5
+    print((d_upper - d).simplify()) # r*cos(a) - r + (r**2 - rho**2)**0.5 - (r**2 - (r*sin(a) + rho)**2)**0.5
+    print((d_lower - d).simplify()) # r*cos(a) - r + (r**2 - rho**2)**0.5 - (r**2 - (r*sin(a) - rho)**2)**0.5
+    """
+    d = _calculate_excitation_error(recip, optical_axis_vector, wavelength)
+
+    r = 1 / wavelength
+    u = optical_axis_vector
+    o = recip
+
+    excitation_error = d
+    # We need the distance of the reflections from the incident beam, i.e. the cylindrical coordinate rho
+    # (using https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Vector_formulation):
+
+    # Numba does not support norm with axes, implement manually
+    rho = np.sum((np.dot(o, u)[:, np.newaxis] * u - o)**2, axis=1)**0.5
+    a = np.deg2rad(precession_angle)
+    first_half = r * np.cos(a) - r + (r**2 - rho**2) ** 0.5
+    upper = first_half - (r**2 - (r * np.sin(a) + rho) ** 2) ** 0.5
+    lower = first_half - (r**2 - (r * np.sin(a) - rho) ** 2) ** 0.5
+    intersection = (d < (upper + max_excitation_error)) & (
+        d > (lower - max_excitation_error)
+    )
+    return intersection, excitation_error
+
