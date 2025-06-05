@@ -217,7 +217,7 @@ class SimulationGenerator:
                     wavelength,
                     max_excitation_error,
                     shape_factor_width=shape_factor_width,
-                    with_direct_beam=with_direct_beam,
+                    with_direct_beam=False,  # Already handled in DiffractingVector.from_min_dspacing
                 )
 
                 # Calculate diffracted intensities based on a kinematic model.
@@ -229,7 +229,6 @@ class SimulationGenerator:
                     scattering_params=self.scattering_params,
                     debye_waller_factors=debye_waller_factors,
                 )
-
                 # Threshold peaks included in simulation as factor of zero beam intensity.
                 peak_mask = intensities > np.max(intensities) * self.minimum_intensity
                 intensities = intensities[peak_mask]
@@ -353,9 +352,9 @@ class SimulationGenerator:
         o = recip.data
         if with_direct_beam:
             o = np.vstack([o, [0, 0, 0]])
-            recip_hkl = np.vstack([recip_hkl, [0, 0, 0]])
             # Modify the data directly, as `data` is a property
             recip._data = np.vstack([recip._data, [0, 0, 0]])
+            recip_hkl = np.vstack([recip_hkl, [0, 0, 0]])
 
         diff = o - c
         dot = np.dot(u, diff.T)
@@ -415,7 +414,6 @@ class SimulationGenerator:
             intersection = (d < (upper + max_excitation_error)) & (
                 d > (lower - max_excitation_error)
             )
-
         # select these reflections
         intersected_vectors = ~rot * (recip[intersection].to_miller())
         intersected_vectors = DiffractingVector(

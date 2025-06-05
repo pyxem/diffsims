@@ -134,13 +134,30 @@ class TestDiffractionCalculator:
             "approximate_precession=True)"
         )
 
+    @pytest.mark.parametrize("with_direct_beam", [False, True])
+    def test_single_direct_beam(
+        self,
+        diffraction_calculator: SimulationGenerator,
+        local_structure,
+        with_direct_beam,
+    ):
+        diffraction = diffraction_calculator.calculate_diffraction2d(
+            local_structure, reciprocal_radius=5.0, with_direct_beam=with_direct_beam
+        )
+        # Check that there is only one direct beam
+        num_direct_beam = 0
+        for hkl in diffraction.coordinates.hkl:
+            hkl = tuple(hkl.flatten().tolist())
+            num_direct_beam += hkl == (0, 0, 0)
+        assert num_direct_beam == with_direct_beam
+
     def test_matching_results(
         self, diffraction_calculator: SimulationGenerator, local_structure
     ):
         diffraction = diffraction_calculator.calculate_diffraction2d(
             local_structure, reciprocal_radius=5.0
         )
-        assert diffraction.coordinates.size == 70
+        assert diffraction.coordinates.size == 69
 
     def test_precession_simple(
         self, diffraction_calculator_precession_simple, local_structure
@@ -149,7 +166,7 @@ class TestDiffractionCalculator:
             local_structure,
             reciprocal_radius=5.0,
         )
-        assert diffraction.coordinates.size == 250
+        assert diffraction.coordinates.size == 249
 
     def test_precession_full(
         self, diffraction_calculator_precession_full, local_structure
@@ -158,13 +175,15 @@ class TestDiffractionCalculator:
             local_structure,
             reciprocal_radius=5.0,
         )
-        assert diffraction.coordinates.size == 250
+        assert diffraction.coordinates.size == 249
 
     def test_custom_shape_func(self, diffraction_calculator_custom, local_structure):
         diffraction = diffraction_calculator_custom.calculate_diffraction2d(
             local_structure,
             reciprocal_radius=5.0,
         )
+        # This shape factor model yields 0 intensity for the direct beam,
+        # which is less than the intensity threshold. The direct beam is therefore removed
         assert diffraction.coordinates.size == 52
 
     def test_appropriate_scaling(self, diffraction_calculator: SimulationGenerator):
