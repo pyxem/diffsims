@@ -19,8 +19,6 @@
 from collections import defaultdict
 from copy import deepcopy
 
-from diffpy.structure.symmetryutilities import expandPosition
-from diffpy.structure import Structure
 import numba as nb
 import numpy as np
 from orix.vector import Miller, Vector3d
@@ -644,7 +642,9 @@ class ReciprocalLatticeVector(Vector3d):
 
     # ------------------------- Custom methods ----------------------- #
 
-    def calculate_structure_factor(self, scattering_params="xtables"):
+    def calculate_structure_factor(
+        self, scattering_params="xtables", debye_waller_factors=None
+    ):
         r"""Populate :attr:`structure_factor` with the complex
         kinematical structure factor :math:`F_{hkl}` for each vector.
 
@@ -653,6 +653,8 @@ class ReciprocalLatticeVector(Vector3d):
         scattering_params : str
             Which atomic scattering factors to use, either ``"xtables"``
             (default) or ``"lobato"``.
+        debye_waller_factors: dict
+            Debye-Waller factors for atoms in the structure.
 
         Examples
         --------
@@ -692,32 +694,17 @@ class ReciprocalLatticeVector(Vector3d):
         """
 
         # Compute one structure factor per set {hkl}
-        hkl_sets = self.get_hkl_sets()
-
-        # For each set, get the indices of the first vector in the
-        # present vectors, accounting for potential multiple dimensions
-        # and avoding computing the unique vectors again
-        first_idx = []
-        for arr in list(hkl_sets.values()):
-            i = []
-            for arr_i in arr:
-                i.append(arr_i[0])
-            first_idx.append(i)
-        first_idx_arr = np.array(first_idx).T
-
-        # Get 2D array of unique vectors, one for each set
-        hkl_unique = self.hkl[tuple(first_idx_arr)]
-
+        unique, inds = self.unique(use_symmetry=True, return_inverse=True)
+        hkl_unique = unique.hkl
         structure_factor = _get_kinematical_structure_factor(
             structure=self.phase.structure,
             g_indices=hkl_unique,
             g_hkls_array=self.phase.structure.lattice.rnorm(hkl_unique),
+            debye_waller_factors=debye_waller_factors,
             scattering_params=scattering_params,
         )
-
         # Set structure factors of all symmetrically equivalent vectors
-        for i, idx in enumerate(hkl_sets.values()):
-            self._structure_factor[idx] = structure_factor[i]
+        self._structure_factor[:] = structure_factor[inds]
 
     def calculate_theta(self, voltage):
         r"""Populate :attr:`theta` with the Bragg angle :math:`theta_B`
@@ -930,15 +917,11 @@ class ReciprocalLatticeVector(Vector3d):
 
         self._raise_if_no_space_group()
 
-        space_group = self.phase.space_group
-        structure = self.phase.structure
+        self.phase.expand_asymmetric_unit()
 
-        new_structure = _expand_unit_cell(space_group, structure)
-        for atom in new_structure:
+        for atom in self.phase.structure:
             if np.issubdtype(type(atom.element), np.integer):
                 atom.element = _get_string_from_element_id(atom.element)
-
-        self.phase.structure = new_structure
 
     def symmetrise(self, return_multiplicity=False, return_index=False):
         """Unique vectors symmetrically equivalent to the vectors.
@@ -1506,7 +1489,7 @@ class ReciprocalLatticeVector(Vector3d):
         new._update_shapes()
         return new
 
-    def unique(self, use_symmetry=False, return_index=False):
+    def unique(self, use_symmetry=False, return_index=False, return_inverse=False):
         """The unique vectors.
 
         Parameters
@@ -1517,6 +1500,9 @@ class ReciprocalLatticeVector(Vector3d):
         return_index : bool, optional
             Whether to return the indices of the (flattened) data where
             the unique entries were found. Default is ``False``.
+        return_inverse: bool, optional
+            Whether to also return the indices to reconstruct the
+            (flattened) data from the unique data.
 
         Returns
         -------
@@ -1524,41 +1510,49 @@ class ReciprocalLatticeVector(Vector3d):
             Flattened unique vectors.
         idx : numpy.ndarray
             Indices of the unique data in the (flattened) array.
-
+        inv : numpy.ndarray
+            Indices to reconstruct the original vectors from the unique
         """
 
         # TODO: Reduce floating point precision in orix!
         def miller_unique(miller, use_symmetry=False):
-            v, idx = Vector3d(miller).unique(return_index=True)
+            v, idx, inv = Vector3d(miller).unique(
+                return_index=True, return_inverse=True, ignore_zero=False
+            )
 
             if use_symmetry:
                 operations = miller.phase.point_group
                 n_v = v.size
                 v2 = operations.outer(v).flatten().reshape(*(n_v, operations.size))
-                data = v2.data.round(6)  # Reduced precision
+                data = v2.data.round(8)  # Reduced precision
+                # To check for uniqueness, sort the equivalent vectors from each operation
                 data_sorted = np.zeros_like(data)
                 for i in range(n_v):
                     a = data[i]
                     order = np.lexsort(a.T)  # Sort by column 1, 2, then 3
-                    data_sorted[i] = a[order]
-                _, idx = np.unique(data_sorted, return_index=True, axis=0)
-                v = v[idx[::-1]]
+                    data_sorted[i] = a[order[::-1]]  # Reverse to preserve order
+                _, idx, inv = np.unique(
+                    data_sorted, return_index=True, return_inverse=True, axis=0
+                )
+                v = v[idx]
 
             m = miller.__class__(xyz=v.data, phase=miller.phase)
             m.coordinate_format = miller.coordinate_format
-            return m, idx
 
-        #        kwargs = dict(use_symmetry=use_symmetry, return_index=True)
-        #        miller, idx = self.to_miller().unique(**kwargs)
-        miller, idx = miller_unique(self.to_miller(), use_symmetry)
-        idx = idx[::-1]
+            return m, idx, inv
+
+        miller, idx, inv = miller_unique(self.to_miller(), use_symmetry)
 
         new_rlv = self.from_miller(miller)
         new_rlv._structure_factor = self.structure_factor.ravel()[idx]
         new_rlv._theta = self.theta.ravel()[idx]
 
-        if return_index:
+        if return_index and return_inverse:
+            return new_rlv, idx, inv
+        elif return_index:
             return new_rlv, idx
+        elif return_inverse:
+            return new_rlv, inv
         else:
             return new_rlv
 
@@ -1594,62 +1588,6 @@ class ReciprocalLatticeVector(Vector3d):
         new.coordinate_format = sequence[0].coordinate_format
 
         return new
-
-
-# TODO: Upstream to diffpy.structure.Atom.__eq__()
-def _atom_eq(atom1, atom2):
-    """Determine whether two atoms are equal.
-
-    Parameters
-    ----------
-    atom1, atom2 : diffpy.structure.Atom
-
-    Returns
-    -------
-    bool
-
-    """
-
-    return (
-        atom1.element == atom2.element
-        and np.allclose(atom1.xyz, atom2.xyz, atol=1e-7)
-        and atom1.occupancy == atom2.occupancy
-        and np.allclose(atom1.U, atom2.U, atol=1e-7)
-        and np.allclose(atom1.Uisoequiv, atom2.Uisoequiv, atol=1e-7)
-    )
-
-
-# TODO: Upstream to orix.crystal_map.Phase.expand_structure()
-def _expand_unit_cell(space_group, structure):
-    """Expand a unit cell with symmetrically equivalent atoms.
-
-    Parameters
-    ----------
-    space_group : diffpy.structure.spacegroupmod.SpaceGroup
-        Space group describing the symmetry operations of the unit cell.
-    structure : diffpy.structure.Structure
-        Initial structure with atoms.
-
-    Returns
-    -------
-    new_structure : diffpy.structure.Structure
-
-    """
-
-    new_structure = Structure(lattice=structure.lattice)
-
-    for atom in structure:
-        equal = []
-        for atom2 in new_structure:
-            equal.append(_atom_eq(atom, atom2))
-        if not any(equal):
-            new_positions = expandPosition(space_group, atom.xyz)[0]
-            for new_position in new_positions:
-                new_atom = deepcopy(atom)
-                new_atom.xyz = new_position
-                new_structure.append(new_atom)
-
-    return new_structure
 
 
 @nb.njit(
