@@ -359,7 +359,7 @@ class SimulationGenerator:
 
         diff = o - c
         dot = np.dot(u, diff.T)
-        nabla = dot**2 - np.linalg.norm(diff, axis=1)**2 + r**2
+        nabla = dot**2 - np.sum(diff**2, axis=1) + r**2
         # We know the reflections are all going to intersect twice
         # Therefore, no need to look at the sign of nabla
         # We also know only the smaller root is important, i.e. -sqrt(nabla)
@@ -406,12 +406,12 @@ class SimulationGenerator:
             """
             # In the above script, d is the same as before.
             # We need the distance of the reflections from the incident beam, i.e. the cylindrical coordinate rho
-            rho = np.linalg.norm(np.dot(o, u) * u - o) # using https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Vector_formulation
+            rho = np.linalg.norm(np.dot(o, u)[:, np.newaxis] * u - o, axis=1) # using https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Vector_formulation
             a = np.deg2rad(self.precession_angle)
-            upper = r*np.cos(a) - r + (r**2 - rho**2)**0.5 - (r**2 - (r*np.sin(a) + rho)**2)**0.5
-            lower = r*np.cos(a) - r + (r**2 - rho**2)**0.5 - (r**2 - (r*np.sin(a) - rho)**2)**0.5
-            intersection = (d < upper + excitation_error) & (d > lower - excitation_error)
-
+            first_half = r*np.cos(a) - r + (r**2 - rho**2)**0.5
+            upper = first_half - (r**2 - (r*np.sin(a) + rho)**2)**0.5
+            lower = first_half - (r**2 - (r*np.sin(a) - rho)**2)**0.5
+            intersection = (d < (upper + max_excitation_error)) & (d > (lower - max_excitation_error))
 
         # select these reflections
         intersected_vectors = ~rot * (recip[intersection].to_miller())
