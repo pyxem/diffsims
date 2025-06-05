@@ -124,27 +124,9 @@ class DiffractingVector(ReciprocalLatticeVector):
     def __getitem__(self, key):
         new_data = self.data[key]
         dv_new = self.__class__(self.phase, xyz=new_data)
-
-        if np.isnan(self.structure_factor).all():
-            dv_new._structure_factor = np.full(dv_new.shape, np.nan, dtype="complex128")
-
-        else:
-            dv_new._structure_factor = self.structure_factor[key]
-        if np.isnan(self.theta).all():
-            dv_new._theta = np.full(dv_new.shape, np.nan)
-        else:
-            dv_new._theta = self.theta[key]
-        if np.isnan(self.intensity).all():
-            dv_new._intensity = np.full(dv_new.shape, np.nan)
-        else:
-            slic = self.intensity[key]
-            if not hasattr(slic, "__len__"):
-                slic = np.array(
-                    [
-                        slic,
-                    ]
-                )
-            dv_new._intensity = slic
+        dv_new._structure_factor = self._structure_factor[key]
+        dv_new._theta = self._theta[key]
+        dv_new._intensity = self._intensity[key]
 
         return dv_new
 
