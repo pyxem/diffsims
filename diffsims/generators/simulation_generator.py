@@ -342,9 +342,6 @@ class SimulationGenerator:
             Determines the width of the reciprocal rel-rod, for fine-grained
             control. If not set will be set equal to max_excitation_error.
         """
-        if with_direct_beam:
-            recip_hkl = np.vstack([recip_hkl, [0, 0, 0]])
-
         # Identify the excitation errors of all points (distance from point to Ewald sphere)
 
         # Instead of rotating vectors, rotate Ewald's sphere to find intersections.
@@ -356,6 +353,9 @@ class SimulationGenerator:
         o = recip.data
         if with_direct_beam:
             o = np.vstack([o, [0, 0, 0]])
+            recip_hkl = np.vstack([recip_hkl, [0, 0, 0]])
+            # Modify the data directly, as `data` is a property
+            recip._data = np.vstack([recip._data, [0, 0, 0]])
 
         diff = o - c
         dot = np.dot(u, diff.T)
