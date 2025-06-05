@@ -133,9 +133,7 @@ class SimulationGenerator:
     def calculate_diffraction2d(
         self,
         phase: Union[Phase, Sequence[Phase]],
-        rotation: Union[Rotation, Sequence[Rotation]] = Rotation.from_euler(
-            (0, 0, 0), degrees=True
-        ),
+        rotation: Union[Rotation, Sequence[Rotation]] = Rotation.identity(),
         reciprocal_radius: float = 1.0,
         with_direct_beam: bool = True,
         max_excitation_error: float = 1e-2,
@@ -201,12 +199,10 @@ class SimulationGenerator:
                 include_zero_vector=with_direct_beam,
             )
             recip.sanitise_phase()
-            # No need to pre-calculate structure factors if only a few rotations are present
-            if rotate.size > 4:
-                recip.calculate_structure_factor(
-                    scattering_params=self.scattering_params,
-                    debye_waller_factors=debye_waller_factors,
-                    )
+            recip.calculate_structure_factor(
+                scattering_params=self.scattering_params,
+                debye_waller_factors=debye_waller_factors,
+            )
             phase_vectors = []
             for rot in rotate:
                 # Calculate the reciprocal lattice vectors that intersect the Ewald sphere.
@@ -227,15 +223,7 @@ class SimulationGenerator:
                     excitation_error, max_excitation_error, r_spot, shape_factor_width
                 )
                 # Calculate intensity
-                if rotate.size <= 4:
-                    v = recip[intersection]
-                    v.calculate_structure_factor(
-                        scattering_params=self.scattering_params,
-                        debye_waller_factors=debye_waller_factors,
-                        )
-                    f_hkls = v.structure_factor
-                else:
-                    f_hkls = recip[intersection].structure_factor
+                f_hkls = recip.structure_factor[intersection]
                 intensities = (f_hkls * f_hkls.conjugate()).real * shape_factor
 
                 # Threshold peaks included in simulation as factor of zero beam intensity.

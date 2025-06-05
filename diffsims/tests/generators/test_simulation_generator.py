@@ -196,12 +196,13 @@ class TestDiffractionCalculator:
         big_diffraction = diffraction_calculator.calculate_diffraction2d(
             phase=big_silicon, reciprocal_radius=5.0
         )
-        indices = [tuple(i) for i in diffraction.coordinates.hkl]
-        big_indices = [tuple(i) for i in big_diffraction.coordinates.hkl]
-        assert (2, 2, 0) in indices
-        assert (2, 2, 0) in big_indices
-        coordinates = diffraction.coordinates[indices.index((2, 2, 0))]
-        big_coordinates = big_diffraction.coordinates[big_indices.index((2, 2, 0))]
+        indices = [tuple(i.tolist()) for i in diffraction.coordinates.hkl.astype(int)]
+        big_indices = [tuple(i.tolist()) for i in big_diffraction.coordinates.hkl.astype(int)]
+        target = (2, 2, 0)
+        assert target in indices
+        assert target in big_indices
+        coordinates = diffraction.coordinates[indices.index(target)]
+        big_coordinates = big_diffraction.coordinates[big_indices.index(target)]
         assert np.allclose(coordinates.data, big_coordinates.data * 2)
 
     def test_appropriate_intensities(self, diffraction_calculator, local_structure):
@@ -345,7 +346,7 @@ def test_same_simulation_results():
     # old_data = diff_lib["Graphite"]["simulations"][0].get_diffraction_pattern(shape=shape, sigma=sigma)
 
     # New
-    p = Phase("Graphite", structure=structure_matrix, space_group=1) # Space group 1 ensures no symmetry is applied
+    p = Phase("Graphite", structure=structure_matrix, space_group=194)
     gen = SimulationGenerator(**generator_kwargs)
     rot = Rotation.from_euler(euler_angles_new, degrees=True)
     sim = gen.calculate_diffraction2d(
