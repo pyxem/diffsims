@@ -415,11 +415,7 @@ class SimulationGenerator:
                 d > (lower - max_excitation_error)
             )
         # select these reflections
-        intersected_vectors = ~rot * (recip[intersection].to_miller())
-        intersected_vectors = DiffractingVector(
-            phase=RotatedPhase(recip.phase, rot),
-            xyz=intersected_vectors.data,
-        )
+        intersected_vectors = recip[intersection].rotate_with_basis(rot)
         excitation_error = excitation_error[intersection]
         hkl = recip_hkl[intersection]
         r_spot = intersected_vectors.norm
