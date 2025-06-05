@@ -18,8 +18,36 @@
 
 from diffsims.crystallography import ReciprocalLatticeVector
 import numpy as np
+from diffpy.structure import Structure
+from orix.crystal_map import Phase
 from orix.vector.miller import _transform_space
 from orix.quaternion import Rotation
+
+
+class RotatedPhase(Phase):
+    """Helper class to speed up rotating the basis of a Phase object.
+    The speedup comes from avoiding a deepcopy of the phase.
+
+    Parameters
+    ----------
+    phase : orix.crystal_map.Phase
+        A phase with a crystal lattice and symmetry.
+    rotation : orix.quaternion.Rotation
+        Rotation to apply to the basis of the phase
+    """
+
+    def __init__(self, phase: Phase, rotation: Rotation):
+        self._structure = Structure(phase.structure)
+        self.name = phase.name
+        self.space_group = phase.space_group
+        self.point_group = phase.point_group
+        self.color = phase.color
+
+        # Perform basis rotation
+        br = self.structure.lattice.baserot
+        # In case the base rotation is set already
+        new_br = br @ rotation.to_matrix().squeeze()
+        self.structure.lattice.setLatPar(baserot=new_br)
 
 
 class DiffractingVector(ReciprocalLatticeVector):
@@ -151,11 +179,8 @@ class DiffractingVector(ReciprocalLatticeVector):
         if rotation.size != 1:
             raise ValueError("Rotation must be a single rotation")
         # rotate basis
-        new_phase = self.phase.deepcopy()
-        br = new_phase.structure.lattice.baserot
-        # In case the base rotation is set already
-        new_br = br @ rotation.to_matrix().squeeze()
-        new_phase.structure.lattice.setLatPar(baserot=new_br)
+        new_phase = RotatedPhase(self.phase, rotation)
+
         # rotate vectors
         vecs = ~rotation * self.to_miller()
         return ReciprocalLatticeVector(new_phase, xyz=vecs.data)
