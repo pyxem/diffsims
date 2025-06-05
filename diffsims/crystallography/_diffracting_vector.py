@@ -183,7 +183,7 @@ class DiffractingVector(ReciprocalLatticeVector):
 
         # rotate vectors
         vecs = ~rotation * self.to_miller()
-        return ReciprocalLatticeVector(new_phase, xyz=vecs.data)
+        return self.__class__(new_phase, xyz=vecs.data)
 
     @property
     def intensity(self):
