@@ -204,6 +204,7 @@ class SimulationGenerator:
             recip.calculate_structure_factor(
                 scattering_params=self.scattering_params,
                 debye_waller_factors=debye_waller_factors,
+                use_symmetry=False, # Usually much faster
             )
             phase_vectors = []
 

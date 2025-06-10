@@ -643,7 +643,10 @@ class ReciprocalLatticeVector(Vector3d):
     # ------------------------- Custom methods ----------------------- #
 
     def calculate_structure_factor(
-        self, scattering_params="xtables", debye_waller_factors=None
+        self, 
+        scattering_params="xtables", 
+        debye_waller_factors=None,
+        use_symmetry=True,
     ):
         r"""Populate :attr:`structure_factor` with the complex
         kinematical structure factor :math:`F_{hkl}` for each vector.
@@ -655,6 +658,9 @@ class ReciprocalLatticeVector(Vector3d):
             (default) or ``"lobato"``.
         debye_waller_factors: dict
             Debye-Waller factors for atoms in the structure.
+        use_symmetry: bool
+            If True, will use symmetry to avoid re-calculating structure factors for equivalent reflections.
+            This can be slower for high symmetries.
 
         Examples
         --------
@@ -694,7 +700,7 @@ class ReciprocalLatticeVector(Vector3d):
         """
 
         # Compute one structure factor per set {hkl}
-        unique, inds = self.unique(use_symmetry=True, return_inverse=True)
+        unique, inds = self.unique(use_symmetry=use_symmetry, return_inverse=True)
         hkl_unique = unique.hkl
         structure_factor = _get_kinematical_structure_factor(
             structure=self.phase.structure,
