@@ -456,7 +456,7 @@ def get_intersection_with_ewalds_sphere(
 
 
 @njit(
-    "float64[:](float64[:, :], float64[:], float64)",
+    "float64[::1](float64[:, ::1], float64[::1], float64)",
     fastmath=True,
 )
 def _calculate_excitation_error(
@@ -486,7 +486,7 @@ def _calculate_excitation_error(
 
 
 @njit(
-    "Tuple((bool[:], float64[:]))(float64[:, :], float64[:], float64, float64)",
+    "Tuple((bool[::1], float64[::1]))(float64[:, ::1], float64[::1], float64, float64)",
     fastmath=True,
 )
 def _get_intersection_with_ewalds_sphere_without_precession(
@@ -503,7 +503,7 @@ def _get_intersection_with_ewalds_sphere_without_precession(
 
 
 @njit(
-    "Tuple((bool[:], float64[:]))(float64[:, :], float64[:], float64, float64, float64)",
+    "Tuple((bool[::1], float64[::1]))(float64[:, ::1], float64[::1], float64, float64, float64)",
     fastmath=True,
 )
 def _get_intersection_with_ewalds_sphere_with_precession(
