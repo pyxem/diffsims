@@ -121,21 +121,10 @@ class ReciprocalLatticeVector(Vector3d):
         self._structure_factor = np.full(self.shape, np.nan, dtype="complex128")
 
     def __getitem__(self, key):
-        miller_new = self.to_miller().__getitem__(key)
+        miller_new = self.to_miller()[key]
         rlv_new = self.from_miller(miller_new)
-
-        if np.isnan(self.structure_factor).all():
-            rlv_new._structure_factor = np.full(
-                rlv_new.shape, np.nan, dtype="complex128"
-            )
-        else:
-            rlv_new._structure_factor = self.structure_factor[key]
-
-        if np.isnan(self.theta).all():
-            rlv_new._theta = np.full(rlv_new.shape, np.nan)
-        else:
-            rlv_new._theta = self.theta[key]
-
+        rlv_new._structure_factor = self.structure_factor[key]
+        rlv_new._theta = self.theta[key]
         return rlv_new
 
     def __repr__(self):
@@ -865,10 +854,16 @@ class ReciprocalLatticeVector(Vector3d):
         structure_factor = v.structure_factor
         f_hkl = abs(structure_factor)
         f2_hkl = abs(structure_factor * structure_factor.conjugate())
+
+        # Sort with decreasing |F|^2 if they're not NaN
         order = np.argsort(f2_hkl)
-        v = v[order][::-1]
-        f_hkl = f_hkl[order][::-1]
-        f2_hkl = f2_hkl[order][::-1]
+        # All NaNs are already sorted, so we don't want to reverse them
+        if not np.any(np.isnan(f2_hkl)):
+            order = order[::-1] 
+        
+        v = v[order]
+        f_hkl = f_hkl[order]
+        f2_hkl = f2_hkl[order]
 
         size = v.size
         hkl = np.round(v.coordinates).astype(int)
@@ -1520,34 +1515,12 @@ class ReciprocalLatticeVector(Vector3d):
             Indices to reconstruct the original vectors from the unique
         """
 
-        # TODO: Reduce floating point precision in orix!
-        def miller_unique(miller, use_symmetry=False):
-            v, idx, inv = Vector3d(miller).unique(
-                return_index=True, return_inverse=True, ignore_zero=False
-            )
-
-            if use_symmetry:
-                operations = miller.phase.point_group
-                n_v = v.size
-                v2 = operations.outer(v).flatten().reshape(*(n_v, operations.size))
-                data = v2.data.round(8)  # Reduced precision
-                # To check for uniqueness, sort the equivalent vectors from each operation
-                data_sorted = np.zeros_like(data)
-                for i in range(n_v):
-                    a = data[i]
-                    order = np.lexsort(a.T)  # Sort by column 1, 2, then 3
-                    data_sorted[i] = a[order[::-1]]  # Reverse to preserve order
-                _, idx, inv = np.unique(
-                    data_sorted, return_index=True, return_inverse=True, axis=0
-                )
-                v = v[idx]
-
-            m = miller.__class__(xyz=v.data, phase=miller.phase)
-            m.coordinate_format = miller.coordinate_format
-
-            return m, idx, inv
-
-        miller, idx, inv = miller_unique(self.to_miller(), use_symmetry)
+        # miller, idx, inv = miller_unique(self.to_miller(), use_symmetry)
+        miller, idx, inv = self.to_miller().unique(
+            use_symmetry=use_symmetry, 
+            return_index=True, 
+            return_inverse=True,
+        )
 
         new_rlv = self.from_miller(miller)
         new_rlv._structure_factor = self.structure_factor.ravel()[idx]

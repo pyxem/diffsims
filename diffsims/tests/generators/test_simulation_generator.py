@@ -142,14 +142,16 @@ class TestDiffractionCalculator:
         with_direct_beam,
     ):
         diffraction = diffraction_calculator.calculate_diffraction2d(
-            local_structure, reciprocal_radius=5.0, with_direct_beam=with_direct_beam
+            local_structure, 
+            reciprocal_radius=5.0, 
+            with_direct_beam=with_direct_beam,
         )
         # Check that there is only one direct beam
         num_direct_beam = 0
         for hkl in diffraction.coordinates.hkl:
             hkl = tuple(hkl.flatten().tolist())
-            num_direct_beam += hkl == (0, 0, 0)
-        assert num_direct_beam == with_direct_beam
+            num_direct_beam += int(hkl == (0, 0, 0))
+        assert num_direct_beam == int(with_direct_beam)
 
     def test_matching_results(
         self, diffraction_calculator: SimulationGenerator, local_structure
