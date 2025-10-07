@@ -370,7 +370,7 @@ unobtainium = Phase(
 @pytest.mark.parametrize(
     "scattering_params, answer",
     [
-        ("lobato", 0.),
+        ("lobato", 0.0),
         (None, 1.0),
     ],
 )
@@ -383,7 +383,7 @@ def test_get_kinematical_intensities_unknown(scattering_params, answer):
     )
     g_hkls_array = np.asarray(g_hkls)
     # Debatable if this should actually be an error and not just a warning
-    with pytest.warns(UserWarning, match='not found in scattering parameter library.'):
+    with pytest.warns(UserWarning, match="not found in scattering parameter library."):
         i_hkls = get_kinematical_intensities(
             unobtainium.structure,
             g_indices=unique_hkls,

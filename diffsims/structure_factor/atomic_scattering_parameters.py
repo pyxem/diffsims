@@ -160,8 +160,8 @@ def get_element(atom_type_symbol):
         Alphabetic part of atom_type_symbol, notably without oxidation state.
         Usually the element name, but not guaranteed by the specification.
     """
-    reg = '^(?P<element>[A-Za-z]*)'
-    return re.match(reg, atom_type_symbol).group('element')
+    reg = "^(?P<element>[A-Za-z]*)"
+    return re.match(reg, atom_type_symbol).group("element")
 
 
 def get_atomic_scattering_parameters(element, unit=None):
