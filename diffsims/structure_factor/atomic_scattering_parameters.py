@@ -157,8 +157,8 @@ def get_element(atom_type_symbol):
     -------
 
     element : str
-        Alphabetic part of atom_type_symbol, notably without oxidation state.
-        Usually the element name, but not guaranteed by the specification.
+        Alphabetic head of atom_type_symbol, notably without oxidation state.
+        Usually an element symbol, but not guaranteed by the specification.
     """
     reg = "^(?P<element>[A-Za-z]*)"
     return re.match(reg, atom_type_symbol).group("element")
@@ -215,12 +215,17 @@ def get_atomic_scattering_parameters(element, unit=None):
 
 def get_element_id_from_string(element_str):
     r"""Get periodic element ID for elements :math:`Z` = 1-98 from
-    one-two letter string.
+    element symbol.
 
     Parameters
     ----------
     element_str : str
-        One-two letter string.
+        String starting with an element symbol, optionally delimited from other
+        following characters by a non-alphabetic character. Only the element
+        symbol is evaluated. In particular, compatible with common atom type
+        symbols in CIF files that often start with an element symbol followed by
+        e.g. an optional oxidation number, although this is not guaranteed:
+        https://www.iucr.org/__data/iucr/cifdic_html/1/cif_core.dic/Iatom_type_symbol.html
 
     Returns
     -------
