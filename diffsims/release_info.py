@@ -23,6 +23,7 @@ credits = [
     "Jedrzej Morzy",
     "Endre Jacobsen",
     "Tina Bergh",
+    "Dieter Weber",
     "Tomas Ostasevicius",
     "Eirik Opheim",
 ]
