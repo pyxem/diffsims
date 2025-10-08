@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with diffsims.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 import numpy as np
 
 # List of elements Z = 1-118
@@ -140,6 +142,28 @@ ATOMIC_SCATTERING_PARAMETERS_DOYLETURNER = np.array([
 # fmt: on
 
 
+def get_element(atom_type_symbol):
+    """Extract element symbol from _atom_type_symbol CIF key
+
+    See https://www.iucr.org/__data/iucr/cifdic_html/1/cif_core.dic/Iatom_type_symbol.html
+    for specification.
+
+    Parameters
+    ----------
+    atom_type_symbol : str
+        Symbol following the specification of _atom_type_symbol CIF key
+
+    Returns
+    -------
+
+    element : str
+        Alphabetic head of atom_type_symbol, notably without oxidation state.
+        Usually an element symbol, but not guaranteed by the specification.
+    """
+    reg = "^(?P<element>[A-Za-z]*)"
+    return re.match(reg, atom_type_symbol).group("element")
+
+
 def get_atomic_scattering_parameters(element, unit=None):
     """Return the eight atomic scattering parameters a_1-4, b_1-4 for
     elements with atomic numbers Z = 1-98 from Table 12.1 in
@@ -191,20 +215,26 @@ def get_atomic_scattering_parameters(element, unit=None):
 
 def get_element_id_from_string(element_str):
     r"""Get periodic element ID for elements :math:`Z` = 1-98 from
-    one-two letter string.
+    element symbol.
 
     Parameters
     ----------
     element_str : str
-        One-two letter string.
+        String starting with an element symbol, optionally delimited from other
+        following characters by a non-alphabetic character. Only the element
+        symbol is evaluated. In particular, compatible with common atom type
+        symbols in CIF files that often start with an element symbol followed by
+        e.g. an optional oxidation number, although this is not guaranteed:
+        https://www.iucr.org/__data/iucr/cifdic_html/1/cif_core.dic/Iatom_type_symbol.html
 
     Returns
     -------
     element_id : int
         Integer ID in the periodic table of elements.
     """
+    element = get_element(element_str)
     element2periodic = dict(zip(ELEMENTS[:N_ELEMENTS], np.arange(1, N_ELEMENTS)))
-    element_id = element2periodic[element_str.lower()]
+    element_id = element2periodic[element.lower()]
     return element_id
 
 

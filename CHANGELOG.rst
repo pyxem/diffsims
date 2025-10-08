@@ -7,6 +7,17 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0>`_
 this project tries its best to adhere to
 `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
+Unreleased
+==========
+
+Added
+-----
+
+- Support for wider range of `CIF atom type symbols
+  <https://www.iucr.org/__data/iucr/cifdic_html/1/cif_core.dic/Iatom_type_symbol.html>`_,
+  notably element symbol followed by oxidation number as found in CIF files
+  recently pulled from `ICSD <https://icsd.fiz-karlsruhe.de/>`_ (#245).
+
 2025-06-02 - version 0.7.0
 ==========================
 

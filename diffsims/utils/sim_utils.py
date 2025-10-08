@@ -18,6 +18,7 @@
 
 import collections
 import math
+from warnings import warn
 
 import diffpy.structure
 import numpy as np
@@ -25,6 +26,7 @@ from scipy.constants import h, m_e, e, c, pi, mu_0
 
 from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from diffsims.utils.lobato_scattering_params import ATOMIC_SCATTERING_PARAMS_LOBATO
+from diffsims.structure_factor.atomic_scattering_parameters import get_element
 
 
 __all__ = [
@@ -194,22 +196,29 @@ def get_vectorized_list_for_atomic_scattering_factors(
     dwfactors : numpy.ndarray
         Debye-Waller factors for each atom in the structure.
     """
-
     if scattering_params is not None:
         scattering_params_dict = get_scattering_params_dict(scattering_params)
     else:
         scattering_params_dict = {}
 
     n_structures = len(structure)
-    coeffs = np.empty((n_structures, 5, 2))
+    coeffs = np.zeros((n_structures, 5, 2))
     fcoords = np.empty((n_structures, 3))
     occus = np.empty(n_structures)
     dwfactors = np.empty(n_structures)
-    default = np.zeros((5, 2))
 
     for i, site in enumerate(structure):
-        coeffs[i] = scattering_params_dict.get(site.element, default)
-        dwfactors[i] = debye_waller_factors.get(site.element, 0)
+        element = get_element(site.element)
+        # At least emit a warning if a key is not found.
+        # Probably better to error out since the simulation will be invalid.
+        try:
+            coeffs[i] = scattering_params_dict[element]
+        except KeyError:
+            warn(
+                f"Element {element} from atom type symbol {site.element} not "
+                "found in scattering parameter library."
+            )
+        dwfactors[i] = debye_waller_factors.get(element, 0)
         fcoords[i] = site.xyz
         occus[i] = site.occupancy
 

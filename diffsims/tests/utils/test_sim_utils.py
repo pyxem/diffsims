@@ -20,6 +20,9 @@ import pytest
 import numpy as np
 import diffpy
 
+from diffpy.structure import Atom, Lattice, Structure
+from orix.crystal_map import Phase
+
 
 from diffsims.utils.sim_utils import (
     get_electron_wavelength,
@@ -347,4 +350,45 @@ def test_get_kinematical_intensities(default_structure, scattering_params, answe
         prefactor=multiplicites,
         scattering_params=scattering_params,
     )
+    np.testing.assert_array_almost_equal(i_hkls, ([answer]), decimal=4)
+
+
+# Copied from Nickel, with unknown element Unobtainium
+# Arbitrary strings can be found in CIF files, see
+# https://www.iucr.org/__data/iucr/cifdic_html/1/cif_core.dic/Iatom_type_symbol.html
+unobtainium = Phase(
+    space_group=225,
+    structure=Structure(
+        lattice=Lattice(3.5236, 3.5236, 3.5236, 90, 90, 90),
+        # Note that the standard explicitly shows "NiFe" and "dummy"
+        # as examples
+        atoms=[Atom(xyz=[0, 0, 0], atype="UnOb", Uisoequiv=0.006332)],
+    ),
+)
+
+
+@pytest.mark.parametrize(
+    "scattering_params, answer",
+    [
+        ("lobato", 0.0),
+        (None, 1.0),
+    ],
+)
+def test_get_kinematical_intensities_unknown(scattering_params, answer):
+    latt = unobtainium.structure.lattice
+    reciprocal_lattice = latt.reciprocal()
+    reciprocal_radius = 0.2
+    unique_hkls, multiplicites, g_hkls = get_intensities_params(
+        reciprocal_lattice, reciprocal_radius
+    )
+    g_hkls_array = np.asarray(g_hkls)
+    # Debatable if this should actually be an error and not just a warning
+    with pytest.warns(UserWarning, match="not found in scattering parameter library."):
+        i_hkls = get_kinematical_intensities(
+            unobtainium.structure,
+            g_indices=unique_hkls,
+            g_hkls_array=g_hkls_array,
+            prefactor=multiplicites,
+            scattering_params=scattering_params,
+        )
     np.testing.assert_array_almost_equal(i_hkls, ([answer]), decimal=4)

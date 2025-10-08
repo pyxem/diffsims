@@ -27,7 +27,8 @@ exec(open("diffsims/release_info.py").read())  # grab version info
 # fmt: off
 extra_feature_requirements = {
     "doc": [
-        "numpydoc",
+        # Restriction due to https://github.com/pyxem/orix/issues/570
+        "numpydoc               != 1.9.0",
         "pydata-sphinx-theme",
         "sphinx                 >= 3.0.2",
         "sphinx-design",
