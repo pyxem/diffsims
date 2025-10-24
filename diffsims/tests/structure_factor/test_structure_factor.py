@@ -34,7 +34,10 @@ nickel = Phase(
     space_group=225,
     structure=Structure(
         lattice=Lattice(3.5236, 3.5236, 3.5236, 90, 90, 90),
-        atoms=[Atom(xyz=[0, 0, 0], atype="Ni", Uisoequiv=0.006332)],
+        # Atom specified in a way found in CIF files from ICSD
+        # See also
+        # https://www.iucr.org/__data/iucr/cifdic_html/1/cif_core.dic/Iatom_type_symbol.html
+        atoms=[Atom(xyz=[0, 0, 0], atype="Ni0+", Uisoequiv=0.006332)],
     ),
 )
 ferrite = Phase(
