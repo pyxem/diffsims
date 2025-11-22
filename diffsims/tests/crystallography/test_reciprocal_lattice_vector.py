@@ -466,6 +466,19 @@ class TestReciprocalLatticeVector:
         hkl_set_idx_py = _get_set_per_hkl.py_func(hkl, test_hkl, mult)
         assert np.allclose(hkl_set_idx_nb, hkl_set_idx_py)
 
+    def test_structure_factors_symmetry(self, nickel_phase):
+        kwargs = {
+            "phase": nickel_phase,
+            "hkl": (4, 2, 5),
+            "include_zero_vector": True
+        }
+        rlv1 = ReciprocalLatticeVector.from_highest_hkl(**kwargs)
+        rlv2 = ReciprocalLatticeVector.from_highest_hkl(**kwargs)
+
+        rlv1.calculate_structure_factor(use_symmetry=False)
+        rlv2.calculate_structure_factor(use_symmetry=True)
+        # Strict check, they should be exactly equal
+        assert np.array_equal(rlv1.structure_factor, rlv2.structure_factor)
 
 class TestOverwrittenObject3d:
     def setup_class(self):
@@ -544,14 +557,62 @@ class TestOverwrittenObject3d:
     def test_unique(self, nickel_phase):
         """Correct unique vectors are obtained."""
         rlv = ReciprocalLatticeVector(
-            nickel_phase, hkl=[[1, 1, 1], [-1, 1, 1], [2, 0, 0], [3, 1, 1]]
+            nickel_phase, 
+            hkl=[
+                [1, 1, 1], 
+                [0, 0, 0], 
+                [0, 0, 0], 
+                [-1, 1, 1], 
+                [2, 0, 0], 
+                [3, 1, 1], 
+                [0, -2, 0], 
+                [0, 0, 0], 
+                [2, 0, 0],
+            ],
         )
-        rlv2 = rlv.unique()
-        assert np.allclose(rlv.hkl, rlv2.hkl)
+        # No symmetry
+        rlv2 = rlv.unique(use_symmetry=False)
+        # Only final two elements are true duplicates
+        assert np.allclose(rlv2.hkl, [
+            [1, 1, 1], 
+            [0, 0, 0], 
+            [-1, 1, 1], 
+            [2, 0, 0], 
+            [3, 1, 1], 
+            [0, -2, 0], 
+        ])
+        # Use symmetry, also check the array indices
         rlv3, idx3 = rlv.unique(use_symmetry=True, return_index=True)
-        assert np.allclose(rlv3.hkl, [[2, 0, 0], [1, 1, 1], [3, 1, 1]])
+        assert np.allclose(rlv3.hkl, [
+            [1, 1, 1], 
+            [0, 0, 0], 
+            [2, 0, 0], 
+            [3, 1, 1], 
+        ])
+        assert idx3.size == rlv3.size
         assert np.allclose(rlv[idx3].hkl, rlv3.hkl)
-
+        # Check array indices without symmetry
+        rlv4, idx4 = rlv.unique(use_symmetry=False, return_index=True)
+        assert np.allclose(rlv4.hkl, rlv2.hkl)
+        assert np.allclose(rlv[idx4].hkl, rlv4.hkl)
+        # Check reconstructing array, without symmetry
+        rlv5, idx5, inv5 = rlv.unique(use_symmetry=False, return_inverse=True, return_index=True)
+        assert np.allclose(rlv5.hkl, rlv2.hkl)
+        assert np.allclose(rlv5[inv5].hkl, rlv.hkl)
+        # Check reconstructing with symmetry
+        rlv6, inv6 = rlv.unique(use_symmetry=True, return_inverse=True)
+        assert np.allclose(rlv6.hkl, rlv3.hkl)
+        assert np.allclose(rlv6[inv6].hkl, [
+            [1, 1, 1], 
+            [0, 0, 0], 
+            [0, 0, 0], 
+            [1, 1, 1], # Reduced by symmetry
+            [2, 0, 0], 
+            [3, 1, 1], 
+            [2, 0, 0], # Reduced by symmetry
+            [0, 0, 0], 
+            [2, 0, 0],
+        ])
 
 class TestOverwrittenVector3d:
     def setup_class(self):
