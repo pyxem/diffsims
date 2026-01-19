@@ -22,7 +22,6 @@ from itertools import product
 
 from diffsims.utils.vector_utils import vectorised_spherical_polars_to_cartesians
 
-
 __all__ = [
     "beam_directions_grid_to_euler",
     "get_cube_mesh_vertices",

@@ -19,7 +19,6 @@
 import numpy as np
 from scipy.integrate import quad
 
-
 __all__ = [
     "atanc",
     "binary",

@@ -25,7 +25,6 @@ from diffsims.structure_factor.atomic_scattering_factor import (
     get_doyleturner_atomic_scattering_factor,
 )
 
-
 rest_mass = physical_constants["atomic unit of mass"][0]
 # rest_mass = 9.109383709e-31  # Used by EMsoft
 
