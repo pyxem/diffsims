@@ -18,7 +18,6 @@ from diffsims.libraries.structure_library import StructureLibrary
 from diffsims.generators.diffraction_generator import DiffractionGenerator
 from diffsims.generators.library_generator import DiffractionLibraryGenerator
 
-
 latt = Lattice(4, 4, 4, 90, 90, 90)
 atoms = [
     Atom(atype="Al", xyz=[0.0, 0.0, 0.0], lattice=latt),

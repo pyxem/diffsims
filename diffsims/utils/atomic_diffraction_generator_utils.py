@@ -31,7 +31,6 @@ from diffsims.utils.fourier_transform import (
 )
 from diffsims.utils.generic_utils import to_mesh
 
-
 __all__ = [
     "get_diffraction_image",
     "grid2sphere",

@@ -28,7 +28,6 @@ from numpy import array, pi, inf, ceil, exp, isscalar, prod, require, empty
 from numpy.fft import fftfreq
 import numba
 
-
 __all__ = [
     "convolve",
     "fast_abs",

@@ -23,6 +23,7 @@ Back end for computing diffraction patterns with a kinematic model.
 
 @author: Rob Tovey
 """
+
 from numpy import array, pi, sin, cos, empty
 from scipy.interpolate import interpn
 
@@ -35,7 +36,6 @@ from diffsims.utils.fourier_transform import (
     fast_abs,
 )
 from diffsims.utils.generic_utils import to_mesh
-
 
 __all__ = [
     "get_diffraction_image",

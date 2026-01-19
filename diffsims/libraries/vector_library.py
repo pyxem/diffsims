@@ -18,7 +18,6 @@
 
 import pickle
 
-
 __all__ = [
     "DiffractionVectorLibrary",
     "load_VectorLibrary",
@@ -48,10 +47,8 @@ def load_VectorLibrary(filename, safety=False):
         with open(filename, "rb") as handle:
             return pickle.load(handle)
     else:
-        raise RuntimeError(
-            "Unpickling is risky, turn safety to True if \
-        trust the author of this content"
-        )
+        raise RuntimeError("Unpickling is risky, turn safety to True if \
+        trust the author of this content")
 
 
 class DiffractionVectorLibrary(dict):
