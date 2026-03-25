@@ -41,8 +41,8 @@ class TestDiffractingVector:
 
     def test_structure_factor(self, ferrite_phase):
         rlv = DiffractingVector.from_min_dspacing(ferrite_phase, 1.5)
-        with pytest.raises(NotImplementedError):
-            rlv.calculate_structure_factor()
+        rlv.calculate_structure_factor()
+        assert np.all(~np.isnan(rlv.structure_factor))
 
     def test_hkl(self, ferrite_phase):
         rlv = ReciprocalLatticeVector(ferrite_phase, hkl=[[1, 1, 1], [2, 0, 0]])
