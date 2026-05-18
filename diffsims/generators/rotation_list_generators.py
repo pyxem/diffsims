@@ -32,7 +32,6 @@ from diffsims.generators.sphere_mesh_generators import (
     beam_directions_grid_to_euler,
 )
 
-
 __all__ = [
     "get_beam_directions_grid",
     "get_fundamental_zone_grid",

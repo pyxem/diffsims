@@ -28,7 +28,6 @@ from diffsims.utils.atomic_scattering_params import ATOMIC_SCATTERING_PARAMS
 from diffsims.utils.lobato_scattering_params import ATOMIC_SCATTERING_PARAMS_LOBATO
 from diffsims.structure_factor.atomic_scattering_parameters import get_element
 
-
 __all__ = [
     "acceleration_voltage_to_relativistic_mass",
     "acceleration_voltage_to_velocity",

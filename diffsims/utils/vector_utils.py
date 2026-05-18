@@ -20,7 +20,6 @@ import math
 
 import numpy as np
 
-
 __all__ = [
     "get_angle_cartesian",
     "get_angle_cartesian_vec",

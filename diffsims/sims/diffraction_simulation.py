@@ -23,7 +23,6 @@ import numpy as np
 from diffsims.pattern.detector_functions import add_shot_and_point_spread
 from diffsims.utils import mask_utils
 
-
 __all__ = [
     "DiffractionSimulation",
     "ProfileSimulation",

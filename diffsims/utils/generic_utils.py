@@ -23,9 +23,9 @@ Generic tools for all areas of code.
 
 @author: Rob Tovey
 """
+
 from numpy import isscalar, zeros, array
 import numba
-
 
 __all__ = [
     "GLOBAL_BOOL",

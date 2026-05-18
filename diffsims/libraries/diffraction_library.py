@@ -20,7 +20,6 @@ import pickle
 
 import numpy as np
 
-
 __all__ = [
     "DiffractionLibrary",
     "load_DiffractionLibrary",

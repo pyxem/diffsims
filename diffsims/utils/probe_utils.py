@@ -21,6 +21,7 @@ Created on 5 Nov 2019
 
 @author: Rob Tovey
 """
+
 import numba
 from math import sqrt as c_sqrt
 from numpy import empty, maximum, sqrt, arange, pi, linspace, ones

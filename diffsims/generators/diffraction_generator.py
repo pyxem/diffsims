@@ -41,7 +41,6 @@ from diffsims.utils.shape_factor_models import (
     lorentzian_precession,
 )
 
-
 __all__ = [
     "AtomicDiffractionGenerator",
     "DiffractionGenerator",
