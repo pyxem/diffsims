@@ -24,7 +24,6 @@ from numba import jit
 from numpy.random import default_rng
 from scipy import ndimage as ndi
 
-
 __all__ = [
     "add_dead_pixels",
     "add_detector_offset",

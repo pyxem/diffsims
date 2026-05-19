@@ -27,7 +27,6 @@ from diffsims.libraries.vector_library import DiffractionVectorLibrary
 from diffsims.utils.sim_utils import get_points_in_sphere
 from diffsims.utils.vector_utils import get_angle_cartesian_vec
 
-
 __all__ = [
     "DiffractionLibraryGenerator",
     "VectorLibraryGenerator",

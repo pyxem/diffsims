@@ -19,7 +19,6 @@
 import numpy as np
 from transforms3d.euler import axangle2euler
 
-
 __all__ = [
     "corners_to_centroid_and_edge_centers",
     "generate_directional_simulations",
