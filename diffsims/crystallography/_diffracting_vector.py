@@ -18,8 +18,38 @@
 
 from diffsims.crystallography import ReciprocalLatticeVector
 import numpy as np
-from orix.vector.miller import _transform_space
+from diffpy.structure import Structure
+from orix.crystal_map import Phase
 from orix.quaternion import Rotation
+
+
+class RotatedPhase(Phase):
+    """Helper class to speed up rotating the basis of a Phase object.
+    The speedup comes from avoiding a deepcopy of the phase.
+
+    Parameters
+    ----------
+    phase : orix.crystal_map.Phase
+        A phase with a crystal lattice and symmetry.
+    rotation : orix.quaternion.Rotation
+        Rotation to apply to the basis of the phase
+    """
+
+    def __init__(self, phase: Phase, rotation: Rotation):
+        # Copy structure to not override the input phase.
+        # Use private members to avoid re-computing
+        self._structure = Structure(phase.structure)
+        self._diffpy_lattice = phase._diffpy_lattice
+        self.name = phase.name
+        self.space_group = phase.space_group
+        self.point_group = phase.point_group
+        self.color = phase.color
+
+        # Perform basis rotation
+        br = self.structure.lattice.baserot
+        # In case the base rotation is set already
+        new_br = br @ rotation.to_matrix().squeeze()
+        self.structure.lattice.setLatPar(baserot=new_br)
 
 
 class DiffractingVector(ReciprocalLatticeVector):
@@ -93,27 +123,9 @@ class DiffractingVector(ReciprocalLatticeVector):
     def __getitem__(self, key):
         new_data = self.data[key]
         dv_new = self.__class__(self.phase, xyz=new_data)
-
-        if np.isnan(self.structure_factor).all():
-            dv_new._structure_factor = np.full(dv_new.shape, np.nan, dtype="complex128")
-
-        else:
-            dv_new._structure_factor = self.structure_factor[key]
-        if np.isnan(self.theta).all():
-            dv_new._theta = np.full(dv_new.shape, np.nan)
-        else:
-            dv_new._theta = self.theta[key]
-        if np.isnan(self.intensity).all():
-            dv_new._intensity = np.full(dv_new.shape, np.nan)
-        else:
-            slic = self.intensity[key]
-            if not hasattr(slic, "__len__"):
-                slic = np.array(
-                    [
-                        slic,
-                    ]
-                )
-            dv_new._intensity = slic
+        dv_new._structure_factor = self._structure_factor[key]
+        dv_new._theta = self._theta[key]
+        dv_new._intensity = self._intensity[key]
 
         return dv_new
 
@@ -151,14 +163,11 @@ class DiffractingVector(ReciprocalLatticeVector):
         if rotation.size != 1:
             raise ValueError("Rotation must be a single rotation")
         # rotate basis
-        new_phase = self.phase.deepcopy()
-        br = new_phase.structure.lattice.baserot
-        # In case the base rotation is set already
-        new_br = br @ rotation.to_matrix().squeeze()
-        new_phase.structure.lattice.setLatPar(baserot=new_br)
+        new_phase = RotatedPhase(self.phase, rotation)
+
         # rotate vectors
         vecs = ~rotation * self.to_miller()
-        return ReciprocalLatticeVector(new_phase, xyz=vecs.data)
+        return self.__class__(new_phase, xyz=vecs.data)
 
     @property
     def intensity(self):
@@ -177,11 +186,11 @@ class DiffractingVector(ReciprocalLatticeVector):
             raise ValueError("Length of intensity array must match number of vectors")
         self._intensity = np.array(value)
 
-    def calculate_structure_factor(self):
-        raise NotImplementedError(
-            "Structure factor calculation not implemented for DiffractionVector. "
-            "Use ReciprocalLatticeVector instead."
-        )
+    # def calculate_structure_factor(self):
+    #     raise NotImplementedError(
+    #         "Structure factor calculation not implemented for DiffractionVector. "
+    #         "Use ReciprocalLatticeVector instead."
+    #     )
 
     def to_flat_polar(self):
         """Return the vectors in polar coordinates as projected onto the x,y plane"""
